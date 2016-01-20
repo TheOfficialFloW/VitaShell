@@ -1,0 +1,31 @@
+Changelog 0.5:
+- Fixed alphabetical sorting, finally.
+
+Changelog 0.4:
+- Added experimental feature: Holding START to force exit homebrews.
+- Added battery symbol by Ruben_Wolf.
+- Switched to official PGF font.
+- Changed triangle-menu animation to ease-out.
+- Improved mark all/unmark all feature.
+- Fixed percentage precision in progress bar.
+- Fixed small bug in move operation.
+
+Changelog 0.3:
+- Added translation support. See translation_readme.txt for more details.
+- Added move ability (only possible within same partition).
+- Added tabulator support in text viewer.
+- Removed 'Paste', 'Delete', 'Rename' and 'New folder' in read-only partitions.
+- Fixed size string of files over 1GB.
+- Fixed alphabetical sorting.
+- Fixed battery percent bug being -1% on PSM Dev Assistant.
+
+Changelog 0.2:
+- Added ability to sign PSP homebrews.
+- Added sleep prevention when using FTP, deleting and copying files.
+- Added a scrollbar.
+- Added date and time to info bar.
+- Added correct enter and cancel buttons assignment.
+- Added some cosmetic changes.
+- Fixed crash when deleting marked entries.
+- Copied entries now still rest in clipboard after pasting them.
+- The application now cleans itself before launching homebrews.

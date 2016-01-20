@@ -1,0 +1,4 @@
+bin2c english_us_translation.txt english_us_translation.h english_us_translation
+bin2c battery.png battery.h battery
+bin2c battery_bar_red.png battery_bar_red.h battery_bar_red
+bin2c battery_bar_green.png battery_bar_green.h battery_bar_green
