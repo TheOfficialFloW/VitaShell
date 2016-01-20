@@ -9,6 +9,10 @@ FEXCSRCS   = $(foreach dir, $(FEXDIRS), $(wildcard $(dir)/*.c))
 FEXCPPSRCS = $(foreach dir, $(FEXDIRS), $(wildcard $(dir)/*.cpp))
 OBJS += $(FEXCSRCS:.c=.o) $(FEXCPPSRCS:.cpp=.o)
 
+RESOURCES_PNG = resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png
+RESOURCES_TXT = resources/english_us_translation.txt
+OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
+
 #stubs.o include this crashes fex!!!
 
 LIBS =  -lvita2d -lpng -ljpeg -lz -lm -lc \
@@ -34,6 +38,11 @@ all: $(TARGET).velf
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+
+%.o: %.png
+	$(PREFIX)-objcopy -I binary -O elf32-littlearm -B arm $< $@
+%.o: %.txt
+	$(PREFIX)-objcopy -I binary -O elf32-littlearm -B arm $< $@
 
 clean:
 	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS)

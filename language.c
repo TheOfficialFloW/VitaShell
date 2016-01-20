@@ -19,7 +19,8 @@
 #include "main.h"
 #include "language.h"
 
-#include "resources/english_us_translation.h"
+extern unsigned char _binary_resources_english_us_translation_txt_start;
+extern unsigned char _binary_resources_english_us_translation_txt_size;
 
 static char *lang[] ={
 	"japanese",
@@ -120,7 +121,7 @@ int loadLanguageContainer(void *buffer, int size) {
 			strcpy(language_container[i], line);
 			i++;
 		}
- 
+
 		size -= res;
 		p += res;
 	} while (res > 0 && i < LANGUAGE_CONTRAINER_SIZE);
@@ -150,5 +151,5 @@ void loadLanguage(int id) {
 	}
 
 	if (!loaded)
-		loadLanguageContainer(english_us_translation, size_english_us_translation);
+		loadLanguageContainer(&_binary_resources_english_us_translation_txt_start, (int)&_binary_resources_english_us_translation_txt_size);
 }

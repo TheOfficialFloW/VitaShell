@@ -21,9 +21,9 @@
 #include "file.h"
 #include "module.h"
 
-#include "resources/battery.h"
-#include "resources/battery_bar_red.h"
-#include "resources/battery_bar_green.h"
+extern unsigned char _binary_resources_battery_png_start;
+extern unsigned char _binary_resources_battery_bar_red_png_start;
+extern unsigned char _binary_resources_battery_bar_green_png_start;
 
 vita2d_pgf *font = NULL;
 char font_size_cache[256];
@@ -88,9 +88,9 @@ void initVita2dLib() {
 		font_size_cache[i] = vita2d_pgf_text_width(font, FONT_SIZE, character);
 	}
 
-	battery_image = vita2d_load_PNG_buffer(battery);
-	battery_bar_red_image = vita2d_load_PNG_buffer(battery_bar_red);
-	battery_bar_green_image = vita2d_load_PNG_buffer(battery_bar_green);
+	battery_image = vita2d_load_PNG_buffer(&_binary_resources_battery_png_start);
+	battery_bar_red_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_red_png_start);
+	battery_bar_green_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_green_png_start);
 }
 
 void finishVita2dLib() {
