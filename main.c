@@ -906,7 +906,7 @@ void fileBrowserMenuCtrl() {
 			if (res < 0) {
 				infoDialog(language_container[WIFI_ERROR]);
 			} else {
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[FTP_SERVER], vita_ip, vita_port);
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
 				dialog_step = DIALOG_STEP_FTP;
 			}
 		}
