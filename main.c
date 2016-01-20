@@ -303,7 +303,7 @@ int handleFile(char *file) {
 		case FILE_TYPE_UNKNOWN:
 			res = textViewer(file);
 			break;
-			
+
 		case FILE_TYPE_ELF:
 			if (isValidElf(file)) {
 				loadElf(file);
@@ -312,24 +312,24 @@ int handleFile(char *file) {
 			}
 
 			break;
-			
+
 		case FILE_TYPE_BMP:
-		case FILE_TYPE_PNG:	
+		case FILE_TYPE_PNG:
 		case FILE_TYPE_JPEG:
 			res = photoViewer(file, type);
 			break;
-			
+
 		case FILE_TYPE_PBP:
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SIGN_QUESTION]);
 			dialog_step = DIALOG_STEP_SIGN_CONFIRM;
 			break;
-			
+
 		case FILE_TYPE_RAR:
 		case FILE_TYPE_7ZIP:
 		case FILE_TYPE_ZIP:
 			archiveOpen(file);
 			break;
-			
+
 		default:
 			errorDialog(type);
 			break;
@@ -366,7 +366,7 @@ void drawShellInfo(char *path) {
 
 	if (percent <= 0.2f)
 		battery_bar_image = battery_bar_red_image;
-	
+
 	float width = vita2d_texture_get_width(battery_bar_image);
 	vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
 
@@ -625,7 +625,7 @@ void contextMenuCtrl() {
 
 				break;
 			}
-			
+
 			case MENU_ENTRY_MOVE:
 			case MENU_ENTRY_COPY:
 			{
@@ -670,12 +670,12 @@ void contextMenuCtrl() {
 
 				break;
 			}
-			
+
 			case MENU_ENTRY_PASTE:
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[copy_mode == COPY_MODE_MOVE ? MOVING : COPYING]);
 				dialog_step = DIALOG_STEP_PASTE;
 				break;
-			
+
 			case MENU_ENTRY_DELETE:
 			{
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
@@ -683,7 +683,7 @@ void contextMenuCtrl() {
 				dialog_step = DIALOG_STEP_DELETE_CONFIRM;
 				break;
 			}
-			
+
 			case MENU_ENTRY_RENAME:
 			{
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
@@ -697,7 +697,7 @@ void contextMenuCtrl() {
 				dialog_step = DIALOG_STEP_RENAME;
 				break;
 			}
-			
+
 			case MENU_ENTRY_NEW_FOLDER:
 				initImeDialog(language_container[NEW_FOLDER], language_container[NEW_FOLDER], MAX_NAME_LENGTH);
 				dialog_step = DIALOG_STEP_NEW_FOLDER;
@@ -735,7 +735,7 @@ int dialogSteps() {
 			}
 
 			break;
-		
+
 		// With refresh
 		case DIALOG_STEP_SIGNED:
 		case DIALOG_STEP_COPIED:
@@ -746,7 +746,7 @@ int dialogSteps() {
 			}
 
 			break;
-			
+
 		case DIALOG_STEP_MOVED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				fileListEmpty(&copy_list);
@@ -755,7 +755,7 @@ int dialogSteps() {
 			}
 
 			break;
-			
+
 		case DIALOG_STEP_FTP:
 			disableAutoSuspend();
 
@@ -766,7 +766,7 @@ int dialogSteps() {
 			}
 
 			break;
-			
+
 		case DIALOG_STEP_SIGN_CONFIRM:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				int res = signPspFile(cur_file);
@@ -781,7 +781,7 @@ int dialogSteps() {
 			}
 
 			break;
-			
+
 		case DIALOG_STEP_NEW_FOLDER:
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
@@ -802,7 +802,7 @@ int dialogSteps() {
 			}
 
 			break;
-			
+
 		case DIALOG_STEP_PASTE:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				CopyArguments args;
@@ -821,7 +821,7 @@ int dialogSteps() {
 			}
 
 			break;
-		
+
 		case DIALOG_STEP_DELETE_CONFIRM:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DELETING]);
@@ -831,7 +831,7 @@ int dialogSteps() {
 			}
 
 			break;
-		
+
 		case DIALOG_STEP_DELETE_CONFIRMED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				DeleteArguments args;
@@ -848,7 +848,7 @@ int dialogSteps() {
 			}
 
 			break;
-		
+
 		case DIALOG_STEP_RENAME:
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
@@ -1222,7 +1222,7 @@ void getNetInfo() {
 	0x82833480: 0x82824D63 'cM..' - addhi      v1, a3, #0x18c0
 	0x82833484: 0x82825155 'UQ..' - addhi      v2, a3, #0x40000015						receive from avmedia service? ;) calling sub_82824EEC to receive file buffer
 	0x82833488: 0x828257AF '.W..' - addhi      v2, a3, #0x2bc0000						called by 0x82406CAA?
-	0x8283348C: 0x82825FA5 '._..' - addhi      v2, a3, #0x294							
+	0x8283348C: 0x82825FA5 '._..' - addhi      v2, a3, #0x294
 	0x82833490: 0x828266A5 '.f..' - addhi      v3, a3, #0xa500000						called by 0x82406D04?
 	0x82833494: 0x82826F43 'Co..' - addhi      v3, a3, #0x10c
 	0x82833498: 0x828273CD '.s..' - addhi      v4, a3, #0x34000003						called by 0x82406D5E?
@@ -1502,7 +1502,7 @@ int user_thread(SceSize args, void *argp) {
 	showSplashScreen();
 #endif
 
-	hack();
+	// hack();
 
 	// Main
 	initShell();

@@ -103,13 +103,13 @@ uint32_t encode_arm_inst(uint8_t type, uint16_t immed, uint16_t reg) {
 	switch (type) {
 		case INSTRUCTION_MOVW:
 			return ((uint32_t)0xE30 << 20) | ((uint32_t)(immed & 0xF000) << 4) | (immed & 0xFFF) | (reg << 12);
-			
+
 		case INSTRUCTION_MOVT:
 			return ((uint32_t)0xE34 << 20) | ((uint32_t)(immed & 0xF000) << 4) | (immed & 0xFFF) | (reg << 12);
-			
+
 		case INSTRUCTION_SYSCALL:
 			return (uint32_t)0xEF000000;
-			
+
 		case INSTRUCTION_BRANCH:
 			return ((uint32_t)0xE12FFF1 << 4) | reg;
 	}
@@ -131,7 +131,7 @@ void makeSyscallStub(uint32_t address, uint16_t syscall) {
 
 	uvl_lock_mem();
 
-	uvl_flush_icache(f, 0x10);	
+	uvl_flush_icache(f, 0x10);
 }
 
 void makeFunctionStub(uint32_t address, void *function) {
@@ -196,7 +196,7 @@ uint32_t extractSyscallStub(uint32_t address) {
 	uint8_t type;
 
 	uint32_t *f = (uint32_t *)address;
-	
+
 	if (!f)
 		return -1;
 
@@ -239,7 +239,7 @@ int getModuleInfo(SceUID mod, char modname[27], uint32_t *text_addr, uint32_t *t
 
 int findModuleByName(char *name, uint32_t *text_addr, uint32_t *text_size) {
 	SceUID mod_list[MAX_MODULES];
-	int mod_count = MAX_MODULES;
+	unsigned int mod_count = MAX_MODULES;
 
 	if (sceKernelGetModuleList(0xFF, mod_list, &mod_count) >= 0) {
 		int i;
@@ -259,7 +259,7 @@ int findModuleByName(char *name, uint32_t *text_addr, uint32_t *text_size) {
 
 int findModuleByAddress(uint32_t address, char modname[27], int *section, uint32_t *text_addr, uint32_t *text_size) {
 	SceUID mod_list[MAX_MODULES];
-	int mod_count = MAX_MODULES;
+	unsigned int mod_count = MAX_MODULES;
 
 	if (sceKernelGetModuleList(0xFF, mod_list, &mod_count) >= 0) {
 		int i;
@@ -381,7 +381,7 @@ uint32_t findModuleImportByUID(SceUID mod, char *libname, uint32_t nid) {
 
 int findSyscallInModuleImports(uint32_t syscall, char modulename[27], uint32_t *addr) {
 	SceUID mod_list[MAX_MODULES];
-	int mod_count = MAX_MODULES;
+	unsigned int mod_count = MAX_MODULES;
 
 	int res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
 	if (res < 0)
@@ -435,10 +435,10 @@ void duplicateModule(char *name, uint32_t *text_addr, uint32_t *text_size) {
 	memcpy((void *)new_text_addr, (void *)ori_text_addr, ori_text_size);
 	uvl_lock_mem();
 	uvl_flush_icache((void *)new_text_addr, ori_text_size);
-	
+
 	if (text_addr)
 		*text_addr = new_text_addr;
-	
+
 	if (text_size)
 		*text_size = ori_text_size;
 }
@@ -498,7 +498,7 @@ int dumpModule(SceUID uid) {
 
 int dumpModules() {
 	SceUID mod_list[MAX_MODULES];
-	int mod_count = MAX_MODULES;
+	unsigned int mod_count = MAX_MODULES;
 
 	int res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
 	if (res < 0)
@@ -561,7 +561,7 @@ void addImportNids(SceModuleInfo *mod_info, uint32_t text_addr, uint32_t reload_
 		}
 
 		i += import.size;
-	}	
+	}
 }
 
 void addExportNids(SceModuleInfo *mod_info, uint32_t text_addr) {
@@ -577,12 +577,12 @@ void addExportNids(SceModuleInfo *mod_info, uint32_t text_addr) {
 		}
 
 		i += export->size;
-	}	
+	}
 }
 
 int setupNidTable() {
 	SceUID mod_list[MAX_MODULES];
-	int mod_count = MAX_MODULES;
+	unsigned int mod_count = MAX_MODULES;
 
 	nid_table = malloc(MAX_NIDS * sizeof(NidTable));
 	memset(nid_table, 0, MAX_NIDS * sizeof(NidTable));

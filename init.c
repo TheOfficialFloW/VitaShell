@@ -98,7 +98,7 @@ void finishVita2dLib() {
 	vita2d_free_texture(battery_bar_red_image);
 	vita2d_free_texture(battery_image);
 	vita2d_free_pgf(font);
-	vita2d_fini();	
+	vita2d_fini();
 }
 
 void addMountPoints() {
