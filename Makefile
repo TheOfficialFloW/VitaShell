@@ -34,7 +34,7 @@ all: $(TARGET).velf
 
 %.velf: %.elf
 	$(PREFIX)-strip -g $<
-	vita-elf-create $< $@ > null
+	vita-elf-create $< $@ | true
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
@@ -50,3 +50,6 @@ clean:
 copy: $(TARGET).velf
 	@cp $(TARGET).velf ../Rejuvenate/$(TARGET).velf
 	@echo "Copied!"
+
+send: $(TARGET).velf
+	curl -T $(TARGET).velf ftp://$(PSVITAIP):1337/cache0:/
