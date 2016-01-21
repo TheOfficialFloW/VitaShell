@@ -18,9 +18,13 @@
 
 /*
 	TODO:
-	- Page skip
+	- Nethost. Patch UVL to be able to launch from host0
+	- Page skip for hex and text viewer
+	- Improve homebrew exiting. Compatibility list at http://wololo.net/talk/viewtopic.php?f=113&p=402975#p402975
+	- Add UTF8/UTF16 to vita2dlib's pgf
+	- Maybe switch to libarchive
 	- Hex editor byte group size
-	- CPU
+	- CPU changement
 	- Move error fix by moving its content
 	- Duplicate when same location or same folder
 	- Copy same location check and handling. x:/a to x:/a/b loop.
