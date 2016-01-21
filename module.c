@@ -521,6 +521,66 @@ int dumpModules() {
 	return 0;
 }
 
+void loadModules() {
+	removePath("cache0:/modules", NULL, 0, NULL);
+	sceIoMkdir("cache0:/modules", 0777);
+
+	SceUID dfd = sceIoDopen(sys_external_path);
+	if (dfd >= 0) {
+		int res = 0;
+
+		do {
+			SceIoDirent dir;
+			memset(&dir, 0, sizeof(SceIoDirent));
+
+			res = sceIoDread(dfd, &dir);
+			if (res > 0) {
+				if (!SCE_S_ISDIR(dir.d_stat.st_mode)) {
+					char path[128];
+					sprintf(path, "%s%s", sys_external_path, dir.d_name);
+
+					SceUID mod = sceKernelLoadModule(path, 0, NULL);
+					if (mod >= 0)
+						dumpModule(mod);
+
+					sceKernelUnloadModule(mod, 0, NULL);
+				}
+			}
+		} while (res > 0);
+
+		sceIoDclose(dfd);
+	}
+
+	char webcore_path[128];
+	sprintf(webcore_path, "%s%s", data_external_path, "webcore");
+
+	dfd = sceIoDopen(webcore_path);
+	if (dfd >= 0) {
+		int res = 0;
+
+		do {
+			SceIoDirent dir;
+			memset(&dir, 0, sizeof(SceIoDirent));
+
+			res = sceIoDread(dfd, &dir);
+			if (res > 0) {
+				if (!SCE_S_ISDIR(dir.d_stat.st_mode)) {
+					char path[128];
+					sprintf(path, "%s/%s", webcore_path, dir.d_name);
+
+					SceUID mod = sceKernelLoadModule(path, 0, NULL);
+					if (mod >= 0)
+						dumpModule(mod);
+
+					sceKernelUnloadModule(mod, 0, NULL);
+				}
+			}
+		} while (res > 0);
+
+		sceIoDclose(dfd);
+	}
+}
+
 uint32_t getNid(uint32_t value) {
 	int i;
 	for (i = 0; i < nids_count; i++) {
