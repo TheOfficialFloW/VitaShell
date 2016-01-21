@@ -18,6 +18,7 @@
 
 #include "main.h"
 #include "init.h"
+#include "homebrew.h"
 #include "file.h"
 #include "utils.h"
 #include "module.h"
@@ -33,19 +34,6 @@
 	- Unload prxs
 	- Delete semaphores, events, callbacks, msg pipes, rw locks
 */
-
-typedef struct {
-	char *library;
-	uint32_t nid;
-	void *function;
-} PatchNID;
-
-#define MAX_AUDIO_PORTS 3
-#define MAX_SYNC_OBJECTS 3
-#define MAX_GXM_PRGRAMS 16
-#define MAX_UIDS 32
-
-#define INVALID_UID -1
 
 static int force_exit = 0;
 
@@ -728,36 +716,72 @@ int sceKernelGetMemBlockBasePatchedUVL(SceUID uid, void **basep) {
 	return res;
 }
 
+SceUID sceIoOpenPatchedUVL(const char *file, int flags, SceMode mode) {
+	debugPrintf("%s\n", __FUNCTION__);
+	return sceIoOpen(file, flags, mode);
+}
+
+SceOff sceIoLseekPatchedUVL(SceUID fd, SceOff offset, int whence) {
+	debugPrintf("%s\n", __FUNCTION__);
+	return sceIoLseek(fd, offset, whence);
+}
+
+int sceIoReadPatchedUVL(SceUID fd, void *data, SceSize size) {
+	debugPrintf("%s\n", __FUNCTION__);
+	return sceIoRead(fd, data, size);
+}
+
+int sceIoWritePatchedUVL(SceUID fd, const void *data, SceSize size) {
+	debugPrintf("%s\n", __FUNCTION__);
+	return sceIoWrite(fd, data, size);
+}
+
+int sceIoClosePatchedUVL(SceUID fd) {
+	debugPrintf("%s\n", __FUNCTION__);
+	return sceIoClose(fd);
+}
+
+PatchValue patches_uvl[] = {
+	{ -1, (uint32_t)&sceKernelAllocMemBlock, sceKernelAllocMemBlockPatchedUVL },
+	{ -1, (uint32_t)&sceKernelGetMemBlockBase, sceKernelGetMemBlockBasePatchedUVL },
+	{ -1, (uint32_t)&sceKernelCreateThread, sceKernelCreateThreadPatchedUVL },
+	{ -1, (uint32_t)&sceIoOpen, sceIoOpenPatchedUVL },
+	{ -1, (uint32_t)&sceIoLseek, sceIoLseekPatchedUVL },
+	{ -1, (uint32_t)&sceIoRead, sceIoReadPatchedUVL },
+	{ -1, (uint32_t)&sceIoWrite, sceIoWritePatchedUVL },
+	{ -1, (uint32_t)&sceIoClose, sceIoClosePatchedUVL },
+};
+
+#define N_UVL_PATCHES (sizeof(patches_uvl) / sizeof(PatchValue))
+
+void initPatchValues(PatchValue *patches, int n_patches) {
+	int i;
+	for (i = 0; i < n_patches; i++) {
+		patches[i].value = extractStub(patches[i].stub);
+	}
+}
+
 void PatchUVL() {
-	uint32_t sceKernelAllocMemBlockSyscall = extractSyscallStub((uint32_t)&sceKernelAllocMemBlock);
-	uint32_t sceKernelGetMemBlockBaseSyscall = extractSyscallStub((uint32_t)&sceKernelGetMemBlockBase);
-	uint32_t sceKernelCreateThreadFunction = extractFunctionStub((uint32_t)&sceKernelCreateThread);
+	initPatchValues(patches_uvl, N_UVL_PATCHES);
 
 	uint32_t text_addr = ALIGN(extractFunctionStub((uint32_t)&uvl_load), 0x100000) - 0x100000;
 
 	int count = 0;
 
 	uint32_t i = 0;
-	while (i < 0x10000 && count < 3) {
+	while (i < 0x10000 && count < N_UVL_PATCHES) {
 		uint32_t addr = text_addr + i;
-		uint32_t syscall = extractSyscallStub(addr);
-		uint32_t function = extractFunctionStub(addr);
+		uint32_t value = extractStub(addr);
 
-		if (syscall == sceKernelAllocMemBlockSyscall) {
-			makeFunctionStub(addr, sceKernelAllocMemBlockPatchedUVL);
-			count++;
-		} else if (syscall == sceKernelGetMemBlockBaseSyscall) {
-			makeFunctionStub(addr, sceKernelGetMemBlockBasePatchedUVL);
-			count++;
-		} else if (function == sceKernelCreateThreadFunction) {
-			makeFunctionStub(addr, sceKernelCreateThreadPatchedUVL);
-			count++;
+		int j;
+		for (j = 0; j < N_UVL_PATCHES; j++) {
+			if (patches_uvl[j].value == value) {
+				makeFunctionStub(addr, patches_uvl[j].function);
+				count++;
+				break;
+			}
 		}
 
-		if (syscall != -1 || function != -1) {
-			i += 0x10;
-		} else {
-			i += 4;
-		}
+		i += ((j == N_UVL_PATCHES) ? 0x4 : 0x10);
 	}
 }

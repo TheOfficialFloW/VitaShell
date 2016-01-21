@@ -92,7 +92,7 @@ typedef struct {
 
 typedef struct {
 	uint32_t nid;
-	uint32_t val;
+	uint32_t value;
 } NidTable;
 
 uint32_t decode_arm_inst(uint32_t inst, uint8_t *type);
@@ -101,8 +101,10 @@ uint32_t encode_arm_inst(uint8_t type, uint16_t immed, uint16_t reg);
 void makeSyscallStub(uint32_t address, uint16_t syscall);
 void makeFunctionStub(uint32_t address, void *function);
 void copyStub(uint32_t address, void *function);
+
 uint32_t extractFunctionStub(uint32_t address);
 uint32_t extractSyscallStub(uint32_t address);
+uint32_t extractStub(uint32_t address);
 
 int getModuleInfo(SceUID mod, char modname[27], uint32_t *text_addr, uint32_t *text_size);
 
@@ -127,5 +129,6 @@ int dumpModules();
 uint32_t getNid(uint32_t val);
 void addNid(uint32_t nid, uint32_t val);
 int setupNidTable();
+void freeNidTable();
 
 #endif

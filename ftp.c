@@ -849,7 +849,7 @@ static int client_thread(SceSize args, void *argp)
 	DEBUG("Client thread %i exiting!\n", client->num);
 
 	/* Temporary newlib thread malloc bug fix */
-	free(client);
+	// free(client);
 
 	sceKernelExitDeleteThread(0);
 	return 0;

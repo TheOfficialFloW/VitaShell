@@ -19,6 +19,25 @@
 #ifndef __HOMEBREW_H__
 #define __HOMEBREW_H__
 
+#define INVALID_UID -1
+
+#define MAX_AUDIO_PORTS 3
+#define MAX_SYNC_OBJECTS 3
+#define MAX_GXM_PRGRAMS 16
+#define MAX_UIDS 32
+
+typedef struct {
+	char *library;
+	uint32_t nid;
+	void *function;
+} PatchNID;
+
+typedef struct {
+	uint32_t value;
+	uint32_t stub;
+	void *function;
+} PatchValue;
+
 int isValidElf(char *file);
 void loadElf(char *file);
 

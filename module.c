@@ -219,6 +219,15 @@ uint32_t extractSyscallStub(uint32_t address) {
 	return movw;
 }
 
+uint32_t extractStub(uint32_t address) {
+	uint32_t value = extractSyscallStub(address);
+
+	if (value == -1)
+		value = extractFunctionStub(address);
+
+	return value;
+}
+
 int getModuleInfo(SceUID mod, char modname[27], uint32_t *text_addr, uint32_t *text_size) {
 	Psp2LoadedModuleInfo info;
 	info.size = sizeof(Psp2LoadedModuleInfo);
@@ -468,11 +477,8 @@ int dumpModule(SceUID uid) {
 
 						int j;
 						for (j = 0; j < import.num_functions; j++) {
-							uint32_t val = extractSyscallStub((uint32_t)import.func_entry_table[j]);
-							if (val == -1)
-								val = extractFunctionStub((uint32_t)import.func_entry_table[j]);
-
-							uint32_t nid = getNid(val);
+							uint32_t value = extractStub((uint32_t)import.func_entry_table[j]);
+							uint32_t nid = getNid(value);
 							if (nid == 0)
 								nid = count_unknown_syscalls++;
 
@@ -515,10 +521,10 @@ int dumpModules() {
 	return 0;
 }
 
-uint32_t getNid(uint32_t val) {
+uint32_t getNid(uint32_t value) {
 	int i;
 	for (i = 0; i < nids_count; i++) {
-		if (nid_table[i].val == val) {
+		if (nid_table[i].value == value) {
 			return nid_table[i].nid;
 		}
 	}
@@ -526,7 +532,7 @@ uint32_t getNid(uint32_t val) {
 	return 0;
 }
 
-void addNid(uint32_t nid, uint32_t val) {
+void addNid(uint32_t nid, uint32_t value) {
 	if (nid == 0x79F8E492 || nid == 0x913482A9 || nid == 0x935CD196 || nid == 0x6C2224BA)
 		return;
 
@@ -539,7 +545,7 @@ void addNid(uint32_t nid, uint32_t val) {
 
 	if (i == nids_count) {
 		nid_table[nids_count].nid = nid;
-		nid_table[nids_count].val = val;
+		nid_table[nids_count].value = value;
 		nids_count++;
 	}
 }
@@ -552,12 +558,9 @@ void addImportNids(SceModuleInfo *mod_info, uint32_t text_addr, uint32_t reload_
 
 		int j;
 		for (j = 0; j < import.num_functions; j++) {
-			uint32_t val = extractSyscallStub((uint32_t)import.func_entry_table[j]);
-			if (val == -1)
-				val = extractFunctionStub((uint32_t)import.func_entry_table[j]);
-
+			uint32_t value = extractStub((uint32_t)import.func_entry_table[j]);
 			uint32_t nid = *(uint32_t *)(reload_text_addr + (uint32_t)&import.func_nid_table[j] - text_addr);
-			addNid(nid, val);
+			addNid(nid, value);
 		}
 
 		i += import.size;
@@ -571,9 +574,9 @@ void addExportNids(SceModuleInfo *mod_info, uint32_t text_addr) {
 
 		int j;
 		for (j = 0; j < export->num_functions; j++) {
-			uint32_t val = (uint32_t)export->entry_table[j];
+			uint32_t value = (uint32_t)export->entry_table[j];
 			uint32_t nid = export->nid_table[j];
-			addNid(nid, val);
+			addNid(nid, value);
 		}
 
 		i += export->size;
@@ -660,4 +663,13 @@ int setupNidTable() {
 	}
 
 	return 0;
+}
+
+void freeNidTable() {
+	if (nid_table) {
+		free(nid_table);
+		nid_table = NULL;
+	}
+	
+	nids_count = 0;
 }
