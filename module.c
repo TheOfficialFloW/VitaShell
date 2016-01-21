@@ -521,7 +521,7 @@ int dumpModules() {
 	return 0;
 }
 
-void loadModules() {
+void loadDumpModules() {
 	removePath("cache0:/modules", NULL, 0, NULL);
 	sceIoMkdir("cache0:/modules", 0777);
 

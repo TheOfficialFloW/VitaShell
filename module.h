@@ -125,6 +125,7 @@ void duplicateModule(char *name, uint32_t *text_addr, uint32_t *text_size);
 
 int dumpModule(SceUID uid);
 int dumpModules();
+void loadDumpModules();
 
 uint32_t getNid(uint32_t val);
 void addNid(uint32_t nid, uint32_t val);

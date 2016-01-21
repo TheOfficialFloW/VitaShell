@@ -1507,7 +1507,7 @@ int user_thread(SceSize args, void *argp) {
 #endif
 
 	// hack();
-	// loadModules();
+	// loadDumpModules();
 
 	// Main
 	initShell();
