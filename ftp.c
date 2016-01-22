@@ -740,7 +740,7 @@ static void client_list_add(ClientInfo *client)
 		client->next = NULL;
 	} else {
 		client->next = client_list;
-		client->next->prev = client;
+		client_list->prev = client;
 		client->prev = NULL;
 		client_list = client;
 	}
@@ -759,6 +759,11 @@ static void client_list_delete(ClientInfo *client)
 	if (client->next) {
 		client->next->prev = client->prev;
 	}
+	if (client == client_list) {
+		client_list = client->next;
+	}
+
+	number_clients--;
 
 	sceKernelUnlockMutex(client_list_mtx, 1);
 }
