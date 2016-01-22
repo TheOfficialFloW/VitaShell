@@ -19,6 +19,7 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
+#include <psp2/appmgr.h>
 #include <psp2/apputil.h>
 #include <psp2/audioout.h>
 #include <psp2/ctrl.h>

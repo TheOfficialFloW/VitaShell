@@ -229,8 +229,8 @@ uint32_t extractStub(uint32_t address) {
 }
 
 int getModuleInfo(SceUID mod, char modname[27], uint32_t *text_addr, uint32_t *text_size) {
-	Psp2LoadedModuleInfo info;
-	info.size = sizeof(Psp2LoadedModuleInfo);
+	SceKernelModuleInfo info;
+	info.size = sizeof(SceKernelModuleInfo);
 	if (sceKernelGetModuleInfo(mod, &info) < 0)
 		return 0;
 
@@ -248,13 +248,13 @@ int getModuleInfo(SceUID mod, char modname[27], uint32_t *text_addr, uint32_t *t
 
 int findModuleByName(char *name, uint32_t *text_addr, uint32_t *text_size) {
 	SceUID mod_list[MAX_MODULES];
-	unsigned int mod_count = MAX_MODULES;
+	int mod_count = MAX_MODULES;
 
 	if (sceKernelGetModuleList(0xFF, mod_list, &mod_count) >= 0) {
 		int i;
 		for (i = mod_count - 1; i >= 0; i--) {
-			Psp2LoadedModuleInfo info;
-			info.size = sizeof(Psp2LoadedModuleInfo);
+			SceKernelModuleInfo info;
+			info.size = sizeof(SceKernelModuleInfo);
 			if (sceKernelGetModuleInfo(mod_list[i], &info) >= 0) {
 				if (strcmp(info.module_name, name) == 0) {
 					return getModuleInfo(mod_list[i], NULL, text_addr, text_size);
@@ -268,13 +268,13 @@ int findModuleByName(char *name, uint32_t *text_addr, uint32_t *text_size) {
 
 int findModuleByAddress(uint32_t address, char modname[27], int *section, uint32_t *text_addr, uint32_t *text_size) {
 	SceUID mod_list[MAX_MODULES];
-	unsigned int mod_count = MAX_MODULES;
+	int mod_count = MAX_MODULES;
 
 	if (sceKernelGetModuleList(0xFF, mod_list, &mod_count) >= 0) {
 		int i;
 		for (i = mod_count - 1; i >= 0; i--) {
-			Psp2LoadedModuleInfo info;
-			info.size = sizeof(Psp2LoadedModuleInfo);
+			SceKernelModuleInfo info;
+			info.size = sizeof(SceKernelModuleInfo);
 			if (sceKernelGetModuleInfo(mod_list[i], &info) >= 0) {
 				int j;
 				for (j = 0; j < 4; j++) {
@@ -390,7 +390,7 @@ uint32_t findModuleImportByUID(SceUID mod, char *libname, uint32_t nid) {
 
 int findSyscallInModuleImports(uint32_t syscall, char modulename[27], uint32_t *addr) {
 	SceUID mod_list[MAX_MODULES];
-	unsigned int mod_count = MAX_MODULES;
+	int mod_count = MAX_MODULES;
 
 	int res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
 	if (res < 0)
@@ -398,8 +398,8 @@ int findSyscallInModuleImports(uint32_t syscall, char modulename[27], uint32_t *
 
 	int i;
 	for (i = mod_count - 1; i >= 0; i--) {
-		Psp2LoadedModuleInfo info;
-		info.size = sizeof(Psp2LoadedModuleInfo);
+		SceKernelModuleInfo info;
+		info.size = sizeof(SceKernelModuleInfo);
 		if (sceKernelGetModuleInfo(mod_list[i], &info) < 0)
 			continue;
 
@@ -453,8 +453,8 @@ void duplicateModule(char *name, uint32_t *text_addr, uint32_t *text_size) {
 }
 
 int dumpModule(SceUID uid) {
-	Psp2LoadedModuleInfo info;
-	info.size = sizeof(Psp2LoadedModuleInfo);
+	SceKernelModuleInfo info;
+	info.size = sizeof(SceKernelModuleInfo);
 	int res = sceKernelGetModuleInfo(uid, &info);
 	if (res < 0)
 		return res;
@@ -504,7 +504,7 @@ int dumpModule(SceUID uid) {
 
 int dumpModules() {
 	SceUID mod_list[MAX_MODULES];
-	unsigned int mod_count = MAX_MODULES;
+	int mod_count = MAX_MODULES;
 
 	int res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
 	if (res < 0)
@@ -648,8 +648,8 @@ void addImportNids(SceModuleInfo *mod_info, uint32_t text_addr, uint32_t reload_
 }
 
 void addNids(SceUID uid, int only_syscalls) {
-	Psp2LoadedModuleInfo info;
-	info.size = sizeof(Psp2LoadedModuleInfo);
+	SceKernelModuleInfo info;
+	info.size = sizeof(SceKernelModuleInfo);
 	if (sceKernelGetModuleInfo(uid, &info) < 0)
 		return;
 
@@ -719,10 +719,10 @@ int setupNidTable() {
 	int i;
 
 	SceUID mod_list[MAX_MODULES];
-	unsigned int mod_count = MAX_MODULES;
+	int mod_count = MAX_MODULES;
 
 	SceUID mod_list_after[MAX_MODULES];
-	unsigned int mod_count_after = MAX_MODULES;
+	int mod_count_after = MAX_MODULES;
 
 	// Allocate and clear nid table
 	if (!nid_table)
