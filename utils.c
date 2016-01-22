@@ -22,6 +22,7 @@
 #include "language.h"
 #include "utils.h"
 
+SceCtrlData pad;
 uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
 
 void errorDialog(int error) {
@@ -57,13 +58,12 @@ int debugPrintf(char *text, ...) {
 
 void disableAutoSuspend() {
 	sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_AUTO_SUSPEND);
-	sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_OLED_OFF);	
+	sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_OLED_OFF);
 }
 
 void readPad() {
 	static int hold_n = 0, hold2_n = 0;
 
-	SceCtrlData pad;
 	memset(&pad, 0, sizeof(SceCtrlData));
 	sceCtrlPeekBufferPositive(0, &pad, 1);
 
@@ -172,11 +172,11 @@ void getDateString(char *string, int date_format, SceRtcTime *time) {
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_YYYYMMDD:
 			sprintf(string, "%02d/%02d/%02d", time->year, time->month, time->day);
 			break;
-			
+
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_DDMMYYYY:
 			sprintf(string, "%02d/%02d/%02d", time->day, time->month, time->year);
 			break;
-			
+
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_MMDDYYYY:
 			sprintf(string, "%02d/%02d/%02d", time->month, time->day, time->year);
 			break;
@@ -188,7 +188,7 @@ void getTimeString(char *string, int time_format, SceRtcTime *time) {
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
 			sprintf(string, "%02d:%02d %s", time->hour >= 12 ? time->hour - 12 : time->hour, time->minutes, time->hour >= 12 ? "PM" : "AM");
 			break;
-			
+
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_24HR:
 			sprintf(string, "%02d:%02d", time->hour, time->minutes);
 			break;
