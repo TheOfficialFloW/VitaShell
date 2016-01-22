@@ -7,9 +7,10 @@
 
 #include <psp2/types.h>
 
-/* Returns PSVita's IP and FTP port */
+/* Returns PSVita's IP and FTP port. 0 on success */
 int ftp_init(char *vita_ip, unsigned short int *vita_port);
 void ftp_fini();
 int ftp_is_initialized();
+
 
 #endif
