@@ -478,7 +478,7 @@ int dumpModule(SceUID uid) {
 						int j;
 						for (j = 0; j < import.num_functions; j++) {
 							uint32_t value = extractStub((uint32_t)import.func_entry_table[j]);
-							uint32_t nid = getNid(value);
+							uint32_t nid = getNidByValue(value);
 							if (nid == 0)
 								nid = count_unknown_syscalls++;
 
@@ -581,7 +581,7 @@ void loadDumpModules() {
 	}
 }
 
-uint32_t getNid(uint32_t value) {
+uint32_t getNidByValue(uint32_t value) {
 	int i;
 	for (i = 0; i < nids_count; i++) {
 		if (nid_table[i].value == value) {
@@ -592,7 +592,7 @@ uint32_t getNid(uint32_t value) {
 	return 0;
 }
 
-void addNid(uint32_t nid, uint32_t value) {
+void addNidValue(uint32_t nid, uint32_t value) {
 	if (nid == 0x79F8E492 || nid == 0x913482A9 || nid == 0x935CD196 || nid == 0x6C2224BA)
 		return;
 
@@ -610,23 +610,6 @@ void addNid(uint32_t nid, uint32_t value) {
 	}
 }
 
-void addImportNids(SceModuleInfo *mod_info, uint32_t text_addr, uint32_t reload_text_addr) {
-	uint32_t i = mod_info->impTop;
-	while (i < mod_info->impBtm) {
-		SceImportsTable3xx import;
-		convertToImportsTable3xx((void *)text_addr + i, &import);
-
-		int j;
-		for (j = 0; j < import.num_functions; j++) {
-			uint32_t value = extractStub((uint32_t)import.func_entry_table[j]);
-			uint32_t nid = *(uint32_t *)(reload_text_addr + (uint32_t)&import.func_nid_table[j] - text_addr);
-			addNid(nid, value);
-		}
-
-		i += import.size;
-	}
-}
-
 void addExportNids(SceModuleInfo *mod_info, uint32_t text_addr) {
 	uint32_t i = mod_info->expTop;
 	while (i < mod_info->expBtm) {
@@ -636,91 +619,163 @@ void addExportNids(SceModuleInfo *mod_info, uint32_t text_addr) {
 		for (j = 0; j < export->num_functions; j++) {
 			uint32_t value = (uint32_t)export->entry_table[j];
 			uint32_t nid = export->nid_table[j];
-			addNid(nid, value);
+			addNidValue(nid, value);
 		}
 
 		i += export->size;
 	}
 }
 
+void addImportNids(SceModuleInfo *mod_info, uint32_t text_addr, uint32_t reload_text_addr, int only_syscalls) {
+	uint32_t i = mod_info->impTop;
+	while (i < mod_info->impBtm) {
+		SceImportsTable3xx import;
+		convertToImportsTable3xx((void *)text_addr + i, &import);
+
+		int j;
+		for (j = 0; j < import.num_functions; j++) {
+			uint32_t value = extractStub((uint32_t)import.func_entry_table[j]);
+			uint32_t nid = *(uint32_t *)(reload_text_addr + (uint32_t)&import.func_nid_table[j] - text_addr);
+
+			if (only_syscalls && value >= 0x4000)
+				continue;
+
+			addNidValue(nid, value);
+		}
+
+		i += import.size;
+	}
+}
+
+void addNids(SceUID uid, int only_syscalls) {
+	Psp2LoadedModuleInfo info;
+	info.size = sizeof(Psp2LoadedModuleInfo);
+	if (sceKernelGetModuleInfo(uid, &info) < 0)
+		return;
+
+	// Can be reloaded, so the imports are not resolved yet, skip
+	if (sceKernelUnloadModule(uid, 0, NULL) >= 0)
+		return;
+
+	int reload = 1; // If module cannot be reloaded, so its imports cannot be resolved
+	SceUID reload_mod = -1;
+	char reload_path[MAX_PATH_LENGTH];
+
+	char reload_modname[27];
+	uint32_t reload_text_addr = 0, reload_text_size = 0;
+	SceModuleInfo *reload_mod_info;
+
+	strcpy(reload_path, info.path);
+
+	if (strncmp(info.path, "os0:us/", 7) == 0) {
+		reload = 0;
+	} else if (strncmp(info.path, "ux0:/patch/", 11) == 0) {
+//		sprintf(reload_path, "app0:/%s", info.path + 21);
+		reload = 0;
+	} else if (strncmp(info.path, "vs0:sys/external/", 17) == 0) {
+		sprintf(reload_path, "%s%s", sys_external_path, info.path + 17);
+	}
+
+	if (reload) {
+		reload_mod = sceKernelLoadModule(reload_path, 0, NULL);
+		if (reload_mod < 0)
+			return;
+
+		// Get reload module info (NID unpoisoned, syscall unresolved)
+		if(!getModuleInfo(reload_mod, reload_modname, &reload_text_addr, &reload_text_size))
+			return;
+
+		reload_mod_info = findModuleInfo(reload_modname, reload_text_addr, reload_text_size);
+		if (!reload_mod_info)
+			return;
+	}
+
+	// Get module info (NID poisoned, syscall resolved)
+	char modname[27];
+	uint32_t text_addr = 0, text_size = 0;
+	if(!getModuleInfo(uid, modname, &text_addr, &text_size))
+		return;
+
+	SceModuleInfo *mod_info = findModuleInfo(modname, text_addr, text_size);
+	if (!mod_info)
+		return;
+
+	// Add import nids
+	if (reload) {
+		addImportNids(mod_info, text_addr, reload_text_addr, only_syscalls);
+	}
+
+	// Add export nids
+	if (!only_syscalls)
+		addExportNids(mod_info, text_addr);
+
+	// Unload
+	if (reload)
+		sceKernelUnloadModule(reload_mod, 0, NULL);	
+}
+
 int setupNidTable() {
+	int res;
+	int i;
+
 	SceUID mod_list[MAX_MODULES];
 	unsigned int mod_count = MAX_MODULES;
 
-	nid_table = malloc(MAX_NIDS * sizeof(NidTable));
+	SceUID mod_list_after[MAX_MODULES];
+	unsigned int mod_count_after = MAX_MODULES;
+
+	// Allocate and clear nid table
+	if (!nid_table)
+		nid_table = malloc(MAX_NIDS * sizeof(NidTable));
+
 	memset(nid_table, 0, MAX_NIDS * sizeof(NidTable));
 	nids_count = 0;
 
-	int res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
+	// Add preload exports and imports
+	res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
 	if (res < 0)
 		return res;
 
-	int i;
 	for (i = mod_count - 1; i >= 0; i--) {
-		Psp2LoadedModuleInfo info;
-		info.size = sizeof(Psp2LoadedModuleInfo);
-		if (sceKernelGetModuleInfo(mod_list[i], &info) < 0)
-			continue;
-
-		// Can be reloaded, so the imports are not resolved yet, skip
-		if (sceKernelUnloadModule(mod_list[i], 0, NULL) >= 0)
-			continue;
-
-		int reload = 1; // If module cannot be reloaded, so its imports cannot be resolved
-		SceUID reload_mod = -1;
-		char reload_path[MAX_PATH_LENGTH];
-
-		char reload_modname[27];
-		uint32_t reload_text_addr = 0, reload_text_size = 0;
-		SceModuleInfo *reload_mod_info;
-
-		strcpy(reload_path, info.path);
-
-		if (strncmp(info.path, "os0:us/", 7) == 0) {
-			reload = 0;
-		} else if (strncmp(info.path, "ux0:/patch/", 11) == 0) {
-//			sprintf(reload_path, "app0:/%s", info.path + 21);
-			reload = 0;
-		} else if (strncmp(info.path, "vs0:sys/external/", 17) == 0) {
-			sprintf(reload_path, "%s%s", sys_external_path, info.path + 17);
-		}
-
-		if (reload) {
-			reload_mod = sceKernelLoadModule(reload_path, 0, NULL);
-			if (reload_mod < 0)
-				continue;
-
-			// Get reload module info (NID unpoisoned, syscall unresolved)
-			if(!getModuleInfo(reload_mod, reload_modname, &reload_text_addr, &reload_text_size))
-				continue;
-
-			reload_mod_info = findModuleInfo(reload_modname, reload_text_addr, reload_text_size);
-			if (!reload_mod_info)
-				continue;
-		}
-
-		// Get module info (NID poisoned, syscall resolved)
-		char modname[27];
-		uint32_t text_addr = 0, text_size = 0;
-		if(!getModuleInfo(mod_list[i], modname, &text_addr, &text_size))
-			continue;
-
-		SceModuleInfo *mod_info = findModuleInfo(modname, text_addr, text_size);
-		if (!mod_info)
-			continue;
-
-		// Add import nids
-		if (reload) {
-			addImportNids(mod_info, text_addr, reload_text_addr);
-		}
-
-		// Add export nids
-		addExportNids(mod_info, text_addr);
-
-		// Unload
-		if (reload)
-			sceKernelUnloadModule(reload_mod, 0, NULL);
+		addNids(mod_list[i], 0);
 	}
+
+	// WTF, 2. sceKernelGetModuleList returns same number of modules...
+/*	debugPrintf("Added %d NIDs\n", nids_count);
+
+	// Add syscalls of sysmodules
+	res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
+	if (res < 0)
+		return res;
+
+	debugPrintf("Before: %d modules\n", mod_count);
+
+	for (i = 0; i < MAX_SYSMODULES; i++) {
+		if (sceSysmoduleIsLoaded(i) == SCE_SYSMODULE_LOADED)
+			continue;
+
+		int res = sceSysmoduleLoadModule(i);
+		debugPrintf("sceSysmoduleLoadModule %d: 0x%08X\n", i, res);
+		if (res < 0)
+			continue;
+
+		if (sceKernelGetModuleList(0xFF, mod_list_after, &mod_count_after) >= 0) {
+			listModules();
+			break;
+
+			debugPrintf("After: %d modules\n", mod_count_after);
+
+			int j;
+			for (j = 0; j < (mod_count_after - mod_count); j++) {
+				debugPrintf("New module: 0x%08X\n", mod_list_after[j]);
+				addNids(mod_list_after[j], 1);
+			}
+		}
+
+		sceSysmoduleUnloadModule(i);
+	}
+
+	debugPrintf("Added %d NIDs\n", nids_count);*/
 
 	return 0;
 }

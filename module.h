@@ -40,6 +40,7 @@
 #define INSTRUCTION_ADR			5
 #define INSTRUCTION_MVN			6
 
+#define MAX_SYSMODULES 86
 #define MAX_MODULES 128
 #define MAX_NIDS 0x10000
 
@@ -127,8 +128,8 @@ int dumpModule(SceUID uid);
 int dumpModules();
 void loadDumpModules();
 
-uint32_t getNid(uint32_t val);
-void addNid(uint32_t nid, uint32_t val);
+uint32_t getNidByValue(uint32_t val);
+void addNidValue(uint32_t nid, uint32_t val);
 int setupNidTable();
 void freeNidTable();
 

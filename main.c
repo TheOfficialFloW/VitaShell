@@ -1297,6 +1297,8 @@ int sceKernelTrySendMsgPipePatched(SceUID uid, void *message, unsigned int size,
 			*(uint32_t *)(buffer + 0x00) = 0x40000; // Changing output size
 			//*(uint32_t *)(buffer + 0x10) = 0x4000;
 		}
+		
+		memset(buffer, -1, size);
 	}
 
 	char string[128];
@@ -1490,7 +1492,7 @@ int user_thread(SceSize args, void *argp) {
 	addMountPoints();
 
 	// Set up nid table
-//	setupNidTable();
+	setupNidTable();
 
 	// Find Sysmodule functions
 	findSceSysmoduleFunctions();
