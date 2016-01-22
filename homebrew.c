@@ -300,7 +300,7 @@ void loadElf(char *file) {
 	// Init
 	initHomebrewPatch();
 /*
-	scePowerSetBusClockFrequency(166); // that's actually gpu
+	scePowerSetBusClockFrequency(166); // that's actually gpu frequency
 	scePowerSetConfigurationMode(0x00010880);
 */
 	// Load
@@ -669,19 +669,19 @@ PatchNID patches_init[] = {
 };
 
 SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry entry, int initPriority, int stackSize, SceUInt attr, int cpuAffinityMask, const SceKernelThreadOptParam *option) {
-	exit_thid = sceKernelCreateThread("exit_thread", (SceKernelThreadEntry)exit_thread, 0x10000100, 0x1000, 0, 0, NULL);
-	if (exit_thid >= 0)
-		sceKernelStartThread(exit_thid, 0, NULL);
-
-	int i;
-	for (i = 0; i < (sizeof(patches_init) / sizeof(PatchNID)); i++) {
-		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, patches_init[i].library, patches_init[i].nid), patches_init[i].function);
-	}
-
 	// debugPrintf("Module name: %s\n", hb_mod_info.name);
 
 	if (strcmp(hb_mod_info.name, "VitaShell.elf") == 0) {
 		_free_vita_heap();
+	} else {
+		exit_thid = sceKernelCreateThread("exit_thread", (SceKernelThreadEntry)exit_thread, 0x10000100, 0x1000, 0, 0, NULL);
+		if (exit_thid >= 0)
+			sceKernelStartThread(exit_thid, 0, NULL);
+
+		int i;
+		for (i = 0; i < (sizeof(patches_init) / sizeof(PatchNID)); i++) {
+			makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, patches_init[i].library, patches_init[i].nid), patches_init[i].function);
+		}
 	}
 
 	return sceKernelCreateThread(name, entry, initPriority, stackSize, attr, cpuAffinityMask, option);
