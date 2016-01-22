@@ -98,7 +98,7 @@ static inline void client_send_data_msg(ClientInfo *client, const char *str)
 	}
 }
 
-static inline int client_send_recv_raw(ClientInfo *client, void *buf, unsigned int len)
+static inline int client_recv_data_raw(ClientInfo *client, void *buf, unsigned int len)
 {
 	if (client->data_con_type == FTP_DATA_CONNECTION_ACTIVE) {
 		return sceNetRecv(client->data_sockfd, buf, len, 0);
@@ -561,7 +561,7 @@ static void receive_file(ClientInfo *client, const char *path)
 		client_open_data_connection(client);
 		client_send_ctrl_msg(client, "150 Opening Image mode data transfer.\n");
 
-		while ((bytes_recv = client_send_recv_raw(client, buffer, FILE_BUF_SIZE)) > 0) {
+		while ((bytes_recv = client_recv_data_raw(client, buffer, FILE_BUF_SIZE)) > 0) {
 			sceIoWrite(fd, buffer, bytes_recv);
 		}
 
@@ -1062,6 +1062,7 @@ void ftp_fini()
 		sceKernelDeleteMutex(client_list_mtx);
 
 		client_list = NULL;
+		number_clients = 0;
 
 		if (netctl_init == 0)
 			sceNetCtlTerm();
