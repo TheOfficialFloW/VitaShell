@@ -34,15 +34,15 @@ all: $(TARGET).velf
 
 %.velf: %.elf
 	$(PREFIX)-strip -g $<
-	vita-elf-create $< $@ | true
+	vita-elf-create $< $@
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
 %.o: %.png
-	$(PREFIX)-objcopy -I binary -O elf32-littlearm -B arm $< $@
+	$(PREFIX)-ld -r -b binary -o $@ $^
 %.o: %.txt
-	$(PREFIX)-objcopy -I binary -O elf32-littlearm -B arm $< $@
+	$(PREFIX)-ld -r -b binary -o $@ $^
 
 clean:
 	@rm -rf $(TARGET).velf $(TARGET).elf $(OBJS)
