@@ -35,6 +35,8 @@
 	- Delete semaphores, events, callbacks, msg pipes, rw locks
 */
 
+static void *uvl_backup = NULL;
+
 static int force_exit = 0;
 
 static SceUID exit_thid = INVALID_UID;
@@ -377,15 +379,21 @@ int sceAudioOutOpenPortPatchedHB(int type, int len, int freq, int mode) {
 
 int sceGxmCreateContextPatchedHB(const SceGxmContextParams *params, SceGxmContext **context) {
 	int res = sceGxmCreateContext(params, context);
-	hb_gxm_context = *context;
-	// debugPrintf("%s 0x%08X\n", __FUNCTION__, hb_gxm_context);
+
+	if (res >= 0) {
+		hb_gxm_context = *context;	
+	}
+
 	return res;
 }
 
 int sceGxmCreateRenderTargetPatchedHB(const SceGxmRenderTargetParams *params, SceGxmRenderTarget **renderTarget) {
 	int res = sceGxmCreateRenderTarget(params, renderTarget);
-	hb_gxm_render = *renderTarget;
-	// debugPrintf("%s 0x%08X\n", __FUNCTION__, hb_gxm_render);
+
+	if (res >= 0) {
+		hb_gxm_render = *renderTarget;
+	}
+
 	return res;
 }
 
@@ -397,18 +405,20 @@ int sceGxmShaderPatcherCreateVertexProgramPatchedHB(SceGxmShaderPatcher *shaderP
 	if (hb_shader_patcher == NULL)
 		hb_shader_patcher = shaderPatcher;
 
-	int i;
-	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
-		if (hb_vertex_program_ids[i] == NULL) {
-			hb_vertex_program_ids[i] = programId;
-			break;
+	if (res >= 0) {
+		int i;
+		for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
+			if (hb_vertex_program_ids[i] == NULL) {
+				hb_vertex_program_ids[i] = programId;
+				break;
+			}
 		}
-	}
 
-	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
-		if (hb_vertex_programs[i] == NULL) {
-			hb_vertex_programs[i] = *vertexProgram;
-			break;
+		for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
+			if (hb_vertex_programs[i] == NULL) {
+				hb_vertex_programs[i] = *vertexProgram;
+				break;
+			}
 		}
 	}
 
@@ -423,18 +433,20 @@ int sceGxmShaderPatcherCreateFragmentProgramPatchedHB(SceGxmShaderPatcher *shade
 	if (hb_shader_patcher == NULL)
 		hb_shader_patcher = shaderPatcher;
 
-	int i;
-	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
-		if (hb_fragment_program_ids[i] == NULL) {
-			hb_fragment_program_ids[i] = programId;
-			break;
+	if (res >= 0) {
+		int i;
+		for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
+			if (hb_fragment_program_ids[i] == NULL) {
+				hb_fragment_program_ids[i] = programId;
+				break;
+			}
 		}
-	}
 
-	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
-		if (hb_fragment_programs[i] == NULL) {
-			hb_fragment_programs[i] = *fragmentProgram;
-			break;
+		for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
+			if (hb_fragment_programs[i] == NULL) {
+				hb_fragment_programs[i] = *fragmentProgram;
+				break;
+			}
 		}
 	}
 
@@ -444,12 +456,14 @@ int sceGxmShaderPatcherCreateFragmentProgramPatchedHB(SceGxmShaderPatcher *shade
 int sceGxmSyncObjectCreatePatchedHB(SceGxmSyncObject **syncObject) {
 	int res = sceGxmSyncObjectCreate(syncObject);
 
-	int i;
-	for (i = 0; i < MAX_SYNC_OBJECTS; i++) {
-		if (hb_sync_objects[i] == NULL) {
-			// debugPrintf("%s 0x%08X %d\n", __FUNCTION__, *syncObject, i);
-			hb_sync_objects[i] = *syncObject;
-			break;
+	if (res >= 0) {
+		int i;
+		for (i = 0; i < MAX_SYNC_OBJECTS; i++) {
+			if (hb_sync_objects[i] == NULL) {
+				// debugPrintf("%s 0x%08X %d\n", __FUNCTION__, *syncObject, i);
+				hb_sync_objects[i] = *syncObject;
+				break;
+			}
 		}
 	}
 
@@ -473,11 +487,13 @@ SceUID sceKernelCreateThreadPatchedHB(const char *name, SceKernelThreadEntry ent
 
 	// debugPrintf("%s 0x%08X\n", name, thid);
 
-	int i;
-	for (i = 0; i < MAX_UIDS; i++) {
-		if (hb_thids[i] < 0) {
-			hb_thids[i] = thid;
-			break;
+	if (thid >= 0) {
+		int i;
+		for (i = 0; i < MAX_UIDS; i++) {
+			if (hb_thids[i] < 0) {
+				hb_thids[i] = thid;
+				break;
+			}
 		}
 	}
 
@@ -487,11 +503,13 @@ SceUID sceKernelCreateThreadPatchedHB(const char *name, SceKernelThreadEntry ent
 SceUID sceKernelAllocMemBlockPatchedHB(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
-	int i;
-	for (i = 0; i < MAX_UIDS; i++) {
-		if (hb_blockids[i] < 0) {
-			hb_blockids[i] = blockid;
-			break;
+	if (blockid >= 0) {
+		int i;
+		for (i = 0; i < MAX_UIDS; i++) {
+			if (hb_blockids[i] < 0) {
+				hb_blockids[i] = blockid;
+				break;
+			}
 		}
 	}
 
@@ -761,9 +779,6 @@ void initPatchValues(PatchValue *patches, int n_patches) {
 		patches[i].value = extractStub(patches[i].stub);
 	}
 }
-
-void *uvl_backup = NULL;
-#define UVL_SIZE 0x100000
 
 uint32_t getUVLTextAddr() {
 	return ALIGN(extractFunctionStub((uint32_t)&uvl_load), UVL_SIZE) - UVL_SIZE;	

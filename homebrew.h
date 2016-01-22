@@ -19,6 +19,8 @@
 #ifndef __HOMEBREW_H__
 #define __HOMEBREW_H__
 
+#define UVL_SIZE 0x100000
+
 #define INVALID_UID -1
 
 #define MAX_AUDIO_PORTS 3
