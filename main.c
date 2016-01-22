@@ -1492,7 +1492,7 @@ int user_thread(SceSize args, void *argp) {
 	addMountPoints();
 
 	// Set up nid table
-	setupNidTable();
+	// setupNidTable();
 
 	// Find Sysmodule functions
 	findSceSysmoduleFunctions();
