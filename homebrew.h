@@ -19,6 +19,28 @@
 #ifndef __HOMEBREW_H__
 #define __HOMEBREW_H__
 
+#define INSERT_UID(uid_list, uid) \
+{ \
+	int i; \
+	for (i = 0; i < MAX_UIDS; i++) { \
+		if (uid_list[i] < 0) { \
+			uid_list[i] = uid; \
+			break; \
+		} \
+	} \
+}
+
+#define DELETE_UID(uid_list, uid) \
+{ \
+	int i; \
+	for (i = 0; i < MAX_UIDS; i++) { \
+		if (uid_list[i] == uid) { \
+			uid_list[i] = INVALID_UID; \
+			break; \
+		} \
+	} \
+}
+
 #define UVL_SIZE 0x100000
 
 #define INVALID_UID -1
@@ -44,6 +66,7 @@ int isValidElf(char *file);
 void loadElf(char *file);
 
 void PatchUVL();
+void getUVLTextAddr();
 void backupUVL();
 void restoreUVL();
 

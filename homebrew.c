@@ -36,6 +36,7 @@
 */
 
 static void *uvl_backup = NULL;
+static uint32_t uvl_addr = 0;
 
 static int force_exit = 0;
 
@@ -46,7 +47,6 @@ static uint32_t hb_text_addr = 0;
 static SceModuleInfo hb_mod_info;
 
 static SceUID hb_fds[MAX_UIDS];
-static SceUID hb_dfds[MAX_UIDS];
 static SceUID hb_thids[MAX_UIDS];
 static SceUID hb_semaids[MAX_UIDS];
 static SceUID hb_mutexids[MAX_UIDS];
@@ -86,6 +86,31 @@ SceModuleInfo *getElfModuleInfo(void *buf) {
 	return (SceModuleInfo *)((uint32_t)buf + program[index].p_offset + offset);	
 }
 
+int findMemBlockByAddr(uint32_t address, SceKernelMemBlockInfo *pInfo) {
+	if (address < 0x60000000 || address > 0xF0000000)
+		return 0;
+
+	uint32_t base = ALIGN(address, 0x10000);
+	uint32_t i = base - 0x10000000;
+	while (i < base + 0x10000000) {
+		SceKernelMemBlockInfo info;
+		memset(&info, 0, sizeof(SceKernelMemBlockInfo));
+		info.size = sizeof(SceKernelMemBlockInfo);
+		if (sceKernelGetMemBlockInfoByRange((void *)i, 0x1000, &info) >= 0) {
+			if (address >= (uint32_t)info.mappedBase && address < (uint32_t)info.mappedBase + info.mappedSize) {
+				memcpy(pInfo, &info, sizeof(SceKernelMemBlockInfo));
+				return 1;
+			}
+
+			i = (uint32_t)info.mappedBase + info.mappedSize;
+		} else {
+			i += 0x1000;
+		}
+	}
+
+	return 0;
+}
+
 void initHomebrewPatch() {
 	force_exit = 0;
 
@@ -99,7 +124,6 @@ void initHomebrewPatch() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		hb_fds[i] = INVALID_UID;
-		hb_dfds[i] = INVALID_UID;
 		hb_thids[i] = INVALID_UID;
 		hb_semaids[i] = INVALID_UID;
 		hb_mutexids[i] = INVALID_UID;
@@ -183,11 +207,10 @@ void releaseAudioPorts() {
 void closeFileDescriptors() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
-		if (hb_fds[i] >= 0)
-			sceIoClose(hb_fds[i]);
-		
-		if (hb_dfds[i] >= 0)
-			sceIoDclose(hb_dfds[i]);
+		if (hb_fds[i] >= 0) {
+			if (sceIoClose(hb_fds[i]) < 0)
+				sceIoDclose(hb_fds[i]);
+		}
 	}
 }
 
@@ -471,14 +494,7 @@ int sceGxmSyncObjectCreatePatchedHB(SceGxmSyncObject **syncObject) {
 }
 
 int sceKernelExitDeleteThreadPatchedHB(int status) {
-	int i;
-	for (i = 0; i < MAX_UIDS; i++) {
-		if (hb_thids[i] == sceKernelGetThreadId()) {
-			hb_thids[i] = INVALID_UID;
-			break;
-		}
-	}
-
+	DELETE_UID(hb_thids, sceKernelGetThreadId());
 	return sceKernelExitDeleteThread(status);
 }
 
@@ -488,13 +504,7 @@ SceUID sceKernelCreateThreadPatchedHB(const char *name, SceKernelThreadEntry ent
 	// debugPrintf("%s 0x%08X\n", name, thid);
 
 	if (thid >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_thids[i] < 0) {
-				hb_thids[i] = thid;
-				break;
-			}
-		}
+		INSERT_UID(hb_thids, thid);
 	}
 
 	return thid;
@@ -504,13 +514,7 @@ SceUID sceKernelAllocMemBlockPatchedHB(const char *name, SceKernelMemBlockType t
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
 	if (blockid >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_blockids[i] < 0) {
-				hb_blockids[i] = blockid;
-				break;
-			}
-		}
+		INSERT_UID(hb_blockids, blockid);
 	}
 
 	return blockid;
@@ -520,13 +524,7 @@ int sceKernelFreeMemBlockPatchedHB(SceUID uid) {
 	int res = sceKernelFreeMemBlock(uid);
 
 	if (res >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_blockids[i] == uid) {
-				hb_blockids[i] = INVALID_UID;
-				break;
-			}
-		}
+		DELETE_UID(hb_blockids, uid);
 	}
 
 	return res;
@@ -536,13 +534,7 @@ SceUID sceIoOpenPatchedHB(const char *file, int flags, SceMode mode) {
 	SceUID fd = sceIoOpen(file, flags, mode);
 
 	if (fd >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_fds[i] < 0) {
-				hb_fds[i] = fd;
-				break;
-			}
-		}
+		INSERT_UID(hb_fds, fd);
 	}
 
 	return fd;
@@ -552,45 +544,27 @@ int sceIoClosePatchedHB(SceUID fd) {
 	int res = sceIoClose(fd);
 
 	if (res >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_fds[i] == fd) {
-				hb_fds[i] = INVALID_UID;
-				break;
-			}
-		}
+		DELETE_UID(hb_fds, fd);
 	}
 
 	return res;
 }
 
 SceUID sceIoDopenPatchedHB(const char *dirname) {
-	SceUID dfd = sceIoDopen(dirname);
+	SceUID fd = sceIoDopen(dirname);
 
-	if (dfd >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_fds[i] < 0) {
-				hb_fds[i] = dfd;
-				break;
-			}
-		}
+	if (fd >= 0) {
+		INSERT_UID(hb_fds, fd);
 	}
 
-	return dfd;
+	return fd;
 }
 
 int sceIoDclosePatchedHB(SceUID fd) {
 	int res = sceIoDclose(fd);
 
 	if (res >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_dfds[i] == fd) {
-				hb_dfds[i] = INVALID_UID;
-				break;
-			}
-		}
+		DELETE_UID(hb_fds, fd);
 	}
 
 	return res;
@@ -600,13 +574,7 @@ SceUID sceKernelCreateSemaPatchedHB(const char *name, SceUInt attr, int initVal,
 	SceUID semaid = sceKernelCreateSema(name, attr, initVal, maxVal, option);
 
 	if (semaid >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_semaids[i] < 0) {
-				hb_semaids[i] = semaid;
-				break;
-			}
-		}
+		INSERT_UID(hb_semaids, semaid);
 	}
 
 	return semaid;
@@ -616,13 +584,7 @@ int sceKernelDeleteSemaPatchedHB(SceUID semaid) {
 	int res = sceKernelDeleteSema(semaid);
 
 	if (res >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_semaids[i] == semaid) {
-				hb_semaids[i] = INVALID_UID;
-				break;
-			}
-		}
+		DELETE_UID(hb_semaids, semaid);
 	}
 
 	return res;
@@ -632,13 +594,7 @@ SceUID sceKernelCreateMutexPatchedHB(const char *name, SceUInt attr, int initCou
 	SceUID mutexid = sceKernelCreateMutex(name, attr, initCount, option);
 
 	if (mutexid >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_mutexids[i] < 0) {
-				hb_mutexids[i] = mutexid;
-				break;
-			}
-		}
+		INSERT_UID(hb_mutexids, mutexid);
 	}
 
 	return mutexid;
@@ -648,13 +604,7 @@ int sceKernelDeleteMutexPatchedHB(SceUID mutexid) {
 	int res = sceKernelDeleteMutex(mutexid);
 
 	if (res >= 0) {
-		int i;
-		for (i = 0; i < MAX_UIDS; i++) {
-			if (hb_mutexids[i] == mutexid) {
-				hb_mutexids[i] = INVALID_UID;
-				break;
-			}
-		}
+		DELETE_UID(hb_mutexids, mutexid);
 	}
 
 	return res;
@@ -780,23 +730,17 @@ void initPatchValues(PatchValue *patches, int n_patches) {
 	}
 }
 
-uint32_t getUVLTextAddr() {
-	return ALIGN(extractFunctionStub((uint32_t)&uvl_load), UVL_SIZE) - UVL_SIZE;	
-}
-
 void PatchUVL() {
 	if (!uvl_backup)
 		return;
 
 	initPatchValues(patches_uvl, N_UVL_PATCHES);
 
-	uint32_t text_addr = getUVLTextAddr();
-
 	int count = 0;
 
 	uint32_t i = 0;
 	while (i < UVL_SIZE && count < N_UVL_PATCHES) {
-		uint32_t addr = text_addr + i;
+		uint32_t addr = uvl_addr + i;
 		uint32_t value = extractStub(addr);
 
 		int j;
@@ -812,11 +756,16 @@ void PatchUVL() {
 	}
 }
 
+void getUVLTextAddr() {
+	SceKernelMemBlockInfo info;
+	findMemBlockByAddr(extractFunctionStub((uint32_t)&uvl_load), &info);
+	uvl_addr = (uint32_t)info.mappedBase;	
+}
+
 void backupUVL() {
 	if (!uvl_backup) {
 		uvl_backup = malloc(UVL_SIZE);
-		uint32_t text_addr = getUVLTextAddr();
-		memcpy(uvl_backup, (void *)text_addr, UVL_SIZE);
+		memcpy(uvl_backup, (void *)uvl_addr, UVL_SIZE);
 	}
 }
 
@@ -824,11 +773,10 @@ void restoreUVL() {
 	if (uvl_backup) {
 		uvl_unlock_mem();
 
-		uint32_t text_addr = getUVLTextAddr();
-		memcpy((void *)text_addr, uvl_backup, UVL_SIZE);
+		memcpy((void *)uvl_addr, uvl_backup, UVL_SIZE);
 
 		uvl_lock_mem();
-		uvl_flush_icache((void *)text_addr, UVL_SIZE);
+		uvl_flush_icache((void *)uvl_addr, UVL_SIZE);
 
 		free(uvl_backup);
 		uvl_backup = NULL;

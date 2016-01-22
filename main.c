@@ -1477,16 +1477,10 @@ int user_thread(SceSize args, void *argp) {
 	sceIoRemove("cache0:vitashell_log.txt");
 #endif
 
-	backupUVL();
-	PatchUVL();
-
 	// Init
 	initSceLibPgf();
 	initSceAppUtil();
 	initVita2dLib();
-
-	// Load language
-	loadLanguage(language);
 
 	// Add mount points
 	addMountPoints();
@@ -1500,8 +1494,16 @@ int user_thread(SceSize args, void *argp) {
 	// Find ScePaf functions
 	findScePafFunctions();
 
+	// Get UVL address, backup and patch it
+	getUVLTextAddr();
+	backupUVL();
+	PatchUVL();
+
 	// Get net info
 	getNetInfo();
+
+	// Load language
+	loadLanguage(language);
 
 	// Show splash screen
 #ifdef RELEASE
