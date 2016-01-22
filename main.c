@@ -1477,7 +1477,7 @@ int user_thread(SceSize args, void *argp) {
 	sceIoRemove("cache0:vitashell_log.txt");
 #endif
 
-	// Patch UVL
+	backupUVL();
 	PatchUVL();
 
 	// Init

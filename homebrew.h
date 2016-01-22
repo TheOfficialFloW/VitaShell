@@ -42,5 +42,7 @@ int isValidElf(char *file);
 void loadElf(char *file);
 
 void PatchUVL();
+void backupUVL();
+void restoreUVL();
 
 #endif

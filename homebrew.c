@@ -672,6 +672,7 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 	// debugPrintf("Module name: %s\n", hb_mod_info.name);
 
 	if (strcmp(hb_mod_info.name, "VitaShell.elf") == 0) {
+		restoreUVL();
 		_free_vita_heap();
 	} else {
 		exit_thid = sceKernelCreateThread("exit_thread", (SceKernelThreadEntry)exit_thread, 0x10000100, 0x1000, 0, 0, NULL);
@@ -761,15 +762,25 @@ void initPatchValues(PatchValue *patches, int n_patches) {
 	}
 }
 
+void *uvl_backup = NULL;
+#define UVL_SIZE 0x100000
+
+uint32_t getUVLTextAddr() {
+	return ALIGN(extractFunctionStub((uint32_t)&uvl_load), UVL_SIZE) - UVL_SIZE;	
+}
+
 void PatchUVL() {
+	if (!uvl_backup)
+		return;
+
 	initPatchValues(patches_uvl, N_UVL_PATCHES);
 
-	uint32_t text_addr = ALIGN(extractFunctionStub((uint32_t)&uvl_load), 0x100000) - 0x100000;
+	uint32_t text_addr = getUVLTextAddr();
 
 	int count = 0;
 
 	uint32_t i = 0;
-	while (i < 0x10000 && count < N_UVL_PATCHES) {
+	while (i < UVL_SIZE && count < N_UVL_PATCHES) {
 		uint32_t addr = text_addr + i;
 		uint32_t value = extractStub(addr);
 
@@ -783,5 +794,28 @@ void PatchUVL() {
 		}
 
 		i += ((j == N_UVL_PATCHES) ? 0x4 : 0x10);
+	}
+}
+
+void backupUVL() {
+	if (!uvl_backup) {
+		uvl_backup = malloc(UVL_SIZE);
+		uint32_t text_addr = getUVLTextAddr();
+		memcpy(uvl_backup, (void *)text_addr, UVL_SIZE);
+	}
+}
+
+void restoreUVL() {
+	if (uvl_backup) {
+		uvl_unlock_mem();
+
+		uint32_t text_addr = getUVLTextAddr();
+		memcpy((void *)text_addr, uvl_backup, UVL_SIZE);
+
+		uvl_lock_mem();
+		uvl_flush_icache((void *)text_addr, UVL_SIZE);
+
+		free(uvl_backup);
+		uvl_backup = NULL;
 	}
 }
