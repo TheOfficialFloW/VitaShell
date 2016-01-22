@@ -968,25 +968,30 @@ int ftp_init(char *vita_ip, unsigned short int *vita_port)
 	}
 
 	/* Init Net */
-	if (sceNetShowNetstat() == SCE_NET_ERROR_ENOTINIT) {
+	ret = sceNetShowNetstat();
+	if (ret == 0) {
+		DEBUG("Net is already initialized.\n");
+		net_init = -1;
+	} else if (ret == SCE_NET_ERROR_ENOTINIT) {
 		net_memory = malloc(NET_INIT_SIZE);
 
 		initparam.memory = net_memory;
 		initparam.size = NET_INIT_SIZE;
 		initparam.flags = 0;
 
-		ret = sceNetInit(&initparam);
-		DEBUG("sceNetInit(): 0x%08X\n", ret);
-		if (ret < 0)
+		ret = net_init = sceNetInit(&initparam);
+		DEBUG("sceNetInit(): 0x%08X\n", net_init);
+		if (net_init < 0)
 			goto error_netinit;
 	} else {
-		DEBUG("Net is already initialized.\n");
+		INFO("Net error: 0x%08X\n", net_init);
+		goto error_netstat;
 	}
 
 	/* Init NetCtl */
-	ret = sceNetCtlInit();
-	DEBUG("sceNetCtlInit(): 0x%08X\n", ret);
-	if (ret < 0 && ret != NET_CTL_ERROR_NOT_TERMINATED)
+	ret = netctl_init = sceNetCtlInit();
+	DEBUG("sceNetCtlInit(): 0x%08X\n", netctl_init);
+	if (netctl_init < 0 && netctl_init != NET_CTL_ERROR_NOT_TERMINATED)
 		goto error_netctlinit;
 
 	/* Get IP address */
@@ -1019,12 +1024,21 @@ int ftp_init(char *vita_ip, unsigned short int *vita_port)
 	return 0;
 
 error_netctlgetinfo:
-	sceNetCtlTerm();
+	if (netctl_init == 0) {
+		sceNetCtlTerm();
+		netctl_init = -1;
+	}
 error_netctlinit:
-	sceNetTerm();
+	if (net_init == 0) {
+		sceNetTerm();
+		net_init = -1;
+	}
 error_netinit:
-	free(net_memory);
-	net_memory = NULL;
+	if (net_memory) {
+		free(net_memory);
+		net_memory = NULL;
+	}
+error_netstat:
 	return ret;
 }
 
@@ -1049,21 +1063,16 @@ void ftp_fini()
 
 		client_list = NULL;
 
-		if (netctl_init >= 0) {
+		if (netctl_init == 0)
 			sceNetCtlTerm();
-			netctl_init = -1;
-		}
-
-		if (net_init >= 0) {
+		if (net_init == 0)
 			sceNetTerm();
-			net_init = -1;
-		}
-
-		if (net_memory) {
+		if (net_memory)
 			free(net_memory);
-			net_memory = NULL;
-		}
 
+		netctl_init = -1;
+		net_init = -1;
+		net_memory = NULL;
 		ftp_initialized = 0;
 	}
 }
