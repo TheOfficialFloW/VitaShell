@@ -294,3 +294,19 @@ int initSceLibPgf() {
 
 	return 0;
 }
+
+void VitaShellInit() {
+	// Init
+	initSceLibPgf();
+	initSceAppUtil();
+	initVita2dLib();
+
+	// Add mount points
+	addMountPoints();
+
+	// Find Sysmodule functions
+	findSceSysmoduleFunctions();
+
+	// Find ScePaf functions
+	findScePafFunctions();
+}

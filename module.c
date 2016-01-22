@@ -21,7 +21,15 @@
 #include "file.h"
 #include "utils.h"
 #include "module.h"
-
+/*
+typedef struct {
+	char modname[27];
+	uint32_t text_addr;
+	uint32_t text_size;
+	uint32_t data_addr;
+	uint32_t data_size;
+} ModuleInfo;
+*/
 static NidTable *nid_table = NULL;
 static int nids_count = 0;
 
@@ -171,23 +179,23 @@ uint32_t extractFunctionStub(uint32_t address) {
 	uint32_t *f = (uint32_t *)address;
 
 	if (!f)
-		return -1;
+		return 0;
 
 	uint32_t movw = decode_arm_inst(f[0], &type);
 	if (type != INSTRUCTION_MOVW)
-		return -1;
+		return 0;
 
 	uint32_t movt = decode_arm_inst(f[1], &type);
 	if (type != INSTRUCTION_MOVT)
-		return -1;
+		return 0;
 
 	uint32_t branch = decode_arm_inst(f[2], &type);
 	if (type != INSTRUCTION_BRANCH)
-		return -1;
+		return 0;
 
 	uint32_t nop = decode_arm_inst(f[3], &type);
 	if (type != INSTRUCTION_UNKNOWN)
-		return -1;
+		return 0;
 
 	return (movt << 16) | movw;
 }
@@ -198,23 +206,23 @@ uint32_t extractSyscallStub(uint32_t address) {
 	uint32_t *f = (uint32_t *)address;
 
 	if (!f)
-		return -1;
+		return 0;
 
 	uint32_t movw = decode_arm_inst(f[0], &type);
 	if (type != INSTRUCTION_MOVW)
-		return -1;
+		return 0;
 
 	uint32_t syscall = decode_arm_inst(f[1], &type);
 	if (type != INSTRUCTION_SYSCALL)
-		return -1;
+		return 0;
 
 	uint32_t branch = decode_arm_inst(f[2], &type);
 	if (type != INSTRUCTION_BRANCH)
-		return -1;
+		return 0;
 
 	uint32_t nop = decode_arm_inst(f[3], &type);
 	if (type != INSTRUCTION_UNKNOWN)
-		return -1;
+		return 0;
 
 	return movw;
 }
@@ -222,7 +230,7 @@ uint32_t extractSyscallStub(uint32_t address) {
 uint32_t extractStub(uint32_t address) {
 	uint32_t value = extractSyscallStub(address);
 
-	if (value == -1)
+	if (!value)
 		value = extractFunctionStub(address);
 
 	return value;
@@ -592,9 +600,14 @@ uint32_t getNidByValue(uint32_t value) {
 	return 0;
 }
 
-void addNidValue(uint32_t nid, uint32_t value) {
-	if (nid == 0x79F8E492 || nid == 0x913482A9 || nid == 0x935CD196 || nid == 0x6C2224BA)
-		return;
+int addNidValue(uint32_t nid, uint32_t value) {
+	switch (nid) {
+		case 0x79F8E492:
+		case 0x913482A9:
+		case 0x935CD196:
+		case 0x6C2224BA:
+			return 0;
+	}
 
 	int i;
 	for (i = 0; i < nids_count; i++) {
@@ -608,6 +621,8 @@ void addNidValue(uint32_t nid, uint32_t value) {
 		nid_table[nids_count].value = value;
 		nids_count++;
 	}
+
+	return 1;
 }
 
 void addExportNids(SceModuleInfo *mod_info, uint32_t text_addr) {
@@ -715,14 +730,8 @@ void addNids(SceUID uid, int only_syscalls) {
 }
 
 int setupNidTable() {
-	int res;
-	int i;
-
 	SceUID mod_list[MAX_MODULES];
 	int mod_count = MAX_MODULES;
-
-	SceUID mod_list_after[MAX_MODULES];
-	int mod_count_after = MAX_MODULES;
 
 	// Allocate and clear nid table
 	if (!nid_table)
@@ -732,50 +741,14 @@ int setupNidTable() {
 	nids_count = 0;
 
 	// Add preload exports and imports
-	res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
+	int res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
 	if (res < 0)
 		return res;
 
+	int i;
 	for (i = mod_count - 1; i >= 0; i--) {
 		addNids(mod_list[i], 0);
 	}
-
-	// WTF, 2. sceKernelGetModuleList returns same number of modules...
-/*	debugPrintf("Added %d NIDs\n", nids_count);
-
-	// Add syscalls of sysmodules
-	res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
-	if (res < 0)
-		return res;
-
-	debugPrintf("Before: %d modules\n", mod_count);
-
-	for (i = 0; i < MAX_SYSMODULES; i++) {
-		if (sceSysmoduleIsLoaded(i) == SCE_SYSMODULE_LOADED)
-			continue;
-
-		int res = sceSysmoduleLoadModule(i);
-		debugPrintf("sceSysmoduleLoadModule %d: 0x%08X\n", i, res);
-		if (res < 0)
-			continue;
-
-		if (sceKernelGetModuleList(0xFF, mod_list_after, &mod_count_after) >= 0) {
-			listModules();
-			break;
-
-			debugPrintf("After: %d modules\n", mod_count_after);
-
-			int j;
-			for (j = 0; j < (mod_count_after - mod_count); j++) {
-				debugPrintf("New module: 0x%08X\n", mod_list_after[j]);
-				addNids(mod_list_after[j], 1);
-			}
-		}
-
-		sceSysmoduleUnloadModule(i);
-	}
-
-	debugPrintf("Added %d NIDs\n", nids_count);*/
 
 	return 0;
 }

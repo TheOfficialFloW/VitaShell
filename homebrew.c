@@ -22,6 +22,7 @@
 #include "file.h"
 #include "utils.h"
 #include "module.h"
+#include "misc.h"
 #include "elf_types.h"
 
 // sceKernelGetThreadmgrUIDClass is not available
@@ -84,31 +85,6 @@ SceModuleInfo *getElfModuleInfo(void *buf) {
 	uint32_t offset = (uint32_t)header->e_entry & 0x3FFFFFFF;
 
 	return (SceModuleInfo *)((uint32_t)buf + program[index].p_offset + offset);	
-}
-
-int findMemBlockByAddr(uint32_t address, SceKernelMemBlockInfo *pInfo) {
-	if (address < 0x60000000 || address > 0xF0000000)
-		return 0;
-
-	uint32_t base = ALIGN(address, 0x10000);
-	uint32_t i = base - 0x10000000;
-	while (i < base + 0x10000000) {
-		SceKernelMemBlockInfo info;
-		memset(&info, 0, sizeof(SceKernelMemBlockInfo));
-		info.size = sizeof(SceKernelMemBlockInfo);
-		if (sceKernelGetMemBlockInfoByRange((void *)i, 0x1000, &info) >= 0) {
-			if (address >= (uint32_t)info.mappedBase && address < (uint32_t)info.mappedBase + info.mappedSize) {
-				memcpy(pInfo, &info, sizeof(SceKernelMemBlockInfo));
-				return 1;
-			}
-
-			i = (uint32_t)info.mappedBase + info.mappedSize;
-		} else {
-			i += 0x1000;
-		}
-	}
-
-	return 0;
 }
 
 void initHomebrewPatch() {

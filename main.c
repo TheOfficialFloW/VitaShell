@@ -1477,22 +1477,11 @@ int user_thread(SceSize args, void *argp) {
 	sceIoRemove("cache0:vitashell_log.txt");
 #endif
 
-	// Init
-	initSceLibPgf();
-	initSceAppUtil();
-	initVita2dLib();
-
-	// Add mount points
-	addMountPoints();
+	// Init VitaShell
+	VitaShellInit();
 
 	// Set up nid table
 	// setupNidTable();
-
-	// Find Sysmodule functions
-	findSceSysmoduleFunctions();
-
-	// Find ScePaf functions
-	findScePafFunctions();
 
 	// Get UVL address, backup and patch it
 	getUVLTextAddr();

@@ -1,6 +1,6 @@
 TARGET = VitaShell
 OBJS = main.o init.o homebrew.o io_process.o archive.o photo.o file.o text.o \
-	hex.o ftp.o message_dialog.o ime_dialog.o language.o utils.o module.o \
+	hex.o ftp.o message_dialog.o ime_dialog.o language.o utils.o module.o misc.o \
 	psp/pboot.o psp/libkirk/kirk_engine.o psp/libkirk/crypto.o \
 	psp/libkirk/amctrl.o psp/libkirk/bn.o psp/libkirk/ec.o
 

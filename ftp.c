@@ -81,6 +81,9 @@ static int number_clients = 0;
 static ClientInfo *client_list = NULL;
 static SceUID client_list_mtx;
 
+static int netctl_init = -1;
+static int net_init = -1;
+
 #define client_send_ctrl_msg(cl, str) \
 	sceNetSend(cl->ctrl_sockfd, str, strlen(str), 0)
 
@@ -788,7 +791,7 @@ static int client_thread(SceSize args, void *argp)
 {
 	char cmd[16];
 	cmd_dispatch_func dispatch_func;
-	ClientInfo *client = (ClientInfo *)argp;
+	ClientInfo *client = *(ClientInfo **)argp;
 
 	DEBUG("Client thread %i started!\n", client->num);
 
@@ -849,7 +852,7 @@ static int client_thread(SceSize args, void *argp)
 	DEBUG("Client thread %i exiting!\n", client->num);
 
 	/* Temporary newlib thread malloc bug fix */
-	// free(client);
+	free(client);
 
 	sceKernelExitDeleteThread(0);
 	return 0;
@@ -933,7 +936,7 @@ static int server_thread(SceSize args, void *argp)
 			client_list_add(client);
 
 			/* Start the client thread */
-			sceKernelStartThread(client_thid, sizeof(*client), client);
+			sceKernelStartThread(client_thid, sizeof(client), &client);
 
 			number_clients++;
 		} else {
@@ -950,9 +953,6 @@ static int server_thread(SceSize args, void *argp)
 	sceKernelExitDeleteThread(0);
 	return 0;
 }
-
-static int netctl_init = -1;
-static int net_init = -1;
 
 int ftp_init(char *vita_ip, unsigned short int *vita_port)
 {

@@ -129,7 +129,7 @@ int dumpModules();
 void loadDumpModules();
 
 uint32_t getNidByValue(uint32_t val);
-void addNidValue(uint32_t nid, uint32_t val);
+int addNidValue(uint32_t nid, uint32_t val);
 int setupNidTable();
 void freeNidTable();
 
