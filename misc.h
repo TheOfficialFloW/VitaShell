@@ -21,6 +21,7 @@
 
 #include "main.h"
 
+int listMemBlocks(uint32_t start, uint32_t end);
 int findMemBlockByAddr(uint32_t address, SceKernelMemBlockInfo *pInfo);
 
 #endif

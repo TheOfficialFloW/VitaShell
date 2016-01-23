@@ -19,6 +19,8 @@
 /*
 	TODO:
 	- Nethost. Patch UVL to be able to launch from host0
+	- Terminate thread / free stack of previous VitaShell when reloading
+	- Fix gxm bug in homebrew.c
 	- Page skip for hex and text viewer
 	- Improve homebrew exiting. Compatibility list at http://wololo.net/talk/viewtopic.php?f=113&p=402975#p402975
 	- Add UTF8/UTF16 to vita2dlib's pgf
@@ -1470,33 +1472,9 @@ void hack() {
 	// sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
 }
 
-int listMemBlocks(uint32_t start, uint32_t end) {
-	if (start < 0x60000000 || start > 0xF0000000 || end < 0x60000000 || end > 0xF0000000)
-		return -1;
-
-	uint32_t i = start;
-	while (i < end) {
-		SceKernelMemBlockInfo info;
-		memset(&info, 0, sizeof(SceKernelMemBlockInfo));
-		info.size = sizeof(SceKernelMemBlockInfo);
-		if (sceKernelGetMemBlockInfoByRange((void *)i, 0x1000, &info) >= 0) {
-			SceUID blockid = sceKernelFindMemBlockByAddr(info.mappedBase, 0); // fails on module executable blocks
-			debugPrintf("0x%08X, 0x%08X, 0x%08X: 0x%08X\n", info.mappedBase, info.mappedSize, info.type, blockid);
-			i = (uint32_t)info.mappedBase + info.mappedSize;
-		} else {
-			i += 0x1000;
-		}
-	}
-
-	return 0;
-}
-
 void freePreviousVitaShell() {
-	SceUID blockid = sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&sceKernelExitProcess), 0);
-	if (blockid >= 0) {
-		int res = sceKernelFreeMemBlock(blockid);
-		debugPrintf("free: 0x%08X\n", res);
-	}
+	sceKernelFreeMemBlock(sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&sceKernelBacktrace), 0));
+	sceKernelFreeMemBlock(sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&sceKernelBacktraceSelf), 0));
 }
 
 int vitashell_thread(SceSize args, void *argp) {
@@ -1504,14 +1482,11 @@ int vitashell_thread(SceSize args, void *argp) {
 	// sceIoRemove("cache0:vitashell_log.txt");
 #endif
 
+	// Free .text and .data segment of previous VitaShell
 	freePreviousVitaShell();
 
 	// Init VitaShell
 	VitaShellInit();
-
-	netdbg_init();
-	debugPrintf("Main\n");
-	//listMemBlocks(0x60000000, 0xF0000000);
 
 	// Set up nid table
 	// setupNidTable();
@@ -1539,23 +1514,14 @@ int vitashell_thread(SceSize args, void *argp) {
 	initShell();
 	shellMain();
 
-	// Free language container
-	freeLanguageContainer();
-
-	// Finish
-	finishVita2dLib();
-	finishSceAppUtil();
-
-	netdbg_fini();
-
 	return sceKernelExitDeleteThread(0);
 }
 
-int main() {
+int main(int argc, const char *argv[]) {
 	// Start app with bigger stack
 	SceUID thid = sceKernelCreateThread("VitaShell_main_thread", (SceKernelThreadEntry)vitashell_thread, 0x10000100, 1 * 1024 * 1024, 0, 0x70000, NULL);
 	if (thid >= 0) {
-		sceKernelStartThread(thid, 0, NULL);
+		sceKernelStartThread(thid, argc, argv);
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
 	}
 

@@ -45,6 +45,9 @@ typedef struct {
 
 int sceGenSyscall();
 
+void sceKernelBacktrace();
+void sceKernelBacktraceSelf();
+
 void _init_vita_newlib();
 void _free_vita_newlib();
 

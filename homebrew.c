@@ -283,27 +283,16 @@ int exit_thread(SceSize args, void *argp) {
 }
 
 void loadElf(char *file) {
-	// Finish vita2dlib
-	finishVita2dLib();
-/*
-	// Empty lists
-	fileListEmpty(&copy_list);
-	fileListEmpty(&mark_list);
-	fileListEmpty(&file_list);
-*/
-/*
-	// Free language container
-	freeLanguageContainer();
+	// Finish netdbg
+	netdbg_fini();
 
-	// Free heap
-	_free_vita_heap();
-*/
+	// Finish
+	finishVita2dLib();
+	finishSceAppUtil();
+
 	// Init
 	initHomebrewPatch();
-/*
-	scePowerSetBusClockFrequency(166); // that's actually gpu frequency
-	scePowerSetConfigurationMode(0x00010880);
-*/
+
 	// Load
 	uvl_load(file);
 
@@ -348,18 +337,9 @@ void loadElf(char *file) {
 		}
 	}
 
-/*
-	// Init libc
-	_init_vita_newlib();
-
-	// Load language
-	loadLanguage(language);
-*/
-	// Reset lists
-	// resetFileLists();
-
-	// Init vita2dlib
+	// Init
 	initVita2dLib();
+	initSceAppUtil();
 }
 
 int sceKernelExitProcessPatchedHB(int res) {
@@ -626,10 +606,9 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 	// debugPrintf("Module name: %s\n", hb_mod_info.name);
 
 	if (strcmp(hb_mod_info.name, "VitaShell.elf") == 0) {
-		// Pass address of the current code memblock to sceKernelExitProcess stub
-		SceKernelMemBlockInfo info;
-		findMemBlockByAddr((uint32_t)&sceKernelCreateThreadPatchedUVL, &info);
-		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, "SceLibKernel", 0x7595D9AA), info.mappedBase);
+		// Pass address of the current code and data memblocks to unused stubs
+		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, "SceLibKernel", 0x894037E8), (void *)(uint32_t)&sceKernelCreateThreadPatchedUVL); // sceKernelBacktrace
+		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, "SceLibKernel", 0xD16C03B0), (void *)&hb_mod_info); // sceKernelBacktraceSelf
 
 		restoreUVL();
 		_free_vita_newlib();

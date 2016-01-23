@@ -309,4 +309,7 @@ void VitaShellInit() {
 
 	// Find ScePaf functions
 	findScePafFunctions();
+
+	// Init netdbg
+	netdbg_init();
 }
