@@ -84,7 +84,7 @@ SceModuleInfo *getElfModuleInfo(void *buf) {
 	uint32_t index = ((uint32_t)header->e_entry & 0xC0000000) >> 30;
 	uint32_t offset = (uint32_t)header->e_entry & 0x3FFFFFFF;
 
-	return (SceModuleInfo *)((uint32_t)buf + program[index].p_offset + offset);	
+	return (SceModuleInfo *)((uint32_t)buf + program[index].p_offset + offset);
 }
 
 void initHomebrewPatch() {
@@ -116,7 +116,7 @@ void initHomebrewPatch() {
 	memset(hb_fragment_programs, 0, sizeof(hb_fragment_programs));
 	memset(hb_fragment_program_ids, 0, sizeof(hb_fragment_program_ids));
 	memset(hb_vertex_programs, 0, sizeof(hb_vertex_programs));
-	memset(hb_vertex_program_ids, 0, sizeof(hb_vertex_program_ids));	
+	memset(hb_vertex_program_ids, 0, sizeof(hb_vertex_program_ids));
 }
 
 void waitVblankStart() {
@@ -221,7 +221,7 @@ void waitThreadEnd() {
 			//debugPrintf("Wait for 0x%08X\n", hb_thids[i]);
 			sceKernelWaitThreadEnd(hb_thids[i], NULL, NULL);
 		}
-	}	
+	}
 }
 
 int exitThread() {
@@ -235,7 +235,7 @@ int exitThread() {
 }
 
 PatchNID patches_exit[] = {
-	{ "SceAudio", 0x02DB3F5F, exitThread }, // sceAudioOutOutput // crashes mGBA
+	//{ "SceAudio", 0x02DB3F5F, exitThread }, // sceAudioOutOutput // crashes mGBA
 
 	{ "SceCtrl", 0x104ED1A7, exitThread }, // sceCtrlPeekBufferNegative
 	{ "SceCtrl", 0x15F96FB0, exitThread }, // sceCtrlReadBufferNegative
@@ -380,7 +380,7 @@ int sceGxmCreateContextPatchedHB(const SceGxmContextParams *params, SceGxmContex
 	int res = sceGxmCreateContext(params, context);
 
 	if (res >= 0) {
-		hb_gxm_context = *context;	
+		hb_gxm_context = *context;
 	}
 
 	return res;
@@ -586,8 +586,17 @@ int sceKernelDeleteMutexPatchedHB(SceUID mutexid) {
 	return res;
 }
 
+int sceAudioOutOutputHB(int port, const void *buf)
+{
+	int ret = sceAudioOutOutput(port, buf);
+	if (force_exit)
+		exitThread();
+	return ret;
+}
+
 PatchNID patches_init[] = {
 	{ "SceAudio", 0x5BC341E4, sceAudioOutOpenPortPatchedHB },
+	{ "SceAudio", 0x02DB3F5F, sceAudioOutOutputHB }, // sceAudioOutOutput // crashes mGBA
 
 	{ "SceGxm", 0x207AF96B, sceGxmCreateRenderTargetPatchedHB },
 	{ "SceGxm", 0x4ED2E49D, sceGxmShaderPatcherCreateFragmentProgramPatchedHB },
@@ -735,7 +744,7 @@ void PatchUVL() {
 void getUVLTextAddr() {
 	SceKernelMemBlockInfo info;
 	findMemBlockByAddr(extractFunctionStub((uint32_t)&uvl_load), &info);
-	uvl_addr = (uint32_t)info.mappedBase;	
+	uvl_addr = (uint32_t)info.mappedBase;
 }
 
 void backupUVL() {
