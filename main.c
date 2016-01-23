@@ -1185,11 +1185,11 @@ void showSplashScreen() {
 #endif
 
 void getNetInfo() {
-	void *memory = malloc(1 * 1024 * 1024);
+	static char memory[16 * 1024];
 
 	SceNetInitParam param;
 	param.memory = memory;
-	param.size = 1 * 1024 * 1024;
+	param.size = sizeof(memory);
 	param.flags = 0;
 
 	int net_init = sceNetInit(&param);
@@ -1209,8 +1209,6 @@ void getNetInfo() {
 
 	if (net_init >= 0)
 		sceNetTerm();
-
-	free(memory);
 }
 
 //SceAppMgrUser_09899A08(3, string, 17);
@@ -1472,13 +1470,47 @@ void hack() {
 	// sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
 }
 
+int listMemBlocks(uint32_t start, uint32_t end) {
+	if (start < 0x60000000 || start > 0xF0000000 || end < 0x60000000 || end > 0xF0000000)
+		return -1;
+
+	uint32_t i = start;
+	while (i < end) {
+		SceKernelMemBlockInfo info;
+		memset(&info, 0, sizeof(SceKernelMemBlockInfo));
+		info.size = sizeof(SceKernelMemBlockInfo);
+		if (sceKernelGetMemBlockInfoByRange((void *)i, 0x1000, &info) >= 0) {
+			SceUID blockid = sceKernelFindMemBlockByAddr(info.mappedBase, 0); // fails on module executable blocks
+			debugPrintf("0x%08X, 0x%08X, 0x%08X: 0x%08X\n", info.mappedBase, info.mappedSize, info.type, blockid);
+			i = (uint32_t)info.mappedBase + info.mappedSize;
+		} else {
+			i += 0x1000;
+		}
+	}
+
+	return 0;
+}
+
+void freePreviousVitaShell() {
+	SceUID blockid = sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&sceKernelExitProcess), 0);
+	if (blockid >= 0) {
+		int res = sceKernelFreeMemBlock(blockid);
+		debugPrintf("free: 0x%08X\n", res);
+	}
+}
+
 int user_thread(SceSize args, void *argp) {
 #ifndef RELEASE
-	sceIoRemove("cache0:vitashell_log.txt");
+	// sceIoRemove("cache0:vitashell_log.txt");
 #endif
+
+	freePreviousVitaShell();
 
 	// Init VitaShell
 	VitaShellInit();
+
+	debugPrintf("Main\n");
+	listMemBlocks(0x60000000, 0xF0000000);
 
 	// Set up nid table
 	// setupNidTable();

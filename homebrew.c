@@ -367,6 +367,15 @@ int sceKernelExitProcessPatchedHB(int res) {
 	return 0;
 }
 
+int sceAudioOutOutputPatchedHB(int port, const void *buf) {
+	int res = sceAudioOutOutput(port, buf);
+
+	if (force_exit)
+		exitThread();
+
+	return res;
+}
+
 int sceAudioOutOpenPortPatchedHB(int type, int len, int freq, int mode) {
 	int port = sceAudioOutOpenPort(type, len, freq, mode);
 
@@ -586,17 +595,9 @@ int sceKernelDeleteMutexPatchedHB(SceUID mutexid) {
 	return res;
 }
 
-int sceAudioOutOutputHB(int port, const void *buf)
-{
-	int ret = sceAudioOutOutput(port, buf);
-	if (force_exit)
-		exitThread();
-	return ret;
-}
-
 PatchNID patches_init[] = {
+	{ "SceAudio", 0x02DB3F5F, sceAudioOutOutputPatchedHB },
 	{ "SceAudio", 0x5BC341E4, sceAudioOutOpenPortPatchedHB },
-	{ "SceAudio", 0x02DB3F5F, sceAudioOutOutputHB }, // sceAudioOutOutput // crashes mGBA
 
 	{ "SceGxm", 0x207AF96B, sceGxmCreateRenderTargetPatchedHB },
 	{ "SceGxm", 0x4ED2E49D, sceGxmShaderPatcherCreateFragmentProgramPatchedHB },
@@ -625,6 +626,11 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 	// debugPrintf("Module name: %s\n", hb_mod_info.name);
 
 	if (strcmp(hb_mod_info.name, "VitaShell.elf") == 0) {
+		// Pass address of the current code memblock to sceKernelExitProcess stub
+		SceKernelMemBlockInfo info;
+		findMemBlockByAddr((uint32_t)&sceKernelCreateThreadPatchedUVL, &info);
+		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, "SceLibKernel", 0x7595D9AA), info.mappedBase);
+
 		restoreUVL();
 		_free_vita_heap();
 	} else {
@@ -644,7 +650,7 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
-	// debugPrintf("%s %s: 0x%08X\n", __FUNCTION__, name, blockid);
+	debugPrintf("%s %s: 0x%08X\n", __FUNCTION__, name, blockid);
 
 	if (strcmp(name, "UVLTemp") == 0) {
 		UVLTemp_id = blockid;
@@ -653,7 +659,10 @@ SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType 
 
 		void *buf = NULL;
 		int res = sceKernelGetMemBlockBase(UVLTemp_id, &buf);
-		// debugPrintf("sceKernelGetMemBlockBase: 0x%08X\n", res);
+		debugPrintf("sceKernelGetMemBlockBase: 0x%08X\n", res);
+		if (res < 0)
+			return res;
+
 		memcpy((void *)&hb_mod_info, (void *)getElfModuleInfo(buf), sizeof(SceModuleInfo));
 	}
 
