@@ -1295,7 +1295,7 @@ int sceKernelTrySendMsgPipePatched(SceUID uid, void *message, unsigned int size,
 			*(uint32_t *)(buffer + 0x00) = 0x40000; // Changing output size
 			//*(uint32_t *)(buffer + 0x10) = 0x4000;
 		}
-		
+
 		memset(buffer, -1, size);
 	}
 
@@ -1499,7 +1499,7 @@ void freePreviousVitaShell() {
 	}
 }
 
-int user_thread(SceSize args, void *argp) {
+int vitashell_thread(SceSize args, void *argp) {
 #ifndef RELEASE
 	// sceIoRemove("cache0:vitashell_log.txt");
 #endif
@@ -1509,8 +1509,9 @@ int user_thread(SceSize args, void *argp) {
 	// Init VitaShell
 	VitaShellInit();
 
+	netdbg_init();
 	debugPrintf("Main\n");
-	listMemBlocks(0x60000000, 0xF0000000);
+	//listMemBlocks(0x60000000, 0xF0000000);
 
 	// Set up nid table
 	// setupNidTable();
@@ -1545,12 +1546,14 @@ int user_thread(SceSize args, void *argp) {
 	finishVita2dLib();
 	finishSceAppUtil();
 
+	netdbg_fini();
+
 	return sceKernelExitDeleteThread(0);
 }
 
 int main() {
 	// Start app with bigger stack
-	SceUID thid = sceKernelCreateThread("user_thread", (SceKernelThreadEntry)user_thread, 0x10000100, 1 * 1024 * 1024, 0, 0x70000, NULL);
+	SceUID thid = sceKernelCreateThread("VitaShell_main_thread", (SceKernelThreadEntry)vitashell_thread, 0x10000100, 1 * 1024 * 1024, 0, 0x70000, NULL);
 	if (thid >= 0) {
 		sceKernelStartThread(thid, 0, NULL);
 		sceKernelWaitThreadEnd(thid, NULL, NULL);

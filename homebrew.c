@@ -349,8 +349,8 @@ void loadElf(char *file) {
 	}
 
 /*
-	// Init heap
-	_init_vita_heap();
+	// Init libc
+	_init_vita_newlib();
 
 	// Load language
 	loadLanguage(language);
@@ -632,7 +632,7 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, "SceLibKernel", 0x7595D9AA), info.mappedBase);
 
 		restoreUVL();
-		_free_vita_heap();
+		_free_vita_newlib();
 	} else {
 		exit_thid = sceKernelCreateThread("exit_thread", (SceKernelThreadEntry)exit_thread, 0x10000100, 0x1000, 0, 0, NULL);
 		if (exit_thid >= 0)

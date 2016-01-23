@@ -22,10 +22,19 @@ LIBS =  -lvita2d -lpng -ljpeg -lz -lm -lc \
 	-lSceSysmodule_stub -lScePower_stub -lSceTouch_stub -lScePgf_stub \
 	-lScePvf_stub -lUVLoader_stub
 
+#NETDBG_IP ?= 192.168.1.50
+
+ifdef NETDBG_IP
+CFLAGS += -DNETDBG_ENABLE=1 -DNETDBG_IP="\"$(NETDBG_IP)\""
+endif
+ifdef NETDBG_PORT
+CFLAGS += -DNETDBG_PORT=$(NETDBG_PORT)
+endif
+
 PREFIX   = arm-vita-eabi
 CC       = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS   = -Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable \
+CFLAGS   += -Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable \
 	$(foreach dir, $(FEXDIRS), -I$(dir))
 CXXFLAGS = $(CFLAGS) -std=c++11 -fno-rtti -fno-exceptions
 ASFLAGS  = $(CFLAGS)

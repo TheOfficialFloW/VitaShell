@@ -63,4 +63,10 @@ void getSizeString(char *string, uint64_t size);
 void getDateString(char *string, int date_format, SceRtcTime *time);
 void getTimeString(char *string, int time_format, SceRtcTime *time);
 
+#define NETDBG_DEFAULT_PORT 9023
+
+int netdbg_init();
+void netdbg_fini();
+int netdbg(const char *text, ...);
+
 #endif

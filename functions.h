@@ -45,8 +45,8 @@ typedef struct {
 
 int sceGenSyscall();
 
-void _init_vita_heap();
-void _free_vita_heap();
+void _init_vita_newlib();
+void _free_vita_newlib();
 
 int sceKernelGetProcessId();
 
