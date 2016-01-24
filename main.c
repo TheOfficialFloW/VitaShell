@@ -906,6 +906,11 @@ void fileBrowserMenuCtrl() {
 		dialog_step = DIALOG_STEP_SYSTEM;
 	}
 */
+/*
+	if (pressed_buttons & SCE_CTRL_LTRIGGER) {
+		listMemBlocks(0x60000000, 0xD0000000);
+	}
+*/
 	if (pressed_buttons & SCE_CTRL_SELECT) {
 		if (!ftp_is_initialized()) {
 			int res = ftp_init(vita_ip, &vita_port);

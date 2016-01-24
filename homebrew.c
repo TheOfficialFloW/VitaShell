@@ -37,6 +37,8 @@
 int sceKernelCreateLwMutex(void *work, const char *name, SceUInt attr, int initCount, void *option);
 int sceKernelDeleteLwMutex(void *work);
 
+static int launch_counter = 0;
+
 static void *uvl_backup = NULL;
 static uint32_t uvl_addr = 0;
 
@@ -127,6 +129,8 @@ void initHomebrewPatch() {
 }
 
 void loadHomebrew(char *file) {
+	debugPrintf("%d. launch\n", launch_counter++);
+
 	// Finish netdbg
 	netdbg_fini();
 
@@ -176,7 +180,7 @@ void finishGxm() {
 		}
 	}
 
-	// Unregister programs and destroy shader patcher
+	// Unregister programs
 	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
 		if (hb_fragment_program_ids[i]) {
 			if (sceGxmShaderPatcherUnregisterProgram(hb_shader_patcher, hb_fragment_program_ids[i]) >= 0)
@@ -189,6 +193,7 @@ void finishGxm() {
 		}
 	}
 
+	// Destroy shader patchers
 	if (sceGxmShaderPatcherDestroy(hb_shader_patcher) >= 0)
 		hb_shader_patcher = NULL;
 
@@ -265,8 +270,7 @@ void homebrewCleanUp() {
 		res = sceKernelFreeMemBlock(hb_blockids[i]);
 		if (res >= 0)
 			hb_blockids[i] = INVALID_UID;
-		// debugPrintf("free 0x%08X (0x%08X): 0x%08X\n", mem, hb_blockids[i], res);
-	}	
+	}
 }
 
 void signalDeleteSema() {
@@ -620,8 +624,6 @@ int sceKernelDeleteMutexPatchedHB(SceUID mutexid) {
 int sceKernelCreateLwMutexPatchedHB(void *work, const char *name, SceUInt attr, int initCount, void *option) {
 	int res = sceKernelCreateLwMutex(work, name, attr, initCount, option);
 
-	debugPrintf("%s %s 0x%08X: 0x%08X\n", __FUNCTION__, name, work, res);
-
 	if (res >= 0) {
 		int i;
 		for (i = 0; i < MAX_LW_MUTEXES; i++) {
@@ -637,8 +639,6 @@ int sceKernelCreateLwMutexPatchedHB(void *work, const char *name, SceUInt attr, 
 
 int sceKernelDeleteLwMutexPatchedHB(void *work) {
 	int res = sceKernelDeleteLwMutex(work);
-
-	debugPrintf("%s 0x%08X: 0x%08X\n", __FUNCTION__, work, res);
 
 	if (res >= 0) {
 		int i;
@@ -693,7 +693,7 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 		restoreUVL();
 		_free_vita_newlib();
 	} else {
-		exit_thid = sceKernelCreateThread("exit_thread", (SceKernelThreadEntry)exit_thread, 0x10000100, 0x1000, 0, 0, NULL);
+		exit_thid = sceKernelCreateThread("exit_thread", (SceKernelThreadEntry)exit_thread, 191, 0x1000, 0, 0, NULL);
 		if (exit_thid >= 0)
 			sceKernelStartThread(exit_thid, 0, NULL);
 
