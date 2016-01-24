@@ -49,6 +49,7 @@
 #define MAX_SYNC_OBJECTS 3
 #define MAX_GXM_PRGRAMS 16
 #define MAX_UIDS 32
+#define MAX_LW_MUTEXES 32
 
 typedef struct {
 	char *library;

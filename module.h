@@ -128,6 +128,7 @@ int dumpModule(SceUID uid);
 int dumpModules();
 void loadDumpModules();
 
+uint32_t getValueByNid(uint32_t nid);
 uint32_t getNidByValue(uint32_t val);
 int addNidValue(uint32_t nid, uint32_t val);
 int setupNidTable();

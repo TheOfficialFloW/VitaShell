@@ -188,6 +188,34 @@ void addMountPoints() {
 */
 }
 
+int findSceShellSvcFunctions() {
+	char modname[27];
+	uint32_t text_addr = 0, text_size = 0;
+
+	char path[MAX_PATH_LENGTH];
+	sprintf(path, "%s%s", sys_external_path, "libshellsvc.suprx");
+
+	SceUID mod = sceKernelLoadModule(path, 0, NULL);
+	if (mod < 0)
+		return mod;
+
+	if (getModuleInfo(mod, modname, &text_addr, &text_size) == 0)
+		return -1;
+
+	SceModuleInfo *mod_info = findModuleInfo(modname, text_addr, text_size);
+
+	uint32_t sceKernelDeleteMutexAddr = findModuleImportByInfo(mod_info, text_addr, "SceThreadmgr", 0xCB78710D) - text_addr;
+
+	sceKernelUnloadModule(mod, 0, NULL);
+
+	if (findModuleByName(modname, &text_addr, &text_size) == 0)
+		return -2;
+
+	copyStub((uint32_t)&sceKernelDeleteMutex, (void *)text_addr + sceKernelDeleteMutexAddr);
+
+	return 0;
+}
+
 int findSceSysmoduleFunctions() {
 	char modname[27];
 	uint32_t text_addr = 0, text_size = 0;
@@ -304,7 +332,10 @@ void VitaShellInit() {
 	// Add mount points
 	addMountPoints();
 
-	// Find Sysmodule functions
+	// Find SceShellSvc functions
+	findSceShellSvcFunctions();
+
+	// Find SceSysmodule functions
 	findSceSysmoduleFunctions();
 
 	// Find ScePaf functions

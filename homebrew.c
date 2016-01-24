@@ -28,13 +28,14 @@
 // sceKernelGetThreadmgrUIDClass is not available
 // suspend/resume for vm returns 0x80020008
 
-// sceKernelDeleteMutex not resolved by UVL
-
 /*
 	TODO:
 	- Unload prxs
-	- Delete semaphores, events, callbacks, msg pipes, rw locks
+	- Delete events, callbacks, msg pipes, rw locks
 */
+
+int sceKernelCreateLwMutex(void *work, const char *name, SceUInt attr, int initCount, void *option);
+int sceKernelDeleteLwMutex(void *work);
 
 static void *uvl_backup = NULL;
 static uint32_t uvl_addr = 0;
@@ -53,6 +54,8 @@ static SceUID hb_thids[MAX_UIDS];
 static SceUID hb_semaids[MAX_UIDS];
 static SceUID hb_mutexids[MAX_UIDS];
 static SceUID hb_blockids[MAX_UIDS];
+
+void *hb_lw_mutex_works[MAX_LW_MUTEXES];
 
 static int hb_audio_ports[MAX_AUDIO_PORTS];
 
@@ -108,6 +111,8 @@ void initHomebrewPatch() {
 		hb_blockids[i] = INVALID_UID;
 	}
 
+	memset(hb_lw_mutex_works, 0, sizeof(hb_lw_mutex_works));
+
 	memset(hb_audio_ports, 0, sizeof(hb_audio_ports));
 
 	hb_gxm_context = NULL;
@@ -148,11 +153,15 @@ void finishGxm() {
 
 	// Clean up allocations
 	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
-		if (hb_fragment_programs[i] != NULL)
-			sceGxmShaderPatcherReleaseFragmentProgram(hb_shader_patcher, hb_fragment_programs[i]);
+		if (hb_fragment_programs[i]) {
+			if (sceGxmShaderPatcherReleaseFragmentProgram(hb_shader_patcher, hb_fragment_programs[i]) >= 0)
+				hb_fragment_programs[i] = NULL;
+		}
 
-		if (hb_vertex_programs[i] != NULL)
-			sceGxmShaderPatcherReleaseVertexProgram(hb_shader_patcher, hb_vertex_programs[i]);
+		if (hb_vertex_programs[i]) {
+			if (sceGxmShaderPatcherReleaseVertexProgram(hb_shader_patcher, hb_vertex_programs[i]) >= 0)
+				hb_vertex_programs[i] = NULL;
+		}
 	}
 
 	// Wait until display queue is finished before deallocating display buffers
@@ -161,26 +170,35 @@ void finishGxm() {
 	// Clean up display queue
 	for (i = 0; i < MAX_SYNC_OBJECTS; i++) {
 		// Destroy the sync object
-		if (hb_sync_objects[i] != NULL)
-			sceGxmSyncObjectDestroy(hb_sync_objects[i]);
+		if (hb_sync_objects[i]) {
+			if (sceGxmSyncObjectDestroy(hb_sync_objects[i]) >= 0)
+				hb_sync_objects[i] = NULL;
+		}
 	}
 
 	// Unregister programs and destroy shader patcher
 	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
-		if (hb_fragment_program_ids[i] != NULL)
-			sceGxmShaderPatcherUnregisterProgram(hb_shader_patcher, hb_fragment_program_ids[i]);
+		if (hb_fragment_program_ids[i]) {
+			if (sceGxmShaderPatcherUnregisterProgram(hb_shader_patcher, hb_fragment_program_ids[i]) >= 0)
+				hb_fragment_program_ids[i] = NULL;
+		}
 
-		if (hb_vertex_program_ids[i] != NULL)
-			sceGxmShaderPatcherUnregisterProgram(hb_shader_patcher, hb_vertex_program_ids[i]);
+		if (hb_vertex_program_ids[i]) {
+			if (sceGxmShaderPatcherUnregisterProgram(hb_shader_patcher, hb_vertex_program_ids[i]) >= 0)
+				hb_vertex_program_ids[i] = NULL;
+		}
 	}
 
-	sceGxmShaderPatcherDestroy(hb_shader_patcher);
+	if (sceGxmShaderPatcherDestroy(hb_shader_patcher) >= 0)
+		hb_shader_patcher = NULL;
 
 	// Destroy the render target
-	sceGxmDestroyRenderTarget(hb_gxm_render);
+	if (sceGxmDestroyRenderTarget(hb_gxm_render) >= 0)
+		hb_gxm_render = NULL;
 
 	// Destroy the context
-	sceGxmDestroyContext(hb_gxm_context);
+	if (sceGxmDestroyContext(hb_gxm_context) >= 0)
+		hb_gxm_context = NULL;
 
 	// Terminate libgxm
 	sceGxmTerminate();
@@ -197,8 +215,12 @@ void closeFileDescriptors() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_fds[i] >= 0) {
-			if (sceIoClose(hb_fds[i]) < 0)
-				sceIoDclose(hb_fds[i]);
+			int res = sceIoClose(hb_fds[i]);
+			if (res < 0)
+				res = sceIoDclose(hb_fds[i]);
+
+			if (res >= 0)
+				hb_fds[i] = INVALID_UID;
 		}
 	}
 }
@@ -226,7 +248,7 @@ void homebrewCleanUp() {
 		if (hb_blockids[i] < 0)
 			continue;
 
-		int res;
+		int res = 0;
 
 		void *mem = NULL;
 		if (sceKernelGetMemBlockBase(hb_blockids[i], &mem) < 0)
@@ -241,30 +263,55 @@ void homebrewCleanUp() {
 		}
 
 		res = sceKernelFreeMemBlock(hb_blockids[i]);
+		if (res >= 0)
+			hb_blockids[i] = INVALID_UID;
 		// debugPrintf("free 0x%08X (0x%08X): 0x%08X\n", mem, hb_blockids[i], res);
 	}	
 }
 
-// TODO: delete sema
-void signalSema() {
+void signalDeleteSema() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_semaids[i] >= 0) {
 			int res = sceKernelSignalSema(hb_semaids[i], 1);
 			debugPrintf("Signal sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
-			res = sceKernelDeleteSema(hb_semaids[i]);
-			debugPrintf("Delete sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
+			if (res >= 0) {
+				res = sceKernelDeleteSema(hb_semaids[i]);
+				debugPrintf("Delete sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
+				if (res >= 0) {
+					hb_semaids[i] = INVALID_UID;
+				}
+			}
 		}
 	}
 }
 
-// TODO: delete mutex
-void unlockMutex() {
+void unlockDeleteMutex() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_mutexids[i] >= 0) {
 			int res = sceKernelUnlockMutex(hb_mutexids[i], 1);
 			debugPrintf("Unlock mutex 0x%08X: 0x%08X\n", hb_mutexids[i], res);
+			
+			if (res >= 0) {
+				res = sceKernelDeleteMutex(hb_mutexids[i]);
+				debugPrintf("Delete mutex 0x%08X: 0x%08X\n", hb_mutexids[i], res);
+				if (res >= 0)
+					hb_mutexids[i] = INVALID_UID;
+			}
+		}
+	}
+}
+
+void deleteLwMutex() {
+	int i;
+	for (i = 0; i < MAX_LW_MUTEXES; i++) {
+		if (hb_lw_mutex_works[i]) {
+			int res = sceKernelDeleteLwMutex(hb_lw_mutex_works[i]);
+			debugPrintf("Delete lw mutex 0x%08X: 0x%08X\n", hb_lw_mutex_works[i], res);
+			if (res >= 0) {
+				hb_lw_mutex_works[i] = NULL;
+			}
 		}
 	}
 }
@@ -274,18 +321,26 @@ void waitThreadEnd() {
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_thids[i] >= 0) {
 			//debugPrintf("Wait for 0x%08X\n", hb_thids[i]);
-			sceKernelWaitThreadEnd(hb_thids[i], NULL, NULL);
+			int res = sceKernelWaitThreadEnd(hb_thids[i], NULL, NULL);
+			if (res >= 0) {
+				hb_thids[i] = INVALID_UID;
+			}
 		}
 	}
 }
 
 int exitThread() {
 	debugPrintf("Exiting 0x%08X...\n", sceKernelGetThreadId());
-	signalSema();
-	unlockMutex();
+
+	signalDeleteSema();
+	unlockDeleteMutex();
+	deleteLwMutex();
+
 	debugPrintf("Wait for threads...\n");
 	waitThreadEnd();
+
 	sceKernelDelayThread(50 * 1000);
+
 	return sceKernelExitDeleteThread(0);
 }
 
@@ -565,6 +620,42 @@ int sceKernelDeleteMutexPatchedHB(SceUID mutexid) {
 	return res;
 }
 
+int sceKernelCreateLwMutexPatchedHB(void *work, const char *name, SceUInt attr, int initCount, void *option) {
+	int res = sceKernelCreateLwMutex(work, name, attr, initCount, option);
+
+	debugPrintf("%s %s 0x%08X: 0x%08X\n", __FUNCTION__, name, work, res);
+
+	if (res >= 0) {
+		int i;
+		for (i = 0; i < MAX_LW_MUTEXES; i++) {
+			if (hb_lw_mutex_works[i] == NULL) {
+				hb_lw_mutex_works[i] = work;
+				break;
+			}
+		}
+	}
+
+	return res;
+}
+
+int sceKernelDeleteLwMutexPatchedHB(void *work) {
+	int res = sceKernelDeleteLwMutex(work);
+
+	debugPrintf("%s 0x%08X: 0x%08X\n", __FUNCTION__, work, res);
+
+	if (res >= 0) {
+		int i;
+		for (i = 0; i < MAX_LW_MUTEXES; i++) {
+			if (hb_lw_mutex_works[i] == work) {
+				hb_lw_mutex_works[i] = NULL;
+				break;
+			}
+		}
+	}
+
+	return res;
+}
+
 PatchNID patches_init[] = {
 	{ "SceAudio", 0x02DB3F5F, sceAudioOutOutputPatchedHB },
 	{ "SceAudio", 0x5BC341E4, sceAudioOutOpenPortPatchedHB },
@@ -580,11 +671,13 @@ PatchNID patches_init[] = {
 
 	{ "SceLibKernel", 0x1BD67366, sceKernelCreateSemaPatchedHB },
 	{ "SceLibKernel", 0x1D17DECF, sceKernelExitDeleteThreadPatchedHB },
+	{ "SceLibKernel", 0x244E76D2, sceKernelDeleteLwMutexPatchedHB },
 	{ "SceLibKernel", 0x6C60AC61, sceIoOpenPatchedHB },
 	{ "SceLibKernel", 0x7595D9AA, sceKernelExitProcessPatchedHB },
 	{ "SceLibKernel", 0xA9283DD0, sceIoDopenPatchedHB },
 	{ "SceLibKernel", 0xC5C11EE7, sceKernelCreateThreadPatchedHB },
 	{ "SceLibKernel", 0xCB78710D, sceKernelDeleteMutexPatchedHB },
+	{ "SceLibKernel", 0xDA6EC8EF, sceKernelCreateLwMutexPatchedHB },
 	{ "SceLibKernel", 0xDB32948A, sceKernelDeleteSemaPatchedHB },
 	{ "SceLibKernel", 0xED53334A, sceKernelCreateMutexPatchedHB },
 

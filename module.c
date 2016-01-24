@@ -589,6 +589,17 @@ void loadDumpModules() {
 	}
 }
 
+uint32_t getValueByNid(uint32_t nid) {
+	int i;
+	for (i = 0; i < nids_count; i++) {
+		if (nid_table[i].nid == nid) {
+			return nid_table[i].value;
+		}
+	}
+
+	return 0;
+}
+
 uint32_t getNidByValue(uint32_t value) {
 	int i;
 	for (i = 0; i < nids_count; i++) {
