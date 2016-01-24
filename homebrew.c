@@ -40,6 +40,7 @@ static void *uvl_backup = NULL;
 static uint32_t uvl_addr = 0;
 
 static int force_exit = 0;
+static int exited = 0;
 
 static SceUID exit_thid = INVALID_UID;
 
@@ -89,6 +90,7 @@ SceModuleInfo *getElfModuleInfo(void *buf) {
 
 void initHomebrewPatch() {
 	force_exit = 0;
+	exited = 0;
 
 	exit_thid = INVALID_UID;
 
@@ -119,11 +121,23 @@ void initHomebrewPatch() {
 	memset(hb_vertex_program_ids, 0, sizeof(hb_vertex_program_ids));
 }
 
-void waitVblankStart() {
-	int i;
-	for (i = 0; i < 10; i++) {
-		sceDisplayWaitVblankStart();
-	}
+void loadHomebrew(char *file) {
+	// Finish netdbg
+	netdbg_fini();
+
+	// Finish
+	finishVita2dLib();
+	finishSceAppUtil();
+
+	// Init
+	initHomebrewPatch();
+
+	// Load
+	uvl_load(file);
+
+	// Init
+	initVita2dLib();
+	initSceAppUtil();
 }
 
 void finishGxm() {
@@ -131,8 +145,7 @@ void finishGxm() {
 
 	// Wait until rendering is done
 	sceGxmFinish(hb_gxm_context);
-/*
-	// THIS CRASHES, WHY???
+
 	// Clean up allocations
 	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
 		if (hb_fragment_programs[i] != NULL)
@@ -141,7 +154,7 @@ void finishGxm() {
 		if (hb_vertex_programs[i] != NULL)
 			sceGxmShaderPatcherReleaseVertexProgram(hb_shader_patcher, hb_vertex_programs[i]);
 	}
-*/
+
 	// Wait until display queue is finished before deallocating display buffers
 	sceGxmDisplayQueueFinish();
 
@@ -151,7 +164,7 @@ void finishGxm() {
 		if (hb_sync_objects[i] != NULL)
 			sceGxmSyncObjectDestroy(hb_sync_objects[i]);
 	}
-/*
+
 	// Unregister programs and destroy shader patcher
 	for (i = 0; i < MAX_GXM_PRGRAMS; i++) {
 		if (hb_fragment_program_ids[i] != NULL)
@@ -162,7 +175,7 @@ void finishGxm() {
 	}
 
 	sceGxmShaderPatcherDestroy(hb_shader_patcher);
-*/
+
 	// Destroy the render target
 	sceGxmDestroyRenderTarget(hb_gxm_render);
 
@@ -188,6 +201,48 @@ void closeFileDescriptors() {
 				sceIoDclose(hb_fds[i]);
 		}
 	}
+}
+
+// TODO: clean up no matter if force exit or not
+void homebrewCleanUp() {
+	// Wait for exit thread to end
+	exited = 1;
+	sceKernelWaitThreadEnd(exit_thid, NULL, NULL);
+
+	if (force_exit) {
+		// Finish gxm
+		finishGxm();
+
+		// Release audio ports
+		releaseAudioPorts();
+
+		// Close file descriptors
+		closeFileDescriptors();
+	}
+
+	// Unmap gxm memories and free blocks
+	int i;
+	for (i = 0; i < MAX_UIDS; i++) {
+		if (hb_blockids[i] < 0)
+			continue;
+
+		int res;
+
+		void *mem = NULL;
+		if (sceKernelGetMemBlockBase(hb_blockids[i], &mem) < 0)
+			continue;
+
+		if (force_exit) {
+			res = sceGxmUnmapMemory(mem);
+			if (res < 0)
+				sceGxmUnmapVertexUsseMemory(mem);
+			if (res < 0)
+				sceGxmUnmapFragmentUsseMemory(mem);
+		}
+
+		res = sceKernelFreeMemBlock(hb_blockids[i]);
+		// debugPrintf("free 0x%08X (0x%08X): 0x%08X\n", mem, hb_blockids[i], res);
+	}	
 }
 
 // TODO: delete sema
@@ -230,7 +285,7 @@ int exitThread() {
 	unlockMutex();
 	debugPrintf("Wait for threads...\n");
 	waitThreadEnd();
-	waitVblankStart();
+	sceKernelDelayThread(50 * 1000);
 	return sceKernelExitDeleteThread(0);
 }
 
@@ -267,7 +322,7 @@ void PatchHomebrew() {
 }
 
 int exit_thread(SceSize args, void *argp) {
-	while (1) {
+	while (!exited) {
 		SceCtrlData pad;
 		sceCtrlPeekBufferPositive(0, &pad, 1);
 
@@ -280,66 +335,6 @@ int exit_thread(SceSize args, void *argp) {
 	}
 
 	return sceKernelExitDeleteThread(0);
-}
-
-void loadElf(char *file) {
-	// Finish netdbg
-	netdbg_fini();
-
-	// Finish
-	finishVita2dLib();
-	finishSceAppUtil();
-
-	// Init
-	initHomebrewPatch();
-
-	// Load
-	uvl_load(file);
-
-	// Wait...otherwise it crashes
-	waitVblankStart();
-
-	// Clean up
-	if (force_exit) {
-		// Wait for exit thread to end
-		sceKernelWaitThreadEnd(exit_thid, NULL, NULL);
-
-		// Finish gxm
-		finishGxm();
-
-		// Release audio ports
-		releaseAudioPorts();
-
-		// Close file descriptors
-		closeFileDescriptors();
-	}
-
-	// Unmap gxm memories and free blocks
-	int i;
-	for (i = 0; i < MAX_UIDS; i++) {
-		if (hb_blockids[i] >= 0) {
-			int res;
-
-			void *mem = NULL;
-			if (sceKernelGetMemBlockBase(hb_blockids[i], &mem) < 0)
-				continue;
-
-			if (force_exit) {
-				res = sceGxmUnmapMemory(mem);
-				if (res < 0)
-					sceGxmUnmapVertexUsseMemory(mem);
-				if (res < 0)
-					sceGxmUnmapFragmentUsseMemory(mem);
-			}
-
-			res = sceKernelFreeMemBlock(hb_blockids[i]);
-			// debugPrintf("free 0x%08X (0x%08X): 0x%08X\n", mem, hb_blockids[i], res);
-		}
-	}
-
-	// Init
-	initVita2dLib();
-	initSceAppUtil();
 }
 
 int sceKernelExitProcessPatchedHB(int res) {
@@ -388,8 +383,6 @@ int sceGxmCreateRenderTargetPatchedHB(const SceGxmRenderTargetParams *params, Sc
 int sceGxmShaderPatcherCreateVertexProgramPatchedHB(SceGxmShaderPatcher *shaderPatcher, SceGxmShaderPatcherId programId, const SceGxmVertexAttribute *attributes, unsigned int attributeCount, const SceGxmVertexStream *streams, unsigned int streamCount, SceGxmVertexProgram **vertexProgram) {
 	int res = sceGxmShaderPatcherCreateVertexProgram(shaderPatcher, programId, attributes, attributeCount, streams, streamCount, vertexProgram);
 
-	// debugPrintf("%s 0x%08X 0x%08X\n", __FUNCTION__, programId, *vertexProgram);
-
 	if (hb_shader_patcher == NULL)
 		hb_shader_patcher = shaderPatcher;
 
@@ -415,8 +408,6 @@ int sceGxmShaderPatcherCreateVertexProgramPatchedHB(SceGxmShaderPatcher *shaderP
 
 int sceGxmShaderPatcherCreateFragmentProgramPatchedHB(SceGxmShaderPatcher *shaderPatcher, SceGxmShaderPatcherId programId, SceGxmOutputRegisterFormat outputFormat, SceGxmMultisampleMode multisampleMode, const SceGxmBlendInfo *blendInfo, const SceGxmProgram *vertexProgram, SceGxmFragmentProgram **fragmentProgram) {
 	int res = sceGxmShaderPatcherCreateFragmentProgram(shaderPatcher, programId, outputFormat, multisampleMode, blendInfo, vertexProgram, fragmentProgram);
-
-	// debugPrintf("%s 0x%08X 0x%08X\n", __FUNCTION__, programId, *fragmentProgram);
 
 	if (hb_shader_patcher == NULL)
 		hb_shader_patcher = shaderPatcher;
@@ -448,7 +439,6 @@ int sceGxmSyncObjectCreatePatchedHB(SceGxmSyncObject **syncObject) {
 		int i;
 		for (i = 0; i < MAX_SYNC_OBJECTS; i++) {
 			if (hb_sync_objects[i] == NULL) {
-				// debugPrintf("%s 0x%08X %d\n", __FUNCTION__, *syncObject, i);
 				hb_sync_objects[i] = *syncObject;
 				break;
 			}
@@ -626,6 +616,12 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 	return sceKernelCreateThread(name, entry, initPriority, stackSize, attr, cpuAffinityMask, option);
 }
 
+int sceKernelWaitThreadEndPatchedUVL(SceUID thid, int *stat, SceUInt *timeout) {
+	int res = sceKernelWaitThreadEnd(thid, stat, timeout);
+	homebrewCleanUp();
+	return res;
+}
+
 SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
@@ -687,6 +683,7 @@ PatchValue patches_uvl[] = {
 	{ -1, (uint32_t)&sceKernelAllocMemBlock, sceKernelAllocMemBlockPatchedUVL },
 	{ -1, (uint32_t)&sceKernelGetMemBlockBase, sceKernelGetMemBlockBasePatchedUVL },
 	{ -1, (uint32_t)&sceKernelCreateThread, sceKernelCreateThreadPatchedUVL },
+	{ -1, (uint32_t)&sceKernelWaitThreadEnd, sceKernelWaitThreadEndPatchedUVL },
 	{ -1, (uint32_t)&sceIoOpen, sceIoOpenPatchedUVL },
 	{ -1, (uint32_t)&sceIoLseek, sceIoLseekPatchedUVL },
 	{ -1, (uint32_t)&sceIoRead, sceIoReadPatchedUVL },

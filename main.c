@@ -312,7 +312,7 @@ int handleFile(char *file) {
 
 		case FILE_TYPE_ELF:
 			if (isValidElf(file)) {
-				loadElf(file);
+				loadHomebrew(file);
 			} else {
 				res = textViewer(file);
 			}
@@ -1259,7 +1259,10 @@ uint32_t ori_shellsvc_addr = 0;
 
 /*
 	Knowledge:
-	Changing the size will cause breakpoint.
+	- Trying to receive 0x10 (size - 4) instead of 0x14 will make result 0x10 too
+	- Trying to receive a buffer bigger than it is send (size + 4) will return 0x80028223
+	- Tryint to receive a second time with same isze will result: 0x80028223
+	- You can split a packet! Receive size - 4 and then 4 will work. Receive size - 4 and then 8 won't work
 */
 
 int sceKernelSendMsgPipePatched(SceUID uid, void *message, unsigned int size, int unk1, int *unk2, unsigned int *timeout) {
@@ -1294,11 +1297,11 @@ int sceKernelTrySendMsgPipePatched(SceUID uid, void *message, unsigned int size,
 		if (strcmp(buffer + 0x1C, "Expo") == 0) {
 			//*(uint32_t *)(buffer + 0x14) = -1;
 		} else {
-			*(uint32_t *)(buffer + 0x00) = 0x40000; // Changing output size
+			//*(uint32_t *)(buffer + 0x00) = 0x40000; // Changing output size
 			//*(uint32_t *)(buffer + 0x10) = 0x4000;
 		}
 
-		memset(buffer, -1, size);
+		//memset(buffer, -1, size);
 	}
 
 	char string[128];
@@ -1319,7 +1322,7 @@ int sceKernelTryReceiveMsgPipePatched(SceUID uid, void *message, unsigned int si
 	sprintf(string, "cache0:/dump/recv_0x%08X_0x%X.bin", (unsigned int)message, size);
 	WriteFile(string, message, size);
 
-	debugPrintf("%s 0x%08X 0x%08X: 0x%08X\n", __FUNCTION__, message, size, res);
+	debugPrintf("%s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, message, size, res, *result);
 
 	return res;
 }

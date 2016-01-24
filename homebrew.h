@@ -63,7 +63,7 @@ typedef struct {
 } PatchValue;
 
 int isValidElf(char *file);
-void loadElf(char *file);
+void loadHomebrew(char *file);
 
 void PatchUVL();
 void getUVLTextAddr();
