@@ -41,7 +41,8 @@
 	} \
 }
 
-#define UVL_SIZE 0x100000
+#define MAX_CODE_SIZE 12 * 1024 * 1024
+#define MAX_UVL_SIZE 1 * 1024 * 1024
 
 #define INVALID_UID -1
 
@@ -62,6 +63,8 @@ typedef struct {
 	uint32_t stub;
 	void *function;
 } PatchValue;
+
+void initCodeMemory();
 
 int isValidElf(char *file);
 void loadHomebrew(char *file);

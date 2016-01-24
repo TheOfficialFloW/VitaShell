@@ -165,12 +165,25 @@ void copyStub(uint32_t address, void *function) {
 
 	uvl_unlock_mem();
 
-	uint32_t *f = (uint32_t *)address;
-	memcpy((void *)f, function, 0x10);
+	memcpy((void *)address, function, 0x10);
 
 	uvl_lock_mem();
 
-	uvl_flush_icache(f, 0x10);
+	uvl_flush_icache((void *)address, 0x10);
+}
+
+void makeThumbDummyFunction0(uint32_t address) {
+	if (!address)
+		return;
+
+	uvl_unlock_mem();
+
+	*(uint16_t *)(address + 0x0) = 0x2000; // movs a1, #0
+	*(uint16_t *)(address + 0x2) = 0x4770; // bx lr
+	
+	uvl_lock_mem();
+
+	uvl_flush_icache((void *)address, 0x4);
 }
 
 uint32_t extractFunctionStub(uint32_t address) {

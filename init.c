@@ -19,6 +19,7 @@
 #include "main.h"
 #include "init.h"
 #include "file.h"
+#include "utils.h"
 #include "module.h"
 
 extern unsigned char _binary_resources_battery_png_start;
@@ -266,9 +267,6 @@ int findScePafFunctions() {
 
 	uint32_t scePowerSetGpuClockFrequencyAddr = findModuleImportByInfo(mod_info, text_addr, "ScePower", 0x717DB06C) - text_addr;
 
-	uint32_t sceKernelOpenMemBlockAddr = findModuleImportByInfo(mod_info, text_addr, "SceSysmem", 0x8EB8DFBB) - text_addr;
-	uint32_t sceKernelCloseMemBlockAddr = findModuleImportByInfo(mod_info, text_addr, "SceSysmem", 0xB680E3A0) - text_addr;
-
 	uint32_t sceKernelGetSystemSwVersionAddr = findModuleImportByInfo(mod_info, text_addr, "SceModulemgr", 0x5182E212) - text_addr;
 	uint32_t sceKernelGetModelForCDialogAddr = findModuleImportByInfo(mod_info, text_addr, "SceSysmem", 0xA2CB322F) - text_addr;
 
@@ -287,9 +285,6 @@ int findScePafFunctions() {
 
 	if (findModuleByName(modname, &text_addr, &text_size) == 0)
 		return -2;
-
-	copyStub((uint32_t)&sceKernelOpenMemBlock, (void *)text_addr + sceKernelOpenMemBlockAddr);
-	copyStub((uint32_t)&sceKernelCloseMemBlock, (void *)text_addr + sceKernelCloseMemBlockAddr);
 
 	copyStub((uint32_t)&sceKernelGetSystemSwVersion, (void *)text_addr + sceKernelGetSystemSwVersionAddr);
 	copyStub((uint32_t)&sceKernelGetModelForCDialog, (void *)text_addr + sceKernelGetModelForCDialogAddr);

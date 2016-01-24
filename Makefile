@@ -11,7 +11,8 @@ OBJS += $(FEXCSRCS:.c=.o) $(FEXCPPSRCS:.cpp=.o)
 
 RESOURCES_PNG = resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png
 RESOURCES_TXT = resources/english_us_translation.txt
-OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
+PAYLOAD_BIN   = payload/payload.bin
+OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(PAYLOAD_BIN:.bin=.o)
 
 #stubs.o include this crashes fex!!!
 
@@ -51,6 +52,8 @@ $(TARGET).elf: $(OBJS)
 %.o: %.png
 	$(PREFIX)-ld -r -b binary -o $@ $^
 %.o: %.txt
+	$(PREFIX)-ld -r -b binary -o $@ $^
+%.o: %.bin
 	$(PREFIX)-ld -r -b binary -o $@ $^
 
 clean:

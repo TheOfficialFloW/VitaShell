@@ -206,8 +206,8 @@ void getTimeString(char *string, int time_format, SceRtcTime *time) {
 
 int netdbg_init()
 {
+	int ret = 0;
 #ifdef NETDBG_ENABLE
-	int ret;
 	SceNetSockaddrIn server;
 	SceNetInitParam initparam;
 	SceUShort16 port = NETDBG_DEFAULT_PORT;
@@ -262,8 +262,8 @@ error_netinit:
 		net_memory = NULL;
 	}
 error_netstat:
-	return ret;
 #endif
+	return ret;
 }
 
 void netdbg_fini()

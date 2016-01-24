@@ -102,6 +102,7 @@ uint32_t encode_arm_inst(uint8_t type, uint16_t immed, uint16_t reg);
 void makeSyscallStub(uint32_t address, uint16_t syscall);
 void makeFunctionStub(uint32_t address, void *function);
 void copyStub(uint32_t address, void *function);
+void makeThumbDummyFunction0(uint32_t address);
 
 uint32_t extractFunctionStub(uint32_t address);
 uint32_t extractSyscallStub(uint32_t address);

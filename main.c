@@ -18,9 +18,9 @@
 
 /*
 	TODO:
+	- Fix VitaShell reloading.
 	- Nethost. Patch UVL to be able to launch from host0
 	- Terminate thread / free stack of previous VitaShell when reloading
-	- Fix gxm bug in homebrew.c
 	- Page skip for hex and text viewer
 	- Improve homebrew exiting. Compatibility list at http://wololo.net/talk/viewtopic.php?f=113&p=402975#p402975
 	- Add UTF8/UTF16 to vita2dlib's pgf
@@ -819,7 +819,7 @@ int dialogSteps() {
 				args.archive_path = archive_path;
 				args.copy_mode = copy_mode;
 
-				SceUID thid = sceKernelCreateThread("copy_thread", (SceKernelThreadEntry)copy_thread, 0x10000100, 0x10000, 0, 0x70000, NULL);
+				SceUID thid = sceKernelCreateThread("copy_thread", (SceKernelThreadEntry)copy_thread, 0x40, 0x10000, 0, 0x70000, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(CopyArguments), &args);
 
@@ -846,7 +846,7 @@ int dialogSteps() {
 				args.cur_path = cur_path;
 				args.index = base_pos + rel_pos;
 
-				SceUID thid = sceKernelCreateThread("delete_thread", (SceKernelThreadEntry)delete_thread, 0x10000100, 0x10000, 0, 0x70000, NULL);
+				SceUID thid = sceKernelCreateThread("delete_thread", (SceKernelThreadEntry)delete_thread, 0x40, 0x10000, 0, 0x70000, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(DeleteArguments), &args);
 
@@ -1485,9 +1485,37 @@ void freePreviousVitaShell() {
 	sceKernelFreeMemBlock(sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&sceKernelBacktraceSelf), 0));
 }
 
+extern unsigned char _binary_payload_payload_bin_start;
+extern unsigned char _binary_payload_payload_bin_end;
+extern unsigned char _binary_payload_payload_bin_size; // crashes
+
+typedef struct {
+	char *path;
+	int (* uvl_load)(const char *path);
+	int (* sceKernelExitDeleteThread)(int status);
+} PayloadArgs;
+
+void payload() {
+	unsigned int length = 1 * 1024 * 1024;
+	void *addr = uvl_alloc_code_mem(&length);
+
+	int size = &_binary_payload_payload_bin_end - &_binary_payload_payload_bin_start;
+
+	uvl_unlock_mem();
+	memcpy(addr, &_binary_payload_payload_bin_start, size);
+	uvl_lock_mem();
+	uvl_flush_icache(addr, size);
+
+	PayloadArgs args = { (void *)uvl_load, (void *)sceKernelExitDeleteThread };
+	int (* executePayload)(PayloadArgs *args) = (void *)((uint32_t)addr | 0x1);
+	executePayload(&args);
+
+	while (1); // Should not reach this
+}
+
 int vitashell_thread(SceSize args, void *argp) {
 #ifndef RELEASE
-	// sceIoRemove("cache0:vitashell_log.txt");
+	sceIoRemove("cache0:vitashell_log.txt");
 #endif
 
 	// Free .text and .data segment of previous VitaShell
@@ -1495,6 +1523,9 @@ int vitashell_thread(SceSize args, void *argp) {
 
 	// Init VitaShell
 	VitaShellInit();
+
+	// Init code memory
+	initCodeMemory();
 
 	// Set up nid table
 	// setupNidTable();
@@ -1527,10 +1558,10 @@ int vitashell_thread(SceSize args, void *argp) {
 
 int main(int argc, const char *argv[]) {
 	// Start app with bigger stack
-	SceUID thid = sceKernelCreateThread("VitaShell_main_thread", (SceKernelThreadEntry)vitashell_thread, 0x10000100, 1 * 1024 * 1024, 0, 0x70000, NULL);
+	SceUID thid = sceKernelCreateThread("vitashell_thread", (SceKernelThreadEntry)vitashell_thread, 0x10000100, 1 * 1024 * 1024, 0, 0x70000, NULL);
 	if (thid >= 0) {
 		sceKernelStartThread(thid, argc, argv);
-		sceKernelWaitThreadEnd(thid, NULL, NULL);
+		sceKernelWaitThreadEnd(thid, NULL, NULL); // TODO: Only first boot
 	}
 
 	return 0;

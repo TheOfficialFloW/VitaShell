@@ -37,7 +37,8 @@
 int sceKernelCreateLwMutex(void *work, const char *name, SceUInt attr, int initCount, void *option);
 int sceKernelDeleteLwMutex(void *work);
 
-static int launch_counter = 0;
+static void *code_memory = NULL;
+static SceUID code_blockid = INVALID_UID;
 
 static void *uvl_backup = NULL;
 static uint32_t uvl_addr = 0;
@@ -93,6 +94,12 @@ SceModuleInfo *getElfModuleInfo(void *buf) {
 	return (SceModuleInfo *)((uint32_t)buf + program[index].p_offset + offset);
 }
 
+void initCodeMemory() {
+	unsigned int length = MAX_CODE_SIZE;
+	code_memory = uvl_alloc_code_mem(&length);
+	code_blockid = sceKernelFindMemBlockByAddr(code_memory, 0);	
+}
+
 void initHomebrewPatch() {
 	force_exit = 0;
 	exited = 0;
@@ -129,8 +136,6 @@ void initHomebrewPatch() {
 }
 
 void loadHomebrew(char *file) {
-	debugPrintf("%d. launch\n", launch_counter++);
-
 	// Finish netdbg
 	netdbg_fini();
 
@@ -147,6 +152,9 @@ void loadHomebrew(char *file) {
 	// Init
 	initVita2dLib();
 	initSceAppUtil();
+
+	// Init netdbg
+	netdbg_init();
 }
 
 void finishGxm() {
@@ -744,8 +752,22 @@ int sceKernelGetMemBlockBasePatchedUVL(SceUID uid, void **basep) {
 	return res;
 }
 
+SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
+	debugPrintf("%s 0x%08X\n", __FUNCTION__, code_blockid);
+	return code_blockid;
+}
+
+int sceKernelFreeMemBlockPatchedUVL(SceUID uid) {
+	debugPrintf("%s 0x%08X\n", __FUNCTION__, uid);
+
+	if (uid == code_blockid)
+		return 0;
+
+	return sceKernelFreeMemBlock(uid);
+}
+
 SceUID sceIoOpenPatchedUVL(const char *file, int flags, SceMode mode) {
-	debugPrintf("%s\n", __FUNCTION__);
+	debugPrintf("%s %s\n", __FUNCTION__, file);
 	return sceIoOpen(file, flags, mode);
 }
 
@@ -772,13 +794,15 @@ int sceIoClosePatchedUVL(SceUID fd) {
 PatchValue patches_uvl[] = {
 	{ -1, (uint32_t)&sceKernelAllocMemBlock, sceKernelAllocMemBlockPatchedUVL },
 	{ -1, (uint32_t)&sceKernelGetMemBlockBase, sceKernelGetMemBlockBasePatchedUVL },
+	{ -1, (uint32_t)&sceKernelFindMemBlockByAddr, sceKernelFindMemBlockByAddrPatchedUVL },
+	{ -1, (uint32_t)&sceKernelFreeMemBlock, sceKernelFreeMemBlockPatchedUVL },
 	{ -1, (uint32_t)&sceKernelCreateThread, sceKernelCreateThreadPatchedUVL },
 	{ -1, (uint32_t)&sceKernelWaitThreadEnd, sceKernelWaitThreadEndPatchedUVL },
 	{ -1, (uint32_t)&sceIoOpen, sceIoOpenPatchedUVL },
 	{ -1, (uint32_t)&sceIoLseek, sceIoLseekPatchedUVL },
-	{ -1, (uint32_t)&sceIoRead, sceIoReadPatchedUVL },
+	{ -1, (uint32_t)&sceIoRead, sceIoReadPatchedUVL }, // COULD NOT BE PATCHED, DIFFERENT NID
 	{ -1, (uint32_t)&sceIoWrite, sceIoWritePatchedUVL },
-	{ -1, (uint32_t)&sceIoClose, sceIoClosePatchedUVL },
+	{ -1, (uint32_t)&sceIoClose, sceIoClosePatchedUVL }, // COULD NOT BE PATCHED, DIFFERENT NID
 };
 
 #define N_UVL_PATCHES (sizeof(patches_uvl) / sizeof(PatchValue))
@@ -799,7 +823,7 @@ void PatchUVL() {
 	int count = 0;
 
 	uint32_t i = 0;
-	while (i < UVL_SIZE && count < N_UVL_PATCHES) {
+	while (i < MAX_UVL_SIZE && count < N_UVL_PATCHES) {
 		uint32_t addr = uvl_addr + i;
 		uint32_t value = extractStub(addr);
 
@@ -814,6 +838,9 @@ void PatchUVL() {
 
 		i += ((j == N_UVL_PATCHES) ? 0x4 : 0x10);
 	}
+
+	// Make uvl_alloc_code_mem return 0
+	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_alloc_code_mem) & ~0x1);
 }
 
 void getUVLTextAddr() {
@@ -824,8 +851,8 @@ void getUVLTextAddr() {
 
 void backupUVL() {
 	if (!uvl_backup) {
-		uvl_backup = malloc(UVL_SIZE);
-		memcpy(uvl_backup, (void *)uvl_addr, UVL_SIZE);
+		uvl_backup = malloc(MAX_UVL_SIZE);
+		memcpy(uvl_backup, (void *)uvl_addr, MAX_UVL_SIZE);
 	}
 }
 
@@ -833,10 +860,10 @@ void restoreUVL() {
 	if (uvl_backup) {
 		uvl_unlock_mem();
 
-		memcpy((void *)uvl_addr, uvl_backup, UVL_SIZE);
+		memcpy((void *)uvl_addr, uvl_backup, MAX_UVL_SIZE);
 
 		uvl_lock_mem();
-		uvl_flush_icache((void *)uvl_addr, UVL_SIZE);
+		uvl_flush_icache((void *)uvl_addr, MAX_UVL_SIZE);
 
 		free(uvl_backup);
 		uvl_backup = NULL;
