@@ -275,12 +275,11 @@ void signalDeleteSema() {
 		if (hb_semaids[i] >= 0) {
 			int res = sceKernelSignalSema(hb_semaids[i], 1);
 			debugPrintf("Signal sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
+
+			res = sceKernelDeleteSema(hb_semaids[i]);
+			debugPrintf("Delete sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
 			if (res >= 0) {
-				res = sceKernelDeleteSema(hb_semaids[i]);
-				debugPrintf("Delete sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
-				if (res >= 0) {
-					hb_semaids[i] = INVALID_UID;
-				}
+				hb_semaids[i] = INVALID_UID;
 			}
 		}
 	}
@@ -292,13 +291,11 @@ void unlockDeleteMutex() {
 		if (hb_mutexids[i] >= 0) {
 			int res = sceKernelUnlockMutex(hb_mutexids[i], 1);
 			debugPrintf("Unlock mutex 0x%08X: 0x%08X\n", hb_mutexids[i], res);
-			
-			if (res >= 0) {
-				res = sceKernelDeleteMutex(hb_mutexids[i]);
-				debugPrintf("Delete mutex 0x%08X: 0x%08X\n", hb_mutexids[i], res);
-				if (res >= 0)
-					hb_mutexids[i] = INVALID_UID;
-			}
+
+			res = sceKernelDeleteMutex(hb_mutexids[i]);
+			debugPrintf("Delete mutex 0x%08X: 0x%08X\n", hb_mutexids[i], res);
+			if (res >= 0)
+				hb_mutexids[i] = INVALID_UID;
 		}
 	}
 }
