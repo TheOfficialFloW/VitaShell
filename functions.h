@@ -19,23 +19,6 @@
 #ifndef __FUNCTIONS_H__
 #define __FUNCTIONS_H__
 
-/*
-	// both have 7 args
-	int sceKernelOpenModule();
-	int sceKernelCloseModule();
-*/
-
-#define SCE_KERNEL_MEMBLOCK_TYPE_USER_SYSTEM_RX 0x0320D050
-#define SCE_KERNEL_MEMBLOCK_TYPE_USER_SYSTEM_RW 0x0390D060
-#define SCE_KERNEL_MEMBLOCK_TYPE_USER_SHARED_RX 0x0E20D050
-#define SCE_KERNEL_MEMBLOCK_TYPE_USER_SHARED_RW 0x0E20D060
-#define SCE_KERNEL_MEMBLOCK_TYPE_USER_RX 0x0C20D050
-
-/*
-	Shared memory: 0xD0000000-0xD0900000
-	System memory: 0xE0000000-?
-*/
-
 typedef struct {
 	int size;
 	char version_string[28];
@@ -44,9 +27,6 @@ typedef struct {
 } SwVersionParam;
 
 int sceGenSyscall();
-
-void sceKernelBacktrace();
-void sceKernelBacktraceSelf();
 
 void _init_vita_newlib();
 void _free_vita_newlib();
@@ -65,8 +45,8 @@ int scePowerGetBusClockFrequency();
 int scePowerSetGpuClockFrequency(int freq);
 int scePowerGetGpuClockFrequency();
 
-int _sceSysmoduleUnloadModuleInternalWithArg(int id, int argc, void *argp, uint32_t *entry);
-int _sceSysmoduleLoadModuleInternalWithArg(int id, int argc, void *argp, uint32_t *entry);
+int _sceSysmoduleUnloadModuleInternalWithArg(int id, SceSize args, void *argp, uint32_t *entry);
+int _sceSysmoduleLoadModuleInternalWithArg(int id, SceSize args, void *argp, uint32_t *entry);
 
 /*
 uint32_t param[4];

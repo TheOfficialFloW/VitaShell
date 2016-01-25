@@ -84,6 +84,8 @@
 	sceDisplayWaitVblankStart(); \
 }
 
+#define INVALID_UID -1
+
 enum Colors {
 	// Primary colors
 	RED				= 0xFF0000FF,
@@ -188,6 +190,14 @@ enum DialogSteps {
 	DIALOG_STEP_DELETED,
 	DIALOG_STEP_RENAME,
 };
+
+typedef struct {
+	SceUID code_blockid;
+	SceUID data_blockid;
+} VitaShellShared;
+
+extern SceUID shared_blockid;
+extern VitaShellShared *shared_memory;
 
 extern vita2d_pgf *font;
 extern char font_size_cache[256];

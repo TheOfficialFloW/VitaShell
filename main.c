@@ -102,6 +102,9 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 // Dialog step
 int dialog_step = DIALOG_STEP_NONE;
 
+SceUID shared_blockid = -1;
+VitaShellShared *shared_memory = NULL;
+
 void dirLevelUp() {
 	base_pos_list[dir_level] = base_pos;
 	rel_pos_list[dir_level] = rel_pos;
@@ -1480,24 +1483,32 @@ void hack() {
 	// sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
 }
 
-void freePreviousVitaShell() {
-	sceKernelFreeMemBlock(sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&sceKernelBacktrace), 0));
-	sceKernelFreeMemBlock(sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&sceKernelBacktraceSelf), 0));
-}
-
-int vitashell_thread(SceSize args, void *argp) {
+int main(int argc, const char *argv[]) {
 #ifndef RELEASE
 	sceIoRemove("cache0:vitashell_log.txt");
 #endif
 
-	// Free .text and .data segment of previous VitaShell
-	freePreviousVitaShell();
+	/* Make this ugly thing better... */
+	ReadFile("cache0:/reload.bin", &shared_blockid, sizeof(SceUID));
+	sceIoRemove("cache0:/reload.bin");
+
+	if (sceKernelGetMemBlockBase(shared_blockid, (void *)&shared_memory) < 0) {
+		shared_blockid = sceKernelAllocMemBlock("VitaShellShared", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, 0x1000, NULL);
+		sceKernelGetMemBlockBase(shared_blockid, (void *)&shared_memory);
+
+		/* Init shared */
+		shared_memory->code_blockid = INVALID_UID;
+		shared_memory->data_blockid = INVALID_UID;
+	} else {
+		int res = sceKernelFreeMemBlock(shared_memory->data_blockid);
+		debugPrintf("sceKernelFreeMemBlock: 0x%08X\n", res);
+	}
 
 	// Init VitaShell
 	VitaShellInit();
 
 	// Init code memory
-	initCodeMemory();
+	initCodeMemory(shared_memory->code_blockid);
 
 	// Set up nid table
 	// setupNidTable();
@@ -1524,17 +1535,6 @@ int vitashell_thread(SceSize args, void *argp) {
 	// Main
 	initShell();
 	shellMain();
-
-	return sceKernelExitDeleteThread(0);
-}
-
-int main(int argc, const char *argv[]) {
-	// Start app with bigger stack
-	SceUID thid = sceKernelCreateThread("vitashell_thread", (SceKernelThreadEntry)vitashell_thread, 0x10000100, 1 * 1024 * 1024, 0, 0x70000, NULL);
-	if (thid >= 0) {
-		sceKernelStartThread(thid, argc, argv);
-		sceKernelWaitThreadEnd(thid, NULL, NULL); // TODO: Only first boot
-	}
 
 	return 0;
 }

@@ -44,8 +44,6 @@
 #define MAX_CODE_SIZE 12 * 1024 * 1024
 #define MAX_UVL_SIZE 1 * 1024 * 1024
 
-#define INVALID_UID -1
-
 #define MAX_AUDIO_PORTS 3
 #define MAX_SYNC_OBJECTS 3
 #define MAX_GXM_PRGRAMS 16
@@ -64,7 +62,7 @@ typedef struct {
 	void *function;
 } PatchValue;
 
-void initCodeMemory();
+void initCodeMemory(SceUID blockid);
 
 int isValidElf(char *file);
 void loadHomebrew(char *file);
