@@ -290,9 +290,8 @@ void signalDeleteSema() {
 
 			res = sceKernelDeleteSema(hb_semaids[i]);
 			debugPrintf("Delete sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
-			if (res >= 0) {
+			if (res >= 0)
 				hb_semaids[i] = INVALID_UID;
-			}
 		}
 	}
 }
@@ -318,9 +317,8 @@ void deleteLwMutex() {
 		if (hb_lw_mutex_works[i]) {
 			int res = sceKernelDeleteLwMutex(hb_lw_mutex_works[i]);
 			debugPrintf("Delete lw mutex 0x%08X: 0x%08X\n", hb_lw_mutex_works[i], res);
-			if (res >= 0) {
+			if (res >= 0)
 				hb_lw_mutex_works[i] = NULL;
-			}
 		}
 	}
 }
@@ -331,9 +329,8 @@ void waitThreadEnd() {
 		if (hb_thids[i] >= 0) {
 			//debugPrintf("Wait for 0x%08X\n", hb_thids[i]);
 			int res = sceKernelWaitThreadEnd(hb_thids[i], NULL, NULL);
-			if (res >= 0) {
+			if (res >= 0)
 				hb_thids[i] = INVALID_UID;
-			}
 		}
 	}
 }
@@ -427,9 +424,8 @@ int sceAudioOutOpenPortPatchedHB(int type, int len, int freq, int mode) {
 int sceGxmCreateContextPatchedHB(const SceGxmContextParams *params, SceGxmContext **context) {
 	int res = sceGxmCreateContext(params, context);
 
-	if (res >= 0) {
+	if (res >= 0)
 		hb_gxm_context = *context;
-	}
 
 	return res;
 }
@@ -437,9 +433,8 @@ int sceGxmCreateContextPatchedHB(const SceGxmContextParams *params, SceGxmContex
 int sceGxmCreateRenderTargetPatchedHB(const SceGxmRenderTargetParams *params, SceGxmRenderTarget **renderTarget) {
 	int res = sceGxmCreateRenderTarget(params, renderTarget);
 
-	if (res >= 0) {
+	if (res >= 0)
 		hb_gxm_render = *renderTarget;
-	}
 
 	return res;
 }
@@ -520,11 +515,10 @@ int sceKernelExitDeleteThreadPatchedHB(int status) {
 SceUID sceKernelCreateThreadPatchedHB(const char *name, SceKernelThreadEntry entry, int initPriority, int stackSize, SceUInt attr, int cpuAffinityMask, const SceKernelThreadOptParam *option) {
 	SceUID thid = sceKernelCreateThread(name, entry, initPriority, stackSize, attr, cpuAffinityMask, option);
 
-	// debugPrintf("%s 0x%08X\n", name, thid);
+	debugPrintf("%s %s 0x%08X: 0x%08X\n", __FUNCTION__, name, stackSize, thid);
 
-	if (thid >= 0) {
+	if (thid >= 0)
 		INSERT_UID(hb_thids, thid);
-	}
 
 	return thid;
 }
@@ -532,9 +526,12 @@ SceUID sceKernelCreateThreadPatchedHB(const char *name, SceKernelThreadEntry ent
 SceUID sceKernelAllocMemBlockPatchedHB(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
-	if (blockid >= 0) {
+	void *addr = NULL;
+	sceKernelGetMemBlockBase(blockid, &addr);
+	debugPrintf("%s %s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, name, type, size, blockid, addr);
+
+	if (blockid >= 0)
 		INSERT_UID(hb_blockids, blockid);
-	}
 
 	return blockid;
 }
@@ -542,9 +539,8 @@ SceUID sceKernelAllocMemBlockPatchedHB(const char *name, SceKernelMemBlockType t
 int sceKernelFreeMemBlockPatchedHB(SceUID uid) {
 	int res = sceKernelFreeMemBlock(uid);
 
-	if (res >= 0) {
+	if (res >= 0)
 		DELETE_UID(hb_blockids, uid);
-	}
 
 	return res;
 }
@@ -552,9 +548,8 @@ int sceKernelFreeMemBlockPatchedHB(SceUID uid) {
 SceUID sceIoOpenPatchedHB(const char *file, int flags, SceMode mode) {
 	SceUID fd = sceIoOpen(file, flags, mode);
 
-	if (fd >= 0) {
+	if (fd >= 0)
 		INSERT_UID(hb_fds, fd);
-	}
 
 	return fd;
 }
@@ -562,9 +557,8 @@ SceUID sceIoOpenPatchedHB(const char *file, int flags, SceMode mode) {
 int sceIoClosePatchedHB(SceUID fd) {
 	int res = sceIoClose(fd);
 
-	if (res >= 0) {
+	if (res >= 0)
 		DELETE_UID(hb_fds, fd);
-	}
 
 	return res;
 }
@@ -572,9 +566,8 @@ int sceIoClosePatchedHB(SceUID fd) {
 SceUID sceIoDopenPatchedHB(const char *dirname) {
 	SceUID fd = sceIoDopen(dirname);
 
-	if (fd >= 0) {
+	if (fd >= 0)
 		INSERT_UID(hb_fds, fd);
-	}
 
 	return fd;
 }
@@ -582,9 +575,8 @@ SceUID sceIoDopenPatchedHB(const char *dirname) {
 int sceIoDclosePatchedHB(SceUID fd) {
 	int res = sceIoDclose(fd);
 
-	if (res >= 0) {
+	if (res >= 0)
 		DELETE_UID(hb_fds, fd);
-	}
 
 	return res;
 }
@@ -592,9 +584,8 @@ int sceIoDclosePatchedHB(SceUID fd) {
 SceUID sceKernelCreateSemaPatchedHB(const char *name, SceUInt attr, int initVal, int maxVal, SceKernelSemaOptParam *option) {
 	SceUID semaid = sceKernelCreateSema(name, attr, initVal, maxVal, option);
 
-	if (semaid >= 0) {
+	if (semaid >= 0)
 		INSERT_UID(hb_semaids, semaid);
-	}
 
 	return semaid;
 }
@@ -602,9 +593,8 @@ SceUID sceKernelCreateSemaPatchedHB(const char *name, SceUInt attr, int initVal,
 int sceKernelDeleteSemaPatchedHB(SceUID semaid) {
 	int res = sceKernelDeleteSema(semaid);
 
-	if (res >= 0) {
+	if (res >= 0)
 		DELETE_UID(hb_semaids, semaid);
-	}
 
 	return res;
 }
@@ -612,9 +602,8 @@ int sceKernelDeleteSemaPatchedHB(SceUID semaid) {
 SceUID sceKernelCreateMutexPatchedHB(const char *name, SceUInt attr, int initCount, SceKernelMutexOptParam *option) {
 	SceUID mutexid = sceKernelCreateMutex(name, attr, initCount, option);
 
-	if (mutexid >= 0) {
+	if (mutexid >= 0)
 		INSERT_UID(hb_mutexids, mutexid);
-	}
 
 	return mutexid;
 }
@@ -622,9 +611,8 @@ SceUID sceKernelCreateMutexPatchedHB(const char *name, SceUInt attr, int initCou
 int sceKernelDeleteMutexPatchedHB(SceUID mutexid) {
 	int res = sceKernelDeleteMutex(mutexid);
 
-	if (res >= 0) {
+	if (res >= 0)
 		DELETE_UID(hb_mutexids, mutexid);
-	}
 
 	return res;
 }
@@ -723,7 +711,9 @@ int sceKernelWaitThreadEndPatchedUVL(SceUID thid, int *stat, SceUInt *timeout) {
 SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
-	debugPrintf("%s %s: 0x%08X\n", __FUNCTION__, name, blockid);
+	void *addr = NULL;
+	sceKernelGetMemBlockBase(blockid, &addr);
+	debugPrintf("%s %s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, name, type, size, blockid, addr);
 
 	if (strcmp(name, "UVLTemp") == 0) {
 		UVLTemp_id = blockid;
@@ -732,7 +722,6 @@ SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType 
 
 		void *buf = NULL;
 		int res = sceKernelGetMemBlockBase(UVLTemp_id, &buf);
-		debugPrintf("sceKernelGetMemBlockBase: 0x%08X\n", res);
 		if (res < 0)
 			return res;
 
@@ -753,8 +742,12 @@ int sceKernelGetMemBlockBasePatchedUVL(SceUID uid, void **basep) {
 }
 
 SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
-	debugPrintf("%s 0x%08X\n", __FUNCTION__, code_blockid);
-	return code_blockid;
+	debugPrintf("%s 0x%08X 0x%08X\n", __FUNCTION__, addr, size);
+
+	if (addr == NULL)
+		return code_blockid;
+
+	return sceKernelFindMemBlockByAddr(addr, size);
 }
 
 int sceKernelFreeMemBlockPatchedUVL(SceUID uid) {
