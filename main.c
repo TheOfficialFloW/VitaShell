@@ -360,7 +360,7 @@ void drawScrollBar(int pos, int n) {
 
 void drawShellInfo(char *path) {
 	// Title
-	vita2d_pgf_draw_textf(font, SHELL_MARGIN_X, SHELL_MARGIN_Y, VIOLET, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
+	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, VIOLET, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
 
 	// Battery
 	float battery_x = ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_texture_get_width(battery_image));
@@ -388,7 +388,7 @@ void drawShellInfo(char *path) {
 
 	char string[64];
 	sprintf(string, "%s  %s", date_string, time_string);
-	vita2d_pgf_draw_text(font, ALIGN_LEFT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string)), SHELL_MARGIN_Y, WHITE, FONT_SIZE, string);
+	pgf_draw_text(ALIGN_LEFT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string)), SHELL_MARGIN_Y, WHITE, FONT_SIZE, string);
 
 	// TODO: make this more elegant
 	// Path
@@ -413,8 +413,8 @@ void drawShellInfo(char *path) {
 
 	strcpy(path_second_line, path + i);
 
-	vita2d_pgf_draw_text(font, SHELL_MARGIN_X, PATH_Y, LITEGRAY, FONT_SIZE, path_first_line);
-	vita2d_pgf_draw_text(font, SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, LITEGRAY, FONT_SIZE, path_second_line);
+	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, LITEGRAY, FONT_SIZE, path_first_line);
+	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, LITEGRAY, FONT_SIZE, path_second_line);
 }
 
 enum MenuEntrys {
@@ -566,7 +566,7 @@ void drawContextMenu() {
 			if (menu_entries[i].visibility == VISIBILITY_INVISIBLE)
 				color = DARKGRAY;
 
-			vita2d_pgf_draw_text(font, SCREEN_WIDTH - ctx_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[menu_entries[i].name]);
+			pgf_draw_text(SCREEN_WIDTH - ctx_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[menu_entries[i].name]);
 		}
 	}
 }
@@ -1091,7 +1091,7 @@ int shellMain() {
 				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, COLOR_ALPHA(AZURE, 0x4F));
 
 			// File name
-			vita2d_pgf_draw_text(font, SHELL_MARGIN_X, y, color, FONT_SIZE, file_entry->name);
+			pgf_draw_text(SHELL_MARGIN_X, y, color, FONT_SIZE, file_entry->name);
 
 			// File information
 			if (strcmp(file_entry->name, DIR_UP) != 0) {
@@ -1101,7 +1101,7 @@ int shellMain() {
 
 				char *str = file_entry->is_folder ? language_container[FOLDER] : size_string;
 
-				vita2d_pgf_draw_text(font, ALIGN_LEFT(680.0f, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
+				pgf_draw_text(ALIGN_LEFT(680.0f, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
 
 				// Date
 				char date_string[16];
@@ -1113,7 +1113,7 @@ int shellMain() {
 				char string[64];
 				sprintf(string, "%s %s", date_string, time_string);
 
-				vita2d_pgf_draw_text(font, ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), y, color, FONT_SIZE, string);
+				pgf_draw_text(ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), y, color, FONT_SIZE, string);
 			}
 
 			// Next

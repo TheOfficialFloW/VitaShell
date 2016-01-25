@@ -113,9 +113,15 @@ enum Colors {
 #define COLOR_ALPHA(color, alpha) (color & 0x00FFFFFF) | ((alpha & 0xFF) << 24)
 
 // Font
-#define FONT_SIZE 22.0f
+#define FONT_SIZE 1.0f
 #define FONT_X_SPACE 15.0f
 #define FONT_Y_SPACE 23.0f
+
+#define pgf_draw_text(x, y, color, scale, text) \
+	vita2d_pgf_draw_text(font, x, (y) + 20, color, scale, text)
+
+#define pgf_draw_textf(x, y, color, scale, ...) \
+	vita2d_pgf_draw_textf(font, x, (y) + 20, color, scale, __VA_ARGS__)
 
 // Screen
 #define SCREEN_WIDTH 960

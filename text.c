@@ -113,7 +113,7 @@ int text_thread(SceSize args, uint32_t *argp) {
 	while (running && offset < size && n_lines < MAX_LINES) {
 		offset += textReadLine(buffer, offset, size, NULL);
 		n_lines++;
-		
+
 		sceKernelDelayThread(1000);
 	}
 
@@ -256,7 +256,7 @@ int textViewer(char *file) {
 				if (p)
 					*p = '\0';
 
-				int width = vita2d_pgf_draw_text(font, x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? GREEN : WHITE, FONT_SIZE, line);
+				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? GREEN : WHITE, FONT_SIZE, line);
 				line += strlen(line);
 
 				if (p) {
