@@ -370,7 +370,7 @@ PatchNID patches_exit[] = {
 	//{ "SceAudio", 0x02DB3F5F, exitThread }, // sceAudioOutOutput // crashes mGBA
 
 	{ "SceNet", 0x1ADF9BB1, exitThread }, // sceNetAccept
-	{ "SceNet", 0x23643B7, exitThread}, // sceNetRecv
+	{ "SceNet", 0x23643B7, exitThread }, // sceNetRecv
 
 	{ "SceCtrl", 0x104ED1A7, exitThread }, // sceCtrlPeekBufferNegative
 	{ "SceCtrl", 0x15F96FB0, exitThread }, // sceCtrlReadBufferNegative
