@@ -56,6 +56,7 @@ static SceUID hb_thids[MAX_UIDS];
 static SceUID hb_semaids[MAX_UIDS];
 static SceUID hb_mutexids[MAX_UIDS];
 static SceUID hb_blockids[MAX_UIDS];
+static SceUID hb_sockids[MAX_UIDS];
 
 void *hb_lw_mutex_works[MAX_LW_MUTEXES];
 
@@ -120,6 +121,7 @@ void initHomebrewPatch() {
 		hb_semaids[i] = INVALID_UID;
 		hb_mutexids[i] = INVALID_UID;
 		hb_blockids[i] = INVALID_UID;
+		hb_sockids[i] = INVALID_UID;
 	}
 
 	memset(hb_lw_mutex_works, 0, sizeof(hb_lw_mutex_works));
@@ -325,6 +327,17 @@ void deleteLwMutex() {
 	}
 }
 
+void closeSockets() {
+	int i;
+	for (i = 0; i < MAX_UIDS; i++) {
+		if (hb_sockids[i] >= 0) {
+			int res = sceNetSocketClose(hb_sockids[i]);
+			if (res >= 0)
+				hb_sockids[i] = INVALID_UID;
+		}
+	}
+}
+
 void waitThreadEnd() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
@@ -343,6 +356,7 @@ int exitThread() {
 	signalDeleteSema();
 	unlockDeleteMutex();
 	deleteLwMutex();
+	closeSockets();
 
 	debugPrintf("Wait for threads...\n");
 	waitThreadEnd();
@@ -354,6 +368,9 @@ int exitThread() {
 
 PatchNID patches_exit[] = {
 	//{ "SceAudio", 0x02DB3F5F, exitThread }, // sceAudioOutOutput // crashes mGBA
+
+	{ "SceNet", 0x1ADF9BB1, exitThread }, // sceNetAccept
+	{ "SceNet", 0x23643B7, exitThread}, // sceNetRecv
 
 	{ "SceCtrl", 0x104ED1A7, exitThread }, // sceCtrlPeekBufferNegative
 	{ "SceCtrl", 0x15F96FB0, exitThread }, // sceCtrlReadBufferNegative
@@ -583,6 +600,24 @@ int sceIoDclosePatchedHB(SceUID fd) {
 	return res;
 }
 
+int sceNetSocketPatchedHB(const char *name, int domain, int type, int protocol) {
+	SceUID sockid = sceNetSocket(name, domain, type, protocol);
+
+	if (sockid >= 0)
+		INSERT_UID(hb_sockids, sockid);
+
+	return sockid;
+}
+
+int sceNetSocketClosePatchedHB(int s) {
+	int res = sceNetSocketClose(s);
+
+	if (res >= 0)
+		DELETE_UID(hb_sockids, s);
+
+	return res;
+}
+
 SceUID sceKernelCreateSemaPatchedHB(const char *name, SceUInt attr, int initVal, int maxVal, SceKernelSemaOptParam *option) {
 	SceUID semaid = sceKernelCreateSema(name, attr, initVal, maxVal, option);
 
@@ -663,6 +698,9 @@ PatchNID patches_init[] = {
 
 	{ "SceIofilemgr", 0x422A221A, sceIoDclosePatchedHB },
 	{ "SceIofilemgr", 0xC70B8886, sceIoClosePatchedHB },
+
+	{ "SceNet", 0xF084FCE3, sceNetSocketPatchedHB },
+	{ "SceNet", 0x29822B4D, sceNetSocketClosePatchedHB },
 
 	{ "SceLibKernel", 0x1BD67366, sceKernelCreateSemaPatchedHB },
 	{ "SceLibKernel", 0x1D17DECF, sceKernelExitDeleteThreadPatchedHB },
