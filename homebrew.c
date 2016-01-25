@@ -49,7 +49,6 @@ static int exited = 0;
 static SceUID exit_thid = INVALID_UID;
 
 static SceUID UVLTemp_id = INVALID_UID, UVLHomebrew_id = INVALID_UID;
-static uint32_t hb_text_addr = 0;
 static SceModuleInfo hb_mod_info;
 
 static SceUID hb_fds[MAX_UIDS];
@@ -73,6 +72,47 @@ static SceGxmShaderPatcherId hb_fragment_program_ids[MAX_GXM_PRGRAMS];
 
 static SceGxmVertexProgram *hb_vertex_programs[MAX_GXM_PRGRAMS];
 static SceGxmShaderPatcherId hb_vertex_program_ids[MAX_GXM_PRGRAMS];
+
+extern unsigned char _binary_payload_payload_bin_start;
+extern unsigned char _binary_payload_payload_bin_end;
+extern unsigned char _binary_payload_payload_bin_size; // crashes
+
+/*
+	* Self-reloading VitaShell *
+	- Restore uvl
+	- Load payload to code_memory
+	- Remove sceKernelWaitThreadEnd and replace by sceKernelExitDeleteThread in uvl. This will then not wait for thread to end but will exit the previous vitashell thread.
+	- Patch allocation VM and use old .text segment, so no new allocation is needed. By dummying uvl_alloc_code_mem and patching sceKernelFindMemBlockByAddr to return code_blockid.
+	- When it has been exited, free the previous .data segment and load new VitaShell to old .text segment with uvl_load.
+	- What is needed to be passed to the payload: path, uvl_load, uvl_unlock_mem, uvl_lock_mem, uvl_flush_icache to do patching.
+	  sceKernelExitDeleteThread function to replace. The old .text blockid of code memory must be passed (not code_blockid).
+*/
+
+typedef struct {
+	char *path;
+	int (* uvl_load)(const char *path);
+	int (* sceKernelExitDeleteThread)(int status);
+} PayloadArgs;
+
+void payload() {
+	// Restore uvl
+	restoreUVL();
+
+	int size = &_binary_payload_payload_bin_end - &_binary_payload_payload_bin_start;
+
+	// Copy payload to code memory
+	uvl_unlock_mem();
+	memcpy(code_memory, &_binary_payload_payload_bin_start, size);
+	uvl_lock_mem();
+	uvl_flush_icache(code_memory, size);
+
+	// Call payload
+	PayloadArgs args = { (void *)uvl_load, (void *)sceKernelExitDeleteThread };
+	int (* executePayload)(PayloadArgs *args) = (void *)((uint32_t)code_memory | 0x1);
+	executePayload(&args);
+
+	while (1); // Should never reach here
+}
 
 int isValidElf(char *file) {
 	Elf32_Ehdr header;
@@ -108,7 +148,6 @@ void initHomebrewPatch() {
 
 	UVLTemp_id = INVALID_UID;
 	UVLHomebrew_id = INVALID_UID;
-	hb_text_addr = 0;
 	memset((void *)&hb_mod_info, 0, sizeof(SceModuleInfo));
 
 	int i;
@@ -376,7 +415,7 @@ PatchNID patches_exit[] = {
 void PatchHomebrew() {
 	int i;
 	for (i = 0; i < (sizeof(patches_exit) / sizeof(PatchNID)); i++) {
-		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, patches_exit[i].library, patches_exit[i].nid), patches_exit[i].function);
+		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, (uint32_t)code_memory, patches_exit[i].library, patches_exit[i].nid), patches_exit[i].function);
 	}
 
 	force_exit = 1;
@@ -683,8 +722,8 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 
 	if (strcmp(hb_mod_info.name, "VitaShell.elf") == 0) {
 		// Pass address of the current code and data memblocks to unused stubs
-		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, "SceLibKernel", 0x894037E8), (void *)(uint32_t)&sceKernelCreateThreadPatchedUVL); // sceKernelBacktrace
-		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, "SceLibKernel", 0xD16C03B0), (void *)&hb_mod_info); // sceKernelBacktraceSelf
+		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, (uint32_t)code_memory, "SceLibKernel", 0x894037E8), (void *)(uint32_t)&sceKernelCreateThreadPatchedUVL); // sceKernelBacktrace
+		makeFunctionStub(findModuleImportByInfo(&hb_mod_info, (uint32_t)code_memory, "SceLibKernel", 0xD16C03B0), (void *)&hb_mod_info); // sceKernelBacktraceSelf
 
 		restoreUVL();
 		_free_vita_newlib();
@@ -695,7 +734,7 @@ SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry en
 
 		int i;
 		for (i = 0; i < (sizeof(patches_init) / sizeof(PatchNID)); i++) {
-			makeFunctionStub(findModuleImportByInfo(&hb_mod_info, hb_text_addr, patches_init[i].library, patches_init[i].nid), patches_init[i].function);
+			makeFunctionStub(findModuleImportByInfo(&hb_mod_info, (uint32_t)code_memory, patches_init[i].library, patches_init[i].nid), patches_init[i].function);
 		}
 	}
 
@@ -719,26 +758,9 @@ SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType 
 		UVLTemp_id = blockid;
 	} else if (strcmp(name, "UVLHomebrew") == 0) {
 		UVLHomebrew_id = blockid;
-
-		void *buf = NULL;
-		int res = sceKernelGetMemBlockBase(UVLTemp_id, &buf);
-		if (res < 0)
-			return res;
-
-		memcpy((void *)&hb_mod_info, (void *)getElfModuleInfo(buf), sizeof(SceModuleInfo));
 	}
 
 	return blockid;
-}
-
-int sceKernelGetMemBlockBasePatchedUVL(SceUID uid, void **basep) {
-	int res = sceKernelGetMemBlockBase(uid, basep);
-
-	if (uid != UVLTemp_id && uid != UVLHomebrew_id) {
-		hb_text_addr = (uint32_t)*basep;
-	}
-
-	return res;
 }
 
 SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
@@ -753,8 +775,16 @@ SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 int sceKernelFreeMemBlockPatchedUVL(SceUID uid) {
 	debugPrintf("%s 0x%08X\n", __FUNCTION__, uid);
 
-	if (uid == code_blockid)
+	if (uid == code_blockid) {
 		return 0;
+	} else if (uid == UVLTemp_id) {
+		void *buf = NULL;
+		int res = sceKernelGetMemBlockBase(UVLTemp_id, &buf);
+		if (res < 0)
+			return res;
+
+		memcpy((void *)&hb_mod_info, (void *)getElfModuleInfo(buf), sizeof(SceModuleInfo));
+	}
 
 	return sceKernelFreeMemBlock(uid);
 }
@@ -786,7 +816,6 @@ int sceIoClosePatchedUVL(SceUID fd) {
 
 PatchValue patches_uvl[] = {
 	{ -1, (uint32_t)&sceKernelAllocMemBlock, sceKernelAllocMemBlockPatchedUVL },
-	{ -1, (uint32_t)&sceKernelGetMemBlockBase, sceKernelGetMemBlockBasePatchedUVL },
 	{ -1, (uint32_t)&sceKernelFindMemBlockByAddr, sceKernelFindMemBlockByAddrPatchedUVL },
 	{ -1, (uint32_t)&sceKernelFreeMemBlock, sceKernelFreeMemBlockPatchedUVL },
 	{ -1, (uint32_t)&sceKernelCreateThread, sceKernelCreateThreadPatchedUVL },

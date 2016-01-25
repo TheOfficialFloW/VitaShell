@@ -1485,34 +1485,6 @@ void freePreviousVitaShell() {
 	sceKernelFreeMemBlock(sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&sceKernelBacktraceSelf), 0));
 }
 
-extern unsigned char _binary_payload_payload_bin_start;
-extern unsigned char _binary_payload_payload_bin_end;
-extern unsigned char _binary_payload_payload_bin_size; // crashes
-
-typedef struct {
-	char *path;
-	int (* uvl_load)(const char *path);
-	int (* sceKernelExitDeleteThread)(int status);
-} PayloadArgs;
-
-void payload() {
-	unsigned int length = 1 * 1024 * 1024;
-	void *addr = uvl_alloc_code_mem(&length);
-
-	int size = &_binary_payload_payload_bin_end - &_binary_payload_payload_bin_start;
-
-	uvl_unlock_mem();
-	memcpy(addr, &_binary_payload_payload_bin_start, size);
-	uvl_lock_mem();
-	uvl_flush_icache(addr, size);
-
-	PayloadArgs args = { (void *)uvl_load, (void *)sceKernelExitDeleteThread };
-	int (* executePayload)(PayloadArgs *args) = (void *)((uint32_t)addr | 0x1);
-	executePayload(&args);
-
-	while (1); // Should not reach this
-}
-
 int vitashell_thread(SceSize args, void *argp) {
 #ifndef RELEASE
 	sceIoRemove("cache0:vitashell_log.txt");
