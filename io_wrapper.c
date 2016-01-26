@@ -71,10 +71,10 @@ int fileIoWrite(SceUID fd, const void *data, SceSize size) {
 	return sceIoWrite(fd, data, size);
 }
 
-int fileIoLseek(SceUID fd, int offset, int whence) {
+SceOff fileIoLseek(SceUID fd, SceOff offset, int whence) {
 	int res = verifyFd(fd);
 	if (res < 0) {
-		return psp2LinkIoLseek(fd, offset, whence);
+		return (SceOff)psp2LinkIoLseek(fd, offset, whence);
 	}
 
 	return sceIoLseek(fd, offset, whence);

@@ -23,7 +23,7 @@ int fileIoOpen(const char *file, int flags, SceMode mode);
 int fileIoClose(SceUID fd);
 int fileIoRead(SceUID fd, void *data, SceSize size);
 int fileIoWrite(SceUID fd, const void *data, SceSize size);
-int fileIoLseek(SceUID fd, int offset, int whence);
+SceOff fileIoLseek(SceUID fd, SceOff offset, int whence);
 int fileIoRemove(const char *file);
 int fileIoMkdir(const char *dirname, SceMode mode);
 int fileIoRmdir(const char *dirname);
