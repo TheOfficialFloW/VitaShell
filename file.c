@@ -30,11 +30,13 @@ typedef struct {
 static char *mount_points[] = {
 	"app0:",
 	"cache0:",
+#ifdef USE_HOST0
 	HOST0,
+#endif
 	"music0:",
 	"photo0:",
 	"sa0:",
-	"savedata0:",
+	// "savedata0:",
 
 	NULL,
 	NULL,

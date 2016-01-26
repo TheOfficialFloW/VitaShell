@@ -17,6 +17,7 @@
 */
 
 #include "../main.h"
+#include "../io_wrapper.h"
 #include "pboot.h"
 
 #include "../elf_types.h"

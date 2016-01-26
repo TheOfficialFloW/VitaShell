@@ -67,10 +67,6 @@ HexListEntry *hexListGetNthEntry(HexList *list, int n) {
 	return entry;
 }
 
-/*
-	Page skip
-*/
-
 int hexViewer(char *file) {
 	int text_viewer = 0;
 
@@ -167,7 +163,8 @@ int hexViewer(char *file) {
 					}
 				}
 			}
-
+/*
+			TODO: page skip
 			if (hold_buttons & SCE_CTRL_LTRIGGER) {
 				if ((base_pos + rel_pos) != 0) {
 					if ((base_pos - 0x10 * 0x10) >= 0) {
@@ -214,7 +211,7 @@ int hexViewer(char *file) {
 					}
 				}
 			}
-
+*/
 			uint8_t max_nibble = (2 * 0x10) - 1;
 
 			// Last line

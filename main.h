@@ -62,6 +62,7 @@
 #include "functions.h"
 
 //#define RELEASE 1
+#define USE_HOST0 1
 
 #define VITASHELL_VERSION_MAJOR 0
 #define VITASHELL_VERSION_MINOR 5

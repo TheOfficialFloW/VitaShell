@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "io_wrapper.h"
 #include "init.h"
 #include "homebrew.h"
 #include "file.h"
@@ -278,12 +279,9 @@ void signalDeleteSema() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_semaids[i] >= 0) {
-			int res = sceKernelSignalSema(hb_semaids[i], 1);
-			debugPrintf("Signal sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
+			sceKernelSignalSema(hb_semaids[i], 1);
 
-			res = sceKernelDeleteSema(hb_semaids[i]);
-			debugPrintf("Delete sema 0x%08X: 0x%08X\n", hb_semaids[i], res);
-			if (res >= 0)
+			if (sceKernelDeleteSema(hb_semaids[i]) >= 0)
 				hb_semaids[i] = INVALID_UID;
 		}
 	}
@@ -293,12 +291,9 @@ void unlockDeleteMutex() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_mutexids[i] >= 0) {
-			int res = sceKernelUnlockMutex(hb_mutexids[i], 1);
-			debugPrintf("Unlock mutex 0x%08X: 0x%08X\n", hb_mutexids[i], res);
+			sceKernelUnlockMutex(hb_mutexids[i], 1);
 
-			res = sceKernelDeleteMutex(hb_mutexids[i]);
-			debugPrintf("Delete mutex 0x%08X: 0x%08X\n", hb_mutexids[i], res);
-			if (res >= 0)
+			if (sceKernelDeleteMutex(hb_mutexids[i]) >= 0)
 				hb_mutexids[i] = INVALID_UID;
 		}
 	}
@@ -308,9 +303,7 @@ void deleteLwMutex() {
 	int i;
 	for (i = 0; i < MAX_LW_MUTEXES; i++) {
 		if (hb_lw_mutex_works[i]) {
-			int res = sceKernelDeleteLwMutex(hb_lw_mutex_works[i]);
-			debugPrintf("Delete lw mutex 0x%08X: 0x%08X\n", hb_lw_mutex_works[i], res);
-			if (res >= 0)
+			if (sceKernelDeleteLwMutex(hb_lw_mutex_works[i]) >= 0)
 				hb_lw_mutex_works[i] = NULL;
 		}
 	}
@@ -320,8 +313,7 @@ void closeSockets() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_sockids[i] >= 0) {
-			int res = sceNetSocketClose(hb_sockids[i]);
-			if (res >= 0)
+			if (sceNetSocketClose(hb_sockids[i]) >= 0)
 				hb_sockids[i] = INVALID_UID;
 		}
 	}
@@ -331,23 +323,18 @@ void waitThreadEnd() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_thids[i] >= 0) {
-			//debugPrintf("Wait for 0x%08X\n", hb_thids[i]);
-			int res = sceKernelWaitThreadEnd(hb_thids[i], NULL, NULL);
-			if (res >= 0)
+			if (sceKernelWaitThreadEnd(hb_thids[i], NULL, NULL) >= 0)
 				hb_thids[i] = INVALID_UID;
 		}
 	}
 }
 
 int exitThread() {
-	debugPrintf("Exiting 0x%08X...\n", sceKernelGetThreadId());
-
 	signalDeleteSema();
 	unlockDeleteMutex();
 	deleteLwMutex();
 	closeSockets();
 
-	debugPrintf("Wait for threads...\n");
 	waitThreadEnd();
 
 	sceKernelDelayThread(50 * 1000);
@@ -406,7 +393,6 @@ int exit_thread(SceSize args, void *argp) {
 }
 
 int sceKernelExitProcessPatchedHB(int res) {
-	// debugPrintf("%s\n", __FUNCTION__);
 	return 0;
 }
 
@@ -522,8 +508,6 @@ int sceKernelExitDeleteThreadPatchedHB(int status) {
 SceUID sceKernelCreateThreadPatchedHB(const char *name, SceKernelThreadEntry entry, int initPriority, int stackSize, SceUInt attr, int cpuAffinityMask, const SceKernelThreadOptParam *option) {
 	SceUID thid = sceKernelCreateThread(name, entry, initPriority, stackSize, attr, cpuAffinityMask, option);
 
-	debugPrintf("%s %s 0x%08X: 0x%08X\n", __FUNCTION__, name, stackSize, thid);
-
 	if (thid >= 0)
 		INSERT_UID(hb_thids, thid);
 
@@ -532,10 +516,6 @@ SceUID sceKernelCreateThreadPatchedHB(const char *name, SceKernelThreadEntry ent
 
 SceUID sceKernelAllocMemBlockPatchedHB(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
-
-	void *mem = NULL;
-	sceKernelGetMemBlockBase(blockid, &mem);
-	debugPrintf("%s %s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, name, type, size, blockid, mem);
 
 	if (blockid >= 0)
 		INSERT_UID(hb_blockids, blockid);
@@ -731,10 +711,6 @@ int sceKernelWaitThreadEndPatchedUVL(SceUID thid, int *stat, SceUInt *timeout) {
 SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
-	void *mem = NULL;
-	sceKernelGetMemBlockBase(blockid, &mem);
-	debugPrintf("%s %s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, name, type, size, blockid, mem);
-
 	// UVLTemp buffer contains the elf data, get its blockid
 	if (strcmp(name, "UVLTemp") == 0) {
 		UVLTemp_id = blockid;
@@ -744,8 +720,6 @@ SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType 
 }
 
 SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
-	debugPrintf("%s 0x%08X 0x%08X\n", __FUNCTION__, addr, size);
-
 	// uvl_alloc_code_mem is patched to always return NULL
 	if (addr == NULL) {
 		// Now it is the moment we need to know the SceModuleInfo of this elf
@@ -762,8 +736,6 @@ SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 		if (strcmp(hb_mod_info.name, "VitaShell.elf") != 0) {
 			return code_blockid;
 		}
-
-		debugPrintf("VitaShell reloading...\n");
 
 		// Free newlib
 		_free_vita_newlib();
@@ -792,8 +764,6 @@ SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 }
 
 int sceKernelFreeMemBlockPatchedUVL(SceUID uid) {
-	debugPrintf("%s 0x%08X\n", __FUNCTION__, uid);
-
 	// Never free the code memory
 	if (uid == code_blockid) {
 		return 0;

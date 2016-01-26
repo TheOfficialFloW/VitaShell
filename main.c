@@ -18,9 +18,9 @@
 
 /*
 	TODO:
+	- Add shader compiler feature
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
 	- Redirecting .data segment when reloading
-	- Nethost. Patch UVL to be able to launch from host0
 	- Page skip for hex and text viewer
 	- Add UTF8/UTF16 to vita2dlib's pgf
 	- Maybe switch to libarchive
@@ -907,11 +907,11 @@ void fileBrowserMenuCtrl() {
 		dialog_step = DIALOG_STEP_SYSTEM;
 	}
 */
-
+/*
 	if (pressed_buttons & SCE_CTRL_LTRIGGER) {
 		listMemBlocks(0x60000000, 0xD0000000);
 	}
-
+*/
 	if (pressed_buttons & SCE_CTRL_SELECT) {
 		if (!ftpvita_is_initialized()) {
 			int res = ftpvita_init(vita_ip, &vita_port);
@@ -995,15 +995,14 @@ void fileBrowserMenuCtrl() {
 			if (strcmp(file_entry->name, DIR_UP) == 0) {
 				dirUp();
 			} else if (strcmp(file_entry->name, HOST0) == 0) {
-				int ret=psp2LinkInit("192.168.178.20",0x4711,0x4712,0x4712,3);
-				if(!ret)
-				{
+#ifdef USE_HOST0
+				int res = psp2LinkInit("192.168.178.20", 0x4711, 0x4712, 0x4712, 3);
+				if (!res) {
 					psp2LinkFinish();
 					return;
 				}
 
-				while(!psp2LinkRequestsIsConnected())
-				{
+				while (!psp2LinkRequestsIsConnected()) {
 					sceKernelDelayThread(1 * 1000 * 1000);
 				}
 
@@ -1012,6 +1011,7 @@ void fileBrowserMenuCtrl() {
 				fileIoGetstat(file_entry->name, &mount_point_stat);
 
 				dirLevelUp();
+#endif
 			} else {
 				if (dir_level == 0) {
 					strcpy(cur_path, file_entry->name);
@@ -1294,8 +1294,7 @@ int main(int argc, const char *argv[]) {
 
 	// Free previous data
 	if (shared_memory->data_blockid >= 0) {
-		int res = sceKernelFreeMemBlock(shared_memory->data_blockid);
-		debugPrintf("sceKernelFreeMemBlock: 0x%08X\n", res);
+		sceKernelFreeMemBlock(shared_memory->data_blockid);
 	}
 
 	// Init code memory
