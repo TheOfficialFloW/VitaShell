@@ -1258,27 +1258,34 @@ int initSharedMemory() {
 
 		sceKernelCloseMemBlock(blockid);
 	} else {
-		SceKernelAllocMemBlockOpt option;
-		memset(&option, 0, sizeof(SceKernelAllocMemBlockOpt));
-		option.size = sizeof(SceKernelAllocMemBlockOpt);
-		option.attr = 0x4020;
-		option.flags = 0x10;
+		int i;
+		for (i = sizeof(SceKernelAllocMemBlockOpt); i > 0; i -= 4) {
+			SceKernelAllocMemBlockOpt option;
+			memset(&option, 0, sizeof(SceKernelAllocMemBlockOpt));
+			option.size = i;
+			option.attr = 0x4020;
+			option.flags = 0x10;
 
-		SceUID blockid = sceKernelAllocMemBlock("VitaShellShared", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, ALIGN(sizeof(VitaShellShared), 0x1000), &option);
-		if (blockid < 0)
-			return blockid;
+			SceUID blockid = sceKernelAllocMemBlock("VitaShellShared", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, ALIGN(sizeof(VitaShellShared), 0x1000), &option);
+			if (blockid < 0 || blockid != 0x80020009) {
+				return blockid;
+			}
 
-		res = sceKernelGetMemBlockBase(blockid, (void *)&shared_memory);
-		if (res >= 0) {
-			/* Init shared memory */
-			memset((void *)shared_memory, 0, sizeof(VitaShellShared));
-			shared_memory->shared_blockid = blockid;
-			shared_memory->code_blockid = INVALID_UID;
-			shared_memory->data_blockid = INVALID_UID;
+			res = sceKernelGetMemBlockBase(blockid, (void *)&shared_memory);
+			if (res >= 0) {
+				/* Init shared memory */
+				memset((void *)shared_memory, 0, sizeof(VitaShellShared));
+				shared_memory->shared_blockid = blockid;
+				shared_memory->code_blockid = INVALID_UID;
+				shared_memory->data_blockid = INVALID_UID;
+			}
+
+			if (blockid >= 0)
+				break;
 		}
 	}
 
-	return 0;
+	return res;
 }
 
 int main(int argc, const char *argv[]) {

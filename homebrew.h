@@ -41,7 +41,7 @@
 	} \
 }
 
-#define MAX_CODE_SIZE 12 * 1024 * 1024
+#define MAX_CODE_SIZE 8 * 1024 * 1024 // 12 * 1024 * 1024
 #define MAX_UVL_SIZE 1 * 1024 * 1024
 
 #define MAX_AUDIO_PORTS 3
