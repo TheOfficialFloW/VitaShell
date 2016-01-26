@@ -1,6 +1,6 @@
 TARGET = VitaShell
 OBJS = main.o init.o homebrew.o io_process.o archive.o photo.o file.o text.o \
-	hex.o ftp.o message_dialog.o ime_dialog.o language.o utils.o module.o misc.o \
+	hex.o message_dialog.o ime_dialog.o language.o utils.o module.o misc.o \
 	psp/pboot.o psp/libkirk/kirk_engine.o psp/libkirk/crypto.o \
 	psp/libkirk/amctrl.o psp/libkirk/bn.o psp/libkirk/ec.o
 
@@ -15,7 +15,7 @@ OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
 
 #including stubs.o crashes fex!!!
 
-LIBS =  -lvita2d -lpng -ljpeg -lz -lm -lc \
+LIBS =  -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	-lSceAppMgr_stub -lSceAppUtil_stub -lSceAudio_stub -lSceCommonDialog_stub \
 	-lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	-lSceKernel_stub -lSceMusicExport_stub -lSceNet_stub -lSceNetCtl_stub \

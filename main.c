@@ -44,7 +44,6 @@
 #include "file.h"
 #include "text.h"
 #include "hex.h"
-#include "ftp.h"
 #include "message_dialog.h"
 #include "ime_dialog.h"
 #include "language.h"
@@ -768,7 +767,7 @@ int dialogSteps() {
 			disableAutoSuspend();
 
 			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				ftp_fini();
+				ftpvita_fini();
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
 			}
@@ -914,11 +913,19 @@ void fileBrowserMenuCtrl() {
 	}
 
 	if (pressed_buttons & SCE_CTRL_SELECT) {
-		if (!ftp_is_initialized()) {
-			int res = ftp_init(vita_ip, &vita_port);
+		if (!ftpvita_is_initialized()) {
+			int res = ftpvita_init(vita_ip, &vita_port);
 			if (res < 0) {
 				infoDialog(language_container[WIFI_ERROR]);
 			} else {
+				/* Add all the current mountpoints to ftpvita */
+				int i;
+				for (i = 0; i < getNumberMountPoints(); i++) {
+					char **mount_points = getMountPoints();
+					if (mount_points[i]) {
+						ftpvita_add_device(mount_points[i]);
+					}
+				}
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
 				dialog_step = DIALOG_STEP_FTP;
 			}
