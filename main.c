@@ -1267,7 +1267,7 @@ int initSharedMemory() {
 			option.flags = 0x10;
 
 			SceUID blockid = sceKernelAllocMemBlock("VitaShellShared", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, ALIGN(sizeof(VitaShellShared), 0x1000), &option);
-			if (blockid < 0 || blockid != 0x80020009) {
+			if (blockid < 0 && blockid != 0x80020009) {
 				return blockid;
 			}
 
