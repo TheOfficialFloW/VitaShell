@@ -1,6 +1,7 @@
 TARGET = VitaShell
-OBJS = main.o init.o homebrew.o io_process.o archive.o photo.o file.o text.o \
+OBJS = main.o io_wrapper.o init.o homebrew.o io_process.o archive.o photo.o file.o text.o \
 	hex.o message_dialog.o ime_dialog.o language.o utils.o module.o misc.o \
+	psp2link/requests.o psp2link/commands.o psp2link/psp2link.o \
 	psp/pboot.o psp/libkirk/kirk_engine.o psp/libkirk/crypto.o \
 	psp/libkirk/amctrl.o psp/libkirk/bn.o psp/libkirk/ec.o
 
@@ -20,7 +21,7 @@ LIBS =  -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	-lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	-lSceKernel_stub -lSceMusicExport_stub -lSceNet_stub -lSceNetCtl_stub \
 	-lSceSysmodule_stub -lScePower_stub -lSceTouch_stub -lScePgf_stub \
-	-lScePvf_stub -lUVLoader_stub
+	-lScePvf_stub -lUVLoader_stub -ldebugnet
 
 #NETDBG_IP ?= 192.168.1.50
 

@@ -804,17 +804,17 @@ int sceKernelFreeMemBlockPatchedUVL(SceUID uid) {
 
 SceUID sceIoOpenPatchedUVL(const char *file, int flags, SceMode mode) {
 	debugPrintf("%s %s\n", __FUNCTION__, file);
-	return sceIoOpen(file, flags, mode);
+	return fileIoOpen(file, flags, mode);
 }
 
 SceOff sceIoLseekPatchedUVL(SceUID fd, SceOff offset, int whence) {
 	debugPrintf("%s\n", __FUNCTION__);
-	return sceIoLseek(fd, offset, whence);
+	return fileIoLseek(fd, offset, whence);
 }
 
 int sceIoReadPatchedUVL(SceUID fd, void *data, SceSize size) {
 	debugPrintf("%s\n", __FUNCTION__);
-	return sceIoRead(fd, data, size);
+	return fileIoRead(fd, data, size);
 }
 
 int sceIoWritePatchedUVL(SceUID fd, const void *data, SceSize size) {
@@ -825,7 +825,7 @@ int sceIoWritePatchedUVL(SceUID fd, const void *data, SceSize size) {
 
 int sceIoClosePatchedUVL(SceUID fd) {
 	debugPrintf("%s\n", __FUNCTION__);
-	return sceIoClose(fd);
+	return fileIoClose(fd);
 }
 
 PatchValue patches_uvl[] = {
@@ -895,7 +895,6 @@ int PatchUVL() {
 			int j;
 			for (j = 0; j < N_UVL_PATCHES; j++) {
 				if (patches_uvl[j].value == value) {
-					debugPrintf("Found %d 0x%08X at 0x%08X\n", j, patches_uvl[j].value, addr);
 					patches_uvl[j].addr = addr;
 					count++;
 					break;

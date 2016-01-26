@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "io_wrapper.h"
 #include "file.h"
 #include "message_dialog.h"
 #include "language.h"
@@ -52,10 +53,10 @@ int debugPrintf(char *text, ...) {
 
 	netdbg(string);
 
-	SceUID fd = sceIoOpen("cache0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
+	SceUID fd = fileIoOpen("cache0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
 	if (fd >= 0) {
-		sceIoWrite(fd, string, strlen(string));
-		sceIoClose(fd);
+		fileIoWrite(fd, string, strlen(string));
+		fileIoClose(fd);
 	}
 #endif
 

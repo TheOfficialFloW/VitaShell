@@ -35,6 +35,7 @@
 */
 
 #include "main.h"
+#include "io_wrapper.h"
 #include "init.h"
 #include "homebrew.h"
 #include "io_process.h"
@@ -192,7 +193,7 @@ void refreshMarkList() {
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
-		if (sceIoGetstat(path, &stat) < 0)
+		if (fileIoGetstat(path, &stat) < 0)
 			fileListRemoveEntry(&mark_list, entry->name);
 
 		// Next
@@ -215,7 +216,7 @@ void refreshCopyList() {
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
-		if (sceIoGetstat(path, &stat) < 0)
+		if (fileIoGetstat(path, &stat) < 0)
 			fileListRemoveEntry(&copy_list, entry->name);
 
 		// Next
@@ -238,17 +239,17 @@ void resetFileLists() {
 	- Convert PNG to 24bit?
 */
 int signPspFile(char *file) {
-	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
+	SceUID fd = fileIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
 
 	PBPHeader header;
-	sceIoRead(fd, &header, sizeof(PBPHeader));
+	fileIoRead(fd, &header, sizeof(PBPHeader));
 
 	uint32_t magic;
-	sceIoLseek(fd, header.elf_offset, SCE_SEEK_SET);
-	sceIoRead(fd, &magic, sizeof(uint32_t));
-	sceIoClose(fd);
+	fileIoLseek(fd, header.elf_offset, SCE_SEEK_SET);
+	fileIoRead(fd, &magic, sizeof(uint32_t));
+	fileIoClose(fd);
 
 	if (magic != 0x464C457F) {
 		infoDialog(language_container[SIGN_ERROR]);
@@ -277,9 +278,9 @@ int signPspFile(char *file) {
 			if (res >= 0) {
 				// Rename to EBOOT_ORI.PBP
 				strcpy(p, "/EBOOT_ORI.PBP");
-				sceIoRename(file, path);
+				fileIoRename(file, path);
 			} else {
-				sceIoRemove(path);
+				fileIoRemove(path);
 				return res;
 			}
 		}
@@ -795,7 +796,7 @@ int dialogSteps() {
 					char path[MAX_PATH_LENGTH];
 					sprintf(path, "%s%s", cur_path, name);
 
-					int res = sceIoMkdir(path, 0777);
+					int res = fileIoMkdir(path, 0777);
 					if (res < 0) {
 						errorDialog(res);
 					} else {
@@ -867,7 +868,7 @@ int dialogSteps() {
 					sprintf(old_path, "%s%s", cur_path, file_entry->name);
 					sprintf(new_path, "%s%s", cur_path, name);
 
-					int res = sceIoRename(old_path, new_path);
+					int res = fileIoRename(old_path, new_path);
 					if (res < 0) {
 						errorDialog(res);
 					} else {
@@ -921,10 +922,11 @@ void fileBrowserMenuCtrl() {
 				int i;
 				for (i = 0; i < getNumberMountPoints(); i++) {
 					char **mount_points = getMountPoints();
-					if (mount_points[i]) {
+					if (mount_points[i] && strcmp(mount_points[i], HOST0) != 0) {
 						ftpvita_add_device(mount_points[i]);
 					}
 				}
+
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
 				dialog_step = DIALOG_STEP_FTP;
 			}
@@ -992,11 +994,29 @@ void fileBrowserMenuCtrl() {
 		if (file_entry->is_folder) {
 			if (strcmp(file_entry->name, DIR_UP) == 0) {
 				dirUp();
+			} else if (strcmp(file_entry->name, HOST0) == 0) {
+				int ret=psp2LinkInit("192.168.178.20",0x4711,0x4712,0x4712,3);
+				if(!ret)
+				{
+					psp2LinkFinish();
+					return;
+				}
+
+				while(!psp2LinkRequestsIsConnected())
+				{
+					sceKernelDelayThread(1 * 1000 * 1000);
+				}
+
+				strcpy(cur_path, file_entry->name);
+				memset(&mount_point_stat, 0, sizeof(SceIoStat));
+				fileIoGetstat(file_entry->name, &mount_point_stat);
+
+				dirLevelUp();
 			} else {
 				if (dir_level == 0) {
 					strcpy(cur_path, file_entry->name);
 					memset(&mount_point_stat, 0, sizeof(SceIoStat));
-					sceIoGetstat(file_entry->name, &mount_point_stat);
+					fileIoGetstat(file_entry->name, &mount_point_stat);
 				} else {
 					strcat(cur_path, file_entry->name);
 				}
@@ -1263,7 +1283,7 @@ int initSharedMemory() {
 
 int main(int argc, const char *argv[]) {
 #ifndef RELEASE
-	sceIoRemove("cache0:vitashell_log.txt");
+	fileIoRemove("cache0:vitashell_log.txt");
 #endif
 
 	// Init VitaShell

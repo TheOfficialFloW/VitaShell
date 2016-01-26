@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "io_wrapper.h"
 #include "archive.h"
 #include "file.h"
 #include "utils.h"
@@ -132,7 +133,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 	int count = fileListGetArchiveEntries(&list, src);
 
 	if (count > 0) {
-		int ret = sceIoMkdir(dst, 0777);
+		int ret = fileIoMkdir(dst, 0777);
 		if (ret < 0 && ret != 0x80010011) {
 			fileListEmpty(&list);
 			return ret;
@@ -174,7 +175,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 			return fdsrc;
 		}
 
-		SceUID fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+		SceUID fddst = fileIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 		if (fddst < 0) {
 			archiveFileClose(fdsrc);
 			fileListEmpty(&list);
@@ -185,7 +186,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 		int read;
 		while ((read = archiveFileRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-			sceIoWrite(fddst, buf, read);
+			fileIoWrite(fddst, buf, read);
 
 			if (value)
 				(*value) += read;
@@ -196,7 +197,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 		free(buf);
 
-		sceIoClose(fddst);
+		fileIoClose(fddst);
 		archiveFileClose(fdsrc);
 	}
 

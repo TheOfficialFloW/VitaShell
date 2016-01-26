@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "io_wrapper.h"
 #include "io_process.h"
 #include "archive.h"
 #include "file.h"
@@ -126,7 +127,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			sprintf(src_path, "%s%s", args->copy_path, copy_entry->name);
 			sprintf(dst_path, "%s%s", args->cur_path, copy_entry->name);
 
-			int res = sceIoRename(src_path, dst_path);
+			int res = fileIoRename(src_path, dst_path);
 			// TODO: if (res == 0x80010011) if folder
 			if (res < 0) {
 				sceMsgDialogClose();

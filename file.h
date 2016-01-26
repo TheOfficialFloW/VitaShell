@@ -27,6 +27,7 @@
 
 #define HOME_PATH "home"
 #define DIR_UP ".."
+#define HOST0 "host0:c:/"
 
 enum FileTypes {
 	FILE_TYPE_UNKNOWN,
