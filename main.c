@@ -1276,13 +1276,7 @@ int main(int argc, const char *argv[]) {
 	initCodeMemory(shared_memory->code_blockid);
 
 	// Set up nid table
-	setupNidTable();
-
-	uint32_t text_addr = 0, text_size = 0;
-	findModuleByName("SceLibKernel", &text_addr, &text_size);
-
-	int syscall = getValueByNid(0x713523E1);
-	debugPrintf("text_addr: 0x%08X, syscall: 0x%08X\n", text_addr, syscall);
+	// setupNidTable();
 
 	// Patch UVL
 	PatchUVL();
