@@ -50,8 +50,6 @@ int debugPrintf(char *text, ...) {
 	vsprintf(string, text, list);
 	va_end(list);
 
-	printf(string);
-
 	netdbg(string);
 
 	SceUID fd = sceIoOpen("cache0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);

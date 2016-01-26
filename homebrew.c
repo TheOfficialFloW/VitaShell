@@ -818,8 +818,9 @@ int sceIoReadPatchedUVL(SceUID fd, void *data, SceSize size) {
 }
 
 int sceIoWritePatchedUVL(SceUID fd, const void *data, SceSize size) {
-	debugPrintf("%s\n", __FUNCTION__);
-	return sceIoWrite(fd, data, size);
+	// Redirect to our debug logging and close the uvloader.log descriptor
+	debugPrintf((char *)data);
+	return sceIoClose(fd);
 }
 
 int sceIoClosePatchedUVL(SceUID fd) {
@@ -835,9 +836,9 @@ PatchValue patches_uvl[] = {
 	{ 0, 0, (uint32_t)&sceKernelWaitThreadEnd, sceKernelWaitThreadEndPatchedUVL },
 	{ 0, 0, (uint32_t)&sceIoOpen, sceIoOpenPatchedUVL },
 	{ 0, 0, (uint32_t)&sceIoLseek, sceIoLseekPatchedUVL },
-	{ 0, 0, (uint32_t)&sceIoRead, sceIoReadPatchedUVL }, // COULD NOT BE FOUND
-	{ 0, 0, (uint32_t)&sceIoWrite, sceIoWritePatchedUVL },  // COULD NOT BE FOUND
-	{ 0, 0, (uint32_t)&sceIoClose, sceIoClosePatchedUVL }, // COULD NOT BE FOUND
+	{ 0, 0, (uint32_t)&sceIoRead, sceIoReadPatchedUVL },
+	{ 0, 0, (uint32_t)&sceIoWrite, sceIoWritePatchedUVL },
+	{ 0, 0, (uint32_t)&sceIoClose, sceIoClosePatchedUVL },
 };
 
 #define N_UVL_PATCHES (sizeof(patches_uvl) / sizeof(PatchValue))
@@ -862,7 +863,11 @@ void initPatchValues(PatchValue *patches, int n_patches) {
 	int i;
 	for (i = 0; i < n_patches; i++) {
 		patches[i].value = extractStub(patches[i].stub);
-		// debugPrintf("%d: 0x%08X\n", i, patches[i].value);
+		
+		// These stubs call imports instead of syscalls/exports
+		if (i >= 7 && i <= 9) {
+			patches[i].value = findModuleImportByValue("SceLibKernel", "SceIofilemgr", patches[i].value);
+		}
 	}
 }
 
@@ -915,6 +920,10 @@ int PatchUVL() {
 	makeFunctionStub(shared_memory->sceIoReadAddr, sceIoReadPatchedUVL);
 	makeFunctionStub(shared_memory->sceIoWriteAddr, sceIoWritePatchedUVL);
 	makeFunctionStub(shared_memory->sceIoCloseAddr, sceIoClosePatchedUVL);
+
+	// Disable UVL logging because this causes crash for xerpi derpi
+	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_debug_log) & ~0x1);
+	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_log_write) & ~0x1);
 
 	// Make uvl_alloc_code_mem return 0
 	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_alloc_code_mem) & ~0x1);

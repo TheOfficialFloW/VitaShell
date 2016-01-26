@@ -18,7 +18,6 @@
 
 /*
 	TODO:
-	- Patch UVL logging
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
 	- Redirecting .data segment when reloading
 	- Nethost. Patch UVL to be able to launch from host0

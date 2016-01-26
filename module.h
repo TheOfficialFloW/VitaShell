@@ -44,6 +44,8 @@
 #define MAX_MODULES 128
 #define MAX_NIDS 0x10000
 
+#define MAX_SYSCALL_VALUE 0x1000
+
 typedef struct {
 	uint16_t size;
 	uint8_t lib_version[2];
@@ -125,8 +127,7 @@ uint32_t findModuleExportByName(char *modname, char *libname, uint32_t nid);
 
 uint32_t findModuleImportByInfo(SceModuleInfo *mod_info, uint32_t text_addr, char *libname, uint32_t nid);
 uint32_t findModuleImportByUID(SceUID mod, char *libname, uint32_t nid);
-
-int findSyscallInModuleImports(uint32_t syscall, char modulename[27], uint32_t *addr);
+uint32_t findModuleImportByValue(char *modname, char *libname, uint32_t value);
 
 void duplicateModule(char *name, uint32_t *text_addr, uint32_t *text_size);
 

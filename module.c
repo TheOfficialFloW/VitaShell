@@ -160,7 +160,7 @@ void makeFunctionStub(uint32_t address, void *function) {
 }
 
 void makeStub(uint32_t address, void *function) {
-	if ((uint32_t)function < 0x1000) {
+	if ((uint32_t)function < MAX_SYSCALL_VALUE) {
 		makeSyscallStub(address, (uint16_t)function);
 	} else {
 		makeFunctionStub(address, function);
@@ -210,7 +210,7 @@ void makeArmDummyFunction0(uint32_t address) {
 
 	uvl_lock_mem();
 
-	uvl_flush_icache((void *)address, 0x4);
+	uvl_flush_icache((void *)address, 0x10);
 }
 
 void makeThumbDummyFunction0(uint32_t address) {
@@ -450,46 +450,30 @@ uint32_t findModuleImportByUID(SceUID mod, char *libname, uint32_t nid) {
 	return findModuleImportByInfo(findModuleInfo(modname, text_addr, text_size), text_addr, libname, nid);
 }
 
-int findSyscallInModuleImports(uint32_t syscall, char modulename[27], uint32_t *addr) {
-	SceUID mod_list[MAX_MODULES];
-	int mod_count = MAX_MODULES;
+uint32_t findModuleImportByValue(char *modname, char *libname, uint32_t value) {
+	uint32_t text_addr = 0, text_size = 0;
+	if (findModuleByName(modname, &text_addr, &text_size) == 0)
+		return 0;
 
-	int res = sceKernelGetModuleList(0xFF, mod_list, &mod_count);
-	if (res < 0)
-		return res;
+	SceModuleInfo *mod_info = findModuleInfo(modname, text_addr, text_size);
+	if (!mod_info)
+		return 0;
 
-	int i;
-	for (i = mod_count - 1; i >= 0; i--) {
-		SceKernelModuleInfo info;
-		info.size = sizeof(SceKernelModuleInfo);
-		if (sceKernelGetModuleInfo(mod_list[i], &info) < 0)
-			continue;
+	uint32_t i = mod_info->impTop;
+	while (i < mod_info->impBtm) {
+		SceImportsTable3xx import;
+		convertToImportsTable3xx((void *)text_addr + i, &import);
 
-		char modname[27];
-		uint32_t text_addr = 0, text_size = 0;
-		if(!getModuleInfo(mod_list[i], modname, &text_addr, &text_size))
-			continue;
-
-		SceModuleInfo *mod_info = findModuleInfo(modname, text_addr, text_size);
-		if (!mod_info)
-			continue;
-
-		uint32_t i = mod_info->impTop;
-		while (i < mod_info->impBtm) {
-			SceImportsTable3xx import;
-			convertToImportsTable3xx((void *)text_addr + i, &import);
-
+		if (import.lib_name && strcmp(import.lib_name, libname) == 0) {
 			int j;
 			for (j = 0; j < import.num_functions; j++) {
-				if (extractSyscallStub((uint32_t)import.func_entry_table[j]) == syscall) {
-					strcpy(modulename, modname);
-					*addr = (uint32_t)import.func_entry_table[j] - text_addr;
-					return 1;
+				if (extractStub((uint32_t)import.func_entry_table[j]) == value) {
+					return (uint32_t)import.func_entry_table[j];
 				}
 			}
-
-			i += import.size;
 		}
+
+		i += import.size;
 	}
 
 	return 0;
@@ -717,7 +701,7 @@ void addImportNids(SceModuleInfo *mod_info, uint32_t text_addr, uint32_t reload_
 			uint32_t value = extractStub((uint32_t)import.func_entry_table[j]);
 			uint32_t nid = *(uint32_t *)(reload_text_addr + (uint32_t)&import.func_nid_table[j] - text_addr);
 
-			if (only_syscalls && value >= 0x4000)
+			if (only_syscalls && value >= MAX_SYSCALL_VALUE)
 				continue;
 
 			addNidValue(nid, value);
