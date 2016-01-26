@@ -22,6 +22,10 @@ int listMemBlocks(uint32_t start, uint32_t end) {
 	if (start < 0x60000000 || start > 0xF0000000 || end < 0x60000000 || end > 0xF0000000)
 		return -1;
 
+	debugPrintf("List memory blocks...\n");
+
+	int count = 0;
+
 	uint32_t i = start;
 	while (i < end) {
 		SceKernelMemBlockInfo info;
@@ -31,10 +35,13 @@ int listMemBlocks(uint32_t start, uint32_t end) {
 			SceUID blockid = sceKernelFindMemBlockByAddr(info.mappedBase, 0); // fails on module executable blocks
 			debugPrintf("0x%08X, 0x%08X, 0x%08X: 0x%08X\n", info.mappedBase, info.mappedSize, info.type, blockid);
 			i = (uint32_t)info.mappedBase + info.mappedSize;
+			count++;
 		} else {
 			i += 0x1000;
 		}
 	}
+
+	debugPrintf("Found %d memory blocks\n", count);
 
 	return 0;
 }

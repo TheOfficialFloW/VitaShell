@@ -1,5 +1,6 @@
 Changelog 0.5:
 - Increased homebrew force-exit compatbility.
+- Fixed FTP client crashes and added support for Turboclient Android.
 - Fixed alphabetical sorting, finally.
 
 Changelog 0.4:

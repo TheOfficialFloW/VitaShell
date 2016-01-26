@@ -18,11 +18,11 @@
 
 /*
 	TODO:
-	- Fix VitaShell reloading.
-	- Nethost. Patch UVL to be able to launch from host0
+	- Patch UVL logging
 	- Terminate thread / free stack of previous VitaShell when reloading
+	- Redirecting .data segment when reloading
+	- Nethost. Patch UVL to be able to launch from host0
 	- Page skip for hex and text viewer
-	- Improve homebrew exiting. Compatibility list at http://wololo.net/talk/viewtopic.php?f=113&p=402975#p402975
 	- Add UTF8/UTF16 to vita2dlib's pgf
 	- Maybe switch to libarchive
 	- Hex editor byte group size
@@ -53,7 +53,7 @@
 #include "psp/pboot.h"
 
 #ifdef RELEASE
-#include "splashscreen.h"
+#include "resources/splashscreen.h"
 #endif
 
 int _newlib_heap_size_user = 32 * 1024 * 1024;
@@ -102,7 +102,6 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 // Dialog step
 int dialog_step = DIALOG_STEP_NONE;
 
-SceUID shared_blockid = -1;
 VitaShellShared *shared_memory = NULL;
 
 void dirLevelUp() {
@@ -1221,266 +1220,38 @@ void getNetInfo() {
 		sceNetTerm();
 }
 
-//SceAppMgrUser_09899A08(3, string, 17);
-//SceAppMgrUser_5E375921(mount_point) umount?
-//0x84DE76C7: sceAppMgrSaveDataDataSave
-//SceAppMgrUser_CECFC7CB("vs0:app/NPXS10015/eboot.bin", "NPXS10016", 0x2000000);
+int initSharedMemory() {
+	int res = 0;
 
-/*
-	Callback list
-	0x82833474: 0x82823BAB '.;..' - addhi      a4, a3, #0x2ac00							called by 0x82404960
-	0x82833478: 0x828243F7 '.C..' - addhi      v1, a3, #-0x23fffffd						called by 0x8240489C
-	0x8283347C: 0x828247FB '.G..' - addhi      v1, a3, #0x3ec0000						called by 0x82404A3E
-	0x82833480: 0x82824D63 'cM..' - addhi      v1, a3, #0x18c0
-	0x82833484: 0x82825155 'UQ..' - addhi      v2, a3, #0x40000015						receive from avmedia service? ;) calling sub_82824EEC to receive file buffer
-	0x82833488: 0x828257AF '.W..' - addhi      v2, a3, #0x2bc0000						called by 0x82406CAA?
-	0x8283348C: 0x82825FA5 '._..' - addhi      v2, a3, #0x294
-	0x82833490: 0x828266A5 '.f..' - addhi      v3, a3, #0xa500000						called by 0x82406D04?
-	0x82833494: 0x82826F43 'Co..' - addhi      v3, a3, #0x10c
-	0x82833498: 0x828273CD '.s..' - addhi      v4, a3, #0x34000003						called by 0x82406D5E?
-	0x8283349C: 0x82827A47 'Gz..' - addhi      v4, a3, #0x47000
-	0x828334A0: 0x82827A8F '.z..' - addhi      v4, a3, #0x8f000
-	0x828334A4: 0x82827B43 'C{..' - addhi      v4, a3, #0x10c00
-	0x828334A8: 0x82827B47 'G{..' - addhi      v4, a3, #0x11c00
-	0x828334AC: 0x82827E4D 'M~..' - addhi      v4, a3, #0x4d0
-	0x828334B0: 0x828227E9 '.'..' - addhi      a3, a3, #0x3a40000
-	0x828334B4: 0x8282283D '=(..' - addhi      a3, a3, #0x3d0000
-*/
+	SceUID blockid = sceKernelOpenMemBlock("VitaShellShared", 0x10);
+	if (blockid >= 0) {
+		res = sceKernelGetMemBlockBase(blockid, (void *)&shared_memory);
+		if (res >= 0) {
+			res = sceKernelGetMemBlockBase(shared_memory->shared_blockid, (void *)&shared_memory);
+		}
 
-#define SCE_PHOTO_EXPORT_MAX_FS_PATH (1024)
-#define SCE_PHOTO_EXPORT_MAX_PHOTO_TITLE_LENGTH (64)
-#define SCE_PHOTO_EXPORT_MAX_PHOTO_TITLE_SIZE (SCE_PHOTO_EXPORT_MAX_PHOTO_TITLE_LENGTH * 4)
-#define SCE_PHOTO_EXPORT_MAX_MEMBLOCK_SIZE (64 * 1024)
-
-typedef struct ScePhotoExportParam {
-	SceUInt32 version;
-	const SceChar8 *photoTitle;
-	const SceChar8 *gameTitle;
-	const SceChar8 *gameComment;
-	SceChar8 reserved[32];
-} ScePhotoExportParam;
-
-typedef SceBool (*ScePhotoExportCancelFunc)(void*);
-
-uint32_t shellsvc_addr = 0, photoexport_addr = 0;
-uint32_t ori_shellsvc_addr = 0;
-
-/*
-	Knowledge:
-	- Trying to receive 0x10 (size - 4) instead of 0x14 will make result 0x10 too
-	- Trying to receive a buffer bigger than it is send (size + 4) will return 0x80028223
-	- Tryint to receive a second time with same isze will result: 0x80028223
-	- You can split a packet! Receive size - 4 and then 4 will work. Receive size - 4 and then 8 won't work
-*/
-
-int sceKernelSendMsgPipePatched(SceUID uid, void *message, unsigned int size, int unk1, int *unk2, unsigned int *timeout) {
-	char string[128];
-	sprintf(string, "cache0:/dump/send_0x%08X_0x%X.bin", (unsigned int)message, size);
-	WriteFile(string, message, size);
-
-	static char buffer[0x4000];
-	memcpy(buffer, message, size);
-
-	if (size == 0x40) {
-		// trying to make pointers invalid
-//		*(uint32_t *)((uint32_t)buffer + 0x38) = 0x12345678;
-//		*(uint32_t *)((uint32_t)buffer + 0x3C) = 0x12345678;
+		sceKernelCloseMemBlock(blockid);
 	} else {
-//		*(uint32_t *)((uint32_t)buffer + 0x00) = 3; // using an other value will crash
-//		*(uint32_t *)((uint32_t)buffer + 0x04) = 8;
-	}
+		SceKernelAllocMemBlockOpt option;
+		memset(&option, 0, sizeof(SceKernelAllocMemBlockOpt));
+		option.size = sizeof(SceKernelAllocMemBlockOpt);
+		option.attr = 0x4020;
+		option.flags = 0x10;
 
-	int res = sceKernelSendMsgPipe(uid, buffer, size, unk1, unk2, timeout);
+		SceUID blockid = sceKernelAllocMemBlock("VitaShellShared", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, ALIGN(sizeof(VitaShellShared), 0x1000), &option);
+		if (blockid < 0)
+			return blockid;
 
-	debugPrintf("%s 0x%08X 0x%08X: 0x%08X\n", __FUNCTION__, message, size, res);
-
-	return res;
-}
-
-int sceKernelTrySendMsgPipePatched(SceUID uid, void *message, unsigned int size, int unk1, void *unk2) {
-	static char buffer[0x4000];
-	memcpy(buffer, message, size);
-
-	if (size == 0x20) {
-		if (strcmp(buffer + 0x1C, "Expo") == 0) {
-			//*(uint32_t *)(buffer + 0x14) = -1;
-		} else {
-			//*(uint32_t *)(buffer + 0x00) = 0x40000; // Changing output size
-			//*(uint32_t *)(buffer + 0x10) = 0x4000;
-		}
-
-		//memset(buffer, -1, size);
-	}
-
-	char string[128];
-	sprintf(string, "cache0:/dump/try_send_0x%08X_0x%X.bin", (unsigned int)message, size);
-	WriteFile(string, message, size);
-
-	int res = sceKernelTrySendMsgPipe(uid, buffer, size, unk1, unk2);
-
-	debugPrintf("%s 0x%08X 0x%08X: 0x%08X\n", __FUNCTION__, message, size, res);
-
-	return res;
-}
-
-int sceKernelTryReceiveMsgPipePatched(SceUID uid, void *message, unsigned int size, int unk1, int *result) {
-	int res = sceKernelTryReceiveMsgPipe(uid, message, size, unk1, result);
-
-	char string[128];
-	sprintf(string, "cache0:/dump/recv_0x%08X_0x%X.bin", (unsigned int)message, size);
-	WriteFile(string, message, size);
-
-	debugPrintf("%s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, message, size, res, *result);
-
-	return res;
-}
-
-/*
-int sub_8282C578(void *a1, void *message, int *result, unsigned int size) {
-	if (size == 0) {
-		if (result) {
-			*result = 0;
-			return 0;
+		res = sceKernelGetMemBlockBase(blockid, (void *)&shared_memory);
+		if (res >= 0) {
+			/* Init values */
+			shared_memory->shared_blockid = blockid;
+			shared_memory->code_blockid = INVALID_UID;
+			shared_memory->data_blockid = INVALID_UID;
 		}
 	}
 
-	int res = sceKernelTryReceiveMsgPipe(*(uint32_t *)a1, message, size, 1, result);
-
-	if (res == SCE_KERNEL_ERROR_MSG_PIPE_EMPTY || res == SCE_KERNEL_ERROR_MSG_PIPE_DELETED)
-		return 0x80020511;
-
-	return res;
-}
-*/
-int (* SceIpmi_B282B430)(void *a1, char *a2, void *a3, void *a4);
-/*
-int (* sub_82823BAA)(void *packet);
-int (* sub_828243F6)(void *packet, int a2, int a3, void *a4);
-int (* sub_828247FA)(void *packet);
-int (* sub_828257AE)(void *packet, int cmd, void *input, void *a4, void *output, int a6);
-int (* sub_828266A4)(void *packet, int cmd, void *input, void *a4, void *output, int a6);
-int (* sub_828273CC)(void *packet, int cmd, void *input, void *a4, void *output, int a6);
-
-int sub_82823BAA_patched(void *packet) {
-	debugPrintf("0) %s\n", __FUNCTION__);
-	return sub_82823BAA(packet);
-}
-
-int sub_828243F6_patched(void *packet, int a2, int a3, void *a4) {
-	debugPrintf("1) %s\n", __FUNCTION__);
-	return sub_828243F6(packet, a2, a3, a4);
-}
-
-int sub_828247FA_patched(void *packet) {
-	debugPrintf("2) %s\n", __FUNCTION__);
-	return sub_828247FA(packet);
-}
-
-int sub_828257AE_patched(void *packet, int cmd, void *input, void *a4, void *output, int a6) {
-	debugPrintf("5) %s\n", __FUNCTION__);
-	return sub_828257AE(packet, cmd, input, a4, output, a6);
-}
-
-int sub_828266A4_patched(void *packet, int cmd, void *input, void *a4, void *output, int a6) {
-	debugPrintf("7) %s\n", __FUNCTION__);
-	return sub_828266A4(packet, cmd, input, a4, output, a6);
-}
-
-int sub_828273CC_patched(void *packet, int cmd, void *input, void *a4, void *output, int a6) {
-	debugPrintf("9) %s\n", __FUNCTION__);
-	return sub_828273CC(packet, cmd, input, a4, output, a6);
-}
-*/
-int SceIpmi_B282B430_Patched(void *a1, char *a2, void *a3, void *a4) {
-	int res = SceIpmi_B282B430(a1, a2, a3, a4);
-
-	uint32_t val = *(uint32_t *)a1;
-
-	uint32_t *func_list = (uint32_t *)(shellsvc_addr + (0x82833474 - 0x82820FE0));
-
-	*(uint32_t *)val = (uint32_t)func_list;
-
-	uvl_unlock_mem();
-/*
-	sub_82823BAA = (void *)func_list[0];
-	func_list[0] = (uint32_t)sub_82823BAA_patched;
-
-	sub_828243F6 = (void *)func_list[1];
-	func_list[1] = (uint32_t)sub_828243F6_patched;
-
-	sub_828247FA = (void *)func_list[2];
-	func_list[2] = (uint32_t)sub_828247FA_patched;
-
-	sub_828257AE = (void *)func_list[5];
-	func_list[5] = (uint32_t)sub_828257AE_patched;
-
-	sub_828266A4 = (void *)func_list[7];
-	func_list[7] = (uint32_t)sub_828266A4_patched;
-
-	sub_828273CC = (void *)func_list[9];
-	func_list[9] = (uint32_t)sub_828273CC_patched;
-*/
-	func_list[3] = 0;
-	func_list[4] = 0;
-	func_list[6] = 0;
-	func_list[8] = 0;
-	func_list[10] = 0;
-
-	uvl_lock_mem();
-	uvl_flush_icache((void *)(shellsvc_addr + (0x82833474 - 0x82820FE0)), 18 * 4);
-
-	return res;
-}
-
-void hack() {
-	removePath("cache0:/dump", NULL, 0, NULL);
-	sceIoMkdir("cache0:/dump", 0777);
-
-	sceSysmoduleLoadModule(SCE_SYSMODULE_PHOTO_EXPORT);
-
-	findModuleByName("SceShellSvc", &ori_shellsvc_addr, NULL);
-
-	duplicateModule("SceShellSvc", &shellsvc_addr, NULL);
-
-	duplicateModule("ScePhotoExport", &photoexport_addr, NULL);
-
-	uvl_unlock_mem();
-
-	// Patch
-	uint32_t i;
-	for (i = 0; i < 18; i++) {
-		uint32_t offset = *(uint32_t *)(shellsvc_addr + i * 4 + (0x82833474 - 0x82820FE0));
-		*(uint32_t *)(shellsvc_addr + i * 4 + (0x82833474 - 0x82820FE0)) = offset - ori_shellsvc_addr + shellsvc_addr;
-	}
-
-	uvl_lock_mem();
-	uvl_flush_icache((void *)(shellsvc_addr + (0x82833474 - 0x82820FE0)), 18 * 4);
-
-	HIJACK_STUB(photoexport_addr + (0x824076B8 - 0x824045D0), SceIpmi_B282B430_Patched, SceIpmi_B282B430);
-
-	int (* x)();
-	HIJACK_STUB(shellsvc_addr + (0x8283061C - 0x82820FE0), sceKernelSendMsgPipePatched, x);
-	HIJACK_STUB(shellsvc_addr + (0x8283085C - 0x82820FE0), sceKernelTrySendMsgPipePatched, x);
-	HIJACK_STUB(shellsvc_addr + (0x8283071C - 0x82820FE0), sceKernelTryReceiveMsgPipePatched, x);
-
-	// Function test
-	SceInt32 (* scePhotoExportFromFile)(const SceChar8 *photodataPath, const ScePhotoExportParam *param, void *workMemory, ScePhotoExportCancelFunc cancelFunc, void *userdata, SceChar8 *exportedPath, SceInt32 exportedPathLength);
-
-	scePhotoExportFromFile = (void *)photoexport_addr + (0xDF6 | 0x1);
-
-	ScePhotoExportParam	exportParam;
-	memset(&exportParam, 0, sizeof(ScePhotoExportParam));
-	exportParam.photoTitle = (SceChar8 *)"THIS_IS_THE_PHOTO_TITLE";
-	exportParam.gameTitle = (SceChar8 *)"THIS_IS_THE_GAME_TITLE";
-	exportParam.gameComment = (SceChar8 *)"THIS_IS_THE_GAME_COMMENT";
-
-	static char	g_workMemory[SCE_PHOTO_EXPORT_MAX_MEMBLOCK_SIZE];
-	static char	g_exportPath[SCE_PHOTO_EXPORT_MAX_FS_PATH];
-
-	int res = scePhotoExportFromFile((SceChar8 *)"cache0:/test.jpeg", &exportParam, g_workMemory, NULL, NULL, (SceChar8 *)g_exportPath, SCE_PHOTO_EXPORT_MAX_FS_PATH);
-	debugPrintf("g_exportPath: %s\n", g_exportPath);
-
-	// sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
+	return 0;
 }
 
 int main(int argc, const char *argv[]) {
@@ -1488,24 +1259,17 @@ int main(int argc, const char *argv[]) {
 	sceIoRemove("cache0:vitashell_log.txt");
 #endif
 
-	/* Make this ugly thing better... */
-	ReadFile("cache0:/reload.bin", &shared_blockid, sizeof(SceUID));
-	sceIoRemove("cache0:/reload.bin");
+	// Init VitaShell
+	VitaShellInit();
 
-	if (sceKernelGetMemBlockBase(shared_blockid, (void *)&shared_memory) < 0) {
-		shared_blockid = sceKernelAllocMemBlock("VitaShellShared", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, 0x1000, NULL);
-		sceKernelGetMemBlockBase(shared_blockid, (void *)&shared_memory);
+	// Init shared memory
+	initSharedMemory();
 
-		/* Init shared */
-		shared_memory->code_blockid = INVALID_UID;
-		shared_memory->data_blockid = INVALID_UID;
-	} else {
+	// Free preivous data
+	if (shared_memory->data_blockid >= 0) {
 		int res = sceKernelFreeMemBlock(shared_memory->data_blockid);
 		debugPrintf("sceKernelFreeMemBlock: 0x%08X\n", res);
 	}
-
-	// Init VitaShell
-	VitaShellInit();
 
 	// Init code memory
 	initCodeMemory(shared_memory->code_blockid);

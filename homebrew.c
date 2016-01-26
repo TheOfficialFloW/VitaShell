@@ -369,23 +369,23 @@ int exitThread() {
 PatchNID patches_exit[] = {
 	//{ "SceAudio", 0x02DB3F5F, exitThread }, // sceAudioOutOutput // crashes mGBA
 
-	{ "SceNet", 0x1ADF9BB1, exitThread }, // sceNetAccept
-	{ "SceNet", 0x23643B7, exitThread }, // sceNetRecv
-
 	{ "SceCtrl", 0x104ED1A7, exitThread }, // sceCtrlPeekBufferNegative
 	{ "SceCtrl", 0x15F96FB0, exitThread }, // sceCtrlReadBufferNegative
 	{ "SceCtrl", 0x67E7AB83, exitThread }, // sceCtrlReadBufferPositive
 	{ "SceCtrl", 0xA9C3CED6, exitThread }, // sceCtrlPeekBufferPositive
 
-	{ "SceGxm", 0x8734FF4E, exitThread }, // sceGxmBeginScene
-
 	//{ "SceDisplay", 0x5795E898, exitThread }, // sceDisplayWaitVblankStart
+
+	{ "SceGxm", 0x8734FF4E, exitThread }, // sceGxmBeginScene
 
 	{ "SceLibKernel", 0x0C7B834B, exitThread }, // sceKernelWaitSema
 	{ "SceLibKernel", 0x174692B4, exitThread }, // sceKernelWaitSemaCB
 	{ "SceLibKernel", 0x1D8D7945, exitThread }, // sceKernelLockMutex
 	{ "SceLibKernel", 0x72FC1F54, exitThread }, // sceKernelTryLockMutex
 	{ "SceLibKernel", 0xE6B761D1, exitThread }, // sceKernelSignalSema
+
+	{ "SceNet", 0x023643B7, exitThread }, // sceNetRecv
+	{ "SceNet", 0x1ADF9BB1, exitThread }, // sceNetAccept
 
 	{ "SceThreadmgr", 0x1A372EC8, exitThread }, // sceKernelUnlockMutex
 	//{ "SceThreadmgr", 0x4B675D05, exitThread }, // sceKernelDelayThread
@@ -545,9 +545,9 @@ SceUID sceKernelCreateThreadPatchedHB(const char *name, SceKernelThreadEntry ent
 SceUID sceKernelAllocMemBlockPatchedHB(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
-	void *addr = NULL;
-	sceKernelGetMemBlockBase(blockid, &addr);
-	debugPrintf("%s %s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, name, type, size, blockid, addr);
+	void *mem = NULL;
+	sceKernelGetMemBlockBase(blockid, &mem);
+	debugPrintf("%s %s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, name, type, size, blockid, mem);
 
 	if (blockid >= 0)
 		INSERT_UID(hb_blockids, blockid);
@@ -699,9 +699,6 @@ PatchNID patches_init[] = {
 	{ "SceIofilemgr", 0x422A221A, sceIoDclosePatchedHB },
 	{ "SceIofilemgr", 0xC70B8886, sceIoClosePatchedHB },
 
-	{ "SceNet", 0xF084FCE3, sceNetSocketPatchedHB },
-	{ "SceNet", 0x29822B4D, sceNetSocketClosePatchedHB },
-
 	{ "SceLibKernel", 0x1BD67366, sceKernelCreateSemaPatchedHB },
 	{ "SceLibKernel", 0x1D17DECF, sceKernelExitDeleteThreadPatchedHB },
 	{ "SceLibKernel", 0x244E76D2, sceKernelDeleteLwMutexPatchedHB },
@@ -714,13 +711,14 @@ PatchNID patches_init[] = {
 	{ "SceLibKernel", 0xDB32948A, sceKernelDeleteSemaPatchedHB },
 	{ "SceLibKernel", 0xED53334A, sceKernelCreateMutexPatchedHB },
 
+	{ "SceNet", 0x29822B4D, sceNetSocketClosePatchedHB },
+	{ "SceNet", 0xF084FCE3, sceNetSocketPatchedHB },
+
 	{ "SceSysmem", 0xA91E15EE, sceKernelFreeMemBlockPatchedHB },
 	{ "SceSysmem", 0xB9D5EBDE, sceKernelAllocMemBlockPatchedHB },
 };
 
 SceUID sceKernelCreateThreadPatchedUVL(const char *name, SceKernelThreadEntry entry, int initPriority, int stackSize, SceUInt attr, int cpuAffinityMask, const SceKernelThreadOptParam *option) {
-	debugPrintf("Module name: %s\n", hb_mod_info.name);
-
 	exit_thid = sceKernelCreateThread("exit_thread", (SceKernelThreadEntry)exit_thread, 191, 0x1000, 0, 0, NULL);
 	if (exit_thid >= 0)
 		sceKernelStartThread(exit_thid, 0, NULL);
@@ -745,9 +743,9 @@ int sceKernelWaitThreadEndPatchedUVL(SceUID thid, int *stat, SceUInt *timeout) {
 SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType type, int size, void *optp) {
 	SceUID blockid = sceKernelAllocMemBlock(name, type, size, optp);
 
-	void *addr = NULL;
-	sceKernelGetMemBlockBase(blockid, &addr);
-	debugPrintf("%s %s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, name, type, size, blockid, addr);
+	void *mem = NULL;
+	sceKernelGetMemBlockBase(blockid, &mem);
+	debugPrintf("%s %s 0x%08X 0x%08X: 0x%08X, 0x%08X\n", __FUNCTION__, name, type, size, blockid, mem);
 
 	// UVLTemp buffer contains the elf data, get its blockid
 	if (strcmp(name, "UVLTemp") == 0) {
@@ -756,12 +754,6 @@ SceUID sceKernelAllocMemBlockPatchedUVL(const char *name, SceKernelMemBlockType 
 
 	return blockid;
 }
-
-/*
-	TODO: send code_blockid to new VitaShell
-	TODO: redirect .data segment to ours
-	TODO: make wait end to exitthread
-*/
 
 SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 	debugPrintf("%s 0x%08X 0x%08X\n", __FUNCTION__, addr, size);
@@ -790,7 +782,6 @@ SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 		// Adjust shared memory
 		shared_memory->code_blockid = code_blockid;
 		shared_memory->data_blockid = sceKernelFindMemBlockByAddr((void *)&code_memory, 0);
-		WriteFile("cache0:/reload.bin", &shared_blockid, sizeof(SceUID));
 
 		// Restore UVL. Attention: Restoring UVL will break all patches
 		restoreUVL();

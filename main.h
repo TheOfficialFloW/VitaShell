@@ -192,11 +192,11 @@ enum DialogSteps {
 };
 
 typedef struct {
+	SceUID shared_blockid;
 	SceUID code_blockid;
 	SceUID data_blockid;
 } VitaShellShared;
 
-extern SceUID shared_blockid;
 extern VitaShellShared *shared_memory;
 
 extern vita2d_pgf *font;

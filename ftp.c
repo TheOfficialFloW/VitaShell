@@ -30,8 +30,8 @@
 #define FTP_DEFAULT_PATH   "/"
 #define HOME_PREFIX_LENGTH 5
 
-#define INFO(...)
 #define DEBUG(...)
+#define INFO(...)
 
 typedef enum {
 	FTP_DATA_CONNECTION_NONE,
@@ -134,6 +134,11 @@ static void cmd_QUIT_func(ClientInfo *client)
 static void cmd_SYST_func(ClientInfo *client)
 {
 	client_send_ctrl_msg(client, "215 UNIX Type: L8\n");
+}
+
+static void cmd_NOOP_func(ClientInfo *client)
+{
+	client_send_ctrl_msg(client, "200 No operation ;)\n");
 }
 
 static void cmd_PASV_func(ClientInfo *client)
@@ -456,6 +461,8 @@ static void cmd_TYPE_func(ClientInfo *client)
 
 static void dir_up(char *path)
 {
+	DEBUG("path old: %s\n", path);
+
 	char *pch;
 	size_t len_in = strlen(path);
 	if (len_in == 1) {
@@ -470,6 +477,8 @@ static void dir_up(char *path)
 		size_t s = len_in - (pch - path);
 		memset(pch + 1, '\0', s);
 	}
+	
+	DEBUG("path new: %s\n", path);
 }
 
 static void cmd_CDUP_func(ClientInfo *client)
@@ -700,6 +709,7 @@ static const cmd_dispatch_entry cmd_dispatch_table[] = {
 	add_entry(PASS),
 	add_entry(QUIT),
 	add_entry(SYST),
+	add_entry(NOOP),
 	add_entry(PASV),
 	add_entry(PORT),
 	add_entry(LIST),

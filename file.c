@@ -356,19 +356,27 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 			FileListEntry *previous = NULL;
 
 			while (p) {
-				// Sort by folder and name
+				// Sort by type
 				if (entry->is_folder > p->is_folder)
 					break;
 
-				int name_length = strlen(p->name);
-				int len = MIN(entry_length, name_length);
-				if (entry->name[len - 1] == '/' || p->name[len - 1] == '/')
-					len--;
+				// '..' is always at first
+				if (strcmp(entry->name, "..") == 0)
+					break;
 
-				if (entry->is_folder == p->is_folder) {
-					int diff = strncasecmp(entry->name, p->name, len);
-					if (diff < 0 || (diff == 0 && entry_length < name_length)) {
-						break;
+				if (strcmp(p->name, "..") != 0) {
+					// Get the minimum length without /
+					int name_length = strlen(p->name);
+					int len = MIN(entry_length, name_length);
+					if (entry->name[len - 1] == '/' || p->name[len - 1] == '/')
+						len--;
+
+					// Sort by name
+					if (entry->is_folder == p->is_folder) {
+						int diff = strncasecmp(entry->name, p->name, len);
+						if (diff < 0 || (diff == 0 && entry_length < name_length)) {
+							break;
+						}
 					}
 				}
 
