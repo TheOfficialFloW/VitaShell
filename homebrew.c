@@ -40,9 +40,6 @@ int sceKernelDeleteLwMutex(void *work);
 static void *code_memory = NULL;
 static SceUID code_blockid = INVALID_UID;
 
-static void *uvl_backup = NULL;
-static uint32_t uvl_addr = 0;
-
 static int force_exit = 0;
 static int exited = 0;
 
@@ -140,12 +137,8 @@ void initHomebrewPatch() {
 }
 
 void loadHomebrew(char *file) {
-	// Finish netdbg
-	netdbg_fini();
-
-	// Finish
+	// Finish vita2dlib
 	finishVita2dLib();
-	finishSceAppUtil();
 
 	// Init
 	initHomebrewPatch();
@@ -153,12 +146,8 @@ void loadHomebrew(char *file) {
 	// Load
 	uvl_load(file);
 
-	// Init
+	// Init vita2lib
 	initVita2dLib();
-	initSceAppUtil();
-
-	// Init netdbg
-	netdbg_init();
 }
 
 void finishGxm() {
@@ -391,7 +380,6 @@ PatchNID patches_exit[] = {
 	//{ "SceThreadmgr", 0x4B675D05, exitThread }, // sceKernelDelayThread
 };
 
-// TODO: maybe patch all imports?
 void PatchHomebrew() {
 	int i;
 	for (i = 0; i < (sizeof(patches_exit) / sizeof(PatchNID)); i++) {
@@ -767,10 +755,8 @@ SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 		if (res < 0)
 			return res;
 
-		SceModuleInfo *mod_info = getElfModuleInfo(buf);
-
 		/* Save module info */
-		memcpy((void *)&hb_mod_info, (void *)mod_info, sizeof(SceModuleInfo));
+		memcpy((void *)&hb_mod_info, (void *)getElfModuleInfo(buf), sizeof(SceModuleInfo));
 
 		// It's not VitaShell, so return code memory blockid
 		if (strcmp(hb_mod_info.name, "VitaShell.elf") != 0) {
@@ -779,14 +765,25 @@ SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 
 		debugPrintf("VitaShell reloading...\n");
 
+		// Free newlib
+		_free_vita_newlib();
+
+		// Restore UVL patches
+		restoreUVLPatches();
+
 		// Adjust shared memory
 		shared_memory->code_blockid = code_blockid;
 		shared_memory->data_blockid = sceKernelFindMemBlockByAddr((void *)&code_memory, 0);
 
-		// Restore UVL. Attention: Restoring UVL will break all patches
-		restoreUVL();
-		_free_vita_newlib();
+	//	makeResultStub(shared_memory->sceKernelAllocMemBlockAddr, shared_block->data_blockid);
+/*
+		// Replace sceKernelWaitThreadEnd by sceKernelExitDeleteThread
+		if (shared_memory->reload_count > 0)
+			makeStub(shared_memory->sceKernelWaitThreadEndAddr, (void *)extractStub((uint32_t)&sceKernelExitDeleteThread));
 
+		// Count reload
+		shared_memory->reload_count++;
+*/
 		// Change address to our's
 		addr = (void *)&sceKernelFindMemBlockByAddrPatchedUVL;
 	}
@@ -831,79 +828,109 @@ int sceIoClosePatchedUVL(SceUID fd) {
 }
 
 PatchValue patches_uvl[] = {
-	{ 0, (uint32_t)&sceKernelAllocMemBlock, sceKernelAllocMemBlockPatchedUVL },
-	{ 0, (uint32_t)&sceKernelFindMemBlockByAddr, sceKernelFindMemBlockByAddrPatchedUVL },
-	{ 0, (uint32_t)&sceKernelFreeMemBlock, sceKernelFreeMemBlockPatchedUVL },
-	{ 0, (uint32_t)&sceKernelCreateThread, sceKernelCreateThreadPatchedUVL },
-	{ 0, (uint32_t)&sceKernelWaitThreadEnd, sceKernelWaitThreadEndPatchedUVL },
-	{ 0, (uint32_t)&sceIoOpen, sceIoOpenPatchedUVL },
-	{ 0, (uint32_t)&sceIoLseek, sceIoLseekPatchedUVL },
-	{ 0, (uint32_t)&sceIoRead, sceIoReadPatchedUVL }, // COULD NOT BE PATCHED, DIFFERENT NID
-	{ 0, (uint32_t)&sceIoWrite, sceIoWritePatchedUVL },
-	{ 0, (uint32_t)&sceIoClose, sceIoClosePatchedUVL }, // COULD NOT BE PATCHED, DIFFERENT NID
+	{ 0, 0, (uint32_t)&sceKernelAllocMemBlock, sceKernelAllocMemBlockPatchedUVL },
+	{ 0, 0, (uint32_t)&sceKernelFindMemBlockByAddr, sceKernelFindMemBlockByAddrPatchedUVL },
+	{ 0, 0, (uint32_t)&sceKernelFreeMemBlock, sceKernelFreeMemBlockPatchedUVL },
+	{ 0, 0, (uint32_t)&sceKernelCreateThread, sceKernelCreateThreadPatchedUVL },
+	{ 0, 0, (uint32_t)&sceKernelWaitThreadEnd, sceKernelWaitThreadEndPatchedUVL },
+	{ 0, 0, (uint32_t)&sceIoOpen, sceIoOpenPatchedUVL },
+	{ 0, 0, (uint32_t)&sceIoLseek, sceIoLseekPatchedUVL },
+	{ 0, 0, (uint32_t)&sceIoRead, sceIoReadPatchedUVL }, // COULD NOT BE FOUND
+	{ 0, 0, (uint32_t)&sceIoWrite, sceIoWritePatchedUVL },  // COULD NOT BE FOUND
+	{ 0, 0, (uint32_t)&sceIoClose, sceIoClosePatchedUVL }, // COULD NOT BE FOUND
 };
 
 #define N_UVL_PATCHES (sizeof(patches_uvl) / sizeof(PatchValue))
+
+void savePatchAddresses() {
+	if (!shared_memory->uvl_addresses_saved) {
+		shared_memory->sceKernelAllocMemBlockAddr = patches_uvl[0].addr;
+		shared_memory->sceKernelFindMemBlockByAddrAddr = patches_uvl[1].addr;
+		shared_memory->sceKernelFreeMemBlockAddr = patches_uvl[2].addr;
+		shared_memory->sceKernelCreateThreadAddr = patches_uvl[3].addr;
+		shared_memory->sceKernelWaitThreadEndAddr = patches_uvl[4].addr;
+		shared_memory->sceIoOpenAddr = patches_uvl[5].addr;
+		shared_memory->sceIoLseekAddr = patches_uvl[6].addr;
+		shared_memory->sceIoReadAddr = patches_uvl[7].addr;
+		shared_memory->sceIoWriteAddr = patches_uvl[8].addr;
+		shared_memory->sceIoCloseAddr = patches_uvl[9].addr;
+		shared_memory->uvl_addresses_saved = 1;
+	}
+}
 
 void initPatchValues(PatchValue *patches, int n_patches) {
 	int i;
 	for (i = 0; i < n_patches; i++) {
 		patches[i].value = extractStub(patches[i].stub);
+		// debugPrintf("%d: 0x%08X\n", i, patches[i].value);
 	}
 }
 
-void PatchUVL() {
-	if (!uvl_backup)
-		return;
+int PatchUVL() {
+	// Find out patch addresses
+	if (!shared_memory->uvl_addresses_saved) {
+		uint32_t text_addr = 0;
+		SceUID blockid = sceKernelFindMemBlockByAddr((void *)extractFunctionStub((uint32_t)&uvl_load), 0);
+		if (blockid < 0)
+			return blockid;
 
-	initPatchValues(patches_uvl, N_UVL_PATCHES);
+		int res = sceKernelGetMemBlockBase(blockid, (void *)&text_addr);
+		if (res < 0)
+			return res;
 
-	int count = 0;
+		initPatchValues(patches_uvl, N_UVL_PATCHES);
 
-	uint32_t i = 0;
-	while (i < MAX_UVL_SIZE && count < N_UVL_PATCHES) {
-		uint32_t addr = uvl_addr + i;
-		uint32_t value = extractStub(addr);
+		int count = 0;
 
-		int j;
-		for (j = 0; j < N_UVL_PATCHES; j++) {
-			if (patches_uvl[j].value == value) {
-				makeFunctionStub(addr, patches_uvl[j].function);
-				count++;
-				break;
+		uint32_t i = 0;
+		while (i < MAX_UVL_SIZE && count < N_UVL_PATCHES) {
+			uint32_t addr = text_addr + i;
+			uint32_t value = extractStub(addr);
+
+			int j;
+			for (j = 0; j < N_UVL_PATCHES; j++) {
+				if (patches_uvl[j].value == value) {
+					debugPrintf("Found %d 0x%08X at 0x%08X\n", j, patches_uvl[j].value, addr);
+					patches_uvl[j].addr = addr;
+					count++;
+					break;
+				}
 			}
+
+			i += ((j == N_UVL_PATCHES) ? 0x4 : 0x10);
 		}
 
-		i += ((j == N_UVL_PATCHES) ? 0x4 : 0x10);
+		// Save the addresses
+		savePatchAddresses();
 	}
+
+	// Patch stubs
+	makeFunctionStub(shared_memory->sceKernelAllocMemBlockAddr, sceKernelAllocMemBlockPatchedUVL);
+	makeFunctionStub(shared_memory->sceKernelFindMemBlockByAddrAddr, sceKernelFindMemBlockByAddrPatchedUVL);
+	makeFunctionStub(shared_memory->sceKernelFreeMemBlockAddr, sceKernelFreeMemBlockPatchedUVL);
+	makeFunctionStub(shared_memory->sceKernelCreateThreadAddr, sceKernelCreateThreadPatchedUVL);
+	makeFunctionStub(shared_memory->sceKernelWaitThreadEndAddr, sceKernelWaitThreadEndPatchedUVL);
+	makeFunctionStub(shared_memory->sceIoOpenAddr, sceIoOpenPatchedUVL);
+	makeFunctionStub(shared_memory->sceIoLseekAddr, sceIoLseekPatchedUVL);
+	makeFunctionStub(shared_memory->sceIoReadAddr, sceIoReadPatchedUVL);
+	makeFunctionStub(shared_memory->sceIoWriteAddr, sceIoWritePatchedUVL);
+	makeFunctionStub(shared_memory->sceIoCloseAddr, sceIoClosePatchedUVL);
 
 	// Make uvl_alloc_code_mem return 0
 	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_alloc_code_mem) & ~0x1);
+
+	return 0;
 }
 
-void getUVLTextAddr() {
-	SceKernelMemBlockInfo info;
-	findMemBlockByAddr(extractFunctionStub((uint32_t)&uvl_load), &info); // TODO: use sceKernelFindMemBlockByAddr
-	uvl_addr = (uint32_t)info.mappedBase;
-}
-
-void backupUVL() {
-	if (!uvl_backup) {
-		uvl_backup = malloc(MAX_UVL_SIZE);
-		memcpy(uvl_backup, (void *)uvl_addr, MAX_UVL_SIZE);
-	}
-}
-
-void restoreUVL() {
-	if (uvl_backup) {
-		uvl_unlock_mem();
-
-		memcpy((void *)uvl_addr, uvl_backup, MAX_UVL_SIZE);
-
-		uvl_lock_mem();
-		uvl_flush_icache((void *)uvl_addr, MAX_UVL_SIZE);
-
-		free(uvl_backup);
-		uvl_backup = NULL;
-	}
+void restoreUVLPatches() {
+	makeStub(shared_memory->sceKernelAllocMemBlockAddr, (void *)extractStub((uint32_t)&sceKernelAllocMemBlock));
+	makeStub(shared_memory->sceKernelFindMemBlockByAddrAddr, (void *)extractStub((uint32_t)&sceKernelFindMemBlockByAddr));
+	makeStub(shared_memory->sceKernelFreeMemBlockAddr, (void *)extractStub((uint32_t)&sceKernelFreeMemBlock));
+	makeStub(shared_memory->sceKernelCreateThreadAddr, (void *)extractStub((uint32_t)&sceKernelCreateThread));
+	makeStub(shared_memory->sceKernelWaitThreadEndAddr, (void *)extractStub((uint32_t)&sceKernelWaitThreadEnd));
+	makeStub(shared_memory->sceIoOpenAddr, (void *)extractStub((uint32_t)&sceIoOpen));
+	makeStub(shared_memory->sceIoLseekAddr, (void *)extractStub((uint32_t)&sceIoLseek));
+	makeStub(shared_memory->sceIoReadAddr, (void *)extractStub((uint32_t)&sceIoRead));
+	makeStub(shared_memory->sceIoWriteAddr, (void *)extractStub((uint32_t)&sceIoWrite));
+	makeStub(shared_memory->sceIoCloseAddr, (void *)extractStub((uint32_t)&sceIoClose));	
 }

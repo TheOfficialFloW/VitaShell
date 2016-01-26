@@ -159,6 +159,14 @@ void makeFunctionStub(uint32_t address, void *function) {
 	uvl_flush_icache(f, 0x10);
 }
 
+void makeStub(uint32_t address, void *function) {
+	if ((uint32_t)function < 0x1000) {
+		makeSyscallStub(address, (uint16_t)function);
+	} else {
+		makeFunctionStub(address, function);
+	}
+}
+
 void copyStub(uint32_t address, void *function) {
 	if (!address)
 		return;
@@ -170,6 +178,39 @@ void copyStub(uint32_t address, void *function) {
 	uvl_lock_mem();
 
 	uvl_flush_icache((void *)address, 0x10);
+}
+
+void makeResultStub(uint32_t address, int result) {
+	if (!address)
+		return;
+
+	uvl_unlock_mem();
+
+	uint32_t *f = (uint32_t *)address;
+	f[0] = encode_arm_inst(INSTRUCTION_MOVW, (uint16_t)(int)result, 0);
+	f[1] = encode_arm_inst(INSTRUCTION_MOVT, (uint16_t)((int)result >> 16), 0);
+	f[2] = encode_arm_inst(INSTRUCTION_BRANCH, 0, 14);
+	f[3] = encode_arm_inst(INSTRUCTION_UNKNOWN, 0, 0);
+
+	uvl_lock_mem();
+
+	uvl_flush_icache(f, 0x10);
+}
+
+void makeArmDummyFunction0(uint32_t address) {
+	if (!address)
+		return;
+
+	uvl_unlock_mem();
+
+	*(uint32_t *)(address + 0x0) = 0xE3E00000; // mvn a1, #0
+	*(uint32_t *)(address + 0x4) = 0xE12FFF1E; // bx lr
+	*(uint32_t *)(address + 0x8) = 0xE1A00000; // mov a1, r0
+	*(uint32_t *)(address + 0xC) = 0x00000000; // nop
+
+	uvl_lock_mem();
+
+	uvl_flush_icache((void *)address, 0x4);
 }
 
 void makeThumbDummyFunction0(uint32_t address) {

@@ -57,6 +57,7 @@ typedef struct {
 } PatchNID;
 
 typedef struct {
+	uint32_t addr;
 	uint32_t value;
 	uint32_t stub;
 	void *function;
@@ -67,9 +68,7 @@ void initCodeMemory(SceUID blockid);
 int isValidElf(char *file);
 void loadHomebrew(char *file);
 
-void PatchUVL();
-void getUVLTextAddr();
-void backupUVL();
-void restoreUVL();
+int PatchUVL();
+void restoreUVLPatches();
 
 #endif

@@ -19,7 +19,7 @@
 /*
 	TODO:
 	- Patch UVL logging
-	- Terminate thread / free stack of previous VitaShell when reloading
+	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
 	- Redirecting .data segment when reloading
 	- Nethost. Patch UVL to be able to launch from host0
 	- Page skip for hex and text viewer
@@ -1244,7 +1244,8 @@ int initSharedMemory() {
 
 		res = sceKernelGetMemBlockBase(blockid, (void *)&shared_memory);
 		if (res >= 0) {
-			/* Init values */
+			/* Init shared memory */
+			memset((void *)shared_memory, 0, sizeof(VitaShellShared));
 			shared_memory->shared_blockid = blockid;
 			shared_memory->code_blockid = INVALID_UID;
 			shared_memory->data_blockid = INVALID_UID;
@@ -1265,7 +1266,7 @@ int main(int argc, const char *argv[]) {
 	// Init shared memory
 	initSharedMemory();
 
-	// Free preivous data
+	// Free previous data
 	if (shared_memory->data_blockid >= 0) {
 		int res = sceKernelFreeMemBlock(shared_memory->data_blockid);
 		debugPrintf("sceKernelFreeMemBlock: 0x%08X\n", res);
@@ -1275,11 +1276,15 @@ int main(int argc, const char *argv[]) {
 	initCodeMemory(shared_memory->code_blockid);
 
 	// Set up nid table
-	// setupNidTable();
+	setupNidTable();
 
-	// Get UVL address, backup and patch it
-	getUVLTextAddr();
-	backupUVL();
+	uint32_t text_addr = 0, text_size = 0;
+	findModuleByName("SceLibKernel", &text_addr, &text_size);
+
+	int syscall = getValueByNid(0x713523E1);
+	debugPrintf("text_addr: 0x%08X, syscall: 0x%08X\n", text_addr, syscall);
+
+	// Patch UVL
 	PatchUVL();
 
 	// Get net info

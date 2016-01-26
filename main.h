@@ -192,9 +192,24 @@ enum DialogSteps {
 };
 
 typedef struct {
+	int reload_count;
+
 	SceUID shared_blockid;
 	SceUID code_blockid;
 	SceUID data_blockid;
+
+	int uvl_addresses_saved;
+
+	uint32_t sceKernelAllocMemBlockAddr;
+	uint32_t sceKernelFindMemBlockByAddrAddr;
+	uint32_t sceKernelFreeMemBlockAddr;
+	uint32_t sceKernelCreateThreadAddr;
+	uint32_t sceKernelWaitThreadEndAddr;
+	uint32_t sceIoOpenAddr;
+	uint32_t sceIoLseekAddr;
+	uint32_t sceIoReadAddr;
+	uint32_t sceIoWriteAddr;
+	uint32_t sceIoCloseAddr;
 } VitaShellShared;
 
 extern VitaShellShared *shared_memory;
