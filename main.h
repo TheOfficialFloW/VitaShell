@@ -64,8 +64,8 @@
 //#define RELEASE 1
 #define USE_HOST0 1
 //#define ENABLE_FILE_LOGGING 1
-//#define DISABLE_UVL_LOGGING 1
-#define ENABLE_DEBUGNET_LOGGING 1
+#define DISABLE_UVL_LOGGING 1
+//#define ENABLE_DEBUGNET_LOGGING 1
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0
@@ -134,6 +134,8 @@ enum Colors {
 // Screen
 #define SCREEN_WIDTH 960
 #define SCREEN_HEIGHT 544
+#define SCREEN_HALF_WIDTH (SCREEN_WIDTH / 2)
+#define SCREEN_HALF_HEIGHT (SCREEN_HEIGHT / 2)
 
 // Main
 #define SHELL_MARGIN_X 20.0f

@@ -18,6 +18,9 @@
 
 /*
 	TODO:
+	- Limit long file names on browser
+	- Improved photo viewer
+	- Handle big images
 	- Add shader compiler feature
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
 	- Redirecting .data segment when reloading

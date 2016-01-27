@@ -49,11 +49,11 @@ int debugPrintf(char *text, ...) {
 	va_end(list);
 
 	netdbg(string);
-
+/*
 #ifndef DISABLE_UVL_LOGGING
 	printf(string);
 #endif
-
+*/
 #ifdef ENABLE_DEBUGNET_LOGGING
 	debugNetPrintf(3, string);
 #endif
