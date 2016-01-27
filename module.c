@@ -17,7 +17,6 @@
 */
 
 #include "main.h"
-#include "io_wrapper.h"
 #include "init.h"
 #include "file.h"
 #include "utils.h"
@@ -558,7 +557,7 @@ int dumpModules() {
 		return res;
 
 	removePath("cache0:/modules", NULL, 0, NULL);
-	fileIoMkdir("cache0:/modules", 0777);
+	sceIoMkdir("cache0:/modules", 0777);
 
 	int i;
 	for (i = mod_count - 1; i >= 0; i--) {
@@ -570,9 +569,9 @@ int dumpModules() {
 
 void loadDumpModules() {
 	removePath("cache0:/modules", NULL, 0, NULL);
-	fileIoMkdir("cache0:/modules", 0777);
+	sceIoMkdir("cache0:/modules", 0777);
 
-	SceUID dfd = fileIoDopen(sys_external_path);
+	SceUID dfd = sceIoDopen(sys_external_path);
 	if (dfd >= 0) {
 		int res = 0;
 
@@ -580,7 +579,7 @@ void loadDumpModules() {
 			SceIoDirent dir;
 			memset(&dir, 0, sizeof(SceIoDirent));
 
-			res = fileIoDread(dfd, &dir);
+			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
 				if (!SCE_S_ISDIR(dir.d_stat.st_mode)) {
 					char path[128];
@@ -595,13 +594,13 @@ void loadDumpModules() {
 			}
 		} while (res > 0);
 
-		fileIoDclose(dfd);
+		sceIoDclose(dfd);
 	}
 
 	char webcore_path[128];
 	sprintf(webcore_path, "%s%s", data_external_path, "webcore");
 
-	dfd = fileIoDopen(webcore_path);
+	dfd = sceIoDopen(webcore_path);
 	if (dfd >= 0) {
 		int res = 0;
 
@@ -609,7 +608,7 @@ void loadDumpModules() {
 			SceIoDirent dir;
 			memset(&dir, 0, sizeof(SceIoDirent));
 
-			res = fileIoDread(dfd, &dir);
+			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
 				if (!SCE_S_ISDIR(dir.d_stat.st_mode)) {
 					char path[128];
@@ -624,7 +623,7 @@ void loadDumpModules() {
 			}
 		} while (res > 0);
 
-		fileIoDclose(dfd);
+		sceIoDclose(dfd);
 	}
 }
 

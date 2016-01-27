@@ -17,7 +17,6 @@
 */
 
 #include "main.h"
-#include "io_wrapper.h"
 #include "file.h"
 #include "message_dialog.h"
 #include "language.h"
@@ -25,8 +24,6 @@
 
 SceCtrlData pad;
 uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
-
-#define NET_INIT_SIZE 1*1024*1024
 
 static int netdbg_sock = -1;
 static void *net_memory = NULL;
@@ -53,13 +50,23 @@ int debugPrintf(char *text, ...) {
 
 	netdbg(string);
 
-	SceUID fd = fileIoOpen("cache0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
+#ifndef DISABLE_UVL_LOGGING
+	printf(string);
+#endif
+
+#ifdef ENABLE_DEBUGNET_LOGGING
+	debugNetPrintf(3, string);
+#endif
+
+#ifdef ENABLE_FILE_LOGGING
+	SceUID fd = sceIoOpen("cache0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
 	if (fd >= 0) {
-		fileIoWrite(fd, string, strlen(string));
-		fileIoClose(fd);
+		sceIoWrite(fd, string, strlen(string));
+		sceIoClose(fd);
 	}
 #endif
 
+#endif
 	return 0;
 }
 
@@ -153,10 +160,11 @@ int removeEndSlash(char *path) {
 
 int addEndSlash(char *path) {
 	int len = strlen(path);
-
-	if (path[len - 1] != '/') {
-		strcat(path, "/");
-		return 1;
+	if (len < MAX_PATH_LENGTH - 2) {
+		if (path[len - 1] != '/') {
+			strcat(path, "/");
+			return 1;
+		}
 	}
 
 	return 0;
@@ -203,8 +211,7 @@ void getTimeString(char *string, int time_format, SceRtcTime *time) {
 }
 
 
-int netdbg_init()
-{
+int netdbg_init() {
 	int ret = 0;
 #ifdef NETDBG_ENABLE
 	SceNetSockaddrIn server;
@@ -237,7 +244,7 @@ int netdbg_init()
 	server.sin_port = sceNetHtons(port);
 	memset(server.sin_zero, 0, sizeof(server.sin_zero));
 
-	ret = netdbg_sock = sceNetSocket("VitaShell_netdbg", SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
+	ret = netdbg_sock = sceNetSocket("VitaShellNetDbg", SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
 	if (netdbg_sock < 0)
 		goto error_netsock;
 
@@ -265,8 +272,7 @@ error_netstat:
 	return ret;
 }
 
-void netdbg_fini()
-{
+void netdbg_fini() {
 	if (netdbg_sock > 0) {
 		sceNetSocketClose(netdbg_sock);
 		if (net_init == 0)
@@ -279,8 +285,7 @@ void netdbg_fini()
 	}
 }
 
-int netdbg(const char *text, ...)
-{
+int netdbg(const char *text, ...) {
 	va_list list;
 	char string[512];
 	if (netdbg_sock > 0) {

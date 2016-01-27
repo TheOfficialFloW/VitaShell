@@ -17,7 +17,6 @@
 */
 
 #include "main.h"
-#include "io_wrapper.h"
 #include "archive.h"
 #include "file.h"
 #include "utils.h"
@@ -74,27 +73,27 @@ static char *mount_points[] = {
 #define N_MOUNT_POINTS (sizeof(mount_points) / sizeof(char **))
 
 int ReadFile(char *file, void *buf, int size) {
-	SceUID fd = fileIoOpen(file, SCE_O_RDONLY, 0);
+	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
 
-	int read = fileIoRead(fd, buf, size);
-	fileIoClose(fd);
+	int read = sceIoRead(fd, buf, size);
+	sceIoClose(fd);
 	return read;
 }
 
 int WriteFile(char *file, void *buf, int size) {
-	SceUID fd = fileIoOpen(file, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	SceUID fd = sceIoOpen(file, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	if (fd < 0)
 		return fd;
 
-	int written = fileIoWrite(fd, buf, size);
-	fileIoClose(fd);
+	int written = sceIoWrite(fd, buf, size);
+	sceIoClose(fd);
 	return written;
 }
 
 int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) {
-	SceUID dfd = fileIoDopen(path);
+	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
 
@@ -102,13 +101,13 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 			SceIoDirent dir;
 			memset(&dir, 0, sizeof(SceIoDirent));
 
-			res = fileIoDread(dfd, &dir);
+			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
 				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
 					continue;
 
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-				sprintf(new_path, "%s/%s", path, dir.d_name);
+				snprintf(new_path, MAX_PATH_LENGTH, "%s/%s", path, dir.d_name);
 
 				getPathInfo(new_path, size, folders, files);
 
@@ -116,7 +115,7 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 			}
 		} while (res > 0);
 
-		fileIoDclose(dfd);
+		sceIoDclose(dfd);
 
 		(*folders)++;
 	}
@@ -125,7 +124,7 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 		SceIoStat stat;
 		memset(&stat, 0, sizeof(SceIoStat));
 
-		int res = fileIoGetstat(path, &stat);
+		int res = sceIoGetstat(path, &stat);
 		if (res < 0)
 			return res;
 
@@ -137,7 +136,7 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 }
 
 int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max)) {
-	SceUID dfd = fileIoDopen(path);
+	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
 
@@ -145,13 +144,13 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 			SceIoDirent dir;
 			memset(&dir, 0, sizeof(SceIoDirent));
 
-			res = fileIoDread(dfd, &dir);
+			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
 				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
 					continue;
 
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-				sprintf(new_path, "%s/%s", path, dir.d_name);
+				snprintf(new_path, MAX_PATH_LENGTH, "%s/%s", path, dir.d_name);
 	
 				removePath(new_path, value, max, SetProgress);
 
@@ -159,9 +158,9 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 			}
 		} while (res > 0);
 
-		fileIoDclose(dfd);
+		sceIoDclose(dfd);
 
-		int ret = fileIoRmdir(path);
+		int ret = sceIoRmdir(path);
 		if (ret < 0)
 			return ret;
 
@@ -171,7 +170,7 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 		if (SetProgress)
 			SetProgress(*value, max);
 	} else {
-		int ret = fileIoRemove(path);
+		int ret = sceIoRemove(path);
 		if (ret < 0)
 			return ret;
 
@@ -186,11 +185,11 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 }
 
 int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max)) {
-	SceUID dfd = fileIoDopen(src);
+	SceUID dfd = sceIoDopen(src);
 	if (dfd >= 0) {
-		int ret = fileIoMkdir(dst, 0777);
+		int ret = sceIoMkdir(dst, 0777);
 		if (ret < 0 && ret != 0x80010011) {
-			fileIoDclose(dfd);
+			sceIoDclose(dfd);
 			return ret;
 		}
 
@@ -206,16 +205,16 @@ int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetPro
 			SceIoDirent dir;
 			memset(&dir, 0, sizeof(SceIoDirent));
 
-			res = fileIoDread(dfd, &dir);
+			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
 				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
 					continue;
 
 				char *src_path = malloc(strlen(src) + strlen(dir.d_name) + 2);
-				sprintf(src_path, "%s/%s", src, dir.d_name);
+				snprintf(src_path, MAX_PATH_LENGTH, "%s/%s", src, dir.d_name);
 
 				char *dst_path = malloc(strlen(dst) + strlen(dir.d_name) + 2);
-				sprintf(dst_path, "%s/%s", dst, dir.d_name);
+				snprintf(dst_path, MAX_PATH_LENGTH, "%s/%s", dst, dir.d_name);
 
 				copyPath(src_path, dst_path, value, max, SetProgress);
 
@@ -224,23 +223,23 @@ int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetPro
 			}
 		} while (res > 0);
 
-		fileIoDclose(dfd);
+		sceIoDclose(dfd);
 	} else {
-		SceUID fdsrc = fileIoOpen(src, SCE_O_RDONLY, 0);
+		SceUID fdsrc = sceIoOpen(src, SCE_O_RDONLY, 0);
 		if (fdsrc < 0)
 			return fdsrc;
 
-		SceUID fddst = fileIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+		SceUID fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 		if (fddst < 0) {
-			fileIoClose(fdsrc);
+			sceIoClose(fdsrc);
 			return fddst;
 		}
 
 		void *buf = malloc(TRANSFER_SIZE);
 
 		int read;
-		while ((read = fileIoRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-			fileIoWrite(fddst, buf, read);
+		while ((read = sceIoRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
+			sceIoWrite(fddst, buf, read);
 
 			if (value)
 				(*value) += read;
@@ -251,8 +250,8 @@ int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetPro
 
 		free(buf);
 
-		fileIoClose(fddst);
-		fileIoClose(fdsrc);
+		sceIoClose(fddst);
+		sceIoClose(fdsrc);
 	}
 
 	return 0;
@@ -471,7 +470,7 @@ int fileListGetMountPointEntries(FileList *list) {
 
 			SceIoStat stat;
 			memset(&stat, 0, sizeof(SceIoStat));
-			fileIoGetstat(entry->name, &stat);
+			sceIoGetstat(entry->name, &stat);
 			memcpy(&entry->time, (SceRtcTime *)&stat.st_mtime, sizeof(SceRtcTime));
 
 			fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
@@ -482,7 +481,7 @@ int fileListGetMountPointEntries(FileList *list) {
 }
 
 int fileListGetDirectoryEntries(FileList *list, char *path) {
-	SceUID dfd = fileIoDopen(path);
+	SceUID dfd = sceIoDopen(path);
 	if (dfd < 0)
 		return dfd;
 
@@ -498,7 +497,7 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 		SceIoDirent dir;
 		memset(&dir, 0, sizeof(SceIoDirent));
 
-		res = fileIoDread(dfd, &dir);
+		res = sceIoDread(dfd, &dir);
 		if (res > 0) {
 			if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
 				continue;
@@ -514,7 +513,7 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 			} else {
 /*
 				char file[MAX_PATH_LENGTH];
-				sprintf(file, "%s%s", path, entry->name);
+				snprintf(file, MAX_PATH_LENGTH, "%s%s", path, entry->name);
 				entry->type = getFileType(file);
 */
 				entry->type = FILE_TYPE_UNKNOWN;
@@ -528,7 +527,7 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 		}
 	} while (res > 0);
 
-	fileIoDclose(dfd);
+	sceIoDclose(dfd);
 
 	return 0;
 }

@@ -17,7 +17,6 @@
 */
 
 #include "main.h"
-#include "io_wrapper.h"
 #include "archive.h"
 #include "file.h"
 #include "utils.h"
@@ -97,7 +96,7 @@ int getArchivePathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *
 		int i;
 		for (i = 0; i < list.length - 1; i++) {
 			char *new_path = malloc(strlen(path) + strlen(entry->name) + 2);
-			sprintf(new_path, "%s%s", path, entry->name);
+			snprintf(new_path, MAX_PATH_LENGTH, "%s%s", path, entry->name);
 
 			addEndSlash(new_path);
 
@@ -133,7 +132,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 	int count = fileListGetArchiveEntries(&list, src);
 
 	if (count > 0) {
-		int ret = fileIoMkdir(dst, 0777);
+		int ret = sceIoMkdir(dst, 0777);
 		if (ret < 0 && ret != 0x80010011) {
 			fileListEmpty(&list);
 			return ret;
@@ -150,10 +149,10 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 		int i;
 		for (i = 0; i < list.length - 1; i++) {
 			char *src_path = malloc(strlen(src) + strlen(entry->name) + 2);
-			sprintf(src_path, "%s%s", src, entry->name);
+			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", src, entry->name);
 
 			char *dst_path = malloc(strlen(dst) + strlen(entry->name) + 2);
-			sprintf(dst_path, "%s%s", dst, entry->name);
+			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", dst, entry->name);
 
 			addEndSlash(src_path);
 			addEndSlash(dst_path);
@@ -175,7 +174,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 			return fdsrc;
 		}
 
-		SceUID fddst = fileIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+		SceUID fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 		if (fddst < 0) {
 			archiveFileClose(fdsrc);
 			fileListEmpty(&list);
@@ -186,7 +185,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 		int read;
 		while ((read = archiveFileRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-			fileIoWrite(fddst, buf, read);
+			sceIoWrite(fddst, buf, read);
 
 			if (value)
 				(*value) += read;
@@ -197,7 +196,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 		free(buf);
 
-		fileIoClose(fddst);
+		sceIoClose(fddst);
 		archiveFileClose(fdsrc);
 	}
 
@@ -274,7 +273,7 @@ int archiveFileRead(SceUID fd, void *data, int n) {
 	int remain = MIN(archive_file_size - previous_pos, n);
 
 	fex_err_t res = fex_read(fex, data, remain);
-	if (res != 0)
+	if (res != NULL)
 		return -fex_err_code(res);
 
 	return remain;
@@ -310,7 +309,9 @@ int archiveOpen(char *file) {
 	if (fex)
 		archiveClose();
 
-	fex_open(&fex, file);
+	fex_err_t res = fex_open(&fex, file);
+	if (res != NULL)
+		return -fex_err_code(res);
 
 	return 0;
 }

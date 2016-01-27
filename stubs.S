@@ -1,4 +1,5 @@
-.arch armv7a
+.section .text
+.arm
 
 .macro STUB name
 .global \name
@@ -9,25 +10,17 @@ bx lr
 nop
 .endm
 
-.section .text
-.arm
-
-STUB sceGenSyscall
-
-STUB sceAppMgrLaunchAppByUri
-STUB sceAppMgrAppParamGetString
-STUB sceAppMgrGetDevInfo
-STUB sceAppMgrConvertVs0UserDrivePath
-STUB sceAppMgrPspSaveDataRootMount
-STUB sceAppMgrMmsMount
-
-STUB _sceSysmoduleUnloadModuleInternalWithArg
-STUB _sceSysmoduleLoadModuleInternalWithArg
-STUB sceKernelGetMemBlockInfoByRange
-
-STUB sceKernelGetMemBlockInfoByAddr
-STUB sceKernelOpenMemBlock
-STUB sceKernelCloseMemBlock
-
-STUB sceKernelGetSystemSwVersion
-STUB sceKernelGetModelForCDialog
+STUB _sceIoOpen
+STUB _sceIoClose
+STUB _sceIoRead
+STUB _sceIoWrite
+STUB _sceIoLseek
+STUB _sceIoRemove
+STUB _sceIoMkdir
+STUB _sceIoRmdir
+STUB _sceIoRename
+STUB _sceIoDopen
+STUB _sceIoDread
+STUB _sceIoDclose
+STUB _sceIoGetstat
+STUB _sceIoChstat

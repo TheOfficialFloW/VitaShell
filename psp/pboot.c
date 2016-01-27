@@ -17,7 +17,6 @@
 */
 
 #include "../main.h"
-#include "../io_wrapper.h"
 #include "pboot.h"
 
 #include "../elf_types.h"
@@ -199,8 +198,8 @@ int writeDataPsp(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
 	memcpy(big_buffer, &keys, sizeof(HeaderKeys));
 
 	// Read DATA.PSP
-	fileIoLseek(fdin, offset, SCE_SEEK_SET);
-	fileIoRead(fdin, big_buffer + KIRK_HEADER_SIZE, size);
+	sceIoLseek(fdin, offset, SCE_SEEK_SET);
+	sceIoRead(fdin, big_buffer + KIRK_HEADER_SIZE, size);
 
 	// Check PRX
 	if (!checkPRX(big_buffer + KIRK_HEADER_SIZE))
@@ -219,8 +218,8 @@ int writeDataPsp(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
 		return -4;
 
 	// Write DATA.PSP
-	fileIoWrite(fdout, psp_header, PSP_HEADER_SIZE);
-	fileIoWrite(fdout, big_buffer + KIRK_HEADER_SIZE, kirk_size - KIRK_HEADER_SIZE);
+	sceIoWrite(fdout, psp_header, PSP_HEADER_SIZE);
+	sceIoWrite(fdout, big_buffer + KIRK_HEADER_SIZE, kirk_size - KIRK_HEADER_SIZE);
 
 	return kirk_size + (PSP_HEADER_SIZE - KIRK_HEADER_SIZE);
 }
@@ -258,8 +257,8 @@ int writeParamSfo(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
 	char *d = data;
 
 	// Read PARAM.SFO
-	fileIoLseek(fdin, offset, SCE_SEEK_SET);
-	fileIoRead(fdin, big_buffer, size);
+	sceIoLseek(fdin, offset, SCE_SEEK_SET);
+	sceIoRead(fdin, big_buffer, size);
 
 	// Adjust PARAM.SFO
 	adjustParamSfo(big_buffer);
@@ -317,16 +316,16 @@ int writeParamSfo(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
 	h->valofs = keyofs + (k - keys);
 
 	// Write PARAM.SFO
-	fileIoWrite(fdout, head, (char *)e - head);
-	fileIoWrite(fdout, keys, k - keys);
-	fileIoWrite(fdout, data, d - data);
+	sceIoWrite(fdout, head, (char *)e - head);
+	sceIoWrite(fdout, keys, k - keys);
+	sceIoWrite(fdout, data, d - data);
 
 	return ((char *)e - head) + (k - keys) + (d - data);
 }
 
 int writeIcon0(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
-	fileIoLseek(fdin, offset, SCE_SEEK_SET);
-	fileIoRead(fdin, big_buffer, size);
+	sceIoLseek(fdin, offset, SCE_SEEK_SET);
+	sceIoRead(fdin, big_buffer, size);
 
 	// Check
 	if (size == 0 || ((uint32_t *)big_buffer)[0] != 0x474E5089 || ((uint32_t *)big_buffer)[1] != 0x0A1A0A0D || ((uint32_t *)big_buffer)[3] != 0x52444849 ||
@@ -335,16 +334,16 @@ int writeIcon0(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
 		size = sizeof(icon0);
 	}
 
-	fileIoWrite(fdout, big_buffer, size);
+	sceIoWrite(fdout, big_buffer, size);
 
 	return size;
 }
 
 int copyByOffset(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
 	if (size) {
-		fileIoLseek(fdin, offset, SCE_SEEK_SET);
-		fileIoRead(fdin, big_buffer, size);
-		fileIoWrite(fdout, big_buffer, size);
+		sceIoLseek(fdin, offset, SCE_SEEK_SET);
+		sceIoRead(fdin, big_buffer, size);
+		sceIoWrite(fdout, big_buffer, size);
 	}
 
 	return size;
@@ -364,31 +363,31 @@ int writePboot(char *filein, char *fileout) {
 	memset(title, 0, sizeof(title));
 
 	// Open input file
-	SceUID fdin = fileIoOpen(filein, SCE_O_RDONLY, 0);
+	SceUID fdin = sceIoOpen(filein, SCE_O_RDONLY, 0);
 	if (fdin < 0)
 		goto ERROR_FREE_BUFFER_EXIT;
 
 	// Open output file
-	SceUID fdout = fileIoOpen(fileout, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	SceUID fdout = sceIoOpen(fileout, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	if (fdout < 0)
 		goto ERROR_FREE_BUFFER_EXIT;
 
 	// Get size of input file
-	uint32_t file_size = fileIoLseek(fdin, 0, SCE_SEEK_END);
-	fileIoLseek(fdin, 0, SCE_SEEK_SET);
+	uint32_t file_size = sceIoLseek(fdin, 0, SCE_SEEK_END);
+	sceIoLseek(fdin, 0, SCE_SEEK_SET);
 
 	uint32_t offset = 0;
 
 	// Read header
 	PBPHeader h_in;
-	fileIoRead(fdin, &h_in, sizeof(PBPHeader));
+	sceIoRead(fdin, &h_in, sizeof(PBPHeader));
 
 	// Write header
 	PBPHeader h_out;
 	h_out.magic = PBP_MAGIC;
 	h_out.version = PBP_VERSION;
 
-	fileIoWrite(fdout, &h_out, sizeof(PBPHeader));
+	sceIoWrite(fdout, &h_out, sizeof(PBPHeader));
 	offset += sizeof(PBPHeader);
 
 	// Write PARAM.SFO
@@ -428,18 +427,18 @@ int writePboot(char *filein, char *fileout) {
 	offset += copyByOffset(fdin, fdout, h_in.psar_offset, file_size - h_in.psar_offset);
 
 	// Update header
-	fileIoLseek(fdout, 0, SCE_SEEK_SET);
-	fileIoWrite(fdout, &h_out, sizeof(PBPHeader));
+	sceIoLseek(fdout, 0, SCE_SEEK_SET);
+	sceIoWrite(fdout, &h_out, sizeof(PBPHeader));
 
 ERROR_CLOSE_DESCRIPTORS_EXIT:
-	fileIoClose(fdout);
-	fileIoClose(fdin);
+	sceIoClose(fdout);
+	sceIoClose(fdin);
 
 ERROR_FREE_BUFFER_EXIT:
 	free(big_buffer);
 
 	if (res < 0)
-		fileIoRemove(fileout);
+		sceIoRemove(fileout);
 
 	return res;
 }

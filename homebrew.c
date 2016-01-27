@@ -737,8 +737,14 @@ SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 			return code_blockid;
 		}
 
+		// Finish VitaShell
+		finishVitaShell();
+
 		// Free newlib
 		_free_vita_newlib();
+
+		// Restore IO patches
+		restoreIOPatches();
 
 		// Restore UVL patches
 		restoreUVLPatches();
@@ -774,17 +780,17 @@ int sceKernelFreeMemBlockPatchedUVL(SceUID uid) {
 
 SceUID sceIoOpenPatchedUVL(const char *file, int flags, SceMode mode) {
 	debugPrintf("%s %s\n", __FUNCTION__, file);
-	return fileIoOpen(file, flags, mode);
+	return sceIoOpen(file, flags, mode);
 }
 
 SceOff sceIoLseekPatchedUVL(SceUID fd, SceOff offset, int whence) {
 	debugPrintf("%s\n", __FUNCTION__);
-	return fileIoLseek(fd, offset, whence);
+	return sceIoLseek(fd, offset, whence);
 }
 
 int sceIoReadPatchedUVL(SceUID fd, void *data, SceSize size) {
 	debugPrintf("%s\n", __FUNCTION__);
-	return fileIoRead(fd, data, size);
+	return sceIoRead(fd, data, size);
 }
 
 int sceIoWritePatchedUVL(SceUID fd, const void *data, SceSize size) {
@@ -795,7 +801,7 @@ int sceIoWritePatchedUVL(SceUID fd, const void *data, SceSize size) {
 
 int sceIoClosePatchedUVL(SceUID fd) {
 	debugPrintf("%s\n", __FUNCTION__);
-	return fileIoClose(fd);
+	return sceIoClose(fd);
 }
 
 PatchValue patches_uvl[] = {
@@ -890,12 +896,14 @@ int PatchUVL() {
 	makeFunctionStub(shared_memory->sceIoWriteAddr, sceIoWritePatchedUVL);
 	makeFunctionStub(shared_memory->sceIoCloseAddr, sceIoClosePatchedUVL);
 
+	// Make uvl_alloc_code_mem return 0
+	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_alloc_code_mem) & ~0x1);
+
+#ifdef DISABLE_UVL_LOGGING
 	// Disable UVL logging because this causes crash for xerpi derpi
 	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_debug_log) & ~0x1);
 	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_log_write) & ~0x1);
-
-	// Make uvl_alloc_code_mem return 0
-	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_alloc_code_mem) & ~0x1);
+#endif
 
 	return 0;
 }

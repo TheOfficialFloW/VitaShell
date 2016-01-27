@@ -19,19 +19,22 @@
 #ifndef __IO_WRAPPER_H__
 #define __IO_WRAPPER_H__
 
-int fileIoOpen(const char *file, int flags, SceMode mode);
-int fileIoClose(SceUID fd);
-int fileIoRead(SceUID fd, void *data, SceSize size);
-int fileIoWrite(SceUID fd, const void *data, SceSize size);
-SceOff fileIoLseek(SceUID fd, SceOff offset, int whence);
-int fileIoRemove(const char *file);
-int fileIoMkdir(const char *dirname, SceMode mode);
-int fileIoRmdir(const char *dirname);
-int fileIoRename(const char *oldname, const char *newname);
-int fileIoDopen(const char *dirname);
-int fileIoDread(SceUID fd, SceIoDirent *dir);
-int fileIoDclose(SceUID fd);
-int fileIoGetstat(const char *name, SceIoStat *stat);
-int fileIoChstat(const char *name, SceIoStat *stat, unsigned int bits);
+int _sceIoOpen(const char *file, int flags, SceMode mode);
+int _sceIoClose(SceUID fd);
+int _sceIoRead(SceUID fd, void *data, SceSize size);
+int _sceIoWrite(SceUID fd, const void *data, SceSize size);
+SceOff _sceIoLseek(SceUID fd, SceOff offset, int whence);
+int _sceIoRemove(const char *file);
+int _sceIoMkdir(const char *dirname, SceMode mode);
+int _sceIoRmdir(const char *dirname);
+int _sceIoRename(const char *oldname, const char *newname);
+int _sceIoDopen(const char *dirname);
+int _sceIoDread(SceUID fd, SceIoDirent *dir);
+int _sceIoDclose(SceUID fd);
+int _sceIoGetstat(const char *name, SceIoStat *stat);
+int _sceIoChstat(const char *name, SceIoStat *stat, unsigned int bits);
+
+void PatchIO();
+void restoreIOPatches();
 
 #endif

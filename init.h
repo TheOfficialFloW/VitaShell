@@ -39,6 +39,7 @@ int findScePafFunctions();
 
 int initSceLibPgf();
 
-void VitaShellInit();
+void initVitaShell();
+void finishVitaShell();
 
 #endif

@@ -21,6 +21,7 @@
 #include "file.h"
 #include "utils.h"
 #include "module.h"
+#include "psp2link/psp2link.h"
 
 extern unsigned char _binary_resources_battery_png_start;
 extern unsigned char _binary_resources_battery_bar_red_png_start;
@@ -100,6 +101,11 @@ void finishVita2dLib() {
 	vita2d_free_texture(battery_image);
 	vita2d_free_pgf(font);
 	vita2d_fini();
+
+	battery_bar_green_image = NULL;
+	battery_bar_red_image = NULL;
+	battery_image = NULL;
+	font = NULL;
 }
 
 void addMountPoints() {
@@ -324,7 +330,7 @@ int initSceLibPgf() {
 	return 0;
 }
 
-void VitaShellInit() {
+void initVitaShell() {
 	// Init
 	initSceLibPgf();
 	initSceAppUtil();
@@ -344,4 +350,23 @@ void VitaShellInit() {
 
 	// Init netdbg
 	netdbg_init();
+
+#ifdef USE_HOST0
+	// Init psp2link
+	psp2LinkInit("192.168.178.20", 0x4711, 0x4712, 0x4712, 3);
+#endif
+}
+
+void finishVitaShell() {
+#ifdef USE_HOST0
+	// Finish psp2link
+	psp2LinkFinish();
+#endif
+
+	// Finish netdbg
+	netdbg_fini();
+
+	// Finish
+	finishVita2dLib();
+	finishSceAppUtil();
 }

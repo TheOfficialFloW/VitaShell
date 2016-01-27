@@ -17,7 +17,6 @@
 */
 
 #include "main.h"
-#include "io_wrapper.h"
 #include "archive.h"
 #include "file.h"
 #include "text.h"
@@ -285,10 +284,10 @@ int hexViewer(char *file) {
 		} else {
 			int msg_result = updateMessageDialog();
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
-				SceUID fd = fileIoOpen(file, SCE_O_WRONLY, 0777);
+				SceUID fd = sceIoOpen(file, SCE_O_WRONLY, 0777);
 				if (fd >= 0) {
-					fileIoWrite(fd, buffer, size);
-					fileIoClose(fd);
+					sceIoWrite(fd, buffer, size);
+					sceIoClose(fd);
 				}
 
 				break;

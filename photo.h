@@ -21,9 +21,7 @@
 
 #define ZOOM_MIN 0.1f
 #define ZOOM_MAX 10.0f
-#define ZOOM_SPEED 0.05f
-#define MOVE_SPEED 5.0f
-#define ROTATION_SPEED 0.05f
+#define ZOOM_FACTOR 1.02f
 
 int photoViewer(char *file, int type);
 

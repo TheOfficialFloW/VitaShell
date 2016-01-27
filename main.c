@@ -49,6 +49,7 @@
 #include "language.h"
 #include "utils.h"
 #include "module.h"
+#include "psp2link/psp2link.h"
 #include "psp/pboot.h"
 
 #ifdef RELEASE
@@ -189,11 +190,11 @@ void refreshMarkList() {
 		FileListEntry *next = entry->next;
 
 		char path[MAX_PATH_LENGTH];
-		sprintf(path, "%s%s", cur_path, entry->name);
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", cur_path, entry->name);
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
-		if (fileIoGetstat(path, &stat) < 0)
+		if (sceIoGetstat(path, &stat) < 0)
 			fileListRemoveEntry(&mark_list, entry->name);
 
 		// Next
@@ -212,11 +213,11 @@ void refreshCopyList() {
 		FileListEntry *next = entry->next;
 
 		char path[MAX_PATH_LENGTH];
-		sprintf(path, "%s%s", copy_path, entry->name);
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_path, entry->name);
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
-		if (fileIoGetstat(path, &stat) < 0)
+		if (sceIoGetstat(path, &stat) < 0)
 			fileListRemoveEntry(&copy_list, entry->name);
 
 		// Next
@@ -239,17 +240,17 @@ void resetFileLists() {
 	- Convert PNG to 24bit?
 */
 int signPspFile(char *file) {
-	SceUID fd = fileIoOpen(file, SCE_O_RDONLY, 0);
+	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
 
 	PBPHeader header;
-	fileIoRead(fd, &header, sizeof(PBPHeader));
+	sceIoRead(fd, &header, sizeof(PBPHeader));
 
 	uint32_t magic;
-	fileIoLseek(fd, header.elf_offset, SCE_SEEK_SET);
-	fileIoRead(fd, &magic, sizeof(uint32_t));
-	fileIoClose(fd);
+	sceIoLseek(fd, header.elf_offset, SCE_SEEK_SET);
+	sceIoRead(fd, &magic, sizeof(uint32_t));
+	sceIoClose(fd);
 
 	if (magic != 0x464C457F) {
 		infoDialog(language_container[SIGN_ERROR]);
@@ -278,9 +279,9 @@ int signPspFile(char *file) {
 			if (res >= 0) {
 				// Rename to EBOOT_ORI.PBP
 				strcpy(p, "/EBOOT_ORI.PBP");
-				fileIoRename(file, path);
+				sceIoRename(file, path);
 			} else {
-				fileIoRemove(path);
+				sceIoRemove(path);
 				return res;
 			}
 		}
@@ -293,7 +294,6 @@ int handleFile(char *file) {
 	int res = 0;
 
 	int type = getFileType(file);
-
 	switch (type) {
 		case FILE_TYPE_ELF:
 		case FILE_TYPE_PBP:
@@ -334,7 +334,7 @@ int handleFile(char *file) {
 		case FILE_TYPE_RAR:
 		case FILE_TYPE_7ZIP:
 		case FILE_TYPE_ZIP:
-			archiveOpen(file);
+			res = archiveOpen(file);
 			break;
 
 		default:
@@ -342,8 +342,10 @@ int handleFile(char *file) {
 			break;
 	}
 
-	if (res < 0)
+	if (res < 0) {
 		errorDialog(res);
+		return res;
+	}
 
 	return type;
 }
@@ -753,7 +755,26 @@ int dialogSteps() {
 			}
 
 			break;
+			
+		case DIALOG_STEP_WAIT_CONNECTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				if (psp2LinkRequestsIsConnected())
+					sceMsgDialogClose();
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				if (psp2LinkRequestsIsConnected()) {
+					strcpy(cur_path, HOST0);
+					memset(&mount_point_stat, 0, sizeof(SceIoStat));
+					sceIoGetstat(HOST0, &mount_point_stat);
 
+					dirLevelUp();
+					refreshFileList();					
+				}
+
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
 		case DIALOG_STEP_MOVED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				fileListEmpty(&copy_list);
@@ -794,9 +815,9 @@ int dialogSteps() {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (strlen(name) > 0) {
 					char path[MAX_PATH_LENGTH];
-					sprintf(path, "%s%s", cur_path, name);
+					snprintf(path, MAX_PATH_LENGTH, "%s%s", cur_path, name);
 
-					int res = fileIoMkdir(path, 0777);
+					int res = sceIoMkdir(path, 0777);
 					if (res < 0) {
 						errorDialog(res);
 					} else {
@@ -865,10 +886,10 @@ int dialogSteps() {
 					char old_path[MAX_PATH_LENGTH];
 					char new_path[MAX_PATH_LENGTH];
 
-					sprintf(old_path, "%s%s", cur_path, file_entry->name);
-					sprintf(new_path, "%s%s", cur_path, name);
+					snprintf(old_path, MAX_PATH_LENGTH, "%s%s", cur_path, file_entry->name);
+					snprintf(new_path, MAX_PATH_LENGTH, "%s%s", cur_path, name);
 
-					int res = fileIoRename(old_path, new_path);
+					int res = sceIoRename(old_path, new_path);
 					if (res < 0) {
 						errorDialog(res);
 					} else {
@@ -996,28 +1017,24 @@ void fileBrowserMenuCtrl() {
 				dirUp();
 			} else if (strcmp(file_entry->name, HOST0) == 0) {
 #ifdef USE_HOST0
-				int res = psp2LinkInit("192.168.178.20", 0x4711, 0x4712, 0x4712, 3);
-				if (!res) {
-					psp2LinkFinish();
-					return;
+				if (!psp2LinkRequestsIsConnected()) { // TODO: psp2client terminate and connection lost handling
+					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[WAIT_CONNECTION]);
+					dialog_step = DIALOG_STEP_WAIT_CONNECTION;
+				} else {
+					strcpy(cur_path, file_entry->name);
+					memset(&mount_point_stat, 0, sizeof(SceIoStat));
+					sceIoGetstat(file_entry->name, &mount_point_stat);
+
+					dirLevelUp();
 				}
-
-				while (!psp2LinkRequestsIsConnected()) {
-					sceKernelDelayThread(1 * 1000 * 1000);
-				}
-
-				strcpy(cur_path, file_entry->name);
-				memset(&mount_point_stat, 0, sizeof(SceIoStat));
-				fileIoGetstat(file_entry->name, &mount_point_stat);
-
-				dirLevelUp();
 #endif
 			} else {
 				if (dir_level == 0) {
 					strcpy(cur_path, file_entry->name);
 					memset(&mount_point_stat, 0, sizeof(SceIoStat));
-					fileIoGetstat(file_entry->name, &mount_point_stat);
+					sceIoGetstat(file_entry->name, &mount_point_stat);
 				} else {
+					addEndSlash(cur_path);
 					strcat(cur_path, file_entry->name);
 				}
 
@@ -1026,7 +1043,7 @@ void fileBrowserMenuCtrl() {
 
 			refreshFileList();
 		} else {
-			sprintf(cur_file, "%s%s", cur_path, file_entry->name);
+			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", cur_path, file_entry->name);
 			int type = handleFile(cur_file);
 
 			// Archive mode
@@ -1034,7 +1051,7 @@ void fileBrowserMenuCtrl() {
 				is_in_archive = 1;
 				dir_level_archive = dir_level;
 
-				sprintf(archive_path, "%s%s", cur_path, file_entry->name);
+				snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", cur_path, file_entry->name);
 
 				strcat(cur_path, file_entry->name);
 				addEndSlash(cur_path);
@@ -1290,11 +1307,11 @@ int initSharedMemory() {
 
 int main(int argc, const char *argv[]) {
 #ifndef RELEASE
-	fileIoRemove("cache0:vitashell_log.txt");
+	sceIoRemove("cache0:vitashell_log.txt");
 #endif
 
 	// Init VitaShell
-	VitaShellInit();
+	initVitaShell();
 
 	// Init shared memory
 	initSharedMemory();
@@ -1307,11 +1324,11 @@ int main(int argc, const char *argv[]) {
 	// Init code memory
 	initCodeMemory(shared_memory->code_blockid);
 
-	// Set up nid table
-	// setupNidTable();
-
 	// Patch UVL
 	PatchUVL();
+
+	// Patch IO
+	PatchIO();
 
 	// Get net info
 	getNetInfo();
@@ -1324,12 +1341,12 @@ int main(int argc, const char *argv[]) {
 	showSplashScreen();
 #endif
 
-	// hack();
-	// loadDumpModules();
-
 	// Main
 	initShell();
 	shellMain();
+
+	// Finish VitaShell
+	finishVitaShell();
 
 	return 0;
 }

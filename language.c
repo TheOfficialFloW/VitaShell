@@ -17,7 +17,6 @@
 */
 
 #include "main.h"
-#include "io_wrapper.h"
 #include "language.h"
 
 extern unsigned char _binary_resources_english_us_translation_txt_start;
@@ -137,13 +136,13 @@ void loadLanguage(int id) {
 		char path[128];
 		sprintf(path, "cache0:VitaShell/%s_translation.txt", lang[id]);
 
-		SceUID fd = fileIoOpen(path, SCE_O_RDONLY, 0);
+		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
 		if (fd >= 0) {
-			int size = fileIoLseek(fd, 0, SCE_SEEK_END);
-			fileIoLseek(fd, 0, SCE_SEEK_SET);
+			int size = sceIoLseek(fd, 0, SCE_SEEK_END);
+			sceIoLseek(fd, 0, SCE_SEEK_SET);
 
 			void *buffer = malloc(size);
-			fileIoRead(fd, buffer, size);
+			sceIoRead(fd, buffer, size);
 
 			loaded = loadLanguageContainer(buffer, size);
 
