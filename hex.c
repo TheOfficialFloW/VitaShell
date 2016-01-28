@@ -250,7 +250,7 @@ int hexViewer(char *file) {
 					break;
 				}
 			}
-
+/*
 			// Increase nibble
 			if (modify_allowed && hold_buttons & SCE_CTRL_ENTER) {
 				changed = 1;
@@ -280,7 +280,7 @@ int hexViewer(char *file) {
 					buffer[cur_pos] = byte;
 					entry->data[nibble_pos / 2] = byte;
 				}
-			}
+			}*/
 		} else {
 			int msg_result = updateMessageDialog();
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {

@@ -22,19 +22,23 @@
 #include "file.h"
 #include "utils.h"
 
-void photoMode(float *scale, float width, float height, int angle, int mode) {
-	int horizontal = (angle == 0 || angle == 180);
+int isHorizontal(float rad) {
+	return ((int)sinf(rad) == 0) ? 1 : 0;
+}
+
+void photoMode(float *zoom, float width, float height, float rad, int mode) {
+	int horizontal = isHorizontal(rad);
 
 	switch (mode) {
 		case MODE_CUSTOM:
 			break;
 			
 		case MODE_FIT_HEIGHT:
-			*scale = horizontal ? (SCREEN_HEIGHT / height) : SCREEN_HEIGHT / width;
+			*zoom = horizontal ? (SCREEN_HEIGHT / height) : (SCREEN_HEIGHT / width);
 			break;
 			
 		case MODE_FIT_WIDTH:
-			*scale = horizontal ? (SCREEN_WIDTH / width) : SCREEN_WIDTH / height;
+			*zoom = horizontal ? (SCREEN_WIDTH / width) : (SCREEN_WIDTH / height);
 			break;
 	}
 }
@@ -93,12 +97,14 @@ int photoViewer(char *file, int type) {
 	float hotspot_x = half_width;
 	float hotspot_y = half_height;
 
-	int angle = 0;
-	float scale = 1.0f;
+	float rad = 0;
+	float zoom = 1.0f;
 
 	// Photo mode
 	int mode = MODE_FIT_HEIGHT;
-	photoMode(&scale, width, height, angle, mode);
+	photoMode(&zoom, width, height, rad, mode);
+
+	uint64_t time = 0;
 
 	while (1) {
 		readPad();
@@ -134,98 +140,99 @@ int photoViewer(char *file, int type) {
 			hotspot_x = half_width;
 			hotspot_y = half_height;
 
-			photoMode(&scale, width, height, angle, mode);
+			photoMode(&zoom, width, height, rad, mode);
 		}
 
 		// Rotate
 		if (pressed_buttons & SCE_CTRL_LTRIGGER) {
-			angle -= 90;
-			if (angle < 0)
-				angle += 360;
+			rad -= M_PI_2;
+			if (rad < 0)
+				rad += M_TWOPI;
 
-			photoMode(&scale, width, height, angle, mode);
+			photoMode(&zoom, width, height, rad, mode);
+		} else if (pressed_buttons & SCE_CTRL_RTRIGGER) {
+			rad += M_PI_2;
+			if (rad >= M_TWOPI)
+				rad -= M_TWOPI;
+
+			photoMode(&zoom, width, height, rad, mode);
 		}
 
-		if (pressed_buttons & SCE_CTRL_RTRIGGER) {
-			angle += 90;
-			if (angle >= 360)
-				angle -= 360;
-
-			photoMode(&scale, width, height, angle, mode);
-		}
-
-		// Scale
+		// Zoom
 		if (current_buttons & SCE_CTRL_RIGHT_ANALOG_DOWN) {
+			time = sceKernelGetProcessTimeWide();
 			mode = MODE_CUSTOM;
-			scale /= ZOOM_FACTOR;
-		}
-
-		if (current_buttons & SCE_CTRL_RIGHT_ANALOG_UP) {
+			zoom /= ZOOM_FACTOR;
+		} else if (current_buttons & SCE_CTRL_RIGHT_ANALOG_UP) {
+			time = sceKernelGetProcessTimeWide();
 			mode = MODE_CUSTOM;
-			scale *= ZOOM_FACTOR;
+			zoom *= ZOOM_FACTOR;
 		}
 
-		if (scale < ZOOM_MIN) {
-			scale = ZOOM_MIN;
+		if (zoom < ZOOM_MIN) {
+			zoom = ZOOM_MIN;
 		}
 
-		if (scale > ZOOM_MAX) {
-			scale = ZOOM_MAX;
+		if (zoom > ZOOM_MAX) {
+			zoom = ZOOM_MAX;
 		}
 
-		// Move
-		int dx = 0, dy = 0;
+		// Move. TODO: Moving by pad.lx/pad.ly
+		float dx = 0.0f, dy = 0.0f;
 
 		if (current_buttons & SCE_CTRL_LEFT_ANALOG_LEFT) {
-			dx = -cos(DEG_TO_RAD(angle));
-			dy = sin(DEG_TO_RAD(angle));
-		}
-
-		if (current_buttons & SCE_CTRL_LEFT_ANALOG_RIGHT) {
-			dx = cos(DEG_TO_RAD(angle));
-			dy = -sin(DEG_TO_RAD(angle));
+			if (isHorizontal(rad)) {
+				dx = -cosf(rad);
+			} else {
+				dy = sinf(rad);
+			}
+		} else if (current_buttons & SCE_CTRL_LEFT_ANALOG_RIGHT) {
+			if (isHorizontal(rad)) {
+				dx = cosf(rad);
+			} else {
+				dy = -sinf(rad);
+			}
 		}
 
 		if (current_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
-			dx = -sin(DEG_TO_RAD(angle));
-			dy = -cos(DEG_TO_RAD(angle));
+			if (!isHorizontal(rad)) {
+				dx = -sinf(rad);
+			} else {
+				dy = -cosf(rad);
+			}
+		} else if (current_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+			if (!isHorizontal(rad)) {
+				dx = sinf(rad);
+			} else {
+				dy = cosf(rad);
+			}
 		}
 
-		if (current_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-			dx = sin(DEG_TO_RAD(angle));
-			dy = cos(DEG_TO_RAD(angle));
-		}
+		if (dx != 0.0f)
+			hotspot_x += dx * MOVE_INTERVAL / zoom;
 
-		if (dx < 0)
-			hotspot_x -= MOVE_INTERVAL / scale;
+		if (dy != 0.0f)
+			hotspot_y += dy * MOVE_INTERVAL / zoom;
 
-		if (dx > 0)
-			hotspot_x += MOVE_INTERVAL / scale;
+		// Limit
+		float w = isHorizontal(rad) ? SCREEN_HALF_WIDTH : SCREEN_HALF_HEIGHT;
+		float h = isHorizontal(rad) ? SCREEN_HALF_HEIGHT : SCREEN_HALF_WIDTH;
 
-		if (dy < 0)
-			hotspot_y -= MOVE_INTERVAL / scale;
-		
-		if (dy > 0)
-			hotspot_y += MOVE_INTERVAL / scale;
-
-		int w = (angle == 0 || angle == 180) ? SCREEN_HALF_WIDTH : SCREEN_HALF_HEIGHT;
-		int h = (angle == 0 || angle == 180) ? SCREEN_HALF_HEIGHT : SCREEN_HALF_WIDTH;
-
-		if ((scale * width) > 2 * w) {
-			if (hotspot_x < w / scale) {
-				hotspot_x = w / scale;
-			} else if (hotspot_x > width - w / scale) {
-				hotspot_x = width - w / scale;
+		if ((zoom * width) > 2.0f * w) {
+			if (hotspot_x < (w / zoom)) {
+				hotspot_x = w / zoom;
+			} else if (hotspot_x > (width - w / zoom)) {
+				hotspot_x = width - w / zoom;
 			}
 		} else {
 			hotspot_x = half_width;
 		}
 
-		if ((scale * height) > 2 * h) {
-			if (hotspot_y < h / scale) {
-				hotspot_y = h / scale;
-			} else if (hotspot_y > height - h / scale) {
-				hotspot_y = height - h / scale;
+		if ((zoom * height) > 2.0f * h) {
+			if (hotspot_y < (h / zoom)) {
+				hotspot_y = h / zoom;
+			} else if (hotspot_y > (height - h / zoom)) {
+				hotspot_y = height - h / zoom;
 			}
 		} else {
 			hotspot_y = half_height;
@@ -234,7 +241,12 @@ int photoViewer(char *file, int type) {
 		// Start drawing
 		START_DRAWING();
 
-		vita2d_draw_texture_scale_rotate_hotspot(tex, SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT, scale, scale, DEG_TO_RAD(angle), hotspot_x, hotspot_y);
+		// Photo
+		vita2d_draw_texture_scale_rotate_hotspot(tex, SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT, zoom, zoom, rad, hotspot_x, hotspot_y);
+
+		// Zoom text
+		if ((sceKernelGetProcessTimeWide() - time) < ZOOM_TEXT_TIME)
+			pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, WHITE, FONT_SIZE, "%.0f%%", zoom * 100.0f);
 
 		// End drawing
 		END_DRAWING();

@@ -25,7 +25,7 @@
 #define ALIGN_LEFT(x, w) (x - w)
 
 #define ANALOG_CENTER 128
-#define ANALOG_THRESHOLD 96
+#define ANALOG_THRESHOLD 64
 
 #define NET_INIT_SIZE 1 * 1024 * 1024
 

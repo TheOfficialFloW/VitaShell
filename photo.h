@@ -19,18 +19,19 @@
 #ifndef __PHOTO_H__
 #define __PHOTO_H__
 
-#define DEG_TO_RAD(x) ((float)x * M_PI / 180.0f)
-
 enum PhotoModes {
 	MODE_CUSTOM,
+	// MODE_ORIGINAL,
 	MODE_FIT_HEIGHT,
 	MODE_FIT_WIDTH,
 };
 
 #define ZOOM_MIN 0.1f
-#define ZOOM_MAX 10.0f
+#define ZOOM_MAX 100.0f
 #define ZOOM_FACTOR 1.02f
 #define MOVE_INTERVAL 15.0f
+
+#define ZOOM_TEXT_TIME 4 * 1000 * 1000
 
 int photoViewer(char *file, int type);
 

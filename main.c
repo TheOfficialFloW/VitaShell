@@ -19,7 +19,6 @@
 /*
 	TODO:
 	- Limit long file names on browser
-	- Improved photo viewer
 	- Handle big images
 	- Add shader compiler feature
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
@@ -27,14 +26,13 @@
 	- Page skip for hex and text viewer
 	- Add UTF8/UTF16 to vita2dlib's pgf
 	- Maybe switch to libarchive
-	- Hex editor byte group size
+	- Hex editor byte group size and write
 	- CPU changement
 	- Move error fix by moving its content
 	- Duplicate when same location or same folder
 	- Copy same location check and handling. x:/a to x:/a/b loop.
 	- Shortcuts
 	- Media player
-	- Maybe auto-exiting copying screen
 */
 
 #include "main.h"
