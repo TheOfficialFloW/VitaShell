@@ -48,6 +48,7 @@ enum SortFlags {
 
 typedef struct FileListEntry {
 	struct FileListEntry *next;
+	struct FileListEntry *previous;
 	char name[MAX_NAME_LENGTH];
 	int is_folder;
 	int type;
@@ -59,6 +60,7 @@ typedef struct {
 	FileListEntry *head;
 	FileListEntry *tail;
 	int length;
+	char path[MAX_PATH_LENGTH];
 } FileList;
 
 int ReadFile(char *file, void *buf, int size);
@@ -78,7 +80,8 @@ int replaceMountPoint(char *old_mount_point, char *new_mount_point);
 FileListEntry *fileListFindEntry(FileList *list, char *name);
 FileListEntry *fileListGetNthEntry(FileList *list, int n);
 void fileListAddEntry(FileList *list, FileListEntry *entry, int sort);
-int fileListRemoveEntry(FileList *list, char *name);
+int fileListRemoveEntry(FileList *list, FileListEntry *entry);
+int fileListRemoveEntryByName(FileList *list, char *name);
 void fileListEmpty(FileList *list);
 int fileListGetEntries(FileList *list, char *path);
 

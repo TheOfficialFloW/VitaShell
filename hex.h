@@ -28,6 +28,7 @@ enum GroupSizes {
 
 typedef struct HexListEntry {
 	struct HexListEntry *next;
+	struct HexListEntry *previous;
 	uint8_t data[0x10];
 } HexListEntry;
 

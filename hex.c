@@ -27,6 +27,7 @@
 
 void hexListAddEntry(HexList *list, HexListEntry *entry) {
 	entry->next = NULL;
+	entry->previous = NULL;
 
 	if (list->head == NULL) {
 		list->head = entry;
@@ -34,6 +35,7 @@ void hexListAddEntry(HexList *list, HexListEntry *entry) {
 	} else {
 		HexListEntry *tail = list->tail;
 		tail->next = entry;
+		entry->previous = tail;
 		list->tail = entry;
 	}
 
@@ -49,7 +51,9 @@ void hexListEmpty(HexList *list) {
 		entry = next;
 	}
 
-	memset(list, 0, sizeof(HexList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->length = 0;
 }
 
 HexListEntry *hexListGetNthEntry(HexList *list, int n) {
@@ -121,19 +125,15 @@ int hexViewer(char *file) {
 
 						// Tail to head
 						list.tail->next = list.head;
+						list.head->previous = list.tail;
 						list.head = list.tail;
 
 						// Second last to tail
-						HexListEntry *second_last = list.tail->next;
-						while (second_last) {
-							if (second_last->next == list.tail)
-								break;
-
-							second_last = second_last->next;
-						}
-
-						list.tail = second_last;
+						list.tail = list.tail->previous;
 						list.tail->next = NULL;
+
+						// No previous
+						list.head->previous = NULL;
 
 						// Read
 						memcpy(list.head->data, buffer + base_pos, 0x10);
@@ -148,12 +148,15 @@ int hexViewer(char *file) {
 							base_pos += 0x10;
 
 							// Head to tail
+							list.head->previous = list.tail;
 							list.tail->next = list.head;
 							list.tail = list.head;
 
 							// Second first to head
 							list.head = list.head->next;
+							list.head->previous = NULL;
 
+							// No next
 							list.tail->next = NULL;
 
 							// Read

@@ -18,8 +18,10 @@
 
 /*
 	TODO:
+	- Fix psp2link finish...
+	- Fix UVL logging strange behaviour on homebrew loading or self reloading
+	- Photoviewer, handle big images
 	- Limit long file names on browser
-	- Handle big images
 	- Add shader compiler feature
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
 	- Redirecting .data segment when reloading
@@ -65,7 +67,7 @@ int _newlib_heap_size_user = 32 * 1024 * 1024;
 static FileList file_list, mark_list, copy_list;
 
 // Paths
-static char cur_file[MAX_PATH_LENGTH], cur_path[MAX_PATH_LENGTH], copy_path[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH];
+static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH];
 
 // Mount point stat
 static SceIoStat mount_point_stat;
@@ -128,27 +130,27 @@ void dirUpCloseArchive() {
 }
 
 void dirUp() {
-	removeEndSlash(cur_path);
+	removeEndSlash(file_list.path);
 
 	char *p;
 
-	p = strrchr(cur_path, '/');
+	p = strrchr(file_list.path, '/');
 	if (p) {
 		p[1] = '\0';
 		dir_level--;
 		goto DIR_UP_RETURN;
 	}
 
-	p = strrchr(cur_path, ':');
+	p = strrchr(file_list.path, ':');
 	if (p) {
-		if (strlen(cur_path) - ((p + 1) - cur_path) > 0) {
+		if (strlen(file_list.path) - ((p + 1) - file_list.path) > 0) {
 			p[1] = '\0';
 			dir_level--;
 			goto DIR_UP_RETURN;
 		}
 	}
 
-	strcpy(cur_path, HOME_PATH);
+	strcpy(file_list.path, HOME_PATH);
 	dir_level = 0;
 
 DIR_UP_RETURN:
@@ -163,7 +165,7 @@ void refreshFileList() {
 	do {
 		fileListEmpty(&file_list);
 
-		res = fileListGetEntries(&file_list, cur_path);
+		res = fileListGetEntries(&file_list, file_list.path);
 
 		if (res < 0)
 			dirUp();
@@ -191,12 +193,12 @@ void refreshMarkList() {
 		FileListEntry *next = entry->next;
 
 		char path[MAX_PATH_LENGTH];
-		snprintf(path, MAX_PATH_LENGTH, "%s%s", cur_path, entry->name);
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, entry->name);
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
 		if (sceIoGetstat(path, &stat) < 0)
-			fileListRemoveEntry(&mark_list, entry->name);
+			fileListRemoveEntry(&mark_list, entry);
 
 		// Next
 		entry = next;
@@ -214,12 +216,12 @@ void refreshCopyList() {
 		FileListEntry *next = entry->next;
 
 		char path[MAX_PATH_LENGTH];
-		snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_path, entry->name);
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_list.path, entry->name);
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
 		if (sceIoGetstat(path, &stat) < 0)
-			fileListRemoveEntry(&copy_list, entry->name);
+			fileListRemoveEntry(&copy_list, entry);
 
 		// Next
 		entry = next;
@@ -230,6 +232,9 @@ void resetFileLists() {
 	memset(&file_list, 0, sizeof(FileList));
 	memset(&mark_list, 0, sizeof(FileList));
 	memset(&copy_list, 0, sizeof(FileList));
+
+	// Home
+	strcpy(file_list.path, HOME_PATH);
 
 	refreshFileList();
 }
@@ -291,7 +296,7 @@ int signPspFile(char *file) {
 	return 0;
 }
 
-int handleFile(char *file) {
+int handleFile(char *file, FileListEntry *entry) {
 	int res = 0;
 
 	int type = getFileType(file);
@@ -324,7 +329,7 @@ int handleFile(char *file) {
 		case FILE_TYPE_BMP:
 		case FILE_TYPE_PNG:
 		case FILE_TYPE_JPEG:
-			res = photoViewer(file, type);
+			res = photoViewer(file, type, &file_list, entry);
 			break;
 
 		case FILE_TYPE_PBP:
@@ -672,7 +677,7 @@ void contextMenuCtrl() {
 					fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
 				}
 
-				strcpy(copy_path, cur_path);
+				strcpy(copy_list.path, file_list.path);
 
 				char string[128];
 				sprintf(string, language_container[COPY_MESSAGE], copy_list.length);
@@ -718,7 +723,7 @@ void contextMenuCtrl() {
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 
 				char uri[MAX_PATH_LENGTH];
-				sprintf(uri, "email:send?attach=%s%s.", cur_path, file_entry->name);
+				sprintf(uri, "email:send?attach=%s%s.", file_list.path, file_entry->name);
 				debugPrintf("%s\n", uri);
 				sceAppMgrLaunchAppByUri(0xFFFFF, uri);
 				break;
@@ -763,7 +768,7 @@ int dialogSteps() {
 					sceMsgDialogClose();
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				if (psp2LinkRequestsIsConnected()) {
-					strcpy(cur_path, HOST0);
+					strcpy(file_list.path, HOST0);
 					memset(&mount_point_stat, 0, sizeof(SceIoStat));
 					sceIoGetstat(HOST0, &mount_point_stat);
 
@@ -816,7 +821,7 @@ int dialogSteps() {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (strlen(name) > 0) {
 					char path[MAX_PATH_LENGTH];
-					snprintf(path, MAX_PATH_LENGTH, "%s%s", cur_path, name);
+					snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
 					int res = sceIoMkdir(path, 0777);
 					if (res < 0) {
@@ -837,8 +842,6 @@ int dialogSteps() {
 				CopyArguments args;
 				args.file_list = &file_list;
 				args.copy_list = &copy_list;
-				args.cur_path = cur_path;
-				args.copy_path = copy_path;
 				args.archive_path = archive_path;
 				args.copy_mode = copy_mode;
 
@@ -866,7 +869,6 @@ int dialogSteps() {
 				DeleteArguments args;
 				args.file_list = &file_list;
 				args.mark_list = &mark_list;
-				args.cur_path = cur_path;
 				args.index = base_pos + rel_pos;
 
 				SceUID thid = sceKernelCreateThread("delete_thread", (SceKernelThreadEntry)delete_thread, 0x40, 0x10000, 0, 0x70000, NULL);
@@ -887,8 +889,8 @@ int dialogSteps() {
 					char old_path[MAX_PATH_LENGTH];
 					char new_path[MAX_PATH_LENGTH];
 
-					snprintf(old_path, MAX_PATH_LENGTH, "%s%s", cur_path, file_entry->name);
-					snprintf(new_path, MAX_PATH_LENGTH, "%s%s", cur_path, name);
+					snprintf(old_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+					snprintf(new_path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
 					int res = sceIoRename(old_path, new_path);
 					if (res < 0) {
@@ -994,7 +996,7 @@ void fileBrowserMenuCtrl() {
 					memcpy(mark_entry, file_entry, sizeof(FileListEntry));
 					fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
 				} else {
-					fileListRemoveEntry(&mark_list, file_entry->name);
+					fileListRemoveEntryByName(&mark_list, file_entry->name);
 				}
 			}
 		}
@@ -1022,7 +1024,7 @@ void fileBrowserMenuCtrl() {
 					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[WAIT_CONNECTION]);
 					dialog_step = DIALOG_STEP_WAIT_CONNECTION;
 				} else {
-					strcpy(cur_path, file_entry->name);
+					strcpy(file_list.path, file_entry->name);
 					memset(&mount_point_stat, 0, sizeof(SceIoStat));
 					sceIoGetstat(file_entry->name, &mount_point_stat);
 
@@ -1031,12 +1033,12 @@ void fileBrowserMenuCtrl() {
 #endif
 			} else {
 				if (dir_level == 0) {
-					strcpy(cur_path, file_entry->name);
+					strcpy(file_list.path, file_entry->name);
 					memset(&mount_point_stat, 0, sizeof(SceIoStat));
 					sceIoGetstat(file_entry->name, &mount_point_stat);
 				} else {
-					addEndSlash(cur_path);
-					strcat(cur_path, file_entry->name);
+					addEndSlash(file_list.path);
+					strcat(file_list.path, file_entry->name);
 				}
 
 				dirLevelUp();
@@ -1044,18 +1046,18 @@ void fileBrowserMenuCtrl() {
 
 			refreshFileList();
 		} else {
-			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", cur_path, file_entry->name);
-			int type = handleFile(cur_file);
+			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+			int type = handleFile(cur_file, file_entry);
 
 			// Archive mode
 			if (type == FILE_TYPE_RAR || type == FILE_TYPE_7ZIP || type == FILE_TYPE_ZIP) {
 				is_in_archive = 1;
 				dir_level_archive = dir_level;
 
-				snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", cur_path, file_entry->name);
+				snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
-				strcat(cur_path, file_entry->name);
-				addEndSlash(cur_path);
+				strcat(file_list.path, file_entry->name);
+				addEndSlash(file_list.path);
 
 				dirLevelUp();
 				refreshFileList();
@@ -1071,12 +1073,7 @@ int shellMain() {
 
 	// Paths
 	memset(cur_file, 0, sizeof(cur_file));
-	memset(cur_path, 0, sizeof(cur_path));
-	memset(copy_path, 0, sizeof(copy_path));
 	memset(archive_path, 0, sizeof(archive_path));
-
-	// Home
-	strcpy(cur_path, HOME_PATH);
 
 	// Reset file lists
 	resetFileLists();
@@ -1108,7 +1105,7 @@ int shellMain() {
 		START_DRAWING();
 
 		// Draw shell info
-		drawShellInfo(cur_path);
+		drawShellInfo(file_list.path);
 
 		// Draw scroll bar
 		drawScrollBar(base_pos, file_list.length);

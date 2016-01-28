@@ -26,8 +26,10 @@
 
 #define ANALOG_CENTER 128
 #define ANALOG_THRESHOLD 64
+#define ANALOG_SENSITIVITY 16
 
 #define NET_INIT_SIZE 1 * 1024 * 1024
+#define NETDBG_DEFAULT_PORT 9023
 
 enum {
 	SCE_CTRL_RIGHT_ANALOG_UP	= 0x0020000,
@@ -51,8 +53,6 @@ extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hol
 void errorDialog(int error);
 void infoDialog(char *string);
 
-int debugPrintf(char *text, ...);
-
 void disableAutoSuspend();
 
 void readPad();
@@ -65,7 +65,7 @@ void getSizeString(char *string, uint64_t size);
 void getDateString(char *string, int date_format, SceRtcTime *time);
 void getTimeString(char *string, int time_format, SceRtcTime *time);
 
-#define NETDBG_DEFAULT_PORT 9023
+int debugPrintf(char *text, ...);
 
 int netdbg_init();
 void netdbg_fini();

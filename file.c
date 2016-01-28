@@ -257,35 +257,34 @@ int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetPro
 	return 0;
 }
 
+typedef struct {
+	char *extension;
+	int type;
+} ExtensionType;
+
+ExtensionType extension_types[] = {
+	{ ".7Z",   FILE_TYPE_7ZIP },
+	{ ".BMP",  FILE_TYPE_BMP },
+	{ ".ELF",  FILE_TYPE_ELF },
+	{ ".JPG",  FILE_TYPE_JPEG },
+	{ ".JPEG", FILE_TYPE_JPEG },
+	{ ".PBP",  FILE_TYPE_PBP },
+	{ ".PNG",  FILE_TYPE_PNG },
+	{ ".RAR",  FILE_TYPE_RAR },
+	{ ".SELF", FILE_TYPE_ELF },
+	//{ ".TXT", FILE_TYPE_TXT },
+	{ ".VELF", FILE_TYPE_ELF },
+	{ ".ZIP",  FILE_TYPE_ZIP },
+};
+
 int getFileType(char *file) {
-	uint32_t magic;
-	uint32_t read = 0;
-
-	if (isInArchive()) {
-		read = ReadArchiveFile(file, &magic, sizeof(uint32_t));
-	} else {
-		read = ReadFile(file, &magic, sizeof(uint32_t));
-	}
-
-	if (read == sizeof(uint32_t)) {
-		uint16_t magic2 = magic & 0xFFFF;
-
-		if (magic2 == 0x4D42) {
-			return FILE_TYPE_BMP;
-		} else if (magic == 0x464C457F) {
-			return FILE_TYPE_ELF;
-		} else if (magic == 0x474E5089) {
-			return FILE_TYPE_PNG;
-		} else if (magic == 0xE0FFD8FF || magic == 0xE1FFD8FF) {
-			return FILE_TYPE_JPEG;
-		} else if (magic == 0x50425000) {
-			return FILE_TYPE_PBP;
-		} else if (magic == 0x5E7E4552 || magic == 0x21726152) {
-			return FILE_TYPE_RAR;
-		} else if (magic == 0xAFBC7A37) {
-			return FILE_TYPE_7ZIP;
-		} else if (magic == 0x04034B50 || magic == 0x06054B50) {
-			return FILE_TYPE_ZIP;
+	char *p = strrchr(file, '.');
+	if (p) {
+		int i;
+		for (i = 0; i < (sizeof(extension_types) / sizeof(ExtensionType)); i++) {
+			if (strcasecmp(p, extension_types[i].extension) == 0) {
+				return extension_types[i].type;
+			}
 		}
 	}
 
@@ -356,6 +355,7 @@ FileListEntry *fileListGetNthEntry(FileList *list, int n) {
 
 void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 	entry->next = NULL;
+	entry->previous = NULL;
 
 	if (list->head == NULL) {
 		list->head = entry;
@@ -396,16 +396,20 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 				p = p->next;
 			}
 
-			if (previous == NULL) { // Order: entry -> p
-				list->head = entry;
+			if (previous == NULL) { // Order: entry (new head) -> p (old head)
 				entry->next = p;
-			} else if (previous->next == NULL) { // Order: p -> entry at tail
+				p->previous = entry;
+				list->head = entry;
+			} else if (previous->next == NULL) { // Order: p (old tail) -> entry (new tail)
 				FileListEntry *tail = list->tail;
 				tail->next = entry;
+				entry->previous = tail;
 				list->tail = entry;
 			} else { // Order: previous -> entry -> p
 				previous->next = entry;
+				entry->previous = previous; 
 				entry->next = p;
+				p->previous = entry;
 			}
 		} else {
 			FileListEntry *tail = list->tail;
@@ -417,7 +421,30 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 	list->length++;
 }
 
-int fileListRemoveEntry(FileList *list, char *name) {
+int fileListRemoveEntry(FileList *list, FileListEntry *entry) {
+	if (entry) {
+		if (entry->previous) {
+			entry->previous->next = entry->next;
+		} else {
+			list->head = entry->next;
+		}
+
+		if (entry->next) {
+			entry->next->previous = entry->previous;
+		} else {
+			list->tail = entry->previous;
+		}
+
+		list->length--;
+		free(entry);
+
+		return 1;
+	}
+
+	return 0;
+}
+
+int fileListRemoveEntryByName(FileList *list, char *name) {
 	FileListEntry *entry = list->head;
 	FileListEntry *previous = NULL;
 
@@ -456,7 +483,9 @@ void fileListEmpty(FileList *list) {
 		entry = next;
 	}
 
-	memset(list, 0, sizeof(FileList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->length = 0;
 }
 
 int fileListGetMountPointEntries(FileList *list) {

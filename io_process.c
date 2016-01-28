@@ -63,7 +63,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 	for (i = 0; i < count; i++) {
 		disableAutoSuspend();
 
-		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->cur_path, mark_entry->name);
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 		removeEndSlash(path);
 
 		getPathInfo(path, &size, &folders, &files);
@@ -79,7 +79,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 	for (i = 0; i < count; i++) {
 		disableAutoSuspend();
 
-		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->cur_path, mark_entry->name);
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 		removeEndSlash(path);
 
 		int res = removePath(path, &value, folders + files, SetProgress);
@@ -123,8 +123,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			disableAutoSuspend();
 
-			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_path, copy_entry->name);
-			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->cur_path, copy_entry->name);
+			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
 
 			int res = sceIoRename(src_path, dst_path);
 			// TODO: if (res == 0x80010011) if folder
@@ -161,7 +161,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			disableAutoSuspend();
 
-			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_path, copy_entry->name);
+			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
 				addEndSlash(src_path);
@@ -182,8 +182,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			disableAutoSuspend();
 
-			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_path, copy_entry->name);
-			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->cur_path, copy_entry->name);
+			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
 
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
 				addEndSlash(src_path);

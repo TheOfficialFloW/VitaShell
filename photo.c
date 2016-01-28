@@ -26,32 +26,7 @@ int isHorizontal(float rad) {
 	return ((int)sinf(rad) == 0) ? 1 : 0;
 }
 
-void photoMode(float *zoom, float width, float height, float rad, int mode) {
-	int horizontal = isHorizontal(rad);
-
-	switch (mode) {
-		case MODE_CUSTOM:
-			break;
-			
-		case MODE_FIT_HEIGHT:
-			*zoom = horizontal ? (SCREEN_HEIGHT / height) : (SCREEN_HEIGHT / width);
-			break;
-			
-		case MODE_FIT_WIDTH:
-			*zoom = horizontal ? (SCREEN_WIDTH / width) : (SCREEN_WIDTH / height);
-			break;
-	}
-}
-
-int photoViewer(char *file, int type) {
-	int hex_viewer = 0;
-
-	vita2d_texture *tex = NULL;
-
-	char *buffer = malloc(BIG_BUFFER_SIZE);
-	if (!buffer)
-		return -1;
-
+vita2d_texture *loadImage(char *file, int type, char *buffer) {
 	int size = 0;
 
 	if (isInArchive()) {
@@ -61,9 +36,10 @@ int photoViewer(char *file, int type) {
 	}
 
 	if (size <= 0) {
-		free(buffer);
-		return size;
+		return NULL;
 	}
+
+	vita2d_texture *tex = NULL;
 
 	switch (type) {
 		case FILE_TYPE_BMP:
@@ -79,68 +55,167 @@ int photoViewer(char *file, int type) {
 			break;
 	}
 
+	// Set bilinear filter
+	if (tex)
+		vita2d_texture_set_filters(tex, SCE_GXM_TEXTURE_FILTER_LINEAR, SCE_GXM_TEXTURE_FILTER_LINEAR);
+
+	return tex;
+}
+
+void resetImageInfo(vita2d_texture *tex, float *width, float *height, float *x, float *y, float *rad, float *zoom, int *mode, uint64_t *time) {
+	*width = vita2d_texture_get_width(tex);
+	*height = vita2d_texture_get_height(tex);
+
+	*x = *width / 2.0f;
+	*y = *height / 2.0f;
+
+	*rad = 0;
+	*zoom = 1.0f;
+
+	*mode = MODE_PERFECT;
+	photoMode(zoom, *width, *height, *rad, *mode);
+
+	*time = sceKernelGetProcessTimeWide();
+}
+
+void photoMode(float *zoom, float width, float height, float rad, int mode) {
+	int horizontal = isHorizontal(rad);
+
+	switch (mode) {
+		case MODE_CUSTOM:
+			break;
+			
+		case MODE_PERFECT: // this is only used for showing image the first time
+			if (height > SCREEN_HEIGHT) { // first priority, fit height
+				*zoom = SCREEN_HEIGHT / height;
+			} else if (width > SCREEN_WIDTH) { // second priority, fit screen
+				*zoom = SCREEN_WIDTH / width;
+			} else { // otherwise, original size
+				*zoom = 1.0f;
+			}
+
+			break;
+			
+		case MODE_ORIGINAL:
+			*zoom = 1.0f;
+			break;
+			
+		case MODE_FIT_HEIGHT:
+			*zoom = horizontal ? (SCREEN_HEIGHT / height) : (SCREEN_HEIGHT / width);
+			break;
+			
+		case MODE_FIT_WIDTH:
+			*zoom = horizontal ? (SCREEN_WIDTH / width) : (SCREEN_WIDTH / height);
+			break;
+	}
+}
+
+int getNextZoomMode(float *zoom, float width, float height, float rad, int mode) {
+	float next_zoom = ZOOM_MAX;
+	int next_mode = MODE_ORIGINAL;
+
+	float smallest_zoom = ZOOM_MAX;
+	int smallest_mode = MODE_ORIGINAL;
+
+	int i = 0;
+
+	while (i < 3) {
+		if (mode == MODE_CUSTOM || mode == MODE_PERFECT || mode == MODE_FIT_WIDTH) {
+			mode = MODE_ORIGINAL;
+		} else {
+			mode++;
+		}
+
+		float new_zoom = 0.0f;
+		photoMode(&new_zoom, width, height, rad, mode);
+
+		if (new_zoom < smallest_zoom) {
+			smallest_zoom = new_zoom;
+			smallest_mode = mode;
+		}
+
+		if (new_zoom > *zoom && new_zoom < next_zoom) {
+			next_zoom = new_zoom;
+			next_mode = mode;
+		}
+
+		i++;
+	}
+
+	// Get smallest then
+	if (next_zoom == ZOOM_MAX) {
+		next_zoom = smallest_zoom;
+		next_mode = smallest_mode;
+	}
+
+	*zoom = next_zoom;
+	return next_mode;
+}
+
+int photoViewer(char *file, int type, FileList *list, FileListEntry *entry) {
+	char *buffer = malloc(BIG_BUFFER_SIZE);
+	if (!buffer)
+		return -1;
+
+	vita2d_texture *tex = loadImage(file, type, buffer);
 	if (!tex) {
 		free(buffer);
 		return -1;
 	}
 
-	// Set bilinear filter
-	vita2d_texture_set_filters(tex, SCE_GXM_TEXTURE_FILTER_LINEAR, SCE_GXM_TEXTURE_FILTER_LINEAR);
-
 	// Variables
-	float width = vita2d_texture_get_width(tex);
-	float height = vita2d_texture_get_height(tex);
-
-	float half_width = width / 2.0f;
-	float half_height = height / 2.0f;
-
-	float hotspot_x = half_width;
-	float hotspot_y = half_height;
-
-	float rad = 0;
-	float zoom = 1.0f;
-
-	// Photo mode
-	int mode = MODE_FIT_HEIGHT;
-	photoMode(&zoom, width, height, rad, mode);
-
+	float width = 0.0f, height = 0.0f, x = 0.0f, y = 0.0f, rad = 0.0f, zoom = 1.0f;
+	int mode = MODE_PERFECT;
 	uint64_t time = 0;
+
+	// Reset image
+	resetImageInfo(tex, &width, &height, &x, &y, &rad, &zoom, &mode, &time);
 
 	while (1) {
 		readPad();
 
 		// Cancel
 		if (pressed_buttons & SCE_CTRL_CANCEL) {
-			hex_viewer = 0;
 			break;
 		}
-/*
-		// Switch to hex viewer
-		if (pressed_buttons & SCE_CTRL_SQUARE) {
-			hex_viewer = 1;
-			break;
+
+		// Previous/next image
+		if (pressed_buttons & SCE_CTRL_LEFT || pressed_buttons & SCE_CTRL_RIGHT) {
+			int previous = pressed_buttons & SCE_CTRL_LEFT;
+			while (previous ? entry->previous : entry->next) {
+				entry = previous ? entry->previous : entry->next;
+
+				if (!entry->is_folder) {
+					char path[MAX_PATH_LENGTH];
+					snprintf(path, MAX_PATH_LENGTH, "%s%s", list->path, entry->name);
+					int type = getFileType(path);
+					if (type == FILE_TYPE_BMP || type == FILE_TYPE_JPEG || FILE_TYPE_PNG) {
+						vita2d_free_texture(tex);
+						tex = loadImage(path, type, buffer);
+						if (!tex) {
+							free(buffer);
+							return -1;
+						}
+
+						// Reset image
+						resetImageInfo(tex, &width, &height, &x, &y, &rad, &zoom, &mode, &time);
+						break;
+					}
+				}
+			}
 		}
-*/
+
 		// Photo mode
 		if (pressed_buttons & SCE_CTRL_ENTER) {
-			switch (mode) {
-				case MODE_CUSTOM:
-					mode = MODE_FIT_HEIGHT;
-					break;
-					
-				case MODE_FIT_HEIGHT:
-					mode = MODE_FIT_WIDTH;
-					break;
-					
-				case MODE_FIT_WIDTH:
-					mode = MODE_FIT_HEIGHT;
-					break;
-			}
+			time = sceKernelGetProcessTimeWide();
 
-			hotspot_x = half_width;
-			hotspot_y = half_height;
+			// Find next mode
+			int count = 0;
 
-			photoMode(&zoom, width, height, rad, mode);
+			x = width / 2.0f;
+			y = height / 2.0f;
+
+			mode = getNextZoomMode(&zoom, width, height, rad, mode);
 		}
 
 		// Rotate
@@ -177,72 +252,56 @@ int photoViewer(char *file, int type) {
 			zoom = ZOOM_MAX;
 		}
 
-		// Move. TODO: Moving by pad.lx/pad.ly
-		float dx = 0.0f, dy = 0.0f;
+		// Move
+		if (pad.lx < (ANALOG_CENTER - ANALOG_SENSITIVITY) || pad.lx > (ANALOG_CENTER + ANALOG_SENSITIVITY)) {
+			float d = ((pad.lx - ANALOG_CENTER) / MOVE_DIVISION) / zoom;
 
-		if (current_buttons & SCE_CTRL_LEFT_ANALOG_LEFT) {
 			if (isHorizontal(rad)) {
-				dx = -cosf(rad);
+				x += cosf(rad) * d;
 			} else {
-				dy = sinf(rad);
-			}
-		} else if (current_buttons & SCE_CTRL_LEFT_ANALOG_RIGHT) {
-			if (isHorizontal(rad)) {
-				dx = cosf(rad);
-			} else {
-				dy = -sinf(rad);
+				y += -sinf(rad) * d;
 			}
 		}
 
-		if (current_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
-			if (!isHorizontal(rad)) {
-				dx = -sinf(rad);
+		if (pad.ly < (ANALOG_CENTER - ANALOG_SENSITIVITY) || pad.ly > (ANALOG_CENTER + ANALOG_SENSITIVITY)) {
+			float d = ((pad.ly - ANALOG_CENTER) / MOVE_DIVISION) / zoom;
+
+			if (isHorizontal(rad)) {
+				y += cosf(rad) * d;
 			} else {
-				dy = -cosf(rad);
-			}
-		} else if (current_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-			if (!isHorizontal(rad)) {
-				dx = sinf(rad);
-			} else {
-				dy = cosf(rad);
+				x += sinf(rad) * d;
 			}
 		}
-
-		if (dx != 0.0f)
-			hotspot_x += dx * MOVE_INTERVAL / zoom;
-
-		if (dy != 0.0f)
-			hotspot_y += dy * MOVE_INTERVAL / zoom;
 
 		// Limit
 		float w = isHorizontal(rad) ? SCREEN_HALF_WIDTH : SCREEN_HALF_HEIGHT;
 		float h = isHorizontal(rad) ? SCREEN_HALF_HEIGHT : SCREEN_HALF_WIDTH;
 
 		if ((zoom * width) > 2.0f * w) {
-			if (hotspot_x < (w / zoom)) {
-				hotspot_x = w / zoom;
-			} else if (hotspot_x > (width - w / zoom)) {
-				hotspot_x = width - w / zoom;
+			if (x < (w / zoom)) {
+				x = w / zoom;
+			} else if (x > (width - w / zoom)) {
+				x = width - w / zoom;
 			}
 		} else {
-			hotspot_x = half_width;
+			x = width / 2.0f;
 		}
 
 		if ((zoom * height) > 2.0f * h) {
-			if (hotspot_y < (h / zoom)) {
-				hotspot_y = h / zoom;
-			} else if (hotspot_y > (height - h / zoom)) {
-				hotspot_y = height - h / zoom;
+			if (y < (h / zoom)) {
+				y = h / zoom;
+			} else if (y > (height - h / zoom)) {
+				y = height - h / zoom;
 			}
 		} else {
-			hotspot_y = half_height;
+			y = height / 2.0f;
 		}
 
 		// Start drawing
 		START_DRAWING();
 
 		// Photo
-		vita2d_draw_texture_scale_rotate_hotspot(tex, SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT, zoom, zoom, rad, hotspot_x, hotspot_y);
+		vita2d_draw_texture_scale_rotate_hotspot(tex, SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT, zoom, zoom, rad, x, y);
 
 		// Zoom text
 		if ((sceKernelGetProcessTimeWide() - time) < ZOOM_TEXT_TIME)
@@ -255,9 +314,6 @@ int photoViewer(char *file, int type) {
 	vita2d_free_texture(tex);
 
 	free(buffer);
-
-	if (hex_viewer)
-		hexViewer(file);
 
 	return 0;
 }

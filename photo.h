@@ -19,20 +19,25 @@
 #ifndef __PHOTO_H__
 #define __PHOTO_H__
 
+#include "file.h"
+
 enum PhotoModes {
 	MODE_CUSTOM,
-	// MODE_ORIGINAL,
+	MODE_PERFECT,
+	MODE_ORIGINAL,
 	MODE_FIT_HEIGHT,
 	MODE_FIT_WIDTH,
+	N_PHOTO_MODES,
 };
 
 #define ZOOM_MIN 0.1f
-#define ZOOM_MAX 100.0f
+#define ZOOM_MAX 1000.0f
 #define ZOOM_FACTOR 1.02f
-#define MOVE_INTERVAL 15.0f
 
-#define ZOOM_TEXT_TIME 4 * 1000 * 1000
+#define MOVE_DIVISION 7.0f
 
-int photoViewer(char *file, int type);
+#define ZOOM_TEXT_TIME 3 * 1000 * 1000
+
+int photoViewer(char *file, int type, FileList *list, FileListEntry *entry);
 
 #endif

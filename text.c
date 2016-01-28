@@ -25,6 +25,7 @@
 
 void textListAddEntry(TextList *list, TextListEntry *entry) {
 	entry->next = NULL;
+	entry->previous = NULL;
 
 	if (list->head == NULL) {
 		list->head = entry;
@@ -32,6 +33,7 @@ void textListAddEntry(TextList *list, TextListEntry *entry) {
 	} else {
 		TextListEntry *tail = list->tail;
 		tail->next = entry;
+		entry->previous = tail;
 		list->tail = entry;
 	}
 
@@ -47,7 +49,9 @@ void textListEmpty(TextList *list) {
 		entry = next;
 	}
 
-	memset(list, 0, sizeof(TextList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->length = 0;
 }
 
 #define TAB_SIZE 4
@@ -178,19 +182,15 @@ int textViewer(char *file) {
 
 					// Tail to head
 					list.tail->next = list.head;
+					list.head->previous = list.tail;
 					list.head = list.tail;
 
 					// Second last to tail
-					TextListEntry *second_last = list.tail->next;
-					while (second_last) {
-						if (second_last->next == list.tail)
-							break;
-
-						second_last = second_last->next;
-					}
-
-					list.tail = second_last;
+					list.tail = list.tail->previous;
 					list.tail->next = NULL;
+
+					// No previous
+					list.head->previous = NULL;
 
 					// Read
 					textReadLine(buffer, offset_list[base_pos], size, list.head->line);
@@ -205,12 +205,15 @@ int textViewer(char *file) {
 						base_pos++;
 
 						// Head to tail
+						list.head->previous = list.tail;
 						list.tail->next = list.head;
 						list.tail = list.head;
 
 						// Second first to head
 						list.head = list.head->next;
+						list.head->previous = NULL;
 
+						// No next
 						list.tail->next = NULL;
 
 						// Read

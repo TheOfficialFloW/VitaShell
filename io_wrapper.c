@@ -23,6 +23,8 @@
 #include "module.h"
 #include "psp2link/psp2link.h"
 
+static int io_patched = 0;
+
 #ifdef USE_HOST0
 
 int verifyFd(SceUID fd) {
@@ -217,21 +219,25 @@ void PatchIO() {
 	makeFunctionStub((uint32_t)&sceIoDclose, sceIoDclosePatched);
 	makeFunctionStub((uint32_t)&sceIoGetstat, sceIoGetstatPatched);
 	makeFunctionStub((uint32_t)&sceIoChstat, sceIoChstatPatched);
+
+	io_patched = 1;
 }
 
 void restoreIOPatches() {
-	copyStub((uint32_t)&sceIoOpen, (void *)&_sceIoOpen);
-	copyStub((uint32_t)&sceIoClose, (void *)&_sceIoClose);
-	copyStub((uint32_t)&sceIoRead, (void *)&_sceIoRead);
-	copyStub((uint32_t)&sceIoWrite, (void *)&_sceIoWrite);
-	copyStub((uint32_t)&sceIoLseek, (void *)&_sceIoLseek);
-	copyStub((uint32_t)&sceIoRemove, (void *)&_sceIoRemove);
-	copyStub((uint32_t)&sceIoMkdir, (void *)&_sceIoMkdir);
-	copyStub((uint32_t)&sceIoRmdir, (void *)&_sceIoRmdir);
-	copyStub((uint32_t)&sceIoRename, (void *)&_sceIoRename);
-	copyStub((uint32_t)&sceIoDopen, (void *)&_sceIoDopen);
-	copyStub((uint32_t)&sceIoDread, (void *)&_sceIoDread);
-	copyStub((uint32_t)&sceIoDclose, (void *)&_sceIoDclose);
-	copyStub((uint32_t)&sceIoGetstat, (void *)&_sceIoGetstat);
-	copyStub((uint32_t)&sceIoChstat, (void *)&_sceIoChstat);
+	if (io_patched) {
+		copyStub((uint32_t)&sceIoOpen, (void *)&_sceIoOpen);
+		copyStub((uint32_t)&sceIoClose, (void *)&_sceIoClose);
+		copyStub((uint32_t)&sceIoRead, (void *)&_sceIoRead);
+		copyStub((uint32_t)&sceIoWrite, (void *)&_sceIoWrite);
+		copyStub((uint32_t)&sceIoLseek, (void *)&_sceIoLseek);
+		copyStub((uint32_t)&sceIoRemove, (void *)&_sceIoRemove);
+		copyStub((uint32_t)&sceIoMkdir, (void *)&_sceIoMkdir);
+		copyStub((uint32_t)&sceIoRmdir, (void *)&_sceIoRmdir);
+		copyStub((uint32_t)&sceIoRename, (void *)&_sceIoRename);
+		copyStub((uint32_t)&sceIoDopen, (void *)&_sceIoDopen);
+		copyStub((uint32_t)&sceIoDread, (void *)&_sceIoDread);
+		copyStub((uint32_t)&sceIoDclose, (void *)&_sceIoDclose);
+		copyStub((uint32_t)&sceIoGetstat, (void *)&_sceIoGetstat);
+		copyStub((uint32_t)&sceIoChstat, (void *)&_sceIoChstat);
+	}
 }

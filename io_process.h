@@ -28,15 +28,12 @@
 typedef struct {
 	FileList *file_list;
 	FileList *mark_list;
-	char *cur_path;
 	int index;
 } DeleteArguments;
 
 typedef struct {
 	FileList *file_list;
 	FileList *copy_list;
-	char *cur_path;
-	char *copy_path;
 	char *archive_path;
 	int copy_mode;
 } CopyArguments;

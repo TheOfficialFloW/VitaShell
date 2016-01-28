@@ -24,6 +24,7 @@
 
 typedef struct TextListEntry {
 	struct TextListEntry *next;
+	struct TextListEntry *previous;
 	char line[MAX_LINE_CHARACTERS];
 } TextListEntry;
 

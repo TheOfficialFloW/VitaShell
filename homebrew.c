@@ -791,8 +791,9 @@ int sceIoReadPatchedUVL(SceUID fd, void *data, SceSize size) {
 
 int sceIoWritePatchedUVL(SceUID fd, const void *data, SceSize size) {
 	// Redirect to our debug logging and close the uvloader.log descriptor
-	debugPrintf((char *)data);
-	return sceIoClose(fd);
+	//debugPrintf((char *)data);
+	//return sceIoClose(fd);
+	return sceIoWrite(fd, data, size);
 }
 
 int sceIoClosePatchedUVL(SceUID fd) {
@@ -896,8 +897,8 @@ int PatchUVL() {
 
 #ifdef DISABLE_UVL_LOGGING
 	// Disable UVL logging because this causes crash for xerpi derpi
-//	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_debug_log) & ~0x1);
-//	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_log_write) & ~0x1);
+	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_debug_log) & ~0x1);
+	makeThumbDummyFunction0(extractFunctionStub((uint32_t)&uvl_log_write) & ~0x1);
 #endif
 
 	return 0;

@@ -39,37 +39,6 @@ void infoDialog(char *string) {
 	dialog_step = DIALOG_STEP_INFO;
 }
 
-int debugPrintf(char *text, ...) {
-#ifndef RELEASE
-	va_list list;
-	char string[512];
-
-	va_start(list, text);
-	vsprintf(string, text, list);
-	va_end(list);
-
-	netdbg(string);
-/*
-#ifndef DISABLE_UVL_LOGGING
-	printf(string);
-#endif
-*/
-#ifdef ENABLE_DEBUGNET_LOGGING
-	debugNetPrintf(3, string);
-#endif
-
-#ifdef ENABLE_FILE_LOGGING
-	SceUID fd = sceIoOpen("cache0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
-	if (fd >= 0) {
-		sceIoWrite(fd, string, strlen(string));
-		sceIoClose(fd);
-	}
-#endif
-
-#endif
-	return 0;
-}
-
 void disableAutoSuspend() {
 	sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_AUTO_SUSPEND);
 	sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_OLED_OFF);
@@ -210,6 +179,28 @@ void getTimeString(char *string, int time_format, SceRtcTime *time) {
 	}
 }
 
+int debugPrintf(char *text, ...) {
+#ifndef RELEASE
+	va_list list;
+	char string[512];
+
+	va_start(list, text);
+	vsprintf(string, text, list);
+	va_end(list);
+
+	netdbg(string);
+
+	uvl_log_write(string, strlen(string));
+
+	SceUID fd = sceIoOpen("cache0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
+	if (fd >= 0) {
+		sceIoWrite(fd, string, strlen(string));
+		sceIoClose(fd);
+	}
+
+#endif
+	return 0;
+}
 
 int netdbg_init() {
 	int ret = 0;
