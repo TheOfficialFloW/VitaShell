@@ -1,6 +1,11 @@
 Changelog 0.5:
 - Increased homebrew force-exit compatbility.
-- Finished photo viewer.
+- Finished photo viewer. Use the right analog stick to zoom in/out. Left analog stick to move.
+  L/R to rotate and X to change display mode.
+- Updated to newest vita2dlib which fixed many bugs with images.
+- Improved 'New folder' by extending to 'New folder (X)', where 'X' is an increasing number.
+- Improved message dialog texts.
+- Fixed infinite loop when copying the src to its subfolder.
 - Fixed FTP client crashes and added support for Turboclient Android.
 - Fixed alphabetical sorting, finally.
 

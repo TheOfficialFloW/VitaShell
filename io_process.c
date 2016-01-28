@@ -127,7 +127,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
 
 			int res = sceIoRename(src_path, dst_path);
-			// TODO: if (res == 0x80010011) if folder
+			// TODO: if (res == SCE_ERROR_ERRNO_EEXIST) if folder
 			if (res < 0) {
 				sceMsgDialogClose();
 

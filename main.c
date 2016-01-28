@@ -18,22 +18,19 @@
 
 /*
 	TODO:
-	- Fix psp2link finish...
-	- Fix UVL logging strange behaviour on homebrew loading or self reloading
 	- Photoviewer, handle big images
 	- Limit long file names on browser
-	- Add shader compiler feature
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
 	- Redirecting .data segment when reloading
 	- Page skip for hex and text viewer
 	- Add UTF8/UTF16 to vita2dlib's pgf
-	- Maybe switch to libarchive
 	- Hex editor byte group size and write
-	- CPU changement
 	- Move error fix by moving its content
-	- Duplicate when same location or same folder
-	- Copy same location check and handling. x:/a to x:/a/b loop.
+	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
+	- Add shader compiler feature
+	- Maybe switch to libarchive
 	- Shortcuts
+	- CPU changement
 	- Media player
 */
 
@@ -679,8 +676,21 @@ void contextMenuCtrl() {
 
 				strcpy(copy_list.path, file_list.path);
 
+				char *message;
+
+				// On marked entry
+				if (fileListFindEntry(&copy_list, file_entry->name)) {
+					if (copy_list.length == 1) {
+						message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
+					} else {
+						message = language_container[COPIED_FILES_FOLDERS];
+					}
+				} else {
+					message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
+				}
+
 				char string[128];
-				sprintf(string, language_container[COPY_MESSAGE], copy_list.length);
+				sprintf(string, message, copy_list.length);
 				infoDialog(string);
 
 				break;
@@ -693,8 +703,22 @@ void contextMenuCtrl() {
 
 			case MENU_ENTRY_DELETE:
 			{
+				char *message;
+
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION]);
+
+				// On marked entry
+				if (fileListFindEntry(&mark_list, file_entry->name)) {
+					if (mark_list.length == 1) {
+						message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
+					} else {
+						message = language_container[DELETE_FILES_FOLDERS_QUESTION];
+					}
+				} else {
+					message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
+				}
+
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
 				dialog_step = DIALOG_STEP_DELETE_CONFIRM;
 				break;
 			}
@@ -714,9 +738,29 @@ void contextMenuCtrl() {
 			}
 
 			case MENU_ENTRY_NEW_FOLDER:
-				initImeDialog(language_container[NEW_FOLDER], language_container[NEW_FOLDER], MAX_NAME_LENGTH);
+			{
+				// Find a new folder name
+				char path[MAX_PATH_LENGTH];
+
+				int count = 1;
+				while (1) {
+					if (count == 1) {
+						snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, language_container[NEW_FOLDER]);
+					} else {
+						snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
+					}
+
+					SceIoStat stat;
+					if (sceIoGetstat(path, &stat) < 0)
+						break;
+
+					count++;
+				}
+
+				initImeDialog(language_container[NEW_FOLDER], path + strlen(file_list.path), MAX_NAME_LENGTH);
 				dialog_step = DIALOG_STEP_NEW_FOLDER;
 				break;
+			}
 				/*
 			case MENU_ENTRY_SEND_BY_EMAIL:
 			{

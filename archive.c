@@ -133,7 +133,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 	if (count > 0) {
 		int ret = sceIoMkdir(dst, 0777);
-		if (ret < 0 && ret != 0x80010011) {
+		if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
 			fileListEmpty(&list);
 			return ret;
 		}
@@ -142,7 +142,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 			(*value)++;
 
 		if (SetProgress)
-			SetProgress(*value, max);
+			SetProgress(value ? *value : 0, max);
 
 		FileListEntry *entry = list.head->next; // Ignore ..
 
@@ -191,7 +191,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 				(*value) += read;
 
 			if (SetProgress)
-				SetProgress(*value, max);
+				SetProgress(value ? *value : 0, max);
 		}
 
 		free(buf);

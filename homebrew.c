@@ -791,9 +791,9 @@ int sceIoReadPatchedUVL(SceUID fd, void *data, SceSize size) {
 
 int sceIoWritePatchedUVL(SceUID fd, const void *data, SceSize size) {
 	// Redirect to our debug logging and close the uvloader.log descriptor
-	//debugPrintf((char *)data);
-	//return sceIoClose(fd);
-	return sceIoWrite(fd, data, size);
+	debugPrintf((char *)data);
+	return sceIoClose(fd);
+	//return sceIoWrite(fd, data, size);
 }
 
 int sceIoClosePatchedUVL(SceUID fd) {
@@ -914,5 +914,5 @@ void restoreUVLPatches() {
 	makeStub(shared_memory->sceIoLseekAddr, (void *)extractStub((uint32_t)&sceIoLseek));
 	makeStub(shared_memory->sceIoReadAddr, (void *)extractStub((uint32_t)&sceIoRead));
 	makeStub(shared_memory->sceIoWriteAddr, (void *)extractStub((uint32_t)&sceIoWrite));
-	makeStub(shared_memory->sceIoCloseAddr, (void *)extractStub((uint32_t)&sceIoClose));	
+	makeStub(shared_memory->sceIoCloseAddr, (void *)extractStub((uint32_t)&sceIoClose));
 }

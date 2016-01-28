@@ -68,7 +68,7 @@ int psp2LinkIoDopen(const char *dirname);
 int psp2LinkIoDread(SceUID fd, SceIoDirent *dir);
 int psp2LinkIoDclose(SceUID fd);
 
-
+void psp2LinkCommandsAbort();
 void psp2LinkRequestsAbort();
 int psp2LinkRequestsIsConnected();
 int psp2LinkGetValue(psp2LinkValue val);

@@ -305,10 +305,9 @@ void psp2LinkFinish()
 		configuration->psp2link_cmdsio_active=0;
     	configuration->psp2link_initialized=0;
 		psp2LinkRequestsAbort();
-		while(psp2LinkRequestsIsConnected())
-		{
-		
-		}
+		psp2LinkCommandsAbort();
+		sceKernelWaitThreadEnd(server_request_thid, NULL, NULL);
+		sceKernelWaitThreadEnd(server_command_thid, NULL, NULL);
 		debugNetFinish();
 		free(configuration->debugconf);
 		free(configuration);

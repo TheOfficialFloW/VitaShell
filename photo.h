@@ -27,7 +27,6 @@ enum PhotoModes {
 	MODE_ORIGINAL,
 	MODE_FIT_HEIGHT,
 	MODE_FIT_WIDTH,
-	N_PHOTO_MODES,
 };
 
 #define ZOOM_MIN 0.1f
@@ -36,7 +35,7 @@ enum PhotoModes {
 
 #define MOVE_DIVISION 7.0f
 
-#define ZOOM_TEXT_TIME 3 * 1000 * 1000
+#define ZOOM_TEXT_TIME 2 * 1000 * 1000
 
 int photoViewer(char *file, int type, FileList *list, FileListEntry *entry);
 

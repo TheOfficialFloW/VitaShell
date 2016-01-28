@@ -26,6 +26,19 @@ extern psp2LinkConfiguration *configuration;
 static char recvbuf[BUF_SIZE] __attribute__((aligned(16)));
 
 
+void psp2LinkCommandsAbort()
+{
+	int ret;
+	if(psp2LinkGetValue(COMMANDS_SOCK))
+	{
+		debugNetPrintf(DEBUG,"[PSP2LINK] Aborting psp2link_commands_sock\n");
+		
+		ret = sceNetSocketAbort(psp2LinkGetValue(COMMANDS_SOCK),1);
+		if (ret < 0) {
+			debugNetPrintf(DEBUG,"[PSP2LINK] abort psp2link_commands_sock returned error 0x%08X\n", ret);
+		}
+	}
+}
 
 void psp2LinkCmdExecElf(psp2link_pkt_exec_cmd *pkg)
 {

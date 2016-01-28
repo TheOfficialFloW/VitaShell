@@ -1,5 +1,4 @@
 Error 0x%08X.
-Folder
 Offset
 Mark all
 Unmark all
@@ -9,15 +8,19 @@ Paste
 Delete
 Rename
 New folder
-You must use Wi-Fi to do this.
-FTP server running\ftp://%s:%i
-Waiting for connection
-Are you sure you want to delete this file?
-Are you sure you want to delete this folder?
-Are you sure you want to sign this file?
-Cannot sign this file.
-Successfully signed this file.\Please copy any EBOOT.PBP and __sce_ebootpbp from a PSN PSP game to this folder and then rebuild the database.
+Folder
+Copied %d file.
+Copied %d folder.
 Copied %d files/folders.
 Moving...
 Copying...
 Deleting...
+Are you sure you want to delete this file?
+Are you sure you want to delete this folder?
+Are you sure you want to delete these files/folders?
+Are you sure you want to sign this file?
+Cannot sign this file.
+Successfully signed this file.\Please copy any EBOOT.PBP and __sce_ebootpbp from a PSN PSP game to this folder and then rebuild the database.
+You must use Wi-Fi to do this.
+FTP server running\ftp://%s:%i
+Waiting for connection

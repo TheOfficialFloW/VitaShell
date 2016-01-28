@@ -168,7 +168,7 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 			(*value)++;
 
 		if (SetProgress)
-			SetProgress(*value, max);
+			SetProgress(value ? *value : 0, max);
 	} else {
 		int ret = sceIoRemove(path);
 		if (ret < 0)
@@ -178,17 +178,23 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 			(*value)++;
 
 		if (SetProgress)
-			SetProgress(*value, max);
+			SetProgress(value ? *value : 0, max);
 	}
 
 	return 0;
 }
 
 int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max)) {
+	// The destination is a subfolder of the source folder
+	int len = strlen(src);
+	if (strncmp(src, dst, len) == 0 && dst[len] == '/') {
+		return -1;
+	}
+
 	SceUID dfd = sceIoDopen(src);
 	if (dfd >= 0) {
 		int ret = sceIoMkdir(dst, 0777);
-		if (ret < 0 && ret != 0x80010011) {
+		if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
 			sceIoDclose(dfd);
 			return ret;
 		}
@@ -197,7 +203,7 @@ int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetPro
 			(*value)++;
 
 		if (SetProgress)
-			SetProgress(*value, max);
+			SetProgress(value ? *value : 0, max);
 
 		int res = 0;
 
@@ -245,7 +251,7 @@ int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetPro
 				(*value) += read;
 
 			if (SetProgress)
-				SetProgress(*value, max);
+				SetProgress(value ? *value : 0, max);
 		}
 
 		free(buf);

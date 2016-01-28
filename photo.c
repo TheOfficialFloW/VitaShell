@@ -62,33 +62,16 @@ vita2d_texture *loadImage(char *file, int type, char *buffer) {
 	return tex;
 }
 
-void resetImageInfo(vita2d_texture *tex, float *width, float *height, float *x, float *y, float *rad, float *zoom, int *mode, uint64_t *time) {
-	*width = vita2d_texture_get_width(tex);
-	*height = vita2d_texture_get_height(tex);
-
-	*x = *width / 2.0f;
-	*y = *height / 2.0f;
-
-	*rad = 0;
-	*zoom = 1.0f;
-
-	*mode = MODE_PERFECT;
-	photoMode(zoom, *width, *height, *rad, *mode);
-
-	*time = sceKernelGetProcessTimeWide();
-}
-
 void photoMode(float *zoom, float width, float height, float rad, int mode) {
 	int horizontal = isHorizontal(rad);
+	float h = (horizontal ? height : width);
+	float w = (horizontal ? width : height);
 
 	switch (mode) {
 		case MODE_CUSTOM:
 			break;
 			
 		case MODE_PERFECT: // this is only used for showing image the first time
-		{
-			float h = (horizontal ? height : width);
-			float w = (horizontal ? width : height);
 			if (h > SCREEN_HEIGHT) { // first priority, fit height
 				*zoom = SCREEN_HEIGHT / h;
 			} else if (w > SCREEN_WIDTH) { // second priority, fit screen
@@ -98,31 +81,26 @@ void photoMode(float *zoom, float width, float height, float rad, int mode) {
 			}
 
 			break;
-		}
 		
 		case MODE_ORIGINAL:
 			*zoom = 1.0f;
 			break;
 			
 		case MODE_FIT_HEIGHT:
-			*zoom = horizontal ? (SCREEN_HEIGHT / height) : (SCREEN_HEIGHT / width);
+			*zoom = SCREEN_HEIGHT / h;
 			break;
 			
 		case MODE_FIT_WIDTH:
-			*zoom = horizontal ? (SCREEN_WIDTH / width) : (SCREEN_WIDTH / height);
+			*zoom = SCREEN_WIDTH / w;
 			break;
 	}
 }
 
 int getNextZoomMode(float *zoom, float width, float height, float rad, int mode) {
-	float next_zoom = ZOOM_MAX;
-	int next_mode = MODE_ORIGINAL;
-
-	float smallest_zoom = ZOOM_MAX;
-	int smallest_mode = MODE_ORIGINAL;
+	float next_zoom = ZOOM_MAX, smallest_zoom = ZOOM_MAX;;
+	int next_mode = MODE_ORIGINAL, smallest_mode = MODE_ORIGINAL;
 
 	int i = 0;
-
 	while (i < 3) {
 		if (mode == MODE_CUSTOM || mode == MODE_PERFECT || mode == MODE_FIT_WIDTH) {
 			mode = MODE_ORIGINAL;
@@ -154,6 +132,22 @@ int getNextZoomMode(float *zoom, float width, float height, float rad, int mode)
 
 	*zoom = next_zoom;
 	return next_mode;
+}
+
+void resetImageInfo(vita2d_texture *tex, float *width, float *height, float *x, float *y, float *rad, float *zoom, int *mode, uint64_t *time) {
+	*width = vita2d_texture_get_width(tex);
+	*height = vita2d_texture_get_height(tex);
+
+	*x = *width / 2.0f;
+	*y = *height / 2.0f;
+
+	*rad = 0;
+	*zoom = 1.0f;
+
+	*mode = MODE_PERFECT;
+	photoMode(zoom, *width, *height, *rad, *mode);
+
+	*time = sceKernelGetProcessTimeWide();
 }
 
 int photoViewer(char *file, int type, FileList *list, FileListEntry *entry) {
@@ -213,12 +207,10 @@ int photoViewer(char *file, int type, FileList *list, FileListEntry *entry) {
 		if (pressed_buttons & SCE_CTRL_ENTER) {
 			time = sceKernelGetProcessTimeWide();
 
-			// Find next mode
-			int count = 0;
-
 			x = width / 2.0f;
 			y = height / 2.0f;
 
+			// Find next mode
 			mode = getNextZoomMode(&zoom, width, height, rad, mode);
 		}
 
@@ -278,8 +270,9 @@ int photoViewer(char *file, int type, FileList *list, FileListEntry *entry) {
 		}
 
 		// Limit
-		float w = isHorizontal(rad) ? SCREEN_HALF_WIDTH : SCREEN_HALF_HEIGHT;
-		float h = isHorizontal(rad) ? SCREEN_HALF_HEIGHT : SCREEN_HALF_WIDTH;
+		int horizontal = isHorizontal(rad);
+		float w = horizontal ? SCREEN_HALF_WIDTH : SCREEN_HALF_HEIGHT;
+		float h = horizontal ? SCREEN_HALF_HEIGHT : SCREEN_HALF_WIDTH;
 
 		if ((zoom * width) > 2.0f * w) {
 			if (x < (w / zoom)) {

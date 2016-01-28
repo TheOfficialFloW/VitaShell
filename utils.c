@@ -190,13 +190,21 @@ int debugPrintf(char *text, ...) {
 
 	netdbg(string);
 
-	uvl_log_write(string, strlen(string));
+#ifdef ENABLE_DEBUGNET_LOGGING
+	debugNetPrintf(3, string);
+#endif
 
+#ifndef DISABLE_UVL_LOGGING
+	uvl_log_write(string, strlen(string));
+#endif
+
+#ifdef ENABLE_FILE_LOGGING
 	SceUID fd = sceIoOpen("cache0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
 	if (fd >= 0) {
 		sceIoWrite(fd, string, strlen(string));
 		sceIoClose(fd);
 	}
+#endif
 
 #endif
 	return 0;
