@@ -86,16 +86,20 @@ void photoMode(float *zoom, float width, float height, float rad, int mode) {
 			break;
 			
 		case MODE_PERFECT: // this is only used for showing image the first time
-			if (height > SCREEN_HEIGHT) { // first priority, fit height
-				*zoom = SCREEN_HEIGHT / height;
-			} else if (width > SCREEN_WIDTH) { // second priority, fit screen
-				*zoom = SCREEN_WIDTH / width;
+		{
+			float h = (horizontal ? height : width);
+			float w = (horizontal ? width : height);
+			if (h > SCREEN_HEIGHT) { // first priority, fit height
+				*zoom = SCREEN_HEIGHT / h;
+			} else if (w > SCREEN_WIDTH) { // second priority, fit screen
+				*zoom = SCREEN_WIDTH / w;
 			} else { // otherwise, original size
 				*zoom = 1.0f;
 			}
 
 			break;
-			
+		}
+		
 		case MODE_ORIGINAL:
 			*zoom = 1.0f;
 			break;
