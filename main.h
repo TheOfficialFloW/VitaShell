@@ -63,7 +63,7 @@
 
 #define USE_HOST0 1
 #define DISABLE_UVL_LOGGING 1
-//#define ENABLE_DEBUGNET_LOGGING 1
+#define ENABLE_DEBUGNET_LOGGING 1
 #define ENABLE_FILE_LOGGING 1
 //#define RELEASE 1
 
@@ -164,6 +164,8 @@ enum Colors {
 
 // File browser
 #define MARK_WIDTH (SCREEN_WIDTH - 2.0f * SHELL_MARGIN_X)
+#define INFORMATION_X 680.0f
+#define MAX_NAME_WIDTH 530.0f
 
 // Max entries
 #define MAX_POSITION 16

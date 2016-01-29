@@ -34,7 +34,14 @@ void errorDialog(int error) {
 	dialog_step = DIALOG_STEP_ERROR;
 }
 
-void infoDialog(char *string) {
+void infoDialog(char *msg, ...) {
+	va_list list;
+	char string[512];
+
+	va_start(list, msg);
+	vsprintf(string, msg, list);
+	va_end(list);
+
 	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, string);
 	dialog_step = DIALOG_STEP_INFO;
 }

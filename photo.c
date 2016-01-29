@@ -22,37 +22,49 @@
 #include "file.h"
 #include "utils.h"
 
-int isHorizontal(float rad) {
-	return ((int)sinf(rad) == 0) ? 1 : 0;
-}
-
 vita2d_texture *loadImage(char *file, int type, char *buffer) {
-	int size = 0;
-
-	if (isInArchive()) {
-		size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
-	} else {
-		size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
-	}
-
-	if (size <= 0) {
-		return NULL;
-	}
-
 	vita2d_texture *tex = NULL;
 
-	switch (type) {
-		case FILE_TYPE_BMP:
-			tex = vita2d_load_BMP_buffer(buffer);
-			break;
-		
-		case FILE_TYPE_PNG:
-			tex = vita2d_load_PNG_buffer(buffer);
-			break;
+	if (isInArchive() || strncmp(file, HOST0, sizeof(HOST0) - 1) == 0) {
+		int size = 0;
+
+		if (isInArchive()) {
+			size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
+		} else {
+			size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
+		}
+
+		if (size <= 0) {
+			return NULL;
+		}
+
+		switch (type) {
+			case FILE_TYPE_BMP:
+				tex = vita2d_load_BMP_buffer(buffer);
+				break;
 			
-		case FILE_TYPE_JPEG:
-			tex = vita2d_load_JPEG_buffer(buffer, size);
-			break;
+			case FILE_TYPE_PNG:
+				tex = vita2d_load_PNG_buffer(buffer);
+				break;
+				
+			case FILE_TYPE_JPEG:
+				tex = vita2d_load_JPEG_buffer(buffer, size);
+				break;
+		}
+	} else {
+		switch (type) {
+			case FILE_TYPE_BMP:
+				tex = vita2d_load_BMP_file(file);
+				break;
+			
+			case FILE_TYPE_PNG:
+				tex = vita2d_load_PNG_file(file);
+				break;
+				
+			case FILE_TYPE_JPEG:
+				tex = vita2d_load_JPEG_file(file);
+				break;
+		}
 	}
 
 	// Set bilinear filter
@@ -60,6 +72,10 @@ vita2d_texture *loadImage(char *file, int type, char *buffer) {
 		vita2d_texture_set_filters(tex, SCE_GXM_TEXTURE_FILTER_LINEAR, SCE_GXM_TEXTURE_FILTER_LINEAR);
 
 	return tex;
+}
+
+int isHorizontal(float rad) {
+	return ((int)sinf(rad) == 0) ? 1 : 0;
 }
 
 void photoMode(float *zoom, float width, float height, float rad, int mode) {
@@ -147,10 +163,10 @@ void resetImageInfo(vita2d_texture *tex, float *width, float *height, float *x, 
 	*mode = MODE_PERFECT;
 	photoMode(zoom, *width, *height, *rad, *mode);
 
-	*time = sceKernelGetProcessTimeWide();
+	*time = 0;
 }
 
-int photoViewer(char *file, int type, FileList *list, FileListEntry *entry) {
+int photoViewer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
 	char *buffer = malloc(BIG_BUFFER_SIZE);
 	if (!buffer)
 		return -1;
@@ -177,17 +193,43 @@ int photoViewer(char *file, int type, FileList *list, FileListEntry *entry) {
 			break;
 		}
 
-		// Previous/next image
+		// Previous/next image.
 		if (pressed_buttons & SCE_CTRL_LEFT || pressed_buttons & SCE_CTRL_RIGHT) {
+			int available = 0;
+
+			int old_base_pos = *base_pos;
+			int old_rel_pos = *rel_pos;
+			FileListEntry *old_entry = entry;
+
 			int previous = pressed_buttons & SCE_CTRL_LEFT;
 			while (previous ? entry->previous : entry->next) {
 				entry = previous ? entry->previous : entry->next;
+
+				if (previous) {
+					if (*rel_pos > 0) {
+						(*rel_pos)--;
+					} else {
+						if (*base_pos > 0) {
+							(*base_pos)--;
+						}
+					}
+				} else {
+					if ((*rel_pos + 1) < list->length) {
+						if ((*rel_pos + 1) < MAX_POSITION) {
+							(*rel_pos)++;
+						} else {
+							if ((*base_pos + *rel_pos + 1) < list->length) {
+								(*base_pos)++;
+							}
+						}
+					}
+				}
 
 				if (!entry->is_folder) {
 					char path[MAX_PATH_LENGTH];
 					snprintf(path, MAX_PATH_LENGTH, "%s%s", list->path, entry->name);
 					int type = getFileType(path);
-					if (type == FILE_TYPE_BMP || type == FILE_TYPE_JPEG || FILE_TYPE_PNG) {
+					if (type == FILE_TYPE_BMP || type == FILE_TYPE_JPEG || type == FILE_TYPE_PNG) {
 						vita2d_free_texture(tex);
 						tex = loadImage(path, type, buffer);
 						if (!tex) {
@@ -197,9 +239,16 @@ int photoViewer(char *file, int type, FileList *list, FileListEntry *entry) {
 
 						// Reset image
 						resetImageInfo(tex, &width, &height, &x, &y, &rad, &zoom, &mode, &time);
+						available = 1;
 						break;
 					}
 				}
+			}
+
+			if (!available) {
+				*base_pos = old_base_pos;
+				*rel_pos = old_rel_pos;
+				entry = old_entry;
 			}
 		}
 

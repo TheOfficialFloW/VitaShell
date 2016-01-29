@@ -1,7 +1,6 @@
 TARGET = VitaShell
 OBJS = main.o io_wrapper.o init.o homebrew.o io_process.o archive.o photo.o file.o text.o \
-	hex.o message_dialog.o ime_dialog.o language.o utils.o module.o misc.o \
-	psp2link/requests.o psp2link/commands.o psp2link/psp2link.o \
+	hex.o message_dialog.o ime_dialog.o language.o utils.o module.o misc.o shaders.o \
 	psp/pboot.o psp/libkirk/kirk_engine.o psp/libkirk/crypto.o \
 	psp/libkirk/amctrl.o psp/libkirk/bn.o psp/libkirk/ec.o \
 	stubs.o
@@ -15,12 +14,12 @@ RESOURCES_PNG = resources/battery.png resources/battery_bar_green.png resources/
 RESOURCES_TXT = resources/english_us_translation.txt
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
 
-LIBS =  -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
+LIBS = -lpsp2link -ldebugnet -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	-lSceAppMgr_stub -lSceAppUtil_stub -lSceAudio_stub -lSceCommonDialog_stub \
 	-lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	-lSceKernel_stub -lSceMusicExport_stub -lSceNet_stub -lSceNetCtl_stub \
 	-lSceSysmodule_stub -lScePower_stub -lSceTouch_stub -lScePgf_stub \
-	-lScePvf_stub -lUVLoader_stub -ldebugnet
+	-lScePvf_stub -lUVLoader_stub
 
 #NETDBG_IP ?= 192.168.1.50
 

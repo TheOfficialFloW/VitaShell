@@ -59,17 +59,6 @@ static char *mount_points[] = {
 	NULL,
 };
 
-/*
-	sa0:
-	ux0:app/XXXXXXXXX/
-	ux0:cache/XXXXXXXXX/
-	ux0:music/
-	ux0:picture/
-	ux0:pspemu/
-	"vs0:data/external"
-	"vs0:sys/external"
-*/
-
 #define N_MOUNT_POINTS (sizeof(mount_points) / sizeof(char **))
 
 int ReadFile(char *file, void *buf, int size) {
@@ -271,6 +260,7 @@ typedef struct {
 ExtensionType extension_types[] = {
 	{ ".7Z",   FILE_TYPE_7ZIP },
 	{ ".BMP",  FILE_TYPE_BMP },
+	{ ".CG",   FILE_TYPE_CG },
 	{ ".ELF",  FILE_TYPE_ELF },
 	{ ".JPG",  FILE_TYPE_JPEG },
 	{ ".JPEG", FILE_TYPE_JPEG },

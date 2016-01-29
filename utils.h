@@ -51,7 +51,7 @@ extern SceCtrlData pad;
 extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
 
 void errorDialog(int error);
-void infoDialog(char *string);
+void infoDialog(char *msg, ...);
 
 void disableAutoSuspend();
 

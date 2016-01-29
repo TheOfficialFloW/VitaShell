@@ -35,6 +35,10 @@ void _free_vita_newlib();
 
 int sceKernelGetProcessId();
 
+int sceKernelCreateLwMutex(void *work, const char *name, SceUInt attr, int initCount, void *option);
+int sceKernelDeleteLwMutex(void *work);
+int sceKernelUnlockLwMutex(void *work, int lockCount);
+
 // 41-444MHz, default: 333Mhz
 int scePowerSetArmClockFrequency(int freq);
 int scePowerGetArmClockFrequency();

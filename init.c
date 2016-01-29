@@ -21,7 +21,7 @@
 #include "file.h"
 #include "utils.h"
 #include "module.h"
-#include "psp2link/psp2link.h"
+#include <psp2link.h>
 
 extern unsigned char _binary_resources_battery_png_start;
 extern unsigned char _binary_resources_battery_bar_red_png_start;

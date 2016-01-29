@@ -21,17 +21,19 @@
 
 #define MAX_PATH_LENGTH 1024
 #define MAX_NAME_LENGTH 256
+#define MAX_SHORT_NAME_LENGTH 64
 #define MAX_MOUNT_POINT_LENGTH 16
 
 #define TRANSFER_SIZE 64 * 1024
 
 #define HOME_PATH "home"
 #define DIR_UP ".."
-#define HOST0 "host0:c:/"
+#define HOST0 "host0:"
 
 enum FileTypes {
 	FILE_TYPE_UNKNOWN,
 	FILE_TYPE_BMP,
+	FILE_TYPE_CG,
 	FILE_TYPE_ELF,
 	FILE_TYPE_JPEG,
 	FILE_TYPE_PNG,

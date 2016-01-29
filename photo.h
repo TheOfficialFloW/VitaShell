@@ -37,6 +37,6 @@ enum PhotoModes {
 
 #define ZOOM_TEXT_TIME 2 * 1000 * 1000
 
-int photoViewer(char *file, int type, FileList *list, FileListEntry *entry);
+int photoViewer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos);
 
 #endif

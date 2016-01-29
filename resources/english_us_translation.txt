@@ -21,6 +21,8 @@ Are you sure you want to delete these files/folders?
 Are you sure you want to sign this file?
 Cannot sign this file.
 Successfully signed this file.\Please copy any EBOOT.PBP and __sce_ebootpbp from a PSN PSP game to this folder and then rebuild the database.
+Successfully compiled.
+Could not be compiled.\%d infos, %d warnings and %d errors.\Please refer to the outputted logging file.
 You must use Wi-Fi to do this.
-FTP server running\ftp://%s:%i
-Waiting for connection
+FTP server running...\ftp://%s:%i
+Waiting for connection...

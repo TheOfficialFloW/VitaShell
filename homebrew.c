@@ -35,9 +35,6 @@
 	- Delete events, callbacks, msg pipes, rw locks
 */
 
-int sceKernelCreateLwMutex(void *work, const char *name, SceUInt attr, int initCount, void *option);
-int sceKernelDeleteLwMutex(void *work);
-
 static void *code_memory = NULL;
 static SceUID code_blockid = INVALID_UID;
 
@@ -60,6 +57,7 @@ void *hb_lw_mutex_works[MAX_LW_MUTEXES];
 
 static int hb_audio_ports[MAX_AUDIO_PORTS];
 
+static int hb_gxm_initialized = 0;
 static SceGxmContext *hb_gxm_context = NULL;
 static SceGxmRenderTarget *hb_gxm_render = NULL;
 static SceGxmShaderPatcher *hb_shader_patcher = NULL;
@@ -126,6 +124,7 @@ void initHomebrewPatch() {
 
 	memset(hb_audio_ports, 0, sizeof(hb_audio_ports));
 
+	hb_gxm_initialized = 0;
 	hb_gxm_context = NULL;
 	hb_gxm_render = NULL;
 	hb_shader_patcher = NULL;
@@ -151,7 +150,10 @@ void loadHomebrew(char *file) {
 	initVita2dLib();
 }
 
-void finishGxm() {
+int finishGxm() {
+	if (!hb_gxm_initialized)
+		return 0;
+
 	int i;
 
 	// Wait until rendering is done
@@ -209,6 +211,8 @@ void finishGxm() {
 
 	// Terminate libgxm
 	sceGxmTerminate();
+
+	return 1;
 }
 
 void releaseAudioPorts() {
@@ -232,74 +236,27 @@ void closeFileDescriptors() {
 	}
 }
 
-// TODO: clean up no matter if force exit or not
-void homebrewCleanUp() {
-	// Wait for exit thread to end
-	exited = 1;
-	sceKernelWaitThreadEnd(exit_thid, NULL, NULL);
-
-	if (force_exit) {
-		// Finish gxm
-		finishGxm();
-
-		// Release audio ports
-		releaseAudioPorts();
-
-		// Close file descriptors
-		closeFileDescriptors();
-	}
-
-	// Unmap gxm memories and free blocks
-	int i;
-	for (i = 0; i < MAX_UIDS; i++) {
-		if (hb_blockids[i] < 0)
-			continue;
-
-		int res = 0;
-
-		void *mem = NULL;
-		if (sceKernelGetMemBlockBase(hb_blockids[i], &mem) < 0)
-			continue;
-
-		if (force_exit) {
-			res = sceGxmUnmapMemory(mem);
-			if (res < 0)
-				sceGxmUnmapVertexUsseMemory(mem);
-			if (res < 0)
-				sceGxmUnmapFragmentUsseMemory(mem);
-		}
-
-		res = sceKernelFreeMemBlock(hb_blockids[i]);
-		if (res >= 0)
-			hb_blockids[i] = INVALID_UID;
-	}
-}
-
-void signalDeleteSema() {
+void deleteSemas() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_semaids[i] >= 0) {
-			sceKernelSignalSema(hb_semaids[i], 1);
-
 			if (sceKernelDeleteSema(hb_semaids[i]) >= 0)
 				hb_semaids[i] = INVALID_UID;
 		}
 	}
 }
 
-void unlockDeleteMutex() {
+void deleteMutexes() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
 		if (hb_mutexids[i] >= 0) {
-			sceKernelUnlockMutex(hb_mutexids[i], 1);
-
 			if (sceKernelDeleteMutex(hb_mutexids[i]) >= 0)
 				hb_mutexids[i] = INVALID_UID;
 		}
 	}
 }
 
-void deleteLwMutex() {
+void deleteLwMutexes() {
 	int i;
 	for (i = 0; i < MAX_LW_MUTEXES; i++) {
 		if (hb_lw_mutex_works[i]) {
@@ -319,10 +276,74 @@ void closeSockets() {
 	}
 }
 
+void freeMemBlocks() {
+	int i;
+	for (i = 0; i < MAX_UIDS; i++) {
+		if (hb_blockids[i] < 0)
+			continue;
+
+		int res = 0;
+
+		void *mem = NULL;
+		if (sceKernelGetMemBlockBase(hb_blockids[i], &mem) < 0)
+			continue;
+
+		res = sceGxmUnmapMemory(mem);
+		if (res < 0)
+			sceGxmUnmapVertexUsseMemory(mem);
+		if (res < 0)
+			sceGxmUnmapFragmentUsseMemory(mem);
+
+		res = sceKernelFreeMemBlock(hb_blockids[i]);
+		if (res >= 0)
+			hb_blockids[i] = INVALID_UID;
+	}
+}
+
+void homebrewCleanUp() {
+	// Wait for exit thread to end
+	exited = 1;
+	sceKernelWaitThreadEnd(exit_thid, NULL, NULL);
+
+	// Clean up
+	finishGxm();
+	freeMemBlocks();
+	deleteSemas();
+	deleteMutexes();
+	deleteLwMutexes();
+	closeFileDescriptors();
+	closeSockets();
+	releaseAudioPorts();
+}
+
+void signalSemas() {
+	int i;
+	for (i = 0; i < MAX_UIDS; i++) {
+		if (hb_semaids[i] >= 0)
+			sceKernelSignalSema(hb_semaids[i], 1);
+	}
+}
+
+void unlockMutexes() {
+	int i;
+	for (i = 0; i < MAX_UIDS; i++) {
+		if (hb_mutexids[i] >= 0)
+			sceKernelUnlockMutex(hb_mutexids[i], 1);
+	}
+}
+
+void unlockLwMutexes() {
+	int i;
+	for (i = 0; i < MAX_UIDS; i++) {
+		if (hb_lw_mutex_works[i])
+			sceKernelUnlockLwMutex(hb_lw_mutex_works[i], 1);
+	}
+}
+
 void waitThreadEnd() {
 	int i;
 	for (i = 0; i < MAX_UIDS; i++) {
-		if (hb_thids[i] >= 0) {
+		if (hb_thids[i] >= 0 && hb_thids[i] != sceKernelGetThreadId()) {
 			if (sceKernelWaitThreadEnd(hb_thids[i], NULL, NULL) >= 0)
 				hb_thids[i] = INVALID_UID;
 		}
@@ -330,14 +351,13 @@ void waitThreadEnd() {
 }
 
 int exitThread() {
-	signalDeleteSema();
-	unlockDeleteMutex();
-	deleteLwMutex();
-	closeSockets();
+	// Signal semaphores, unlock mutexes, unlock lw mutexes
+	signalSemas();
+	unlockMutexes();
+	unlockLwMutexes();
 
+	// Wait for all other threads to end
 	waitThreadEnd();
-
-	sceKernelDelayThread(50 * 1000);
 
 	return sceKernelExitDeleteThread(0);
 }
@@ -412,6 +432,24 @@ int sceAudioOutOpenPortPatchedHB(int type, int len, int freq, int mode) {
 		hb_audio_ports[type] = port;
 
 	return port;
+}
+
+int sceGxmInitializePatchedHB(const SceGxmInitializeParams *params) {
+	int res = sceGxmInitialize(params);
+
+	if (res >= 0)
+		hb_gxm_initialized = 1;
+
+	return res;
+}
+
+int sceGxmTerminatePatchedHB() {
+	int res = sceGxmTerminate();
+
+	if (res >= 0)
+		hb_gxm_initialized = 0;
+
+	return res;
 }
 
 int sceGxmCreateContextPatchedHB(const SceGxmContextParams *params, SceGxmContext **context) {
@@ -660,7 +698,9 @@ PatchNID patches_init[] = {
 
 	{ "SceGxm", 0x207AF96B, sceGxmCreateRenderTargetPatchedHB },
 	{ "SceGxm", 0x4ED2E49D, sceGxmShaderPatcherCreateFragmentProgramPatchedHB },
-	{ "SceGxm", 0x6A6013E1, sceGxmSyncObjectCreatePatchedHB },
+	{ "SceGxm", 0x6A6013E1, sceGxmSyncObjectCreatePatchedHB },	
+	{ "SceGxm", 0xB0F1E4EC, sceGxmInitializePatchedHB },
+	{ "SceGxm", 0xB627DE66, sceGxmTerminatePatchedHB },
 	{ "SceGxm", 0xB7BBA6D5, sceGxmShaderPatcherCreateVertexProgramPatchedHB },
 	{ "SceGxm", 0xE84CE5B4, sceGxmCreateContextPatchedHB },
 

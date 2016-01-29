@@ -21,9 +21,20 @@
 #include "file.h"
 #include "utils.h"
 #include "module.h"
-#include "psp2link/psp2link.h"
+#include <psp2link.h>
 
 static int io_patched = 0;
+
+/*
+	sa0:
+	ux0:app/XXXXXXXXX/
+	ux0:cache/XXXXXXXXX/
+	ux0:music/
+	ux0:picture/
+	ux0:pspemu/
+	vs0:data/external/
+	vs0:sys/external/
+*/
 
 #ifdef USE_HOST0
 
@@ -37,10 +48,7 @@ void tempFixForPsp2Link(char *path, const char *file) {
 	path[MAX_PATH_LENGTH - 1] = '\0';
 
 	if (strcmp(path, HOST0) != 0) {
-		char *p = strstr(path + sizeof(HOST0) - 1, ":/");
-		if (!p || p[2] != '\0') {
-			removeEndSlash(path);
-		}
+		removeEndSlash(path);
 	}
 }
 

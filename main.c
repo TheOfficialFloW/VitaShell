@@ -19,7 +19,6 @@
 /*
 	TODO:
 	- Photoviewer, handle big images
-	- Limit long file names on browser
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
 	- Redirecting .data segment when reloading
 	- Page skip for hex and text viewer
@@ -49,8 +48,9 @@
 #include "language.h"
 #include "utils.h"
 #include "module.h"
-#include "psp2link/psp2link.h"
+#include "shaders.h"
 #include "psp/pboot.h"
+#include <psp2link.h>
 
 #ifdef RELEASE
 #include "resources/splashscreen.h"
@@ -298,6 +298,7 @@ int handleFile(char *file, FileListEntry *entry) {
 
 	int type = getFileType(file);
 	switch (type) {
+		case FILE_TYPE_CG:
 		case FILE_TYPE_ELF:
 		case FILE_TYPE_PBP:
 		case FILE_TYPE_RAR:
@@ -313,7 +314,24 @@ int handleFile(char *file, FileListEntry *entry) {
 		case FILE_TYPE_UNKNOWN:
 			res = textViewer(file);
 			break;
+			
+		case FILE_TYPE_CG:
+		{
+			int infos = 0, warnings = 0, errors = 0;
+			res = compileShader(file, &infos, &warnings, &errors);
+			if (res >= 0) {
+				if (errors == 0) {
+					infoDialog(language_container[COMPILE_SUCCESS]);
+				} else {
+					infoDialog(language_container[COMPILE_ERROR], infos, warnings, errors);
+				}
 
+				refreshFileList();
+			}
+
+			break;
+		}
+		
 		case FILE_TYPE_ELF:
 			if (isValidElf(file)) {
 				loadHomebrew(file);
@@ -322,24 +340,24 @@ int handleFile(char *file, FileListEntry *entry) {
 			}
 
 			break;
-
+			
 		case FILE_TYPE_BMP:
 		case FILE_TYPE_PNG:
 		case FILE_TYPE_JPEG:
-			res = photoViewer(file, type, &file_list, entry);
+			res = photoViewer(file, type, &file_list, entry, &base_pos, &rel_pos);
 			break;
-
+			
 		case FILE_TYPE_PBP:
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SIGN_QUESTION]);
 			dialog_step = DIALOG_STEP_SIGN_CONFIRM;
 			break;
-
+			
 		case FILE_TYPE_RAR:
 		case FILE_TYPE_7ZIP:
 		case FILE_TYPE_ZIP:
 			res = archiveOpen(file);
 			break;
-
+			
 		default:
 			errorDialog(type);
 			break;
@@ -689,9 +707,8 @@ void contextMenuCtrl() {
 					message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
 				}
 
-				char string[128];
-				sprintf(string, message, copy_list.length);
-				infoDialog(string);
+				// Copy message
+				infoDialog(message, copy_list.length);
 
 				break;
 			}
@@ -1094,7 +1111,7 @@ void fileBrowserMenuCtrl() {
 			int type = handleFile(cur_file, file_entry);
 
 			// Archive mode
-			if (type == FILE_TYPE_RAR || type == FILE_TYPE_7ZIP || type == FILE_TYPE_ZIP) {
+			if (type == FILE_TYPE_7ZIP || type == FILE_TYPE_RAR || type == FILE_TYPE_ZIP) {
 				is_in_archive = 1;
 				dir_level_archive = dir_level;
 
@@ -1178,17 +1195,43 @@ int shellMain() {
 				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, COLOR_ALPHA(AZURE, 0x4F));
 
 			// File name
+			int length = strlen(file_entry->name);
+			int line_width = 0;
+
+			int j;
+			for (j = 0; j < length; j++) {
+				char ch_width = font_size_cache[(int)file_entry->name[j]];
+
+				// Too long
+				if ((line_width + ch_width) >= MAX_NAME_WIDTH)
+					break;
+
+				// Increase line width
+				line_width += ch_width;
+			}
+
+			char ch = 0;
+
+			if (j != length) {
+				ch = file_entry->name[j];
+				file_entry->name[j] = '\0';
+			}
+
+			// Draw shortened file name
 			pgf_draw_text(SHELL_MARGIN_X, y, color, FONT_SIZE, file_entry->name);
+
+			if (j != length)
+				file_entry->name[j] = ch;
 
 			// File information
 			if (strcmp(file_entry->name, DIR_UP) != 0) {
-				// Folder/Size
+				// Folder/size
 				char size_string[16];
 				getSizeString(size_string, file_entry->size);
 
 				char *str = file_entry->is_folder ? language_container[FOLDER] : size_string;
 
-				pgf_draw_text(ALIGN_LEFT(680.0f, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
+				pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
 
 				// Date
 				char date_string[16];
