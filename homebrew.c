@@ -793,6 +793,7 @@ SceUID sceKernelFindMemBlockByAddrPatchedUVL(const void *addr, SceSize size) {
 		shared_memory->code_blockid = code_blockid;
 		shared_memory->data_blockid = sceKernelFindMemBlockByAddr((void *)&code_memory, 0);
 
+		// Shall I redirect data block too? Nah, I guess it's not neccessary
 	//	makeResultStub(shared_memory->sceKernelAllocMemBlockAddr, shared_block->data_blockid);
 /*
 		// Replace sceKernelWaitThreadEnd by sceKernelExitDeleteThread

@@ -18,15 +18,13 @@
 
 /*
 	TODO:
-	- Photoviewer, handle big images
+	- vita2dlib: Handle big images > 4096
+	- vita2dlib: Add unicode support
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
-	- Redirecting .data segment when reloading
 	- Page skip for hex and text viewer
-	- Add UTF8/UTF16 to vita2dlib's pgf
-	- Hex editor byte group size and write
-	- Move error fix by moving its content
+	- Hex editor byte group size and write ability
+	- Moving a folder to a location where the folder does already exit causes error, so move its content.
 	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
-	- Add shader compiler feature
 	- Maybe switch to libarchive
 	- Shortcuts
 	- CPU changement
@@ -383,6 +381,8 @@ void drawScrollBar(int pos, int n) {
 }
 
 void drawShellInfo(char *path) {
+	pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - SHELL_MARGIN_Y - FONT_Y_SPACE - 2.0f, LITEGRAY, FONT_SIZE, "%d%%", scePowerGetBatteryLifePercent());
+
 	// Title
 	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, VIOLET, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
 
@@ -394,7 +394,7 @@ void drawShellInfo(char *path) {
 
 	float percent = scePowerGetBatteryLifePercent() / 100.0f;
 
-	if (percent <= 0.2f)
+	if (percent <= 0.18f) // Like in Livearea
 		battery_bar_image = battery_bar_red_image;
 
 	float width = vita2d_texture_get_width(battery_bar_image);
@@ -834,7 +834,7 @@ int dialogSteps() {
 					sceIoGetstat(HOST0, &mount_point_stat);
 
 					dirLevelUp();
-					refreshFileList();					
+					refreshFileList();
 				}
 
 				dialog_step = DIALOG_STEP_NONE;
@@ -972,8 +972,8 @@ int dialogSteps() {
 }
 
 void fileBrowserMenuCtrl() {
-/*
-	if (pressed_buttons & SCE_CTRL_START) {
+	// Hidden trigger
+	if (current_buttons & SCE_CTRL_LTRIGGER && current_buttons & SCE_CTRL_RTRIGGER && current_buttons & SCE_CTRL_START) {
 		SwVersionParam sw_ver_param;
 		sw_ver_param.size = sizeof(SwVersionParam);
 		sceKernelGetSystemSwVersion(&sw_ver_param);
@@ -988,10 +988,10 @@ void fileBrowserMenuCtrl() {
 		getSizeString(free_size_string, free_size);
 		getSizeString(max_size_string, max_size);
 
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, "System software: %s\nMAC address: %s\nIP address: %s\nMemory card: %s/%s", sw_ver_param.version_string, mac_string, ip, free_size_string, max_size_string);
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, "System software: %s\nModel: 0x%08X\nMAC address: %s\nIP address: %s\nMemory card: %s/%s", sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string);
 		dialog_step = DIALOG_STEP_SYSTEM;
 	}
-*/
+
 /*
 	if (pressed_buttons & SCE_CTRL_LTRIGGER) {
 		listMemBlocks(0x60000000, 0xD0000000);
@@ -1039,6 +1039,7 @@ void fileBrowserMenuCtrl() {
 		}
 	}
 
+	// Not at 'home'
 	if (dir_level > 0) {
 		// Context menu trigger
 		if (pressed_buttons & SCE_CTRL_TRIANGLE) {
@@ -1332,8 +1333,10 @@ void getNetInfo() {
 	int net_init = sceNetInit(&param);
 	int netctl_init = sceNetCtlInit();
 
+	// Get mac address
 	sceNetGetMacAddress(&mac, 0);
 
+	// Get IP
 	SceNetCtlInfo info;
 	if (sceNetCtlInetGetInfo(SCE_NETCTL_INFO_GET_IP_ADDRESS, &info) < 0) {
 		strcpy(ip, "-");

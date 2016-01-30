@@ -106,8 +106,9 @@ int getArchivePathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *
 
 			entry = entry->next;
 		}
-		
-		(*folders)++;
+
+		if (folders)
+			(*folders)++;
 	} else {
 		removeEndSlash(path);
 
@@ -115,8 +116,11 @@ int getArchivePathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *
 		if (fd < 0)
 			return fd;
 
-		(*size) += archiveFileGetSize(fd);
-		(*files)++;
+		if (size)
+			(*size) += archiveFileGetSize(fd);
+
+		if (files)
+			(*files)++;
 
 		archiveFileClose(fd);
 	}

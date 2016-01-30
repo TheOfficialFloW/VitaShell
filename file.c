@@ -106,7 +106,8 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 
 		sceIoDclose(dfd);
 
-		(*folders)++;
+		if (folders)
+			(*folders)++;
 	}
 	else
 	{
@@ -117,8 +118,11 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 		if (res < 0)
 			return res;
 
-		(*size) += stat.st_size;
-		(*files)++;
+		if (size)
+			(*size) += stat.st_size;
+
+		if (files)
+			(*files)++;
 	}
 
 	return 0;

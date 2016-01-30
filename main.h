@@ -139,7 +139,7 @@ enum Colors {
 
 // Main
 #define SHELL_MARGIN_X 20.0f
-#define SHELL_MARGIN_Y 14.0f
+#define SHELL_MARGIN_Y 18.0f
 
 #define PATH_Y (SHELL_MARGIN_Y + 1.0f * FONT_Y_SPACE)
 
