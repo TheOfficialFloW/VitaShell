@@ -90,6 +90,15 @@ SceOff sceIoLseekPatched(SceUID fd, SceOff offset, int whence) {
 	return _sceIoLseek(fd, offset, whence);
 }
 
+int sceIoLseek32Patched(SceUID fd, int offset, int whence) {
+#ifdef USE_HOST0
+	if (verifyFd(fd) < 0) {
+		return psp2LinkIoLseek(fd, offset, whence);
+	}
+#endif
+	return _sceIoLseek32(fd, offset, whence);
+}
+
 int sceIoRemovePatched(const char *file) {
 #ifdef USE_HOST0
 	if (strncmp(file, HOST0, sizeof(HOST0) - 1) == 0) {
@@ -186,6 +195,7 @@ void PatchIO() {
 	copyStub((uint32_t)&_sceIoRead, (void *)&sceIoRead);
 	copyStub((uint32_t)&_sceIoWrite, (void *)&sceIoWrite);
 	copyStub((uint32_t)&_sceIoLseek, (void *)&sceIoLseek);
+	copyStub((uint32_t)&_sceIoLseek32, (void *)&sceIoLseek32);
 	copyStub((uint32_t)&_sceIoRemove, (void *)&sceIoRemove);
 	copyStub((uint32_t)&_sceIoMkdir, (void *)&sceIoMkdir);
 	copyStub((uint32_t)&_sceIoRmdir, (void *)&sceIoRmdir);
@@ -202,6 +212,7 @@ void PatchIO() {
 	makeFunctionStub((uint32_t)&sceIoRead, sceIoReadPatched);
 	makeFunctionStub((uint32_t)&sceIoWrite, sceIoWritePatched);
 	makeFunctionStub((uint32_t)&sceIoLseek, sceIoLseekPatched);
+	makeFunctionStub((uint32_t)&sceIoLseek32, sceIoLseek32Patched);
 	makeFunctionStub((uint32_t)&sceIoRemove, sceIoRemovePatched);
 	makeFunctionStub((uint32_t)&sceIoMkdir, sceIoMkdirPatched);
 	makeFunctionStub((uint32_t)&sceIoRmdir, sceIoRmdirPatched);
@@ -223,6 +234,7 @@ void restoreIOPatches() {
 		copyStub((uint32_t)&sceIoRead, (void *)&_sceIoRead);
 		copyStub((uint32_t)&sceIoWrite, (void *)&_sceIoWrite);
 		copyStub((uint32_t)&sceIoLseek, (void *)&_sceIoLseek);
+		copyStub((uint32_t)&sceIoLseek32, (void *)&_sceIoLseek32);
 		copyStub((uint32_t)&sceIoRemove, (void *)&_sceIoRemove);
 		copyStub((uint32_t)&sceIoMkdir, (void *)&_sceIoMkdir);
 		copyStub((uint32_t)&sceIoRmdir, (void *)&_sceIoRmdir);

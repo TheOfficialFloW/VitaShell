@@ -17,6 +17,7 @@ STUB _sceIoClose
 STUB _sceIoRead
 STUB _sceIoWrite
 STUB _sceIoLseek
+STUB _sceIoLseek32
 STUB _sceIoRemove
 STUB _sceIoMkdir
 STUB _sceIoRmdir

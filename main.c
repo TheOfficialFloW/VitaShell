@@ -833,6 +833,7 @@ int dialogSteps() {
 					strcpy(file_list.path, HOST0);
 					memset(&mount_point_stat, 0, sizeof(SceIoStat));
 					sceIoGetstat(HOST0, &mount_point_stat);
+					mount_point_stat.st_mode |= SCE_S_IWUSR;
 
 					dirLevelUp();
 					refreshFileList();
@@ -993,11 +994,6 @@ void fileBrowserMenuCtrl() {
 		dialog_step = DIALOG_STEP_SYSTEM;
 	}
 
-/*
-	if (pressed_buttons & SCE_CTRL_LTRIGGER) {
-		listMemBlocks(0x60000000, 0xD0000000);
-	}
-*/
 	if (pressed_buttons & SCE_CTRL_SELECT) {
 		if (!ftpvita_is_initialized()) {
 			int res = ftpvita_init(vita_ip, &vita_port);
@@ -1090,6 +1086,7 @@ void fileBrowserMenuCtrl() {
 					strcpy(file_list.path, file_entry->name);
 					memset(&mount_point_stat, 0, sizeof(SceIoStat));
 					sceIoGetstat(file_entry->name, &mount_point_stat);
+					mount_point_stat.st_mode |= SCE_S_IWUSR;
 
 					dirLevelUp();
 				}

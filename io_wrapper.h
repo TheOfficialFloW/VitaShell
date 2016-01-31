@@ -24,6 +24,7 @@ int _sceIoClose(SceUID fd);
 int _sceIoRead(SceUID fd, void *data, SceSize size);
 int _sceIoWrite(SceUID fd, const void *data, SceSize size);
 SceOff _sceIoLseek(SceUID fd, SceOff offset, int whence);
+int _sceIoLseek32(SceUID fd, int offset, int whence);
 int _sceIoRemove(const char *file);
 int _sceIoMkdir(const char *dirname, SceMode mode);
 int _sceIoRmdir(const char *dirname);
