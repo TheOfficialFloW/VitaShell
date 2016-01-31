@@ -32,6 +32,7 @@ int _sceIoDopen(const char *dirname);
 int _sceIoDread(SceUID fd, SceIoDirent *dir);
 int _sceIoDclose(SceUID fd);
 int _sceIoGetstat(const char *name, SceIoStat *stat);
+int _sceIoGetstatByFd(SceUID fd, SceIoStat *stat);
 int _sceIoChstat(const char *name, SceIoStat *stat, unsigned int bits);
 
 void PatchIO();

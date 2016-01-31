@@ -25,4 +25,5 @@ STUB _sceIoDopen
 STUB _sceIoDread
 STUB _sceIoDclose
 STUB _sceIoGetstat
+STUB _sceIoGetstatByFd
 STUB _sceIoChstat

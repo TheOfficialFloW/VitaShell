@@ -27,8 +27,8 @@ static int io_patched = 0;
 
 /*
 	sa0:
-	ux0:app/XXXXXXXXX/
-	ux0:cache/XXXXXXXXX/
+	ux0:app/TITLEID/
+	ux0:cache/TITLEID/
 	ux0:music/
 	ux0:picture/
 	ux0:pspemu/
@@ -40,16 +40,7 @@ static int io_patched = 0;
 
 int verifyFd(SceUID fd) {
 	SceIoStat stat;
-	return sceIoGetstatByFd(fd, &stat);
-}
-
-void tempFixForPsp2Link(char *path, const char *file) {
-	strncpy(path, file, MAX_PATH_LENGTH);
-	path[MAX_PATH_LENGTH - 1] = '\0';
-
-	if (strcmp(path, HOST0) != 0) {
-		removeEndSlash(path);
-	}
+	return _sceIoGetstatByFd(fd, &stat);
 }
 
 #endif
@@ -57,9 +48,7 @@ void tempFixForPsp2Link(char *path, const char *file) {
 int sceIoOpenPatched(const char *file, int flags, SceMode mode) {
 #ifdef USE_HOST0
 	if (strncmp(file, HOST0, sizeof(HOST0) - 1) == 0) {
-		char path[MAX_PATH_LENGTH];
-		tempFixForPsp2Link(path, file);
-		return psp2LinkIoOpen(path, flags, mode);
+		return psp2LinkIoOpen(file, flags, mode);
 	}
 #endif
 	return _sceIoOpen(file, flags, mode);
@@ -67,8 +56,7 @@ int sceIoOpenPatched(const char *file, int flags, SceMode mode) {
 
 int sceIoClosePatched(SceUID fd) {
 #ifdef USE_HOST0
-	int res = verifyFd(fd);
-	if (res < 0) {
+	if (verifyFd(fd) < 0) {
 		return psp2LinkIoClose(fd);
 	}
 #endif
@@ -77,8 +65,7 @@ int sceIoClosePatched(SceUID fd) {
 
 int sceIoReadPatched(SceUID fd, void *data, SceSize size) {
 #ifdef USE_HOST0
-	int res = verifyFd(fd);
-	if (res < 0) {
+	if (verifyFd(fd) < 0) {
 		return psp2LinkIoRead(fd, data, size);
 	}
 #endif
@@ -87,8 +74,7 @@ int sceIoReadPatched(SceUID fd, void *data, SceSize size) {
 
 int sceIoWritePatched(SceUID fd, const void *data, SceSize size) {
 #ifdef USE_HOST0
-	int res = verifyFd(fd);
-	if (res < 0) {
+	if (verifyFd(fd) < 0) {
 		return psp2LinkIoWrite(fd, data, size);
 	}
 #endif
@@ -97,8 +83,7 @@ int sceIoWritePatched(SceUID fd, const void *data, SceSize size) {
 
 SceOff sceIoLseekPatched(SceUID fd, SceOff offset, int whence) {
 #ifdef USE_HOST0
-	int res = verifyFd(fd);
-	if (res < 0) {
+	if (verifyFd(fd) < 0) {
 		return (SceOff)psp2LinkIoLseek(fd, offset, whence);
 	}
 #endif
@@ -108,9 +93,7 @@ SceOff sceIoLseekPatched(SceUID fd, SceOff offset, int whence) {
 int sceIoRemovePatched(const char *file) {
 #ifdef USE_HOST0
 	if (strncmp(file, HOST0, sizeof(HOST0) - 1) == 0) {
-		char path[MAX_PATH_LENGTH];
-		tempFixForPsp2Link(path, file);
-		return psp2LinkIoRemove(path);
+		return psp2LinkIoRemove(file);
 	}
 #endif
 	return _sceIoRemove(file);
@@ -119,9 +102,7 @@ int sceIoRemovePatched(const char *file) {
 int sceIoMkdirPatched(const char *dirname, SceMode mode) {
 #ifdef USE_HOST0
 	if (strncmp(dirname, HOST0, sizeof(HOST0) - 1) == 0) {
-		char path[MAX_PATH_LENGTH];
-		tempFixForPsp2Link(path, dirname);
-		return psp2LinkIoMkdir(path, mode);
+		return psp2LinkIoMkdir(dirname, mode);
 	}
 #endif
 	return _sceIoMkdir(dirname, mode);
@@ -130,9 +111,7 @@ int sceIoMkdirPatched(const char *dirname, SceMode mode) {
 int sceIoRmdirPatched(const char *dirname) {
 #ifdef USE_HOST0
 	if (strncmp(dirname, HOST0, sizeof(HOST0) - 1) == 0) {
-		char path[MAX_PATH_LENGTH];
-		tempFixForPsp2Link(path, dirname);
-		return psp2LinkIoRmdir(path);
+		return psp2LinkIoRmdir(dirname);
 	}
 #endif
 	return _sceIoRmdir(dirname);
@@ -141,8 +120,7 @@ int sceIoRmdirPatched(const char *dirname) {
 int sceIoRenamePatched(const char *oldname, const char *newname) {
 #ifdef USE_HOST0
 	if (strncmp(oldname, HOST0, sizeof(HOST0) - 1) == 0) {
-		// return psp2LinkRename(oldname, newname);
-		return 0;
+		return psp2LinkIoRename(oldname, newname);
 	}
 #endif
 	return _sceIoRename(oldname, newname);
@@ -151,9 +129,7 @@ int sceIoRenamePatched(const char *oldname, const char *newname) {
 int sceIoDopenPatched(const char *dirname) {
 #ifdef USE_HOST0
 	if (strncmp(dirname, HOST0, sizeof(HOST0) - 1) == 0) {
-		char path[MAX_PATH_LENGTH];
-		tempFixForPsp2Link(path, dirname);
-		return psp2LinkIoDopen(path);
+		return psp2LinkIoDopen(dirname);
 	}
 #endif
 	return _sceIoDopen(dirname);
@@ -161,8 +137,7 @@ int sceIoDopenPatched(const char *dirname) {
 
 int sceIoDreadPatched(SceUID fd, SceIoDirent *dir) {
 #ifdef USE_HOST0
-	int res = verifyFd(fd);
-	if (res < 0) {
+	if (verifyFd(fd) < 0) {
 		return psp2LinkIoDread(fd, dir);
 	}
 #endif
@@ -171,8 +146,7 @@ int sceIoDreadPatched(SceUID fd, SceIoDirent *dir) {
 
 int sceIoDclosePatched(SceUID fd) {
 #ifdef USE_HOST0
-	int res = verifyFd(fd);
-	if (res < 0) {
+	if (verifyFd(fd) < 0) {
 		return psp2LinkIoDclose(fd);
 	}
 #endif
@@ -180,20 +154,29 @@ int sceIoDclosePatched(SceUID fd) {
 }
 
 int sceIoGetstatPatched(const char *name, SceIoStat *stat) {
+#ifdef USE_HOST0
 	if (strncmp(name, HOST0, sizeof(HOST0) - 1) == 0) {
-		//return psp2LinkIoGetstat(name, stat);
-		return 0;
+		return psp2LinkIoGetstat(name, stat);
 	}
-
+#endif
 	return _sceIoGetstat(name, stat);
 }
 
-int sceIoChstatPatched(const char *name, SceIoStat *stat, unsigned int bits) {
-	if (strncmp(name, HOST0, sizeof(HOST0) - 1) == 0) {
-		//return psp2LinkIoGhstat(name, stat, bits);
-		return 0;
+int sceIoGetstatByFdPatched(SceUID fd, SceIoStat *stat) {
+#ifdef USE_HOST0
+	if (verifyFd(fd) < 0) {
+		return psp2LinkIoGetstatByFd(fd, stat);
 	}
+#endif
+	return _sceIoGetstatByFd(fd, stat);
+}
 
+int sceIoChstatPatched(const char *name, SceIoStat *stat, unsigned int bits) {
+#ifdef USE_HOST0
+	if (strncmp(name, HOST0, sizeof(HOST0) - 1) == 0) {
+		return psp2LinkIoChstat(name, stat, bits);
+	}
+#endif
 	return _sceIoChstat(name, stat, bits);
 }
 
@@ -211,6 +194,7 @@ void PatchIO() {
 	copyStub((uint32_t)&_sceIoDread, (void *)&sceIoDread);
 	copyStub((uint32_t)&_sceIoDclose, (void *)&sceIoDclose);
 	copyStub((uint32_t)&_sceIoGetstat, (void *)&sceIoGetstat);
+	copyStub((uint32_t)&_sceIoGetstatByFd, (void *)&sceIoGetstatByFd);
 	copyStub((uint32_t)&_sceIoChstat, (void *)&sceIoChstat);
 
 	makeFunctionStub((uint32_t)&sceIoOpen, sceIoOpenPatched);
@@ -226,6 +210,7 @@ void PatchIO() {
 	makeFunctionStub((uint32_t)&sceIoDread, sceIoDreadPatched);
 	makeFunctionStub((uint32_t)&sceIoDclose, sceIoDclosePatched);
 	makeFunctionStub((uint32_t)&sceIoGetstat, sceIoGetstatPatched);
+	makeFunctionStub((uint32_t)&sceIoGetstatByFd, sceIoGetstatByFdPatched);
 	makeFunctionStub((uint32_t)&sceIoChstat, sceIoChstatPatched);
 
 	io_patched = 1;
@@ -246,6 +231,7 @@ void restoreIOPatches() {
 		copyStub((uint32_t)&sceIoDread, (void *)&_sceIoDread);
 		copyStub((uint32_t)&sceIoDclose, (void *)&_sceIoDclose);
 		copyStub((uint32_t)&sceIoGetstat, (void *)&_sceIoGetstat);
+		copyStub((uint32_t)&sceIoGetstatByFd, (void *)&_sceIoGetstatByFd);
 		copyStub((uint32_t)&sceIoChstat, (void *)&_sceIoChstat);
 	}
 }

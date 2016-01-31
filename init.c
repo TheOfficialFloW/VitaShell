@@ -353,7 +353,7 @@ void initVitaShell() {
 
 #ifdef USE_HOST0
 	// Init psp2link
-	psp2LinkInit("192.168.178.20", 0x4711, 0x4712, 0x4712, 3);
+	psp2LinkInit("192.168.178.20", 0x4711, 0x4712, 0x4712, 3); // "255.255.255.255"
 #endif
 }
 

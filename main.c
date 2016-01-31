@@ -381,8 +381,6 @@ void drawScrollBar(int pos, int n) {
 }
 
 void drawShellInfo(char *path) {
-	pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - SHELL_MARGIN_Y - FONT_Y_SPACE - 2.0f, LITEGRAY, FONT_SIZE, "%d%%", scePowerGetBatteryLifePercent());
-
 	// Title
 	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, VIOLET, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
 
@@ -439,6 +437,9 @@ void drawShellInfo(char *path) {
 
 	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, LITEGRAY, FONT_SIZE, path_first_line);
 	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, LITEGRAY, FONT_SIZE, path_second_line);
+	
+	// TODO: Tabs
+	//pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - SHELL_MARGIN_Y - FONT_Y_SPACE - 2.0f, LITEGRAY, FONT_SIZE, "TABS");
 }
 
 enum MenuEntrys {
@@ -1099,7 +1100,8 @@ void fileBrowserMenuCtrl() {
 					memset(&mount_point_stat, 0, sizeof(SceIoStat));
 					sceIoGetstat(file_entry->name, &mount_point_stat);
 				} else {
-					addEndSlash(file_list.path);
+					if (dir_level > 1)
+						addEndSlash(file_list.path);
 					strcat(file_list.path, file_entry->name);
 				}
 
