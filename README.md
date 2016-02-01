@@ -9,13 +9,14 @@ http://wololo.net/2015/12/23/ps-vita-revitalize-competition-and-the-winners-are/
 * vitasdk: https://github.com/vitasdk / https://bintray.com/package/files/vitasdk/vitasdk/toolchain?order=desc&sort=fileLastModified&basePath=&tab=files
 * vita2dlib: https://github.com/xerpi/vita2dlib
 * ftpvitalib https://github.com/xerpi/ftpvitalib
+* debugnet: https://github.com/psxdev/debugnet
 * psp2link: https://github.com/psxdev/psp2link
 * psp2client: https://github.com/psxdev/psp2client
 
 ### Credits ###
 * yifanlu for Rejuvenate
 * xerpi for ftpvitalib and vita2dlib
-* psxdev (bigboss) for psp2link and psp2client
+* psxdev (bigboss) for debugnet, psp2link and psp2client
 * frangarcj and xyz for vita shader (https://github.com/frangarcj/vitahelloshader / https://github.com/xyzz/vita-shaders)
 * wololo for the Revitalize contest
 * Everybody who contributed on vitasdk
