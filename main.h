@@ -65,7 +65,7 @@
 #define DISABLE_UVL_LOGGING 1
 #define ENABLE_DEBUGNET_LOGGING 1
 #define ENABLE_FILE_LOGGING 1
-//#define RELEASE 1
+#define RELEASE 1
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0
