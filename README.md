@@ -1,4 +1,4 @@
-# README #
+# VitaShell #
 
 VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you a file browser, homebrew launcher, built-in FTP, network host feature and much more.
 This homebrew was an entry of the Revitalize PS Vita homebrew competition and has won the 1. Price.
