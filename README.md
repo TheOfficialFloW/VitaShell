@@ -16,6 +16,7 @@ http://wololo.net/2015/12/23/ps-vita-revitalize-competition-and-the-winners-are/
 * yifanlu for Rejuvenate
 * xerpi for ftpvitalib and vita2dlib
 * psxdev (bigboss) for psp2link and psp2client
+* frangarcj and xyz for vita shader (https://github.com/frangarcj/vitahelloshader / https://github.com/xyzz/vita-shaders)
 * wololo for the Revitalize contest
 * Everybody who contributed on vitasdk
 
