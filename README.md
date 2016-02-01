@@ -23,6 +23,7 @@ http://wololo.net/2015/12/23/ps-vita-revitalize-competition-and-the-winners-are/
 
 ### Changelog 0.5 ###
 - Increased homebrew force-exit compatbility and stability.
+- Added network host mountpoint.
 - Added ability to compile shader programs (use the _v.cg suffix for vertexes and _f.cg for fragments).
 - Finished photo viewer. Use the right analog stick to zoom in/out. Left analog stick to move.
   L/R to rotate and X/O to change display mode.
