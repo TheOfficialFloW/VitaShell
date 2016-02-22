@@ -1,7 +1,7 @@
 # VitaShell #
 
 VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you a file browser, homebrew launcher, built-in FTP, network host feature and much more.
-This homebrew was an entry of the Revitalize PS Vita homebrew competition and has won the 1. Price.
+This homebrew was an entry of the Revitalize PS Vita homebrew competition and won the first prize.
 http://wololo.net/2015/12/23/ps-vita-revitalize-competition-and-the-winners-are/
 
 ### In order to run / compile VitaShell you need ###
@@ -21,6 +21,9 @@ http://wololo.net/2015/12/23/ps-vita-revitalize-competition-and-the-winners-are/
 * wololo for the Revitalize contest
 * Everybody who contributed on vitasdk
 
+### Changelog 0.6 ###
+- Added split and join operations for 'PSone Loader'.
+- Optimized I/O operations regarding speed.
 
 ### Changelog 0.5 ###
 - Increased homebrew force-exit compatbility and stability.

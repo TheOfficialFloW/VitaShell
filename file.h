@@ -24,7 +24,7 @@
 #define MAX_SHORT_NAME_LENGTH 64
 #define MAX_MOUNT_POINT_LENGTH 16
 
-#define TRANSFER_SIZE 64 * 1024
+#define TRANSFER_SIZE 4 * 1024 * 1024
 
 #define HOME_PATH "home"
 #define DIR_UP ".."
@@ -54,7 +54,7 @@ typedef struct FileListEntry {
 	char name[MAX_NAME_LENGTH];
 	int is_folder;
 	int type;
-	int size;
+	SceOff size;
 	SceRtcTime time;
 } FileListEntry;
 
@@ -70,7 +70,8 @@ int WriteFile(char *file, void *buf, int size);
 
 int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files);
 int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max));
-int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max));
+int copyFile(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max));
+int copyPath(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max));
 
 int getFileType(char *file);
 

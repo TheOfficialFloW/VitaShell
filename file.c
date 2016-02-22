@@ -67,6 +67,7 @@ int ReadFile(char *file, void *buf, int size) {
 		return fd;
 
 	int read = sceIoRead(fd, buf, size);
+
 	sceIoClose(fd);
 	return read;
 }
@@ -77,6 +78,7 @@ int WriteFile(char *file, void *buf, int size) {
 		return fd;
 
 	int written = sceIoWrite(fd, buf, size);
+
 	sceIoClose(fd);
 	return written;
 }
@@ -98,7 +100,15 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
 				snprintf(new_path, MAX_PATH_LENGTH, "%s/%s", path, dir.d_name);
 
-				getPathInfo(new_path, size, folders, files);
+				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
+					getPathInfo(new_path, size, folders, files);
+				} else {
+					if (size)
+						(*size) += dir.d_stat.st_size;
+
+					if (files)
+						(*files)++;
+				}
 
 				free(new_path);
 			}
@@ -108,18 +118,17 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 
 		if (folders)
 			(*folders)++;
-	}
-	else
-	{
-		SceIoStat stat;
-		memset(&stat, 0, sizeof(SceIoStat));
+	} else {
+		if (size) {
+			SceIoStat stat;
+			memset(&stat, 0, sizeof(SceIoStat));
 
-		int res = sceIoGetstat(path, &stat);
-		if (res < 0)
-			return res;
+			int res = sceIoGetstat(path, &stat);
+			if (res < 0)
+				return res;
 
-		if (size)
 			(*size) += stat.st_size;
+		}
 
 		if (files)
 			(*files)++;
@@ -144,8 +153,18 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
 				snprintf(new_path, MAX_PATH_LENGTH, "%s/%s", path, dir.d_name);
-	
-				removePath(new_path, value, max, SetProgress);
+
+				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
+					removePath(new_path, value, max, SetProgress);
+				} else {
+					sceIoRemove(new_path);
+
+					if (value)
+						(*value)++;
+
+					if (SetProgress)
+						SetProgress(value ? *value : 0, max);
+				}
 
 				free(new_path);
 			}
@@ -177,16 +196,54 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 	return 0;
 }
 
-int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max)) {
+int copyFile(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max)) {
 	// The destination is a subfolder of the source folder
-	int len = strlen(src);
-	if (strncmp(src, dst, len) == 0 && dst[len] == '/') {
+	int len = strlen(src_path);
+	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
 		return -1;
 	}
 
-	SceUID dfd = sceIoDopen(src);
+	SceUID fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
+	if (fdsrc < 0)
+		return fdsrc;
+
+	SceUID fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	if (fddst < 0) {
+		sceIoClose(fdsrc);
+		return fddst;
+	}
+
+	void *buf = malloc(TRANSFER_SIZE);
+
+	int read;
+	while ((read = sceIoRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
+		sceIoWrite(fddst, buf, read);
+
+		if (value)
+			(*value) += read;
+
+		if (SetProgress)
+			SetProgress(value ? *value : 0, max);
+	}
+
+	free(buf);
+
+	sceIoClose(fddst);
+	sceIoClose(fdsrc);
+
+	return 0;
+}
+
+int copyPath(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max)) {
+	// The destination is a subfolder of the source folder
+	int len = strlen(src_path);
+	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
+		return -1;
+	}
+
+	SceUID dfd = sceIoDopen(src_path);
 	if (dfd >= 0) {
-		int ret = sceIoMkdir(dst, 0777);
+		int ret = sceIoMkdir(dst_path, 0777);
 		if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
 			sceIoDclose(dfd);
 			return ret;
@@ -209,48 +266,26 @@ int copyPath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetPro
 				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
 					continue;
 
-				char *src_path = malloc(strlen(src) + strlen(dir.d_name) + 2);
-				snprintf(src_path, MAX_PATH_LENGTH, "%s/%s", src, dir.d_name);
+				char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
+				snprintf(new_src_path, MAX_PATH_LENGTH, "%s/%s", src_path, dir.d_name);
 
-				char *dst_path = malloc(strlen(dst) + strlen(dir.d_name) + 2);
-				snprintf(dst_path, MAX_PATH_LENGTH, "%s/%s", dst, dir.d_name);
+				char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
+				snprintf(new_dst_path, MAX_PATH_LENGTH, "%s/%s", dst_path, dir.d_name);
 
-				copyPath(src_path, dst_path, value, max, SetProgress);
+				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
+					copyPath(new_src_path, new_dst_path, value, max, SetProgress);
+				} else {
+					copyFile(new_src_path, new_dst_path, value, max, SetProgress);
+				}
 
-				free(dst_path);
-				free(src_path);
+				free(new_dst_path);
+				free(new_src_path);
 			}
 		} while (res > 0);
 
 		sceIoDclose(dfd);
 	} else {
-		SceUID fdsrc = sceIoOpen(src, SCE_O_RDONLY, 0);
-		if (fdsrc < 0)
-			return fdsrc;
-
-		SceUID fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-		if (fddst < 0) {
-			sceIoClose(fdsrc);
-			return fddst;
-		}
-
-		void *buf = malloc(TRANSFER_SIZE);
-
-		int read;
-		while ((read = sceIoRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-			sceIoWrite(fddst, buf, read);
-
-			if (value)
-				(*value) += read;
-
-			if (SetProgress)
-				SetProgress(value ? *value : 0, max);
-		}
-
-		free(buf);
-
-		sceIoClose(fddst);
-		sceIoClose(fdsrc);
+		copyFile(src_path, dst_path, value, max, SetProgress);
 	}
 
 	return 0;

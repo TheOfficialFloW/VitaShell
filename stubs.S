@@ -1,14 +1,14 @@
-.section .text
-.arm
+	.section .text
+	.arm
 
 .macro STUB name
 .align 4
 .global \name
 .type \name, %function
 \name:
-mvn r0, #0xFFFFFFFF
-bx lr
-nop
+	mvn r0, #0xFFFFFFFF
+	bx lr
+	nop
 .align 4
 .endm
 

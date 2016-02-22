@@ -61,7 +61,8 @@ int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time);
 int removeEndSlash(char *path);
 int addEndSlash(char *path);
 
-void getSizeString(char *string, uint64_t size);
+//void getSizeString(char *string, uint64_t size);
+void getSizeString(char *string, unsigned long size);
 void getDateString(char *string, int date_format, SceRtcTime *time);
 void getTimeString(char *string, int time_format, SceRtcTime *time);
 

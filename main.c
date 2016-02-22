@@ -445,16 +445,17 @@ void drawShellInfo(char *path) {
 enum MenuEntrys {
 	MENU_ENTRY_MARK_UNMARK_ALL,
 	MENU_ENTRY_EMPTY_1,
+	MENU_ENTRY_SPLIT,
+	MENU_ENTRY_JOIN,
+	MENU_ENTRY_EMPTY_2,
 	MENU_ENTRY_MOVE,
 	MENU_ENTRY_COPY,
 	MENU_ENTRY_PASTE,
-	MENU_ENTRY_EMPTY_2,
+	MENU_ENTRY_EMPTY_3,
 	MENU_ENTRY_DELETE,
 	MENU_ENTRY_RENAME,
-	MENU_ENTRY_EMPTY_3,
-	MENU_ENTRY_NEW_FOLDER,
 	MENU_ENTRY_EMPTY_4,
-	//MENU_ENTRY_SEND_BY_EMAIL,
+	MENU_ENTRY_NEW_FOLDER,
 };
 
 enum MenuVisibilities {
@@ -471,6 +472,9 @@ typedef struct {
 MenuEntry menu_entries[] = {
 	{ MARK_ALL, VISIBILITY_INVISIBLE },
 	{ -1, VISIBILITY_UNUSED },
+	{ SPLIT, VISIBILITY_INVISIBLE },
+	{ JOIN, VISIBILITY_INVISIBLE },
+	{ -1, VISIBILITY_UNUSED },
 	{ MOVE, VISIBILITY_INVISIBLE },
 	{ COPY, VISIBILITY_INVISIBLE },
 	{ PASTE, VISIBILITY_INVISIBLE },
@@ -479,8 +483,6 @@ MenuEntry menu_entries[] = {
 	{ RENAME, VISIBILITY_INVISIBLE },
 	{ -1, VISIBILITY_UNUSED },
 	{ NEW_FOLDER, VISIBILITY_INVISIBLE },
-//	{ -1, VISIBILITY_UNUSED },
-//	{ "Send by Email", VISIBILITY_INVISIBLE },
 };
 
 #define N_MENU_ENTRIES (sizeof(menu_entries) / sizeof(MenuEntry))
@@ -503,12 +505,24 @@ void initContextMenu() {
 		menu_entries[MENU_ENTRY_COPY].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
-		//menu_entries[MENU_ENTRY_SEND_BY_EMAIL].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_SPLIT].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
 	}
 
-	// Invisible 'Send by Email' when on directory or on file bigger than 2MB
-	//if (file_entry->is_folder || file_entry->size >= 2 * 1024 * 1024)
-	//	menu_entries[MENU_ENTRY_SEND_BY_EMAIL].visibility = VISIBILITY_INVISIBLE;
+	// Split/join
+	if (file_entry->is_folder) {
+		menu_entries[MENU_ENTRY_SPLIT].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
+
+		char *p = strrchr(file_entry->name, '.');
+		if (p) {
+			if (strncmp(p, SPLIT_SUFFIX, sizeof(SPLIT_SUFFIX) - 1) == 0) {
+				menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_VISIBLE;
+			}
+		}
+	} else {
+		menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
+	}
 
 	// Invisible 'Paste' if nothing is copied yet
 	if (copy_list.length == 0)
@@ -520,6 +534,8 @@ void initContextMenu() {
 		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_SPLIT].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = VISIBILITY_INVISIBLE;
 	}
 
@@ -656,7 +672,17 @@ void contextMenuCtrl() {
 
 				break;
 			}
-
+			
+			case MENU_ENTRY_SPLIT:
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SPLIT_QUESTION]);
+				dialog_step = DIALOG_STEP_SPLIT_QUESTION;
+				break;
+				
+			case MENU_ENTRY_JOIN:
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[JOIN_QUESTION]);
+				dialog_step = DIALOG_STEP_JOIN_QUESTION;
+				break;
+				
 			case MENU_ENTRY_MOVE:
 			case MENU_ENTRY_COPY:
 			{
@@ -737,7 +763,7 @@ void contextMenuCtrl() {
 				}
 
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
-				dialog_step = DIALOG_STEP_DELETE_CONFIRM;
+				dialog_step = DIALOG_STEP_DELETE_QUESTION;
 				break;
 			}
 
@@ -754,7 +780,7 @@ void contextMenuCtrl() {
 				dialog_step = DIALOG_STEP_RENAME;
 				break;
 			}
-
+			
 			case MENU_ENTRY_NEW_FOLDER:
 			{
 				// Find a new folder name
@@ -779,17 +805,6 @@ void contextMenuCtrl() {
 				dialog_step = DIALOG_STEP_NEW_FOLDER;
 				break;
 			}
-				/*
-			case MENU_ENTRY_SEND_BY_EMAIL:
-			{
-				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-
-				char uri[MAX_PATH_LENGTH];
-				sprintf(uri, "email:send?attach=%s%s.", file_list.path, file_entry->name);
-				debugPrintf("%s\n", uri);
-				sceAppMgrLaunchAppByUri(0xFFFFF, uri);
-				break;
-			}*/
 		}
 
 		ctx_menu_mode = CONTEXT_MENU_CLOSING;
@@ -812,11 +827,13 @@ int dialogSteps() {
 			}
 
 			break;
-
+			
 		// With refresh
 		case DIALOG_STEP_SIGNED:
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
+		case DIALOG_STEP_SPLITTED:
+		case DIALOG_STEP_JOINED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -852,7 +869,7 @@ int dialogSteps() {
 			}
 
 			break;
-
+			
 		case DIALOG_STEP_FTP:
 			disableAutoSuspend();
 
@@ -863,7 +880,7 @@ int dialogSteps() {
 			}
 
 			break;
-
+			
 		case DIALOG_STEP_SIGN_CONFIRM:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				int res = signPspFile(cur_file);
@@ -878,28 +895,7 @@ int dialogSteps() {
 			}
 
 			break;
-
-		case DIALOG_STEP_NEW_FOLDER:
-			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
-				char *name = (char *)getImeDialogInputTextUTF8();
-				if (strlen(name) > 0) {
-					char path[MAX_PATH_LENGTH];
-					snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
-
-					int res = sceIoMkdir(path, 0777);
-					if (res < 0) {
-						errorDialog(res);
-					} else {
-						refresh = 1;
-						dialog_step = DIALOG_STEP_NONE;
-					}
-				}
-			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-				dialog_step = DIALOG_STEP_NONE;
-			}
-
-			break;
-
+			
 		case DIALOG_STEP_PASTE:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				CopyArguments args;
@@ -916,8 +912,8 @@ int dialogSteps() {
 			}
 
 			break;
-
-		case DIALOG_STEP_DELETE_CONFIRM:
+			
+		case DIALOG_STEP_DELETE_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DELETING]);
 				dialog_step = DIALOG_STEP_DELETE_CONFIRMED;
@@ -926,7 +922,7 @@ int dialogSteps() {
 			}
 
 			break;
-
+			
 		case DIALOG_STEP_DELETE_CONFIRMED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				DeleteArguments args;
@@ -942,7 +938,7 @@ int dialogSteps() {
 			}
 
 			break;
-
+			
 		case DIALOG_STEP_RENAME:
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
@@ -965,6 +961,77 @@ int dialogSteps() {
 				}
 			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
 				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
+		case DIALOG_STEP_NEW_FOLDER:
+			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+				char *name = (char *)getImeDialogInputTextUTF8();
+				if (strlen(name) > 0) {
+					char path[MAX_PATH_LENGTH];
+					snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
+
+					int res = sceIoMkdir(path, 0777);
+					if (res < 0) {
+						errorDialog(res);
+					} else {
+						refresh = 1;
+						dialog_step = DIALOG_STEP_NONE;
+					}
+				}
+			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
+		case DIALOG_STEP_SPLIT_QUESTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[SPLITTING]);
+				dialog_step = DIALOG_STEP_SPLIT_CONFIRMED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
+		case DIALOG_STEP_SPLIT_CONFIRMED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				SplitArguments args;
+				args.file_list = &file_list;
+				args.index = base_pos + rel_pos;
+
+				SceUID thid = sceKernelCreateThread("split_thread", (SceKernelThreadEntry)split_thread, 0x40, 0x10000, 0, 0x70000, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, sizeof(DeleteArguments), &args);
+
+				dialog_step = DIALOG_STEP_SPLITTING;
+			}
+
+			break;
+			
+		case DIALOG_STEP_JOIN_QUESTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[JOINING]);
+				dialog_step = DIALOG_STEP_JOIN_CONFIRMED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
+		case DIALOG_STEP_JOIN_CONFIRMED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				JoinArguments args;
+				args.file_list = &file_list;
+				args.index = base_pos + rel_pos;
+
+				SceUID thid = sceKernelCreateThread("join_thread", (SceKernelThreadEntry)join_thread, 0x40, 0x10000, 0, 0x70000, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, sizeof(DeleteArguments), &args);
+
+				dialog_step = DIALOG_STEP_JOINING;
 			}
 
 			break;

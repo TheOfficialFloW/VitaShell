@@ -176,9 +176,6 @@ void fixPrx(void *buffer) {
 }
 
 int writeDataPsp(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
-	HeaderKeys keys;
-	uint8_t kirk_header_backup[0x90];
-
 	// Init kirk
 	kirk_init();
 
@@ -192,8 +189,8 @@ int writeDataPsp(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
 	int kirk_size = getKirkSize(kirk_header);
 
 	memcpy(big_buffer, kirk_header, KIRK_HEADER_SIZE);
-	memcpy(kirk_header_backup, big_buffer, sizeof(kirk_header_backup));
 
+	HeaderKeys keys;
 	kirk_decrypt_keys((uint8_t *)&keys, big_buffer);
 	memcpy(big_buffer, &keys, sizeof(HeaderKeys));
 
@@ -213,7 +210,7 @@ int writeDataPsp(SceUID fdin, SceUID fdout, uint32_t offset, int size) {
 		return -3;
 
 	// Forge cmac block
-	memcpy(big_buffer, kirk_header_backup, sizeof(kirk_header_backup));
+	memcpy(big_buffer, kirk_header, 0x90);
 	if (kirk_forge(big_buffer, sizeof(big_buffer)) != 0)
 		return -4;
 

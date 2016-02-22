@@ -145,7 +145,7 @@ int addEndSlash(char *path) {
 
 	return 0;
 }
-
+/*
 void getSizeString(char *string, uint64_t size) {
 	if (size >= 1024 * 1024 * 1024) {
 		sprintf(string, "%.2f GB", (double)size / (double)(1024 * 1024 * 1024));
@@ -156,6 +156,25 @@ void getSizeString(char *string, uint64_t size) {
 	} else {
 		sprintf(string, "%.0f B", (double)size);
 	}
+}
+*/
+void getSizeString(char *string, unsigned long size) {
+	unsigned long sz, szd;
+	if (size > 1024 * 1024 * 1024) {
+		sz = size / (unsigned long)(1024 * 1024 * 1024);
+		szd = (size / (unsigned long)(1024 * 1024) - sz * 1024) % 1024 / (unsigned long)(10);
+		sprintf(string, "%u.%02u GB", (unsigned int)sz, (unsigned int)szd);
+	} else if (size > 1024 * 1024) {
+		sz = size / (unsigned long)(1024 * 1024);
+		szd = (size / (unsigned long)(1024) - sz * 1024) % 1024 / (unsigned long)(10);
+		sprintf(string, "%u.%02u MB", (unsigned int)sz, (unsigned int)szd);
+	} else if (size > 1024) {
+		sz = size / (unsigned long)(1024);
+		szd = (size - sz * 1024) % 1024 / (unsigned long)(10);
+		sprintf(string, "%u.%02u KB", (unsigned int)sz, (unsigned int)szd);
+	} else {
+		sprintf(string, "%u B", (unsigned int)size);
+	}	
 }
 
 void getDateString(char *string, int date_format, SceRtcTime *time) {

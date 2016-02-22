@@ -247,7 +247,7 @@ int hexViewer(char *file) {
 				}
 
 				if (changed) {
-					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, "Are you sure you want to save your modifications?");
+					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, "Do you want to save your modifications?");
 					save_question = 1;
 				} else {
 					break;

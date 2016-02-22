@@ -8,6 +8,8 @@ Paste
 Delete
 Rename
 New folder
+Split file
+Join files
 Folder
 Copied %d file.
 Copied %d folder.
@@ -15,10 +17,14 @@ Copied %d files/folders.
 Moving...
 Copying...
 Deleting...
+Splitting...
+Joining...
 Are you sure you want to delete this file?
 Are you sure you want to delete this folder?
 Are you sure you want to delete these files/folders?
-Are you sure you want to sign this file?
+Do you want to split this file?
+Do you want to join these files?
+Do you want to sign this file?
 Cannot sign this file.
 Successfully signed this file.\Please copy any EBOOT.PBP and __sce_ebootpbp from a PSN PSP game to this folder and then rebuild the database.
 Successfully compiled.
