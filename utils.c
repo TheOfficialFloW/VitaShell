@@ -145,36 +145,18 @@ int addEndSlash(char *path) {
 
 	return 0;
 }
-/*
+
 void getSizeString(char *string, uint64_t size) {
-	if (size >= 1024 * 1024 * 1024) {
-		sprintf(string, "%.2f GB", (double)size / (double)(1024 * 1024 * 1024));
-	} else if (size >= 1024 * 1024) {
-		sprintf(string, "%.2f MB", (double)size / (double)(1024 * 1024));
-	} else if(size >= 1024) {
-		sprintf(string, "%.2f KB", (double)size / (double)(1024));
-	} else {
-		sprintf(string, "%.0f B", (double)size);
+	double double_size = (double)size;
+
+	int i = 0;
+	static char *units[] = { "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+	while (double_size >= 1024.0f) {
+		double_size /= 1024.0f;
+		i++;
 	}
-}
-*/
-void getSizeString(char *string, unsigned long size) {
-	unsigned long sz, szd;
-	if (size > 1024 * 1024 * 1024) {
-		sz = size / (unsigned long)(1024 * 1024 * 1024);
-		szd = (size / (unsigned long)(1024 * 1024) - sz * 1024) % 1024 / (unsigned long)(10);
-		sprintf(string, "%u.%02u GB", (unsigned int)sz, (unsigned int)szd);
-	} else if (size > 1024 * 1024) {
-		sz = size / (unsigned long)(1024 * 1024);
-		szd = (size / (unsigned long)(1024) - sz * 1024) % 1024 / (unsigned long)(10);
-		sprintf(string, "%u.%02u MB", (unsigned int)sz, (unsigned int)szd);
-	} else if (size > 1024) {
-		sz = size / (unsigned long)(1024);
-		szd = (size - sz * 1024) % 1024 / (unsigned long)(10);
-		sprintf(string, "%u.%02u KB", (unsigned int)sz, (unsigned int)szd);
-	} else {
-		sprintf(string, "%u B", (unsigned int)size);
-	}	
+
+	sprintf(string, "%.*f %s", (i == 0) ? 0 : 2, double_size, units[i]);
 }
 
 void getDateString(char *string, int date_format, SceRtcTime *time) {

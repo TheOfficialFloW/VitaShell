@@ -347,7 +347,7 @@ int split_thread(SceSize args_size, SplitArguments *args) {
 		int file_num = sector_num % SPLIT_MAX_FILES;
 
 		char new_path[MAX_PATH_LENGTH];
-		sprintf(new_path, "%s%s/%04d/%04d", path, SPLIT_SUFFIX, folder_num, file_num);
+		snprintf(new_path, MAX_PATH_LENGTH, "%s%s/%04d/%04d", path, SPLIT_SUFFIX, folder_num, file_num);
 
 		int written = WriteFile(new_path, buf, read);
 
@@ -455,7 +455,7 @@ int join_thread(SceSize args_size, JoinArguments *args) {
 		int file_num = sector_num % SPLIT_MAX_FILES;
 
 		char src_path[MAX_PATH_LENGTH];
-		sprintf(src_path, "%s/%04d/%04d", path, folder_num, file_num);
+		snprintf(src_path, MAX_PATH_LENGTH, "%s/%04d/%04d", path, folder_num, file_num);
 
 		int read = ReadFile(src_path, buf, SPLIT_SECTOR_SIZE);
 		if (read < 0) {
