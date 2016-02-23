@@ -331,20 +331,20 @@ int split_thread(SceSize args_size, SplitArguments *args) {
 		goto EXIT;
 	}
 
-	buf = malloc(SPLIT_SECTOR_SIZE);
+	buf = malloc(SPLIT_PART_SIZE);
 
 	uint32_t seek = 0;
 	while (seek < (uint32_t)stat.st_size) {
-		int read = sceIoRead(fd, buf, SPLIT_SECTOR_SIZE);
+		int read = sceIoRead(fd, buf, SPLIT_PART_SIZE);
 		if (read < 0) {
 			closeWaitDialog();
 			errorDialog(read);
 			goto EXIT;
 		}
 
-		int sector_num = seek / SPLIT_SECTOR_SIZE;
-		int folder_num = sector_num / SPLIT_MAX_FILES;
-		int file_num = sector_num % SPLIT_MAX_FILES;
+		int part_num = seek / SPLIT_PART_SIZE;
+		int folder_num = part_num / SPLIT_MAX_FILES;
+		int file_num = part_num % SPLIT_MAX_FILES;
 
 		char new_path[MAX_PATH_LENGTH];
 		snprintf(new_path, MAX_PATH_LENGTH, "%s%s/%04d/%04d", path, SPLIT_SUFFIX, folder_num, file_num);
@@ -446,18 +446,18 @@ int join_thread(SceSize args_size, JoinArguments *args) {
 		goto EXIT;
 	}
 
-	buf = malloc(SPLIT_SECTOR_SIZE);
+	buf = malloc(SPLIT_PART_SIZE);
 
 	uint32_t seek = 0;
 	while (seek < size) {
-		int sector_num = seek / SPLIT_SECTOR_SIZE;
-		int folder_num = sector_num / SPLIT_MAX_FILES;
-		int file_num = sector_num % SPLIT_MAX_FILES;
+		int part_num = seek / SPLIT_PART_SIZE;
+		int folder_num = part_num / SPLIT_MAX_FILES;
+		int file_num = part_num % SPLIT_MAX_FILES;
 
 		char src_path[MAX_PATH_LENGTH];
 		snprintf(src_path, MAX_PATH_LENGTH, "%s/%04d/%04d", path, folder_num, file_num);
 
-		int read = ReadFile(src_path, buf, SPLIT_SECTOR_SIZE);
+		int read = ReadFile(src_path, buf, SPLIT_PART_SIZE);
 		if (read < 0) {
 			closeWaitDialog();
 			errorDialog(read);

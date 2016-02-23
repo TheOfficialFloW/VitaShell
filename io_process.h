@@ -27,7 +27,7 @@
 
 #define SPLIT_SUFFIX ".SPLIT"
 #define SPLIT_SIZE_NAME "SIZE"
-#define SPLIT_SECTOR_SIZE (256 * 1024)
+#define SPLIT_PART_SIZE (256 * 1024)
 #define SPLIT_MAX_FILES 512
 
 typedef struct {
