@@ -23,6 +23,7 @@
 	- NEARLY DONE: Terminate thread / free stack of previous VitaShell when reloading
 	- Page skip for hex and text viewer
 	- Hex editor byte group size and write ability
+	- Moving destination folder to subfolder of source folder prevention
 	- Moving a folder to a location where the folder does already exit causes error, so move its content.
 	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
 	- Maybe switch to libarchive
@@ -445,9 +446,9 @@ void drawShellInfo(char *path) {
 enum MenuEntrys {
 	MENU_ENTRY_MARK_UNMARK_ALL,
 	MENU_ENTRY_EMPTY_1,
-	MENU_ENTRY_SPLIT,
-	MENU_ENTRY_JOIN,
-	MENU_ENTRY_EMPTY_2,
+//	MENU_ENTRY_SPLIT,
+//	MENU_ENTRY_JOIN,
+//	MENU_ENTRY_EMPTY_2,
 	MENU_ENTRY_MOVE,
 	MENU_ENTRY_COPY,
 	MENU_ENTRY_PASTE,
@@ -472,9 +473,9 @@ typedef struct {
 MenuEntry menu_entries[] = {
 	{ MARK_ALL, VISIBILITY_INVISIBLE },
 	{ -1, VISIBILITY_UNUSED },
-	{ SPLIT, VISIBILITY_INVISIBLE },
-	{ JOIN, VISIBILITY_INVISIBLE },
-	{ -1, VISIBILITY_UNUSED },
+//	{ SPLIT, VISIBILITY_INVISIBLE },
+//	{ JOIN, VISIBILITY_INVISIBLE },
+//	{ -1, VISIBILITY_UNUSED },
 	{ MOVE, VISIBILITY_INVISIBLE },
 	{ COPY, VISIBILITY_INVISIBLE },
 	{ PASTE, VISIBILITY_INVISIBLE },
@@ -505,12 +506,12 @@ void initContextMenu() {
 		menu_entries[MENU_ENTRY_COPY].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_SPLIT].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
+		//menu_entries[MENU_ENTRY_SPLIT].visibility = VISIBILITY_INVISIBLE;
+		//menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
 	}
 
 	// Split/join
-	if (file_entry->is_folder) {
+/*	if (file_entry->is_folder) {
 		menu_entries[MENU_ENTRY_SPLIT].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
 
@@ -522,7 +523,7 @@ void initContextMenu() {
 		}
 	} else {
 		menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
-	}
+	}*/
 
 	// Invisible 'Paste' if nothing is copied yet
 	if (copy_list.length == 0)
@@ -534,8 +535,8 @@ void initContextMenu() {
 		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_SPLIT].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
+		//menu_entries[MENU_ENTRY_SPLIT].visibility = VISIBILITY_INVISIBLE;
+		//menu_entries[MENU_ENTRY_JOIN].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = VISIBILITY_INVISIBLE;
 	}
 
@@ -672,7 +673,7 @@ void contextMenuCtrl() {
 
 				break;
 			}
-			
+			/*
 			case MENU_ENTRY_SPLIT:
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SPLIT_QUESTION]);
 				dialog_step = DIALOG_STEP_SPLIT_QUESTION;
@@ -682,7 +683,7 @@ void contextMenuCtrl() {
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[JOIN_QUESTION]);
 				dialog_step = DIALOG_STEP_JOIN_QUESTION;
 				break;
-				
+				*/
 			case MENU_ENTRY_MOVE:
 			case MENU_ENTRY_COPY:
 			{
@@ -1067,7 +1068,7 @@ void fileBrowserMenuCtrl() {
 			if (res < 0) {
 				infoDialog(language_container[WIFI_ERROR]);
 			} else {
-				/* Add all the current mountpoints to ftpvita */
+				// Add all the current mountpoints to ftpvita
 				int i;
 				for (i = 0; i < getNumberMountPoints(); i++) {
 					char **mount_points = getMountPoints();

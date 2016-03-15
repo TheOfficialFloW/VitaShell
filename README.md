@@ -4,8 +4,7 @@ VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you
 This homebrew was an entry of the Revitalize PS Vita homebrew competition and won the first prize.
 http://wololo.net/2015/12/23/ps-vita-revitalize-competition-and-the-winners-are/
 
-### In order to run / compile VitaShell you need ###
-* Rejuvenate: http://yifan.lu/p/rejuvenate/
+### In order to compile VitaShell you'll need ###
 * vitasdk: https://github.com/vitasdk / https://bintray.com/package/files/vitasdk/vitasdk/toolchain?order=desc&sort=fileLastModified&basePath=&tab=files
 * vita2dlib: https://github.com/xerpi/vita2dlib
 * ftpvitalib https://github.com/xerpi/ftpvitalib
@@ -22,7 +21,7 @@ http://wololo.net/2015/12/23/ps-vita-revitalize-competition-and-the-winners-are/
 * Everybody who contributed on vitasdk
 
 ### Changelog 0.6 ###
-- Added split and join operations for 'PSone Loader'.
+- Fixed size string of files, again.
 - Optimized I/O operations regarding speed.
 
 ### Changelog 0.5 ###

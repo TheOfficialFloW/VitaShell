@@ -224,6 +224,15 @@ int textViewer(char *file) {
 			}
 		}
 
+		// Page skip
+		if (hold_buttons & SCE_CTRL_LTRIGGER) {
+
+		}
+
+		if (hold_buttons & SCE_CTRL_RTRIGGER) {
+
+		}
+
 		// Cancel
 		if (pressed_buttons & SCE_CTRL_CANCEL) {
 			hex_viewer = 0;

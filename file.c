@@ -197,6 +197,11 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 }
 
 int copyFile(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max)) {
+	// The source and destination paths are identical
+	if (strcmp(src_path, dst_path) == 0) {
+		return -1;
+	}
+
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
 	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
@@ -235,6 +240,11 @@ int copyFile(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void
 }
 
 int copyPath(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max)) {
+	// The source and destination paths are identical
+	if (strcmp(src_path, dst_path) == 0) {
+		return -1;
+	}
+
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
 	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
@@ -296,7 +306,7 @@ typedef struct {
 	int type;
 } ExtensionType;
 
-ExtensionType extension_types[] = {
+static ExtensionType extension_types[] = {
 	{ ".7Z",   FILE_TYPE_7ZIP },
 	{ ".BMP",  FILE_TYPE_BMP },
 	{ ".CG",   FILE_TYPE_CG },

@@ -165,8 +165,8 @@ int hexViewer(char *file) {
 					}
 				}
 			}
-/*
-			TODO: page skip
+
+			// Page skip
 			if (hold_buttons & SCE_CTRL_LTRIGGER) {
 				if ((base_pos + rel_pos) != 0) {
 					if ((base_pos - 0x10 * 0x10) >= 0) {
@@ -181,39 +181,30 @@ int hexViewer(char *file) {
 					int i;
 					for (i = 0; i < 0x10; i++) {
 						memcpy(entry->data, buffer + base_pos + i * 0x10, 0x10);
-
-						// Next
 						entry = entry->next;
 					}
 				}
 			}
 
 			if (hold_buttons & SCE_CTRL_RTRIGGER) {
-				if ((base_pos + rel_pos) != (size - (size % 0x10) - 0x10)) {
-					int length = 0x10;
-
-					if ((base_pos + rel_pos + 0x10 * 0x10) < size) {
+				if (size >= 0xF0) {
+					if ((base_pos + rel_pos + 0x1F0) < size) {
 						base_pos += 0x10 * 0x10;
 					} else {
-						if (size >= 0x10 * 0x10) {
-							base_pos = ALIGN(size, 0x10) - 0xF0;
-							rel_pos = ((MAX_POSITION - 2) * 0x10);
-							length = MAX_POSITION - 1;
-						}
+						base_pos = ALIGN(size, 0x10) - 0xF0;
+						rel_pos = 0xE0;
 					}
 
 					HexListEntry *entry = list.head;
 
 					int i;
-					for (i = 0; i < length; i++) {
+					for (i = 0; i < 0x10; i++) {
 						memcpy(entry->data, buffer + base_pos + i * 0x10, 0x10);
-
-						// Next
 						entry = entry->next;
 					}
 				}
 			}
-*/
+
 			uint8_t max_nibble = (2 * 0x10) - 1;
 
 			// Last line
@@ -253,7 +244,7 @@ int hexViewer(char *file) {
 					break;
 				}
 			}
-/*
+
 			// Increase nibble
 			if (modify_allowed && hold_buttons & SCE_CTRL_ENTER) {
 				changed = 1;
@@ -283,7 +274,7 @@ int hexViewer(char *file) {
 					buffer[cur_pos] = byte;
 					entry->data[nibble_pos / 2] = byte;
 				}
-			}*/
+			}
 		} else {
 			int msg_result = updateMessageDialog();
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
