@@ -60,8 +60,6 @@ int promote(char *path) {
 	if (res < 0)
 		return res;
 
-	uint64_t start = sceKernelGetProcessTimeWide();
-
 	int state = 0;
 	do {
 		res = scePromoterUtilityGetState(&state);
@@ -70,10 +68,6 @@ int promote(char *path) {
 
 		sceKernelDelayThread(300 * 1000);
 	} while (state);
-
-	uint64_t end = sceKernelGetProcessTimeWide();
-
-	debugPrintf("%f\n", (float)(end - start) / (1000.0f * 1000.0f));
 
 	int result = 0;
 	res = scePromoterUtilityGetResult(&result);
