@@ -1,0 +1,305 @@
+/*
+	VitaShell
+	Copyright (C) 2015-2016, TheFloW
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "main.h"
+#include "io_process.h"
+#include "archive.h"
+#include "file.h"
+#include "message_dialog.h"
+#include "utils.h"
+
+static uint32_t current_value = 0;
+
+void closeWaitDialog() {
+	sceMsgDialogClose();
+
+	while (updateMessageDialog() != MESSAGE_DIALOG_RESULT_NONE) {
+		sceKernelDelayThread(1000);
+	}
+
+	dialog_step = DIALOG_STEP_CANCELLED;
+}
+
+int cancelHandler() {
+	return (updateMessageDialog() != MESSAGE_DIALOG_RESULT_RUNNING);
+}
+
+void SetProgress(uint32_t value, uint32_t max) {
+	current_value = value;
+}
+
+int update_thread(SceSize args_size, UpdateArguments *args) {
+/*
+	uint32_t previous_value = current_value;
+	SceUInt64 cur_micros = 0, delta_micros = 0, last_micros = 0;
+	double kbs = 0;
+*/
+	while (current_value < args->max && isMessageDialogRunning()) {
+		disableAutoSuspend();
+/*
+		// Show KB/s
+		cur_micros = sceKernelGetProcessTimeWide();
+		if (cur_micros >= (last_micros + 1000000)) {
+			delta_micros = cur_micros - last_micros;
+			last_micros = cur_micros;
+			kbs = (double)(current_value - previous_value) / 1024.0f;
+			previous_value = current_value;
+
+			char msg[32];
+			sprintf(msg, "%.2f KB/s", kbs);
+			sceMsgDialogProgressBarSetMsg(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (SceChar8 *)msg);
+		}
+*/
+		double progress = (double)((100.0f * (double)current_value) / (double)args->max);
+		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (int)progress);
+
+		sceKernelDelayThread(COUNTUP_WAIT);
+	}
+
+	return sceKernelExitDeleteThread(0);
+}
+
+SceUID createStartUpdateThread(uint32_t max) {
+	current_value = 0;
+
+	UpdateArguments args;
+	args.max = max;
+
+	SceUID thid = sceKernelCreateThread("update_thread", (SceKernelThreadEntry)update_thread, 0xBF, 0x4000, 0, 0, NULL);
+	if (thid >= 0)
+		sceKernelStartThread(thid, sizeof(UpdateArguments), &args);
+
+	return thid;
+}
+
+int delete_thread(SceSize args_size, DeleteArguments *args) {
+	SceUID thid = -1;
+
+	// Set progress to 0%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+
+	FileListEntry *file_entry = fileListGetNthEntry(args->file_list, args->index);
+
+	int count = 0;
+	FileListEntry *head = NULL;
+	FileListEntry *mark_entry_one = NULL;
+
+	if (fileListFindEntry(args->mark_list, file_entry->name)) { // On marked entry
+		count = args->mark_list->length;
+		head = args->mark_list->head;
+	} else {
+		count = 1;
+		mark_entry_one = malloc(sizeof(FileListEntry));
+		strcpy(mark_entry_one->name, file_entry->name);
+		head = mark_entry_one;
+	}
+
+	char path[MAX_PATH_LENGTH];
+	FileListEntry *mark_entry = NULL;
+
+	// Get paths info
+	uint32_t folders = 0, files = 0;
+
+	mark_entry = head;
+
+	int i;
+	for (i = 0; i < count; i++) {
+		disableAutoSuspend();
+
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+		removeEndSlash(path);
+
+		getPathInfo(path, NULL, &folders, &files);
+
+		mark_entry = mark_entry->next;
+	}
+
+	// Update thread
+	thid = createStartUpdateThread(folders + files);
+
+	// Remove process
+	uint32_t value = 0;
+
+	mark_entry = head;
+
+	for (i = 0; i < count; i++) {
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+		removeEndSlash(path);
+
+		int res = removePath(path, &value, folders + files, SetProgress, cancelHandler);
+		if (res <= 0) {
+			closeWaitDialog();
+			errorDialog(res);
+			goto EXIT;
+		}
+
+		mark_entry = mark_entry->next;
+	}
+
+	// Set progress to 100%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+	sceKernelDelayThread(COUNTUP_WAIT);
+
+	// Close
+	sceMsgDialogClose();
+
+	dialog_step = DIALOG_STEP_DELETED;
+
+EXIT:
+	if (mark_entry_one)
+		free(mark_entry_one);
+
+	if (thid >= 0)
+		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	return sceKernelExitDeleteThread(0);
+}
+
+int copy_thread(SceSize args_size, CopyArguments *args) {
+	SceUID thid = -1;
+
+	// Set progress to 0%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+
+	char src_path[MAX_PATH_LENGTH], dst_path[MAX_PATH_LENGTH];
+	FileListEntry *copy_entry = NULL;
+
+	if (args->copy_mode == COPY_MODE_MOVE) { // Move
+		// Update thread
+		thid = createStartUpdateThread(args->copy_list->length);
+
+		copy_entry = args->copy_list->head;
+
+		int i;
+		for (i = 0; i < args->copy_list->length; i++) {
+			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
+
+			int res = sceIoRename(src_path, dst_path);
+			// TODO: if (res == SCE_ERROR_ERRNO_EEXIST) if folder
+			if (res < 0) {
+				closeWaitDialog();
+				errorDialog(res);
+				goto EXIT;
+			}
+
+			SetProgress(i + 1, args->copy_list->length);
+
+			if (cancelHandler()) {
+				closeWaitDialog();
+				goto EXIT;
+			}
+
+			copy_entry = copy_entry->next;
+		}
+
+		// Set progress to 100%
+		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+		sceKernelDelayThread(COUNTUP_WAIT);
+
+		// Close
+		sceMsgDialogClose();
+
+		dialog_step = DIALOG_STEP_MOVED;
+	} else { // Copy
+		if (args->copy_mode == COPY_MODE_EXTRACT) {
+			int res = archiveOpen(args->archive_path);
+			if (res < 0) {
+				closeWaitDialog();
+				errorDialog(res);
+				goto EXIT;
+			}
+		}
+
+		// Get src paths info
+		uint32_t size = 0, folders = 0, files = 0;
+
+		copy_entry = args->copy_list->head;
+
+		int i;
+		for (i = 0; i < args->copy_list->length; i++) {
+			disableAutoSuspend();
+
+			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+
+			if (args->copy_mode == COPY_MODE_EXTRACT) {
+				addEndSlash(src_path);
+				getArchivePathInfo(src_path, &size, &folders, &files);
+			} else {
+				removeEndSlash(src_path);
+				getPathInfo(src_path, &size, &folders, &files);
+			}
+
+			copy_entry = copy_entry->next;
+		}
+
+		// Update thread
+		thid = createStartUpdateThread(size + folders);
+
+		// Copy process
+		uint32_t value = 0;
+
+		copy_entry = args->copy_list->head;
+
+		for (i = 0; i < args->copy_list->length; i++) {
+			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
+
+			if (args->copy_mode == COPY_MODE_EXTRACT) {
+				addEndSlash(src_path);
+				addEndSlash(dst_path);
+
+				int res = extractArchivePath(src_path, dst_path, &value, size + folders, SetProgress, cancelHandler);
+				if (res <= 0) {
+					closeWaitDialog();
+					errorDialog(res);
+					goto EXIT;
+				}
+			} else {
+				removeEndSlash(src_path);
+				removeEndSlash(dst_path);
+
+				int res = copyPath(src_path, dst_path, &value, size + folders, SetProgress, cancelHandler);
+				if (res <= 0) {
+					closeWaitDialog();
+					errorDialog(res);
+					goto EXIT;
+				}
+			}
+
+			copy_entry = copy_entry->next;
+		}
+
+		// Set progress to 100%
+		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+		sceKernelDelayThread(COUNTUP_WAIT);
+
+		// Close
+		sceMsgDialogClose();
+
+		dialog_step = DIALOG_STEP_COPIED;
+	}
+
+EXIT:
+	if (thid >= 0)
+		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	return sceKernelExitDeleteThread(0);
+}

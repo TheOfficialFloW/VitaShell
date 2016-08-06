@@ -1,0 +1,23 @@
+{
+	"ScePromoterUtil": {
+		"nid": 3004968284,
+		"modules": {
+			"ScePromoterUtil": {
+				"nid": 837957558,
+				"kernel": false,
+				"functions": {
+					"scePromoterUtilityInit": 2470778166,
+					"scePromoterUtilityExit": 3378324646,
+					"scePromoterUtilityDeletePkg": 2101769519,
+					"scePromoterUtilityUpdateLiveArea": 399982282,
+					"scePromoterUtilityPromotePkg": 1902936564,
+					"scePromoterUtilityPromotePkgWithRif": 2254707654,
+					"scePromoterUtilityGetState": 2884400338,
+					"scePromoterUtilityGetResult": 1236562928
+				},
+				"variables": {
+				}
+			}
+		}
+	}
+}
