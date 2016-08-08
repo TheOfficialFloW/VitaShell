@@ -50,6 +50,7 @@
 #include "ime_dialog.h"
 #include "language.h"
 #include "utils.h"
+#include "audioplayer.h"
 
 int _newlib_heap_size_user = 32 * 1024 * 1024;
 
@@ -266,7 +267,11 @@ int handleFile(char *file, FileListEntry *entry) {
 		case FILE_TYPE_JPEG:
 			res = photoViewer(file, type, &file_list, entry, &base_pos, &rel_pos);
 			break;
-			
+
+		case FILE_TYPE_MP3:
+			res = audioPlayer(file, type, &file_list, entry, &base_pos, &rel_pos, SCE_AUDIODEC_TYPE_MP3, 0);
+			break;
+
 		case FILE_TYPE_VPK:
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
 			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
@@ -1104,7 +1109,7 @@ int shellMain() {
 				color = CYAN;
 
 			// Images
-			if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG) {
+			if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) {
 				color = ROSE;
 			}
 

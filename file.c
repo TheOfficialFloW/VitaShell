@@ -61,6 +61,18 @@ int WriteFile(char *file, void *buf, int size) {
 	return written;
 }
 
+int getFileSize(char *pInputFileName)
+{
+	SceUID fd = sceIoOpen(pInputFileName, SCE_O_RDONLY, 0);
+	if (fd < 0)
+		return fd;
+
+	int fileSize = sceIoLseek(fd, 0, SCE_SEEK_END);
+	
+	sceIoClose(fd);
+	return fileSize;
+}
+
 int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
@@ -340,6 +352,7 @@ static ExtensionType extension_types[] = {
 	{ ".JPG",  FILE_TYPE_JPEG },
 	{ ".JPEG", FILE_TYPE_JPEG },
 	{ ".PNG",  FILE_TYPE_PNG },
+	{ ".MP3",  FILE_TYPE_MP3 },
 	{ ".RAR",  FILE_TYPE_RAR },
 	{ ".VPK",  FILE_TYPE_VPK },
 	{ ".ZIP",  FILE_TYPE_ZIP },

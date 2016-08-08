@@ -21,6 +21,8 @@
 
 #include <psp2/appmgr.h>
 #include <psp2/apputil.h>
+#include <psp2/audioout.h>
+#include <psp2/audiodec.h>
 #include <psp2/ctrl.h>
 #include <psp2/display.h>
 #include <psp2/kernel/modulemgr.h>

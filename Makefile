@@ -1,7 +1,8 @@
 TITLE_ID = VITASHELL
 TARGET   = VitaShell
 OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file.o text.o hex.o \
-		   uncommon_dialog.o message_dialog.o ime_dialog.o language.o utils.o sha1.o
+		   uncommon_dialog.o message_dialog.o ime_dialog.o language.o utils.o sha1.o \
+		   audioplayer.o
 
 FEXDIRS    = fex fex/7z_C fex/fex fex/unrar
 FEXCSRCS   = $(foreach dir, $(FEXDIRS), $(wildcard $(dir)/*.c))
@@ -16,7 +17,8 @@ LIBS = -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
 	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	   -lSceKernel_stub -lSceNet_stub -lSceNetCtl_stub \
-	   -lSceSysmodule_stub -lScePower_stub -lScePgf_stub libpromoter/libScePromoterUtil_stub.a
+	   -lSceSysmodule_stub -lScePower_stub -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
+	   -lSceAudio_stub -lSceAudiodec_stub
 
 #NETDBG_IP ?= 192.168.1.50
 
