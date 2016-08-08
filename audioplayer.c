@@ -74,8 +74,8 @@ int initAudioDecoderByType(SceAudiodecCtrl *pAudiodecCtrl, AudioFileStream *pInp
 		};
 		int audioChannelsMpeg[4] = {2, 2, 2, 1};
 
-		int sync = (pInputStream->pBuffer[0] & 0xFF) << 3 | (pInputStream->pBuffer[1] & 0xE0) >> 3;
-		if (sync != 0x7FF) {
+		int sync = (pInputStream->pBuffer[0] & 0xFF) << 4 | (pInputStream->pBuffer[1] & 0xE0) >> 4;
+		if (sync != 0xFFE) {
 			return -1;
 		}
 
