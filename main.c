@@ -269,7 +269,7 @@ int handleFile(char *file, FileListEntry *entry) {
 			break;
 
 		case FILE_TYPE_MP3:
-			res = audioPlayer(file, type, &file_list, entry, &base_pos, &rel_pos, SCE_AUDIODEC_TYPE_MP3, 0);
+			res = audioPlayer(file, &file_list, entry, &base_pos, &rel_pos, SCE_AUDIODEC_TYPE_MP3, 1);
 			break;
 
 		case FILE_TYPE_VPK:

@@ -23,6 +23,8 @@
 #include "utils.h"
 #include "audioplayer.h"
 
+#define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
+
 static SceUID sEventAudioHolder = -1;
 static SceUID sThreadAudioHolder = -1;
 static AudioOutConfig sAudioOutConfigHolder;
@@ -312,34 +314,11 @@ int startAudioPlayer()
 	return returnValue;
 }
 
-//TODO
-void playPrevious() {
-	/*
-	stopThread();
-	returnCode = shutdownAudioPlayer();
-	reInit();
-	setCodecType();
-	setInputFileName(file);
-	setOutputFileName();
-	startAudioPlayer();
-	*/
-}
-
-//TODO
-void playNext() {
-	/*
-	stopThread();
-	returnCode = shutdownAudioPlayer();
-	reInit();
-	setCodecType();
-	setInputFileName(file);
-	setOutputFileName();
-	startAudioPlayer();
-	*/
-}
-
-int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos, unsigned int codec_type, int blooking) {
+int audioPlayer(char *file, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos, unsigned int codec_type, int showInterface) {
 	int returnCode = 0;
+	bool isTouched = false;
+
+	SceTouchData touch;
 
 	if(isRunning()) {
 		stopAudioThread();
@@ -352,10 +331,28 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 	setInputFileName(file);
 
 	returnCode = startAudioPlayer();
-	if(blooking == 1) {
+	if(showInterface == 1) {
 		// Main loop
 		while (isRunning()) {
 			readPad();
+			sceTouchPeek(0, &touch, 1);
+
+			int checkPrevNexFlag = -1;
+
+			if (touch.reportNum > 0 && !isTouched) {
+				int x = lerp(touch.report[0].x, 1920, SCREEN_WIDTH);
+				int y = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT);
+				if(x >= SCREEN_WIDTH / 2 - 200 && x <= SCREEN_WIDTH / 2 - 80 && y >= SCREEN_HEIGHT - 170 && y <= SCREEN_HEIGHT - 50) {
+					checkPrevNexFlag = 1;
+				} else if(x >= SCREEN_WIDTH / 2 - 60 && x <= SCREEN_WIDTH / 2 + 60 && y >= SCREEN_HEIGHT - 170 && y <= SCREEN_HEIGHT - 50) {
+					checkPrevNexFlag = 0;
+				} else if(x >= SCREEN_WIDTH / 2 + 80 && x <= SCREEN_WIDTH / 2 + 200 && y >= SCREEN_HEIGHT - 170 && y <= SCREEN_HEIGHT - 50) {
+					togglePause();
+				}
+				isTouched = true;
+			} else if (touch.reportNum <= 0) {
+				isTouched = false;
+			}
 
 			// Pause or resume if START button pressed
 			if (pressed_buttons & SCE_CTRL_START) {
@@ -367,15 +364,84 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 				stopAudioThread();
 			}
 
-			// Pause or resume if START button pressed
+			// Next if R Trigger pressed
 			if (pressed_buttons & SCE_CTRL_RTRIGGER) {
-				playNext();
+				checkPrevNexFlag = 0;
 			}
 
-			// Exit if SELECT button pressed
+			// Previous if L Trigger pressed
 			if (pressed_buttons & SCE_CTRL_LTRIGGER) {
-				playPrevious();
+				checkPrevNexFlag = 1;
 			}
+
+			if(checkPrevNexFlag >= 0) {
+				int available = 0;
+
+				int old_base_pos = *base_pos;
+				int old_rel_pos = *rel_pos;
+				FileListEntry *old_entry = entry;
+				while (checkPrevNexFlag ? entry->previous : entry->next) {
+					entry = checkPrevNexFlag ? entry->previous : entry->next;
+					if (checkPrevNexFlag) {
+						if (*rel_pos > 0) {
+							(*rel_pos)--;
+						} else {
+							if (*base_pos > 0) {
+								(*base_pos)--;
+							}
+						}
+					} else {
+						if ((*rel_pos + 1) < list->length) {
+							if ((*rel_pos + 1) < MAX_POSITION) {
+								(*rel_pos)++;
+							} else {
+								if ((*base_pos + *rel_pos + 1) < list->length) {
+									(*base_pos)++;
+								}
+							}
+						}
+					}
+
+					if (!entry->is_folder) {
+						char path[MAX_PATH_LENGTH];
+						snprintf(path, MAX_PATH_LENGTH, "%s%s", list->path, entry->name);
+						int type = getFileType(path);
+						if (type == FILE_TYPE_MP3) {
+							stopAudioThread();
+							int returnCode = shutdownAudioPlayer();
+							resetAudioPlayer();
+							setCodecType(SCE_AUDIODEC_TYPE_MP3);
+							setInputFileName(path);
+							startAudioPlayer();
+							available = 1;
+							break;
+						}
+					}
+				}
+
+				if (!available) {
+					*base_pos = old_base_pos;
+					*rel_pos = old_rel_pos;
+					entry = old_entry;
+				}
+			}
+
+			// Start drawing
+			START_DRAWING();
+			int nameLength = strlen(entry->name);
+			vita2d_pgf_draw_text(font, SCREEN_WIDTH / 2 - nameLength * 5.5, SCREEN_HEIGHT - 190, WHITE, 1.0f, entry->name);
+			
+			vita2d_draw_texture(headphone_image, SCREEN_WIDTH / 2 - 150, 20);
+			vita2d_draw_texture(audio_previous_image, SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT - 170);
+			vita2d_draw_texture(audio_next_image, SCREEN_WIDTH / 2 - 60, SCREEN_HEIGHT - 170);
+			if(isPausing()) {
+				vita2d_draw_texture(audio_play_image, SCREEN_WIDTH / 2 + 80, SCREEN_HEIGHT - 170);
+			} else {
+				vita2d_draw_texture(audio_pause_image, SCREEN_WIDTH / 2 + 80, SCREEN_HEIGHT - 170);
+			}
+
+			// End drawing
+			END_DRAWING();
 
 			sceKernelDelayThread(1000);
 		}

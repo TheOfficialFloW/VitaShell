@@ -41,6 +41,6 @@ typedef struct AudioOutConfig {
 	int grain;
 } AudioOutConfig;
 
-int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos, unsigned int codec_type, int blooking);
+extern int audioPlayer(char *file, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos, unsigned int codec_type, int showInterface);
 
 #endif

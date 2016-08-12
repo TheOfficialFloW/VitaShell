@@ -9,7 +9,9 @@ FEXCSRCS   = $(foreach dir, $(FEXDIRS), $(wildcard $(dir)/*.c))
 FEXCPPSRCS = $(foreach dir, $(FEXDIRS), $(wildcard $(dir)/*.cpp))
 OBJS += $(FEXCSRCS:.c=.o) $(FEXCPPSRCS:.cpp=.o)
 
-RESOURCES_PNG = resources/ftp.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png
+RESOURCES_PNG = resources/ftp.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
+		   resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
+		   resources/audio_next.png
 RESOURCES_TXT = resources/english_us_translation.txt
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
 
@@ -18,7 +20,7 @@ LIBS = -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	   -lSceKernel_stub -lSceNet_stub -lSceNetCtl_stub \
 	   -lSceSysmodule_stub -lScePower_stub -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
-	   -lSceAudio_stub -lSceAudiodec_stub
+	   -lSceAudio_stub -lSceAudiodec_stub -lSceTouch_stub
 
 #NETDBG_IP ?= 192.168.1.50
 
