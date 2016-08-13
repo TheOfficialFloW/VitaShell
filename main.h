@@ -21,6 +21,8 @@
 
 #include <psp2/appmgr.h>
 #include <psp2/apputil.h>
+#include <psp2/audioout.h>
+#include <psp2/audiodec.h>
 #include <psp2/ctrl.h>
 #include <psp2/display.h>
 #include <psp2/kernel/modulemgr.h>
@@ -37,6 +39,7 @@
 #include <psp2/rtc.h>
 #include <psp2/sysmodule.h>
 #include <psp2/system_param.h>
+#include <psp2/touch.h>
 #include <psp2/types.h>
 
 #include <stdio.h>
@@ -212,7 +215,8 @@ enum DialogSteps {
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
-extern vita2d_texture *ftp_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image;
+extern vita2d_texture *ftp_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image, *headphone_image;
+extern vita2d_texture *audio_previous_image, *audio_pause_image, *audio_play_image, *audio_next_image;
 
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
@@ -224,3 +228,4 @@ void drawShellInfo(char *path);
 int isInArchive();
 
 #endif
+

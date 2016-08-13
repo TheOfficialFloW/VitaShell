@@ -35,6 +35,7 @@ enum FileTypes {
 	FILE_TYPE_BMP,
 	FILE_TYPE_JPEG,
 	FILE_TYPE_PNG,
+	FILE_TYPE_MP3,
 	FILE_TYPE_RAR,
 	FILE_TYPE_VPK,
 	FILE_TYPE_ZIP,
@@ -67,6 +68,7 @@ typedef struct {
 int ReadFile(char *file, void *buf, int size);
 int WriteFile(char *file, void *buf, int size);
 
+int getFileSize(char *pInputFileName);
 int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files);
 int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max), int (* cancelHandler)());
 int copyFile(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max), int (* cancelHandler)());
