@@ -180,7 +180,7 @@ void getDateString(char *string, int date_format, SceRtcTime *time) {
 void getTimeString(char *string, int time_format, SceRtcTime *time) {
 	switch(time_format) {
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
-			sprintf(string, "%02d:%02d %s", time->hour >= 12 ? time->hour - 12 : time->hour, time->minutes, time->hour >= 12 ? "PM" : "AM");
+			sprintf(string, "%02d:%02d %s", (time->hour > 12) ? (time->hour - 12) : ((time->hour == 0) ? 12 : time->hour), time->minutes, time->hour >= 12 ? "PM" : "AM");
 			break;
 
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_24HR:

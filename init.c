@@ -48,6 +48,10 @@ void initSceAppUtil() {
 	memset(&boot_param, 0, sizeof(SceAppUtilBootParam));
 	sceAppUtilInit(&init_param, &boot_param);
 
+	// Mount
+	sceAppUtilMusicMount();
+	sceAppUtilPhotoMount();
+
 	// System params
 	sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &language);
 	sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_ENTER_BUTTON, &enter_button);
@@ -68,6 +72,10 @@ void initSceAppUtil() {
 }
 
 void finishSceAppUtil() {
+	// Unmount
+	sceAppUtilPhotoUmount();
+	sceAppUtilMusicUmount();
+
 	// Shutdown AppUtil
 	sceAppUtilShutdown();
 }
