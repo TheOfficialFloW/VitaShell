@@ -210,7 +210,17 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 		int read;
 		while ((read = archiveFileRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-			sceIoWrite(fddst, buf, read);
+			int res = sceIoWrite(fddst, buf, read);
+			if (res < 0) {
+				free(buf);
+
+				sceIoClose(fddst);
+				archiveFileClose(fdsrc);
+
+				fileListEmpty(&list);
+
+				return res;
+			}
 
 			if (value)
 				(*value) += read;
