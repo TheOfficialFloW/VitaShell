@@ -16,7 +16,7 @@ This homebrew was an entry of the Revitalize PS Vita homebrew competition and wo
 
 ### Changelog 0.X ###
 - Added support for >2GB zip archives (dropped support for 7zip and rar though).
-- Added cache system for zipfs (faster file reading browsing in zip archives).
+- Added cache system for zipfs (faster file reading when browsing in zip archives).
 - Fixed 12h time conversion.
 
 ### Changelog 0.7 ###

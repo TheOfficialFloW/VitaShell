@@ -66,7 +66,7 @@
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0
-#define VITASHELL_VERSION_MINOR 7
+#define VITASHELL_VERSION_MINOR 8
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
