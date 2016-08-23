@@ -53,7 +53,9 @@ extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hol
 void errorDialog(int error);
 void infoDialog(char *msg, ...);
 
-void disableAutoSuspend();
+void initPowerTickThread();
+void powerLock();
+void powerUnlock();
 
 void readPad();
 int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time);

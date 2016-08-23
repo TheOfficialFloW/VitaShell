@@ -765,11 +765,10 @@ int dialogSteps() {
 			break;
 			
 		case DIALOG_STEP_FTP:
-			disableAutoSuspend();
-
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				dialog_step = DIALOG_STEP_NONE;
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				powerUnlock();
 				ftpvita_fini();
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -942,6 +941,9 @@ void fileBrowserMenuCtrl() {
 					}
 				}
 			}
+
+			// Lock power timers
+			powerLock();
 		}
 
 		// Dialog

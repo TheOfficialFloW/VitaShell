@@ -50,7 +50,6 @@ int update_thread(SceSize args_size, UpdateArguments *args) {
 	double kbs = 0;
 */
 	while (current_value < args->max && isMessageDialogRunning()) {
-		disableAutoSuspend();
 /*
 		// Show KB/s
 		cur_micros = sceKernelGetProcessTimeWide();
@@ -90,6 +89,9 @@ SceUID createStartUpdateThread(uint32_t max) {
 int delete_thread(SceSize args_size, DeleteArguments *args) {
 	SceUID thid = -1;
 
+	// Lock power timers
+	powerLock();
+
 	// Set progress to 0%
 	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
 	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
@@ -120,8 +122,6 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 
 	int i;
 	for (i = 0; i < count; i++) {
-		disableAutoSuspend();
-
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 		removeEndSlash(path);
 
@@ -168,11 +168,17 @@ EXIT:
 	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
 
+	// Unlock power timers
+	powerUnlock();
+
 	return sceKernelExitDeleteThread(0);
 }
 
 int copy_thread(SceSize args_size, CopyArguments *args) {
 	SceUID thid = -1;
+
+	// Lock power timers
+	powerLock();
 
 	// Set progress to 0%
 	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
@@ -236,8 +242,6 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 		int i;
 		for (i = 0; i < args->copy_list->length; i++) {
-			disableAutoSuspend();
-
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 			removeEndSlash(src_path);
 
@@ -306,6 +310,9 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 EXIT:
 	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	// Unlock power timers
+	powerUnlock();
 
 	return sceKernelExitDeleteThread(0);
 }

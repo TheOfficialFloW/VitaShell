@@ -213,6 +213,9 @@ int makeHeadBin() {
 int install_thread(SceSize args_size, InstallArguments *args) {
 	SceUID thid = -1;
 
+	// Lock power timers
+	powerLock();
+
 	// Set progress to 0%
 	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
 	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
@@ -279,6 +282,9 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 EXIT:
 	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	// Unlock power timers
+	powerUnlock();
 
 	return sceKernelExitDeleteThread(0);
 }

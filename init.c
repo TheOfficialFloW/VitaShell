@@ -149,6 +149,9 @@ void initVitaShell() {
 
 	// Init netdbg
 	netdbg_init();
+
+	// Init power tick thread
+	initPowerTickThread();
 }
 
 void finishVitaShell() {
