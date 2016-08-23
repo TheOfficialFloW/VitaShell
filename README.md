@@ -14,6 +14,11 @@ This homebrew was an entry of the Revitalize PS Vita homebrew competition and wo
 * wololo for the Revitalize contest
 * Everybody who contributed on vitasdk
 
+### Changelog 0.X ###
+- Added support for >2GB zip archives (dropped support for 7zip and rar though).
+- Added cache system for zipfs (faster file reading browsing in zip archives).
+- Fixed 12h time conversion.
+
 ### Changelog 0.7 ###
 - Ported to HENkaku (support for renaming/creating folders and for analog stick for fast movement).
 - Added custom dialogs.

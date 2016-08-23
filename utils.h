@@ -62,8 +62,8 @@ int removeEndSlash(char *path);
 int addEndSlash(char *path);
 
 void getSizeString(char *string, uint64_t size);
-void getDateString(char *string, int date_format, SceRtcTime *time);
-void getTimeString(char *string, int time_format, SceRtcTime *time);
+void getDateString(char *string, int date_format, SceDateTime *time);
+void getTimeString(char *string, int time_format, SceDateTime *time);
 
 int debugPrintf(char *text, ...);
 

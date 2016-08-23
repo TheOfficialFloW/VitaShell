@@ -221,6 +221,7 @@ void refreshCopyList() {
 		char path[MAX_PATH_LENGTH];
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_list.path, entry->name);
 
+		// TODO: fix for archives
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
 		if (sceIoGetstat(path, &stat) < 0)
@@ -247,8 +248,6 @@ int handleFile(char *file, FileListEntry *entry) {
 
 	int type = getFileType(file);
 	switch (type) {
-		case FILE_TYPE_7ZIP:
-		case FILE_TYPE_RAR:
 		case FILE_TYPE_VPK:
 		case FILE_TYPE_ZIP:
 			if (isInArchive())
@@ -277,8 +276,6 @@ int handleFile(char *file, FileListEntry *entry) {
 			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
 			break;
 			
-		case FILE_TYPE_RAR:
-		case FILE_TYPE_7ZIP:
 		case FILE_TYPE_ZIP:
 			res = archiveOpen(file);
 			break;
@@ -326,7 +323,7 @@ void drawShellInfo(char *path) {
 	vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
 
 	// Date & time
-	SceRtcTime time;
+	SceDateTime time;
 	sceRtcGetCurrentClockLocalTime(&time);
 
 	char date_string[16];
@@ -1037,7 +1034,7 @@ void fileBrowserMenuCtrl() {
 			int type = handleFile(cur_file, file_entry);
 
 			// Archive mode
-			if (type == FILE_TYPE_7ZIP || type == FILE_TYPE_RAR || type == FILE_TYPE_ZIP) {
+			if (type == FILE_TYPE_ZIP) {
 				is_in_archive = 1;
 				dir_level_archive = dir_level;
 
@@ -1115,7 +1112,7 @@ int shellMain() {
 
 			// Archives
 			if (!isInArchive()) {
-				if (file_entry->type == FILE_TYPE_7ZIP || file_entry->type == FILE_TYPE_RAR || file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) {
+				if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) {
 					color = ORANGE;
 				}
 			}

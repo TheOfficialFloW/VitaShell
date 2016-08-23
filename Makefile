@@ -2,12 +2,7 @@ TITLE_ID = VITASHELL
 TARGET   = VitaShell
 OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file.o text.o hex.o \
 		   uncommon_dialog.o message_dialog.o ime_dialog.o language.o utils.o sha1.o \
-		   audioplayer.o
-
-FEXDIRS    = fex fex/7z_C fex/fex fex/unrar
-FEXCSRCS   = $(foreach dir, $(FEXDIRS), $(wildcard $(dir)/*.c))
-FEXCPPSRCS = $(foreach dir, $(FEXDIRS), $(wildcard $(dir)/*.cpp))
-OBJS += $(FEXCSRCS:.c=.o) $(FEXCPPSRCS:.cpp=.o)
+		   audioplayer.o minizip/unzip.o minizip/ioapi.o
 
 RESOURCES_PNG = resources/ftp.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
 		   resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
@@ -34,8 +29,7 @@ endif
 PREFIX   = arm-vita-eabi
 CC       = $(PREFIX)-gcc
 CXX      = $(PREFIX)-g++
-CFLAGS   += -Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable \
-	$(foreach dir, $(FEXDIRS), -I$(dir))
+CFLAGS   = -Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable
 CXXFLAGS = $(CFLAGS) -std=c++11 -fno-rtti -fno-exceptions
 ASFLAGS  = $(CFLAGS)
 

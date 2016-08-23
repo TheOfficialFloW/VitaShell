@@ -355,13 +355,11 @@ typedef struct {
 } ExtensionType;
 
 static ExtensionType extension_types[] = {
-	{ ".7Z",   FILE_TYPE_7ZIP },
 	{ ".BMP",  FILE_TYPE_BMP },
 	{ ".JPG",  FILE_TYPE_JPEG },
 	{ ".JPEG", FILE_TYPE_JPEG },
 	{ ".PNG",  FILE_TYPE_PNG },
 	{ ".MP3",  FILE_TYPE_MP3 },
-	{ ".RAR",  FILE_TYPE_RAR },
 	{ ".VPK",  FILE_TYPE_VPK },
 	{ ".ZIP",  FILE_TYPE_ZIP },
 };
@@ -391,8 +389,10 @@ char **getMountPoints() {
 FileListEntry *fileListFindEntry(FileList *list, char *name) {
 	FileListEntry *entry = list->head;
 
+	int name_length = strlen(name);
+
 	while (entry) {
-		if (strcmp(entry->name, name) == 0)
+		if (entry->name_length == name_length && strcmp(entry->name, name) == 0)
 			return entry;
 
 		entry = entry->next;
@@ -424,8 +424,6 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 		list->tail = entry;
 	} else {
 		if (sort != SORT_NONE) {
-			int entry_length = strlen(entry->name);
-
 			FileListEntry *p = list->head;
 			FileListEntry *previous = NULL;
 
@@ -440,15 +438,14 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 
 				if (strcmp(p->name, "..") != 0) {
 					// Get the minimum length without /
-					int name_length = strlen(p->name);
-					int len = MIN(entry_length, name_length);
+					int len = MIN(entry->name_length, p->name_length);
 					if (entry->name[len - 1] == '/' || p->name[len - 1] == '/')
 						len--;
 
 					// Sort by name
 					if (entry->is_folder == p->is_folder) {
 						int diff = strncasecmp(entry->name, p->name, len);
-						if (diff < 0 || (diff == 0 && entry_length < name_length)) {
+						if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
 							break;
 						}
 					}
@@ -476,6 +473,7 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 		} else {
 			FileListEntry *tail = list->tail;
 			tail->next = entry;
+			entry->previous = tail;
 			list->tail = entry;
 		}
 	}
@@ -510,8 +508,10 @@ int fileListRemoveEntryByName(FileList *list, char *name) {
 	FileListEntry *entry = list->head;
 	FileListEntry *previous = NULL;
 
+	int name_length = strlen(name);
+
 	while (entry) {
-		if (strcmp(entry->name, name) == 0) {
+		if (entry->name_length == name_length && strcmp(entry->name, name) == 0) {
 			if (previous) {
 				previous->next = entry->next;
 			} else {
@@ -561,10 +561,11 @@ int fileListGetMountPointEntries(FileList *list) {
 			if (sceIoGetstat(mount_points[i], &stat) >= 0) {
 				FileListEntry *entry = malloc(sizeof(FileListEntry));
 				strcpy(entry->name, mount_points[i]);
+				entry->name_length = strlen(entry->name);
 				entry->is_folder = 1;
 				entry->type = FILE_TYPE_UNKNOWN;
 
-				memcpy(&entry->time, (SceRtcTime *)&stat.st_ctime, sizeof(SceRtcTime));
+				memcpy(&entry->time, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
 
 				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
 
@@ -583,6 +584,7 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 
 	FileListEntry *entry = malloc(sizeof(FileListEntry));
 	strcpy(entry->name, DIR_UP);
+	entry->name_length = strlen(entry->name);
 	entry->is_folder = 1;
 	entry->type = FILE_TYPE_UNKNOWN;
 	fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
@@ -612,9 +614,10 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 				list->files++;
 			}
 
-			memcpy(&entry->time, (SceRtcTime *)&dir.d_stat.st_mtime, sizeof(SceRtcTime));
-
+			entry->name_length = strlen(entry->name);
 			entry->size = dir.d_stat.st_size;
+
+			memcpy(&entry->time, (SceDateTime *)&dir.d_stat.st_mtime, sizeof(SceDateTime));
 
 			fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
 		}

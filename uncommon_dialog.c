@@ -201,6 +201,11 @@ int sceMsgDialogGetResult(SceMsgDialogResult *result) {
 	return 0;
 }
 
+int sceMsgDialogProgressBarSetMsg(SceMsgDialogProgressBarTarget target, const SceChar8 *barMsg) {
+	strncpy(uncommon_dialog.msg, (char *)barMsg, sizeof(uncommon_dialog.msg) - 1);
+	return 0;
+}
+
 int sceMsgDialogProgressBarSetValue(SceMsgDialogProgressBarTarget target, SceUInt32 rate) {
 	if (rate > 100)
 		return -1;

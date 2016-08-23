@@ -56,7 +56,6 @@
 
 #include <vita2d.h>
 #include <ftpvita.h>
-#include <fex.h>
 
 #include "functions.h"
 

@@ -28,15 +28,14 @@ int fileListGetArchiveEntries(FileList *list, char *path);
 int getArchivePathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files);
 int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max), int (* cancelHandler)());
 
-int archiveFileOpen(char *path);
-int archiveFileGetSize(SceUID fd);
-int archiveFileSeek(SceUID fd, int n);
-int archiveFileRead(SceUID fd, void *data, int n);
+int archiveFileGetstat(const char *file, SceIoStat *stat);
+int archiveFileOpen(const char *file, int flags, SceMode mode);
+int archiveFileRead(SceUID fd, void *data, SceSize size);
 int archiveFileClose(SceUID fd);
 
 int ReadArchiveFile(char *file, void *buf, int size);
 
-void archiveClose();
+int archiveClose();
 int archiveOpen(char *file);
 
 #endif

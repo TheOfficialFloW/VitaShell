@@ -161,7 +161,7 @@ void getSizeString(char *string, uint64_t size) {
 	sprintf(string, "%.*f %s", (i == 0) ? 0 : 2, double_size, units[i]);
 }
 
-void getDateString(char *string, int date_format, SceRtcTime *time) {
+void getDateString(char *string, int date_format, SceDateTime *time) {
 	switch (date_format) {
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_YYYYMMDD:
 			sprintf(string, "%04d/%02d/%02d", time->year, time->month, time->day);
@@ -177,14 +177,14 @@ void getDateString(char *string, int date_format, SceRtcTime *time) {
 	}
 }
 
-void getTimeString(char *string, int time_format, SceRtcTime *time) {
+void getTimeString(char *string, int time_format, SceDateTime *time) {
 	switch(time_format) {
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
-			sprintf(string, "%02d:%02d %s", (time->hour > 12) ? (time->hour - 12) : ((time->hour == 0) ? 12 : time->hour), time->minutes, time->hour >= 12 ? "PM" : "AM");
+			sprintf(string, "%02d:%02d %s", (time->hour > 12) ? (time->hour - 12) : ((time->hour == 0) ? 12 : time->hour), time->minute, time->hour >= 12 ? "PM" : "AM");
 			break;
 
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_24HR:
-			sprintf(string, "%02d:%02d", time->hour, time->minutes);
+			sprintf(string, "%02d:%02d", time->hour, time->minute);
 			break;
 	}
 }

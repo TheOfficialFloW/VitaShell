@@ -31,12 +31,10 @@
 
 enum FileTypes {
 	FILE_TYPE_UNKNOWN,
-	FILE_TYPE_7ZIP,
 	FILE_TYPE_BMP,
 	FILE_TYPE_JPEG,
 	FILE_TYPE_PNG,
 	FILE_TYPE_MP3,
-	FILE_TYPE_RAR,
 	FILE_TYPE_VPK,
 	FILE_TYPE_ZIP,
 };
@@ -50,10 +48,12 @@ typedef struct FileListEntry {
 	struct FileListEntry *next;
 	struct FileListEntry *previous;
 	char name[MAX_NAME_LENGTH];
+	int name_length;
 	int is_folder;
 	int type;
 	SceOff size;
-	SceRtcTime time;
+	SceDateTime time;
+	int reserved[16];
 } FileListEntry;
 
 typedef struct {

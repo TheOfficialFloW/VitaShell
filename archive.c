@@ -21,92 +21,96 @@
 #include "file.h"
 #include "utils.h"
 
-static int path_length = 0;
+#include "minizip/unzip.h"
 
-static fex_t *fex = NULL;
-static fex_pos_t archive_file_pos = 0;
-static int archive_file_size = 0;
+static int archive_path_start = 0;
+static unzFile uf = NULL;
+static FileList archive_list;
 
 int fileListGetArchiveEntries(FileList *list, char *path) {
-	if (!fex)
+	int res;
+
+	if (!uf)
 		return -1;
 
 	FileListEntry *entry = malloc(sizeof(FileListEntry));
 	strcpy(entry->name, DIR_UP);
+	entry->name_length = strlen(entry->name);
 	entry->is_folder = 1;
 	entry->type = FILE_TYPE_UNKNOWN;
 	fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
 
-	char *archive_path = path + path_length;
-	int archive_path_length = strlen(archive_path);
+	char *archive_path = path + archive_path_start;
+	int name_length = strlen(archive_path);
 
-	fex_rewind(fex);
+	FileListEntry *archive_entry = archive_list.head;
 
-	int count = 0;
-
-	while (!fex_done(fex)) {
-		fex_stat(fex);
-
-		const char *name = fex_name(fex);
-		int size = fex_size(fex);
-
-		if (strncmp(name, archive_path, archive_path_length) == 0) { // Needs a / at end
-			char *p = strchr(name + archive_path_length, '/');
+	int i;
+	for (i = 0; i < archive_list.length; i++) {
+		if (archive_entry->name_length >= name_length && strncmp(archive_entry->name, archive_path, name_length) == 0) { // Needs a / at end
+			char *p = strchr(archive_entry->name + name_length, '/'); // it's a sub-directory if it has got a slash
 
 			if (p)
 				*p = '\0';
 
-			FileListEntry *entry = malloc(sizeof(FileListEntry));
-
-			strcpy(entry->name, name + archive_path_length);
-
+			char name[MAX_PATH_LENGTH];
+			strcpy(name, archive_entry->name + name_length);
 			if (p) {
-				addEndSlash(entry->name);
-				entry->is_folder = 1;
-				entry->type = FILE_TYPE_UNKNOWN;
-				list->folders++;
-			} else {
-				entry->is_folder = 0;
-				entry->type = getFileType(entry->name);
-				list->files++;
+				addEndSlash(name);
 			}
 
-			entry->size = size;
+			if (strlen(name) > 0 && !fileListFindEntry(list, name)) {
+				FileListEntry *entry = malloc(sizeof(FileListEntry));
 
-			sceRtcSetDosTime(&entry->time, fex_dos_date(fex));
+				strcpy(entry->name, archive_entry->name + name_length);
 
-			if (!fileListFindEntry(list, entry->name)) {
+				if (p) {
+					addEndSlash(entry->name);
+					entry->is_folder = 1;
+					entry->type = FILE_TYPE_UNKNOWN;
+					list->folders++;
+				} else {
+					entry->is_folder = 0;
+					entry->type = getFileType(entry->name);
+					list->files++;
+				}
+
+				entry->name_length = strlen(entry->name);
+				entry->size = archive_entry->size;
+
+				memcpy(&entry->time, &archive_entry->time, sizeof(SceDateTime));
+
 				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
-				count++;
 			}
 
 			if (p)
 				*p = '/';
 		}
 
-		fex_next(fex);
+		// Next
+		archive_entry = archive_entry->next;
 	}
 
-	return count;
+	return 0;
 }
 
 int getArchivePathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) {
-	if (!fex)
+	if (!uf)
 		return -1;
 
-	FileList list;
-	memset(&list, 0, sizeof(FileList));
-	int count = fileListGetArchiveEntries(&list, path);
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	if (archiveFileGetstat(path, &stat) < 0) {
+		FileList list;
+		memset(&list, 0, sizeof(FileList));
+		fileListGetArchiveEntries(&list, path);
 
-	if (count > 0) {
 		FileListEntry *entry = list.head->next; // Ignore ..
 
 		int i;
 		for (i = 0; i < list.length - 1; i++) {
 			char *new_path = malloc(strlen(path) + strlen(entry->name) + 2);
 			snprintf(new_path, MAX_PATH_LENGTH, "%s%s", path, entry->name);
-
-			addEndSlash(new_path);
 
 			getArchivePathInfo(new_path, size, folders, files);
 
@@ -117,36 +121,30 @@ int getArchivePathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *
 
 		if (folders)
 			(*folders)++;
+
+		fileListEmpty(&list);
 	} else {
-		removeEndSlash(path);
-
-		SceUID fd = archiveFileOpen(path);
-		if (fd < 0)
-			return fd;
-
 		if (size)
-			(*size) += archiveFileGetSize(fd);
+			(*size) += stat.st_size;
 
 		if (files)
 			(*files)++;
-
-		archiveFileClose(fd);
 	}
-
-	fileListEmpty(&list);
 
 	return 0;
 }
 
 int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max), int (* cancelHandler)()) {
-	if (!fex)
+	if (!uf)
 		return -1;
 
-	FileList list;
-	memset(&list, 0, sizeof(FileList));
-	int count = fileListGetArchiveEntries(&list, src);
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	if (archiveFileGetstat(src, &stat) < 0) {
+		FileList list;
+		memset(&list, 0, sizeof(FileList));
+		fileListGetArchiveEntries(&list, src);
 
-	if (count > 0) {
 		int ret = sceIoMkdir(dst, 0777);
 		if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
 			fileListEmpty(&list);
@@ -174,14 +172,11 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 			char *dst_path = malloc(strlen(dst) + strlen(entry->name) + 2);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", dst, entry->name);
 
-			addEndSlash(src_path);
-			addEndSlash(dst_path);
-
 			int ret = extractArchivePath(src_path, dst_path, value, max, SetProgress, cancelHandler);
 
 			free(dst_path);
 			free(src_path);
-			
+
 			if (ret <= 0) {
 				fileListEmpty(&list);
 				return ret;
@@ -189,20 +184,16 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 			entry = entry->next;
 		}
+		
+		fileListEmpty(&list);
 	} else {
-		removeEndSlash(src);
-		removeEndSlash(dst);
-
-		SceUID fdsrc = archiveFileOpen(src);
-		if (fdsrc < 0) {
-			fileListEmpty(&list);
+		SceUID fdsrc = archiveFileOpen(src, SCE_O_RDONLY, 0);
+		if (fdsrc < 0)
 			return fdsrc;
-		}
 
 		SceUID fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 		if (fddst < 0) {
 			archiveFileClose(fdsrc);
-			fileListEmpty(&list);
 			return fddst;
 		}
 
@@ -217,8 +208,6 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 				sceIoClose(fddst);
 				archiveFileClose(fdsrc);
 
-				fileListEmpty(&list);
-
 				return res;
 			}
 
@@ -227,14 +216,12 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 			if (SetProgress)
 				SetProgress(value ? *value : 0, max);
-			
+
 			if (cancelHandler && cancelHandler()) {
 				free(buf);
 
 				sceIoClose(fddst);
 				archiveFileClose(fdsrc);
-
-				fileListEmpty(&list);
 
 				return 0;
 			}
@@ -246,99 +233,88 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 		archiveFileClose(fdsrc);
 	}
 
-	fileListEmpty(&list);
-
 	return 1;
 }
 
-int archiveFileOpen(char *path) {
-	if (!fex)
+int archiveFileGetstat(const char *file, SceIoStat *stat) {
+	if (!uf)
 		return -1;
 
-	char *archive_path = path + path_length;
+	const char *archive_path = file + archive_path_start;
+	int name_length = strlen(archive_path);
 
-	if (!fex_done(fex)) {
-		if (strcmp(fex_name(fex), archive_path) == 0) {
-			archive_file_pos = fex_tell_arc(fex);
-			archive_file_size = archiveFileGetSize(ARCHIVE_FD);
-			return ARCHIVE_FD;
-		}
-	}
+	FileListEntry *archive_entry = archive_list.head;
 
-	fex_rewind(fex);
+	int i;
+	for (i = 0; i < archive_list.length; i++) {
+		if (archive_entry->name_length == name_length && strcmp(archive_entry->name, archive_path) == 0) {
+			if (stat) {
+				// TODO: more stat
+				stat->st_size = archive_entry->size;
+			}
 
-	while (!fex_done(fex)) {
-		if (strcmp(fex_name(fex), archive_path) == 0) {
-			archive_file_pos = fex_tell_arc(fex);
-			archive_file_size = archiveFileGetSize(ARCHIVE_FD);
-			return ARCHIVE_FD;
+			return 0;
 		}
 
-		fex_next(fex);
+		// Next
+		archive_entry = archive_entry->next;
 	}
 
 	return -1;
 }
 
-int archiveFileGetSize(SceUID fd) {
-	if (!fex || fd != ARCHIVE_FD)
+int archiveFileOpen(const char *file, int flags, SceMode mode) {
+	int res;
+
+	if (!uf)
 		return -1;
 
-	fex_stat(fex);
-	return fex_size(fex);
-}
+	const char *archive_path = file + archive_path_start;	
+	int name_length = strlen(archive_path);
 
-int archiveFileSeek(SceUID fd, int n) {
-	if (!fex || fd != ARCHIVE_FD)
-		return -1;
+	FileListEntry *archive_entry = archive_list.head;
 
-	archiveFileClose(fd);
+	int i;
+	for (i = 0; i < archive_list.length; i++) {
+		if (archive_entry->name_length == name_length && strcmp(archive_entry->name, archive_path) == 0) {
+			// Set pos
+			unzGoToFilePos64(uf, (unz64_file_pos *)&archive_entry->reserved);
 
-	void *buf = malloc(TRANSFER_SIZE);
+			// File info
+			char name[MAX_PATH_LENGTH];
+			unz_file_info64 file_info;
+			unzGetCurrentFileInfo64(uf, &file_info, name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);
+			
+			res = unzOpenCurrentFile(uf);
+			if (res < 0)
+				return res;
 
-	int remain = 0, seek = 0;
-	while ((remain = n - seek) > 0) {
-		remain = MIN(remain, TRANSFER_SIZE);
-
-		fex_err_t res = fex_read(fex, buf, remain);
-		if (res != 0) {
-			free(buf);
-			return -fex_err_code(res);
+			return ARCHIVE_FD;
 		}
 
-		seek += remain;
+		// Next
+		archive_entry = archive_entry->next;
 	}
 
-	free(buf);
-	return 0;
+	return -1;
 }
 
-int archiveFileRead(SceUID fd, void *data, int n) {
-	if (!fex || fd != ARCHIVE_FD)
+int archiveFileRead(SceUID fd, void *data, SceSize size) {
+	if (!uf || fd != ARCHIVE_FD)
 		return -1;
 
-	int previous_pos = fex_tell(fex);
-
-	int remain = MIN(archive_file_size - previous_pos, n);
-
-	fex_err_t res = fex_read(fex, data, remain);
-	if (res != NULL)
-		return -fex_err_code(res);
-
-	return remain;
+	return unzReadCurrentFile(uf, data, size);
 }
 
 int archiveFileClose(SceUID fd) {
-	if (!fex || fd != ARCHIVE_FD)
+	if (!uf || fd != ARCHIVE_FD)
 		return -1;
 
-	fex_seek_arc(fex, archive_file_pos);
-
-	return 0;
+	return unzCloseCurrentFile(uf);
 }
 
 int ReadArchiveFile(char *file, void *buf, int size) {
-	SceUID fd = archiveFileOpen(file);
+	SceUID fd = archiveFileOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
 
@@ -347,22 +323,64 @@ int ReadArchiveFile(char *file, void *buf, int size) {
 	return read;
 }
 
-void archiveClose() {
-	if (fex) {
-		fex_close(fex);
-		fex = NULL;
-	}
+int archiveClose() {
+	if (!uf)
+		return -1;
+
+	fileListEmpty(&archive_list);
+
+	unzClose(uf);
+	uf = NULL;
+
+	return 0;
 }
 
+// TODO: improve this, it's slow...
 int archiveOpen(char *file) {
-	path_length = strlen(file) + 1;
+	int res;
 
-	if (fex)
-		archiveClose();
+	// Start position of the archive path
+	archive_path_start = strlen(file) + 1;
 
-	fex_err_t res = fex_open(&fex, file);
-	if (res != NULL)
-		return -fex_err_code(res);
+	// Close previous zip file first
+	if (uf)
+		unzClose(uf);
+
+	// Open zip file
+	uf = unzOpen64(file);
+	if (!uf)
+		return -1;
+
+	// Go to first entry
+	res = unzGoToFirstFile(uf);
+    if (res < 0)
+		return res;
+
+	// Clear archive list
+	memset(&archive_list, 0, sizeof(FileList));
+
+	// Go through all files
+	do {
+		FileListEntry *entry = malloc(sizeof(FileListEntry));
+
+		// File info
+		unz_file_info64 file_info;
+		unzGetCurrentFileInfo64(uf, &file_info, entry->name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);
+
+		entry->is_folder = 0;
+		entry->name_length = file_info.size_filename;
+		entry->size = file_info.uncompressed_size;
+		sceRtcSetDosTime(&entry->time, file_info.dosDate);
+
+		// Get pos
+		unzGetFilePos64(uf, (unz64_file_pos *)&entry->reserved);
+
+		// Add entry
+		fileListAddEntry(&archive_list, entry, SORT_BY_NAME_AND_FOLDER);
+
+		// Next
+        res = unzGoToNextFile(uf);
+    } while (res >= 0);
 
 	return 0;
 }

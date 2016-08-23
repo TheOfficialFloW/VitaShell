@@ -219,6 +219,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 		dialog_step = DIALOG_STEP_MOVED;
 	} else { // Copy
+		// Open archive, because when you copy from an archive, you leave the archive to paste
 		if (args->copy_mode == COPY_MODE_EXTRACT) {
 			int res = archiveOpen(args->archive_path);
 			if (res < 0) {
@@ -238,12 +239,11 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			disableAutoSuspend();
 
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+			removeEndSlash(src_path);
 
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
-				addEndSlash(src_path);
 				getArchivePathInfo(src_path, &size, &folders, &files);
 			} else {
-				removeEndSlash(src_path);
 				getPathInfo(src_path, &size, &folders, &files);
 			}
 
@@ -261,11 +261,10 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
+			removeEndSlash(src_path);
+			removeEndSlash(dst_path);
 
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
-				addEndSlash(src_path);
-				addEndSlash(dst_path);
-
 				int res = extractArchivePath(src_path, dst_path, &value, size + folders, SetProgress, cancelHandler);
 				if (res <= 0) {
 					closeWaitDialog();
@@ -273,9 +272,6 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 					goto EXIT;
 				}
 			} else {
-				removeEndSlash(src_path);
-				removeEndSlash(dst_path);
-
 				int res = copyPath(src_path, dst_path, &value, size + folders, SetProgress, cancelHandler);
 				if (res <= 0) {
 					closeWaitDialog();
@@ -285,6 +281,16 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			}
 
 			copy_entry = copy_entry->next;
+		}
+
+		// Close archive
+		if (args->copy_mode == COPY_MODE_EXTRACT) {
+			int res = archiveClose();
+			if (res < 0) {
+				closeWaitDialog();
+				errorDialog(res);
+				goto EXIT;
+			}
 		}
 
 		// Set progress to 100%
