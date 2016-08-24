@@ -184,7 +184,7 @@ int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void
 
 			entry = entry->next;
 		}
-		
+
 		fileListEmpty(&list);
 	} else {
 		SceUID fdsrc = archiveFileOpen(src, SCE_O_RDONLY, 0);
@@ -249,8 +249,12 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
 	for (i = 0; i < archive_list.length; i++) {
 		if (archive_entry->name_length == name_length && strcmp(archive_entry->name, archive_path) == 0) {
 			if (stat) {
-				// TODO: more stat
+				//stat->st_mode = 
+				//stat->st_attr = 
 				stat->st_size = archive_entry->size;
+				memcpy(&stat->st_ctime, &archive_entry->time, sizeof(SceDateTime));
+				memcpy(&stat->st_atime, &archive_entry->time, sizeof(SceDateTime));
+				memcpy(&stat->st_mtime, &archive_entry->time, sizeof(SceDateTime));
 			}
 
 			return 0;
@@ -280,11 +284,7 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
 			// Set pos
 			unzGoToFilePos64(uf, (unz64_file_pos *)&archive_entry->reserved);
 
-			// File info
-			char name[MAX_PATH_LENGTH];
-			unz_file_info64 file_info;
-			unzGetCurrentFileInfo64(uf, &file_info, name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);
-			
+			// Open
 			res = unzOpenCurrentFile(uf);
 			if (res < 0)
 				return res;
@@ -335,10 +335,7 @@ int archiveClose() {
 	return 0;
 }
 
-// TODO: improve this, it's slow...
 int archiveOpen(char *file) {
-	int res;
-
 	// Start position of the archive path
 	archive_path_start = strlen(file) + 1;
 
@@ -351,22 +348,23 @@ int archiveOpen(char *file) {
 	if (!uf)
 		return -1;
 
-	// Go to first entry
-	res = unzGoToFirstFile(uf);
-    if (res < 0)
-		return res;
-
 	// Clear archive list
 	memset(&archive_list, 0, sizeof(FileList));
 
 	// Go through all files
-	do {
+	int res;
+	char name[MAX_PATH_LENGTH];
+	unz_file_info64 file_info;
+
+	res = unzGoToFirstFile2(uf, &file_info, name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);
+	if (res < 0)
+		return res;
+
+	while (res >= 0) {
 		FileListEntry *entry = malloc(sizeof(FileListEntry));
 
 		// File info
-		unz_file_info64 file_info;
-		unzGetCurrentFileInfo64(uf, &file_info, entry->name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);
-
+		strcpy(entry->name, name);
 		entry->is_folder = 0;
 		entry->name_length = file_info.size_filename;
 		entry->size = file_info.uncompressed_size;
@@ -379,8 +377,8 @@ int archiveOpen(char *file) {
 		fileListAddEntry(&archive_list, entry, SORT_BY_NAME_AND_FOLDER);
 
 		// Next
-        res = unzGoToNextFile(uf);
-    } while (res >= 0);
+		res = unzGoToNextFile2(uf, &file_info, name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);
+	}
 
 	return 0;
 }

@@ -80,7 +80,7 @@ static long    ZCALLBACK fseek64_file_func OF((voidpf opaque, voidpf stream, ZPO
 static int     ZCALLBACK fclose_file_func OF((voidpf opaque, voidpf stream));
 static int     ZCALLBACK ferror_file_func OF((voidpf opaque, voidpf stream));
 
-typedef struct 
+typedef struct
 {
 	SceUID fd;
 	int error;
@@ -120,7 +120,7 @@ static voidpf ZCALLBACK fopen_file_func (voidpf opaque, const char* filename, in
         fd = sceIoOpen(filename, mode_fopen, 0777);
         return file_build_ioposix(fd, filename);
     }
-	
+
 	return NULL;
 }
 
@@ -298,7 +298,7 @@ void fill_fopen_filefunc (zlib_filefunc_def* pzlib_filefunc_def)
 
 void fill_fopen64_filefunc (zlib_filefunc64_def* pzlib_filefunc_def)
 {
-    pzlib_filefunc_def->zopen64_file = fopen_file_func;
+    pzlib_filefunc_def->zopen64_file = (void (*))fopen_file_func;
     pzlib_filefunc_def->zopendisk64_file = fopendisk_file_func;
     pzlib_filefunc_def->zread_file = fread_file_func;
     pzlib_filefunc_def->zwrite_file = fwrite_file_func;
