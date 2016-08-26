@@ -17,10 +17,11 @@
 */
 
 #include "main.h"
+#include "config.h"
 #include "language.h"
 
-extern unsigned char _binary_resources_english_us_translation_txt_start;
-extern unsigned char _binary_resources_english_us_translation_txt_size;
+extern unsigned char _binary_resources_english_us_txt_start;
+extern unsigned char _binary_resources_english_us_txt_size;
 
 static char *lang[] ={
 	"japanese",
@@ -46,49 +47,6 @@ static char *lang[] ={
 
 char *language_container[LANGUAGE_CONTRAINER_SIZE];
 
-void trim(char *str) {
-	int len = strlen(str);
-	int i;
-
-	for (i = len - 1; i >= 0; i--) {
-		if (str[i] == 0x20 || str[i] == '\t') {
-			str[i] = 0;
-		} else {
-			break;
-		}
-	}
-}
-
-int GetLine(char *buf, int size, char *str) {
-	unsigned char ch = 0;
-	int n = 0;
-	int i = 0;
-	unsigned char *s = (unsigned char *)str;
-
-	while (1) {
-		if (i >= size)
-			break;
-
-		ch = ((unsigned char *)buf)[i];
-
-		if (ch < 0x20 && ch != '\t') {
-			if (n != 0) {
-				i++;
-				break;
-			}
-		} else {
-			*str++ = ch;
-			n++;
-		}
-
-		i++;
-	}
-
-	trim((char *)s);
-
-	return i;
-}
-
 void freeLanguageContainer() {
 	int i;
 	for (i = 0; i < LANGUAGE_CONTRAINER_SIZE; i++) {
@@ -99,57 +57,50 @@ void freeLanguageContainer() {
 	}
 }
 
-int loadLanguageContainer(void *buffer, int size) {
-	int res;
-	int i = 0;
-	char *p = buffer;
-	char line[512];
-
-	freeLanguageContainer();
-
-	do {
-		memset(line, 0, sizeof(line));
-
-		if ((res = GetLine(p, size, line)) > 0) {
-			int j;
-			for (j = 0; j < strlen(line); j++) {
-				if (line[j] == '\\')
-					line[j] = '\n';
-			}
-
-			language_container[i] = malloc(strlen(line) + 1);
-			strcpy(language_container[i], line);
-			i++;
-		}
-
-		size -= res;
-		p += res;
-	} while (res > 0 && i < LANGUAGE_CONTRAINER_SIZE);
-
-	return i == LANGUAGE_CONTRAINER_SIZE;
-}
 
 void loadLanguage(int id) {
-	int loaded = 0;
+	freeLanguageContainer();
+
+	#define LANGUAGE_ENTRY(name) { #name, CONFIG_TYPE_STRING, &language_container[name] }
+	ConfigEntry language_entries[] = {	
+		LANGUAGE_ENTRY(ERROR),
+		LANGUAGE_ENTRY(OK),
+		LANGUAGE_ENTRY(YES),
+		LANGUAGE_ENTRY(NO),
+		LANGUAGE_ENTRY(CANCEL),
+		LANGUAGE_ENTRY(OFFSET),
+		LANGUAGE_ENTRY(MARK_ALL),
+		LANGUAGE_ENTRY(UNMARK_ALL),
+		LANGUAGE_ENTRY(MOVE),
+		LANGUAGE_ENTRY(COPY),
+		LANGUAGE_ENTRY(PASTE),
+		LANGUAGE_ENTRY(DELETE),
+		LANGUAGE_ENTRY(RENAME),
+		LANGUAGE_ENTRY(NEW_FOLDER),
+		LANGUAGE_ENTRY(FOLDER),
+		LANGUAGE_ENTRY(COPIED_FILE),
+		LANGUAGE_ENTRY(COPIED_FOLDER),
+		LANGUAGE_ENTRY(COPIED_FILES_FOLDERS),
+		LANGUAGE_ENTRY(MOVING),
+		LANGUAGE_ENTRY(COPYING),
+		LANGUAGE_ENTRY(DELETING),
+		LANGUAGE_ENTRY(INSTALLING),
+		LANGUAGE_ENTRY(DELETE_FILE_QUESTION),
+		LANGUAGE_ENTRY(DELETE_FOLDER_QUESTION),
+		LANGUAGE_ENTRY(DELETE_FILES_FOLDERS_QUESTION),
+		LANGUAGE_ENTRY(INSTALL_QUESTION),
+		LANGUAGE_ENTRY(WIFI_ERROR),
+		LANGUAGE_ENTRY(FTP_SERVER),
+	};
+
+	int loaded = -1;
 
 	if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
 		char path[128];
-		sprintf(path, "cache0:VitaShell/%s_translation.txt", lang[id]);
-
-		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
-		if (fd >= 0) {
-			int size = sceIoLseek(fd, 0, SCE_SEEK_END);
-			sceIoLseek(fd, 0, SCE_SEEK_SET);
-
-			void *buffer = malloc(size);
-			sceIoRead(fd, buffer, size);
-
-			loaded = loadLanguageContainer(buffer, size);
-
-			free(buffer);
-		}
+		sprintf(path, "ux0:VitaShell/language/%s.txt", lang[id]);
+		loaded = readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 	}
 
-	if (!loaded)
-		loadLanguageContainer(&_binary_resources_english_us_translation_txt_start, (int)&_binary_resources_english_us_translation_txt_size);
+	if (loaded < 0)
+		readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 }

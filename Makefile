@@ -1,13 +1,13 @@
 TITLE_ID = VITASHELL
 TARGET   = VitaShell
 OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file.o text.o hex.o \
-		   uncommon_dialog.o message_dialog.o ime_dialog.o language.o utils.o sha1.o \
+		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o language.o utils.o sha1.o \
 		   audioplayer.o minizip/unzip.o minizip/ioapi.o
 
 RESOURCES_PNG = resources/ftp.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
 		   resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
 		   resources/audio_next.png
-RESOURCES_TXT = resources/english_us_translation.txt
+RESOURCES_TXT = resources/english_us.txt
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
 
 LIBS = -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \

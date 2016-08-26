@@ -24,20 +24,6 @@ static int message_dialog_type = -1;
 
 static char message_string[1024];
 
-void ansi_to_utf8(uint8_t *src, uint8_t *dst) {
-	int i;
-	for (i = 0; src[i]; i++) {
-		if (src[i] < 0x80) {
-			*(dst++) = src[i];
-		} else {
-			*(dst++) = 0xC0 | (src[i] & 0xC0) >> 6;
-			*(dst++) = 0x80 | (src[i] & 0x3F);
-		}
-	}
-
-	*dst = '\0';
-}
-
 int initMessageDialog(int type, char *msg, ...) {
 	if (message_dialog_running)
 		return -1;
@@ -49,7 +35,7 @@ int initMessageDialog(int type, char *msg, ...) {
 	vsprintf(string, msg, list);
 	va_end(list);
 
-	ansi_to_utf8((uint8_t *)string, (uint8_t *)message_string);
+	strcpy(message_string, string);
 
 	SceMsgDialogParam param;
 	sceMsgDialogParamInit(&param);
