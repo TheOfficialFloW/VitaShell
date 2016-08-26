@@ -73,7 +73,7 @@ int getFileSize(char *pInputFileName)
 	return fileSize;
 }
 
-int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) {
+int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
@@ -132,7 +132,7 @@ int getPathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) 
 	return 1;
 }
 
-int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max), int (* cancelHandler)()) {
+int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
@@ -215,7 +215,7 @@ int removePath(char *path, uint32_t *value, uint32_t max, void (* SetProgress)(u
 	return 1;
 }
 
-int copyFile(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max), int (* cancelHandler)()) {
+int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
 	// The source and destination paths are identical
 	if (strcmp(src_path, dst_path) == 0) {
 		return -1;
@@ -275,7 +275,7 @@ int copyFile(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void
 	return 1;
 }
 
-int copyPath(char *src_path, char *dst_path, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max), int (* cancelHandler)()) {
+int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
 	// The source and destination paths are identical
 	if (strcmp(src_path, dst_path) == 0) {
 		return -1;

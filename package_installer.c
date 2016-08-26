@@ -238,14 +238,15 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	addEndSlash(src_path);
 
 	// Get archive path info
-	uint32_t size = 0, folders = 0, files = 0;
+	uint64_t size = 0;
+	uint32_t folders = 0, files = 0;
 	getArchivePathInfo(src_path, &size, &folders, &files);
 
 	// Update thread
 	thid = createStartUpdateThread(size + folders);
 
 	// Extract process
-	uint32_t value = 0;
+	uint64_t value = 0;
 
 	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
 	if (res <= 0) {

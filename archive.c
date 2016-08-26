@@ -94,7 +94,7 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 	return 0;
 }
 
-int getArchivePathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *files) {
+int getArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
 	if (!uf)
 		return -1;
 
@@ -134,7 +134,7 @@ int getArchivePathInfo(char *path, uint32_t *size, uint32_t *folders, uint32_t *
 	return 0;
 }
 
-int extractArchivePath(char *src, char *dst, uint32_t *value, uint32_t max, void (* SetProgress)(uint32_t value, uint32_t max), int (* cancelHandler)()) {
+int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
 	if (!uf)
 		return -1;
 

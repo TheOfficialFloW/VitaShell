@@ -29,7 +29,7 @@
 #define COPY_MODE_EXTRACT 2
 
 typedef struct {
-	uint32_t max;
+	uint64_t max;
 } UpdateArguments;
 
 typedef struct {
@@ -47,8 +47,8 @@ typedef struct {
 
 void closeWaitDialog();
 int cancelHandler();
-void SetProgress(uint32_t value, uint32_t max);
-SceUID createStartUpdateThread(uint32_t max);
+void SetProgress(uint64_t value, uint64_t max);
+SceUID createStartUpdateThread(uint64_t max);
 
 int delete_thread(SceSize args_size, DeleteArguments *args);
 int copy_thread(SceSize args_size, CopyArguments *args);

@@ -23,7 +23,7 @@
 #include "message_dialog.h"
 #include "utils.h"
 
-static uint32_t current_value = 0;
+static uint64_t current_value = 0;
 
 void closeWaitDialog() {
 	sceMsgDialogClose();
@@ -39,13 +39,13 @@ int cancelHandler() {
 	return (updateMessageDialog() != MESSAGE_DIALOG_RESULT_RUNNING);
 }
 
-void SetProgress(uint32_t value, uint32_t max) {
+void SetProgress(uint64_t value, uint64_t max) {
 	current_value = value;
 }
 
 int update_thread(SceSize args_size, UpdateArguments *args) {
 /*
-	uint32_t previous_value = current_value;
+	uint64_t previous_value = current_value;
 	SceUInt64 cur_micros = 0, delta_micros = 0, last_micros = 0;
 	double kbs = 0;
 */
@@ -73,7 +73,7 @@ int update_thread(SceSize args_size, UpdateArguments *args) {
 	return sceKernelExitDeleteThread(0);
 }
 
-SceUID createStartUpdateThread(uint32_t max) {
+SceUID createStartUpdateThread(uint64_t max) {
 	current_value = 0;
 
 	UpdateArguments args;
@@ -134,7 +134,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 	thid = createStartUpdateThread(folders + files);
 
 	// Remove process
-	uint32_t value = 0;
+	uint64_t value = 0;
 
 	mark_entry = head;
 
@@ -236,7 +236,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		}
 
 		// Get src paths info
-		uint32_t size = 0, folders = 0, files = 0;
+		uint64_t size = 0;
+		uint32_t folders = 0, files = 0;
 
 		copy_entry = args->copy_list->head;
 
@@ -258,7 +259,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		thid = createStartUpdateThread(size + folders);
 
 		// Copy process
-		uint32_t value = 0;
+		uint64_t value = 0;
 
 		copy_entry = args->copy_list->head;
 

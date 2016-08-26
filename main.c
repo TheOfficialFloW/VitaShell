@@ -31,7 +31,6 @@
 	- Moving destination folder to subfolder of source folder prevention
 	- Moving a folder to a location where the folder does already exit causes error, so move its content.
 	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
-	- Maybe switch to libarchive
 	- Shortcuts
 	- CPU changement
 	- Media player
