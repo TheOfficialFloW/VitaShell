@@ -88,20 +88,20 @@ void loadLanguage(int id) {
 		LANGUAGE_ENTRY(DELETE_FOLDER_QUESTION),
 		LANGUAGE_ENTRY(DELETE_FILES_FOLDERS_QUESTION),
 		LANGUAGE_ENTRY(INSTALL_QUESTION),
+		LANGUAGE_ENTRY(INSTALL_WARNING),
 		LANGUAGE_ENTRY(WIFI_ERROR),
 		LANGUAGE_ENTRY(FTP_SERVER),
 	};
 
-	int loaded = -1;
+	// Load default config file
+	readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 
+	// Load custom config file
 	if (use_custom_config) {
 		if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
 			char path[128];
 			sprintf(path, "ux0:VitaShell/language/%s.txt", lang[id]);
-			loaded = readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
+			readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 		}
 	}
-
-	if (loaded < 0)
-		readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 }

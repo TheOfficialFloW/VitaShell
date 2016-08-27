@@ -69,13 +69,12 @@ void loadTheme() {
 		COLOR_ENTRY(HEX_NIBBLE_COLOR),
 	};
 
-	int loaded = -1;
+	// Load default config file
+	readConfigBuffer(&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
+	// Load custom config file
 	if (use_custom_config)
-		loaded = readConfig("ux0:VitaShell/theme/colors.txt", colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
-
-	if (loaded < 0)
-		readConfigBuffer(&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
+		readConfig("ux0:VitaShell/theme/colors.txt", colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
 	if (use_custom_config) {
 		if (!bg_tex)

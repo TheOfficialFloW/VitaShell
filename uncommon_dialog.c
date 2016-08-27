@@ -237,7 +237,7 @@ int drawUncommonDialog() {
 			pgf_draw_text(x + SHELL_MARGIN_X, string_y, GENERAL_COLOR, FONT_SIZE, string);
 			uncommon_dialog.msg[i] = '\n';
 
-			string = uncommon_dialog.msg + i;
+			string = uncommon_dialog.msg + i + 1;
 			string_y += FONT_Y_SPACE;
 		}
 

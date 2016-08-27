@@ -844,6 +844,15 @@ int dialogSteps() {
 
 			break;
 			
+		case DIALOG_STEP_INSTALL_WARNING:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				dialog_step = DIALOG_STEP_INSTALL_WARNING_AGREED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_CANCELLED;
+			}
+
+			break;
+			
 		case DIALOG_STEP_RENAME:
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
