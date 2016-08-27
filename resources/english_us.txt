@@ -27,5 +27,6 @@ DELETE_FOLDER_QUESTION               = "Are you sure you want to delete this fol
 DELETE_FILES_FOLDERS_QUESTION        = "Are you sure you want to delete these files/folders?"
 INSTALL_QUESTION                     = "Do you want to install this package?"
 INSTALL_WARNING                      = "This package requests advanced access to the\system.\It will have access to your personal information.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
+SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"
 WIFI_ERROR                           = "You must use Wi-Fi to do this."
 FTP_SERVER                           = "FTP server is now running at\ftp://%s:%i\\Press 'OK' to keep it in background.\Press 'Cancel' to disconnect."
