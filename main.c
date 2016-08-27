@@ -859,16 +859,19 @@ int dialogSteps() {
 				if (name[0] == '\0') {
 					dialog_step = DIALOG_STEP_NONE;
 				} else {
-					addEndSlash(name);
-
 					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-					if (strcmp(file_entry->name, name) == 0) { // No change
+
+					char old_name[MAX_NAME_LENGTH];
+					strcpy(old_name, file_entry->name);
+					removeEndSlash(old_name);
+
+					if (strcmp(old_name, name) == 0) { // No change
 						dialog_step = DIALOG_STEP_NONE;
 					} else {
 						char old_path[MAX_PATH_LENGTH];
 						char new_path[MAX_PATH_LENGTH];
 
-						snprintf(old_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+						snprintf(old_path, MAX_PATH_LENGTH, "%s%s", file_list.path, old_name);
 						snprintf(new_path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
 						int res = sceIoRename(old_path, new_path);
@@ -1088,6 +1091,15 @@ int shellMain() {
 			}
 		} else {
 			refresh = dialogSteps();
+		}
+
+		// Receive system event
+		SceAppMgrSystemEvent event;
+		sceAppMgrReceiveSystemEvent(&event);
+
+		// Refresh on app resume
+		if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
+			refresh = 1;
 		}
 
 		if (refresh) {
