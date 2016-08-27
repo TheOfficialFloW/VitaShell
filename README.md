@@ -13,7 +13,7 @@ Any amount of donation is a big support for VitaShell development and therefore 
 https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y7CVA9VSJA2VW
 
 ### Customization ###
-Put your colors file at **'ux0:VitaShell/language/theme/colors.txt'** and if wanted a PNG wallpaper file at **'ux0:VitaShell/language/theme/wallpaper.png'**.
+Put your colors file at **'ux0:VitaShell/theme/colors.txt'** and if wanted a PNG wallpaper file at **'ux0:VitaShell/theme/wallpaper.png'**.
 If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
 The standard VitaShell colors file is provided in the **'Downloads'** section
 
