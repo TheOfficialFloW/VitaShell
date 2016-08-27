@@ -40,11 +40,11 @@ If your system language is for example french, it will load from 'ux0:VitaShell/
 The english language file is provided in the **'release'** section
 
 ### VitaShell themes and translations collection ###
-This is an unofficial VitaShell themes and translations host:
+This is an unofficial VitaShell themes and translations collection:
 
 https://github.com/xy2iii/vitashell-themes
 
-Be sure you send your customized design or language file to there.
+Be sure you pull request your customized design or language file there.
 
 ### Changelog 0.8 ###
 - Added support for >2GB zip archives (dropped support for 7zip and rar though).
