@@ -21,6 +21,7 @@
 #include "file.h"
 #include "text.h"
 #include "hex.h"
+#include "theme.h"
 #include "utils.h"
 
 void textListAddEntry(TextList *list, TextListEntry *entry) {
@@ -268,7 +269,7 @@ int textViewer(char *file) {
 				if (p)
 					*p = '\0';
 
-				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? GREEN : WHITE, FONT_SIZE, line);
+				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? FOCUS_COLOR : GENERAL_COLOR, FONT_SIZE, line);
 				line += strlen(line);
 
 				if (p) {

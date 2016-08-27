@@ -20,6 +20,7 @@
 #include "archive.h"
 #include "photo.h"
 #include "file.h"
+#include "theme.h"
 #include "utils.h"
 #include "audioplayer.h"
 
@@ -429,7 +430,7 @@ int audioPlayer(char *file, FileList *list, FileListEntry *entry, int *base_pos,
 			// Start drawing
 			START_DRAWING();
 			int nameLength = strlen(entry->name);
-			vita2d_pgf_draw_text(font, SCREEN_WIDTH / 2 - nameLength * 5.5, SCREEN_HEIGHT - 190, WHITE, 1.0f, entry->name);
+			vita2d_pgf_draw_text(font, SCREEN_WIDTH / 2 - nameLength * 5.5, SCREEN_HEIGHT - 190, GENERAL_COLOR, 1.0f, entry->name);
 			
 			vita2d_draw_texture(headphone_image, SCREEN_WIDTH / 2 - 150, 20);
 			vita2d_draw_texture(audio_previous_image, SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT - 170);

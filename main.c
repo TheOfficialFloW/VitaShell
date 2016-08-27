@@ -21,8 +21,6 @@
 	- Fix time
 	- Hide mount points
 	- Network update
-	- Customization
-	- Language .ini
 	- Context menu: 'More' entry
 	- Inverse sort, sort by date, size
 	- vita2dlib: Handle big images > 4096
@@ -47,6 +45,7 @@
 #include "hex.h"
 #include "message_dialog.h"
 #include "ime_dialog.h"
+#include "theme.h"
 #include "language.h"
 #include "utils.h"
 #include "audioplayer.h"
@@ -93,6 +92,9 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 
 // Dialog step
 int dialog_step = DIALOG_STEP_NONE;
+
+// Use custom config
+int use_custom_config = 1;
 
 void dirLevelUp() {
 	base_pos_list[dir_level] = base_pos;
@@ -294,18 +296,18 @@ int handleFile(char *file, FileListEntry *entry) {
 
 void drawScrollBar(int pos, int n) {
 	if (n > MAX_POSITION) {
-		vita2d_draw_rectangle(SCROLL_BAR_X, START_Y, SCROLL_BAR_WIDTH, MAX_ENTRIES * FONT_Y_SPACE, GRAY);
+		vita2d_draw_rectangle(SCROLL_BAR_X, START_Y, SCROLL_BAR_WIDTH, MAX_ENTRIES * FONT_Y_SPACE, SCROLL_BAR_BG_COLOR);
 
 		float y = START_Y + ((pos * FONT_Y_SPACE) / (n * FONT_Y_SPACE)) * (MAX_ENTRIES * FONT_Y_SPACE);
 		float height = ((MAX_POSITION * FONT_Y_SPACE) / (n * FONT_Y_SPACE)) * (MAX_ENTRIES * FONT_Y_SPACE);
 
-		vita2d_draw_rectangle(SCROLL_BAR_X, MIN(y, (START_Y + MAX_ENTRIES * FONT_Y_SPACE - height)), SCROLL_BAR_WIDTH, MAX(height, SCROLL_BAR_MIN_HEIGHT), AZURE);
+		vita2d_draw_rectangle(SCROLL_BAR_X, MIN(y, (START_Y + MAX_ENTRIES * FONT_Y_SPACE - height)), SCROLL_BAR_WIDTH, MAX(height, SCROLL_BAR_MIN_HEIGHT), SCROLL_BAR_COLOR);
 	}
 }
 
 void drawShellInfo(char *path) {
 	// Title
-	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, VIOLET, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
+	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
 
 	// Battery
 	float battery_x = ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_texture_get_width(battery_image));
@@ -334,7 +336,7 @@ void drawShellInfo(char *path) {
 	char string[64];
 	sprintf(string, "%s  %s", date_string, time_string);
 	float date_time_x = ALIGN_LEFT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string));
-	pgf_draw_text(date_time_x, SHELL_MARGIN_Y, WHITE, FONT_SIZE, string);
+	pgf_draw_text(date_time_x, SHELL_MARGIN_Y, DATE_TIME_COLOR, FONT_SIZE, string);
 
 	// FTP
 	if (ftpvita_is_initialized())
@@ -363,8 +365,8 @@ void drawShellInfo(char *path) {
 
 	strcpy(path_second_line, path + i);
 
-	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, LITEGRAY, FONT_SIZE, path_first_line);
-	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, LITEGRAY, FONT_SIZE, path_second_line);
+	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
+	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
 
 	char str[128];
 
@@ -510,7 +512,7 @@ void drawContextMenu() {
 
 	// Draw context menu
 	if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
-		vita2d_draw_rectangle(SCREEN_WIDTH - ctx_menu_width, 0.0f, ctx_menu_width, SCREEN_HEIGHT, COLOR_ALPHA(0xFF2F2F2F, 0xFA));
+		vita2d_draw_rectangle(SCREEN_WIDTH - ctx_menu_width, 0.0f, ctx_menu_width, SCREEN_HEIGHT, CONTEXT_MENU_COLOR);
 
 		int i;
 		for (i = 0; i < N_MENU_ENTRIES; i++) {
@@ -519,13 +521,13 @@ void drawContextMenu() {
 
 			float y = START_Y + (i * FONT_Y_SPACE);
 
-			uint32_t color = WHITE;
+			uint32_t color = GENERAL_COLOR;
 
 			if (i == ctx_menu_pos)
-				color = GREEN;
+				color = FOCUS_COLOR;
 
 			if (menu_entries[i].visibility == VISIBILITY_INVISIBLE)
-				color = DARKGRAY;
+				color = INVISIBLE_COLOR;
 
 			pgf_draw_text(SCREEN_WIDTH - ctx_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[menu_entries[i].name]);
 		}
@@ -1100,33 +1102,33 @@ int shellMain() {
 
 		int i;
 		for (i = 0; i < MAX_ENTRIES && (base_pos + i) < file_list.length; i++) {
-			uint32_t color = WHITE;
+			uint32_t color = GENERAL_COLOR;
 
 			// Folder
 			if (file_entry->is_folder)
-				color = CYAN;
+				color = FOLDER_COLOR;
 
 			// Images
 			if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) {
-				color = ROSE;
+				color = IMAGE_COLOR;
 			}
 
 			// Archives
 			if (!isInArchive()) {
 				if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) {
-					color = ORANGE;
+					color = ARCHIVE_COLOR;
 				}
 			}
 
 			// Current position
 			if (i == rel_pos)
-				color = GREEN;
+				color = FOCUS_COLOR;
 
 			float y = START_Y + (i * FONT_Y_SPACE);
 
 			// Marked
 			if (fileListFindEntry(&mark_list, file_entry->name))
-				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, COLOR_ALPHA(AZURE, 0x4F));
+				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
 
 			// File name
 			int length = strlen(file_entry->name);
@@ -1250,6 +1252,19 @@ int main(int argc, const char *argv[]) {
 
 	// Get net info
 	getNetInfo();
+
+	// No custom config, in case they are damaged or unuseable
+	readPad();
+	if (current_buttons & SCE_CTRL_LTRIGGER)
+		use_custom_config = 0;
+
+	// Make VitaShell folders
+	sceIoMkdir("ux0:VitaShell", 0777);
+	sceIoMkdir("ux0:VitaShell/language", 0777);
+	sceIoMkdir("ux0:VitaShell/theme", 0777);
+
+	// Load theme
+	loadTheme();
 
 	// Load language
 	loadLanguage(language);

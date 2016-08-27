@@ -57,11 +57,10 @@ void freeLanguageContainer() {
 	}
 }
 
-
 void loadLanguage(int id) {
 	freeLanguageContainer();
 
-	#define LANGUAGE_ENTRY(name) { #name, CONFIG_TYPE_STRING, &language_container[name] }
+	#define LANGUAGE_ENTRY(name) { #name, CONFIG_TYPE_STRING, (void *)&language_container[name] }
 	ConfigEntry language_entries[] = {	
 		LANGUAGE_ENTRY(ERROR),
 		LANGUAGE_ENTRY(OK),
@@ -95,10 +94,12 @@ void loadLanguage(int id) {
 
 	int loaded = -1;
 
-	if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
-		char path[128];
-		sprintf(path, "ux0:VitaShell/language/%s.txt", lang[id]);
-		loaded = readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
+	if (use_custom_config) {
+		if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
+			char path[128];
+			sprintf(path, "ux0:VitaShell/language/%s.txt", lang[id]);
+			loaded = readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
+		}
 	}
 
 	if (loaded < 0)

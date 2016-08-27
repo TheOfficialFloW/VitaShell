@@ -20,6 +20,7 @@
 #include "archive.h"
 #include "photo.h"
 #include "file.h"
+#include "theme.h"
 #include "utils.h"
 
 vita2d_texture *loadImage(char *file, int type, char *buffer) {
@@ -351,7 +352,7 @@ int photoViewer(char *file, int type, FileList *list, FileListEntry *entry, int 
 
 		// Zoom text
 		if ((sceKernelGetProcessTimeWide() - time) < ZOOM_TEXT_TIME)
-			pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, WHITE, FONT_SIZE, "%.0f%%", zoom * 100.0f);
+			pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, GENERAL_COLOR, FONT_SIZE, "%.0f%%", zoom * 100.0f);
 
 		// End drawing
 		END_DRAWING();

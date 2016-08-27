@@ -76,7 +76,10 @@
 #define START_DRAWING() \
 { \
 	vita2d_start_drawing(); \
+	vita2d_set_clear_color(BACKGROUND_COLOR); \
 	vita2d_clear_screen(); \
+	if (bg_tex) \
+		vita2d_draw_texture(bg_tex, 0.0f, 0.0f); \
 }
 
 #define END_DRAWING() \
@@ -87,30 +90,6 @@
 	vita2d_swap_buffers(); \
 	sceDisplayWaitVblankStart(); \
 }
-
-enum Colors {
-	// Primary colors
-	RED				= 0xFF0000FF,
-	GREEN			= 0xFF00FF00,
-	BLUE			= 0xFFFF0000,
-	// Secondary colors
-	CYAN			= 0xFFFFFF00,
-	MAGENTA			= 0xFFFF00FF,
-	YELLOW			= 0xFF00FFFF,
-	// Tertiary colors
-	AZURE			= 0xFFFF7F00,
-	VIOLET			= 0xFFFF007F,
-	ROSE			= 0xFF7F00FF,
-	ORANGE			= 0xFF007FFF,
-	CHARTREUSE		= 0xFF00FF7F,
-	SPRING_GREEN	= 0xFF7FFF00,
-	// Grayscale
-	WHITE			= 0xFFFFFFFF,
-	LITEGRAY		= 0xFFBFBFBF,
-	GRAY			= 0xFF7F7F7F,
-	DARKGRAY		= 0xFF3F3F3F,
-	BLACK			= 0xFF000000
-};
 
 #define NOALPHA 0xFF
 
@@ -220,6 +199,8 @@ extern vita2d_texture *audio_previous_image, *audio_pause_image, *audio_play_ima
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
 extern int dialog_step;
+
+extern int use_custom_config;
 
 void drawScrollBar(int pos, int n);
 void drawShellInfo(char *path);

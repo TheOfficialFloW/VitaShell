@@ -3,20 +3,47 @@
 VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you a file manager, package installer, built-in FTP and much more.
 This homebrew was an entry of the Revitalize PS Vita homebrew competition and won the first prize. HENkaku's molecularShell is also based on VitaShell.
 
-### In order to compile VitaShell you'll need ###
-* vitasdk: https://github.com/vitasdk
-* vita2dlib: https://github.com/xerpi/vita2dlib
-* ftpvitalib https://github.com/xerpi/ftpvitalib
+### Donation ###
+Any amount of donation is a big support for VitaShell development and therefore highly appreciated:
+https://www.paypal.com/de/cgi-bin/webscr?cmd=_flow&SESSION=QjLBBjF2eZKdtKIP8Wvb_fMfbCRsxJDUKHiDrbEkXqlgfuww2njId3_Sn8G&dispatch=5885d80a13c0db1f8e263663d3faee8de2b8031b89187c030b37e57608011f58
 
-### Credits ###
-* Team Molecule for HENkaku
-* xerpi for ftpvitalib and vita2dlib
-* wololo for the Revitalize contest
-* Everybody who contributed on vitasdk
+### Customization ###
+Put your colors file at 'ux0:VitaShell/language/theme/colors.txt and if wanted a PNG wallpaper file at 'ux0:VitaShell/language/theme/wallpaper.png'.
+If no wallpaper is available, BACKGROUND_COLOR from 'colors.txt' will be used.
+The standard VitaShell colors file is provided in the 'Downloads' section
 
-### Changelog 0.X ###
+### Multi-language ###
+Put your language file at 'ux0:VitaShell/language/x.txt', where the file must be UTF-8 encoded and 'x' is one of the language listed below:
+
+japanese
+english_us
+french
+spanish
+german
+italian
+dutch
+portuguese
+russian
+korean
+chinese_t
+chinese_s
+finnish
+swedish
+danish
+norwegian
+polish
+portuguese_br
+english_gb
+
+VitaShell does automatically load the language that matches to the current system language.
+If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
+The english language file is provided in the 'Downloads' section
+
+### Changelog 0.8 ###
 - Added support for >2GB zip archives (dropped support for 7zip and rar though).
 - Added cache system for zipfs (faster file reading when browsing in zip archives).
+- Added possibility to customize the application's UI.
+- Added possibility to translate the application.
 - Fixed 12h time conversion.
 
 ### Changelog 0.7 ###
@@ -74,3 +101,14 @@ This homebrew was an entry of the Revitalize PS Vita homebrew competition and wo
 - Fixed crash when deleting marked entries.
 - Copied entries now still rest in clipboard after pasting them.
 - The application now cleans itself before launching homebrews.
+
+### In order to compile VitaShell you'll need ###
+* vitasdk: https://github.com/vitasdk
+* vita2dlib: https://github.com/xerpi/vita2dlib
+* ftpvitalib https://github.com/xerpi/ftpvitalib
+
+### Credits ###
+* Team Molecule for HENkaku
+* xerpi for ftpvitalib and vita2dlib
+* wololo for the Revitalize contest
+* Everybody who contributed on vitasdk
