@@ -39,7 +39,11 @@ VitaShell does automatically load the language that matches to the current syste
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
 The english language file is provided in the **'Downloads'** section
 
-### Changelog 0.8 ###
+### VitaShell themes and translations collection ###
+This is an unofficial VitaShell themes and translations host:
+https://github.com/xy2iii/vitashell-themes
+Be sure you send your customized design or language file to there.
+
 - Added support for >2GB zip archives (dropped support for 7zip and rar though).
 - Added cache system for zipfs (faster file reading when browsing in zip archives).
 - Added possibility to customize the application's UI.
