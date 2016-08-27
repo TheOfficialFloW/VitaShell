@@ -1,4 +1,4 @@
-# VitaShell language file
+# VitaShell norwegian translation by habibi
 
 ERROR							= "Feilmelding 0x%08X."
 OK								= "OK"
@@ -22,9 +22,9 @@ MOVING							= "Flytter..."
 COPYING							= "Kopierer..."
 DELETING						= "Sletter..."
 INSTALLING						= "Installerer..."
-DELETE_FILE_QUESTION			= "Er du sikker på at du vil slette denne filen?"
-DELETE_FOLDER_QUESTION			= "Er du sikker på at du vil slette denne mappen?"
-DELETE_FILES_FOLDERS_QUESTION	= "Er du sikker på at du vil slette disse filene/mappene?"
+DELETE_FILE_QUESTION			= "Er du sikker pÃ¥ at du vil slette denne filen?"
+DELETE_FOLDER_QUESTION			= "Er du sikker pÃ¥ at du vil slette denne mappen?"
+DELETE_FILES_FOLDERS_QUESTION	= "Er du sikker pÃ¥ at du vil slette disse filene/mappene?"
 INSTALL_QUESTION				= "Vil du installere denne pakken?"
-WIFI_ERROR						= "Du trenger Wi-Fi for å gjøre dette."
-FTP_SERVER						= "FTP server kjører nå på\ftp://%s:%i\\Trykk 'OK' for å kjøre i bakgrunnen.\Trykk 'Avbryt' for å koble av."
+WIFI_ERROR						= "Du trenger Wi-Fi for Ã¥ gjÃ¸re dette."
+FTP_SERVER						= "FTP server kjÃ¸rer nÃ¥ pÃ¥\ftp://%s:%i\\Trykk 'OK' for Ã¥ kjÃ¸re i bakgrunnen.\Trykk 'Avbryt' for Ã¥ koble av."
