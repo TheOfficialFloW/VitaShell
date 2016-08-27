@@ -243,6 +243,10 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
 	const char *archive_path = file + archive_path_start;
 	int name_length = strlen(archive_path);
 
+	// Is directory
+	if (archive_path[name_length - 1] == '/')
+		return -1;
+
 	FileListEntry *archive_entry = archive_list.head;
 
 	int i;
