@@ -10,7 +10,7 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y7CVA9VSJA2
 ### Customization ###
 Put your colors file at **'ux0:VitaShell/theme/colors.txt'** and if wanted a PNG wallpaper file at **'ux0:VitaShell/theme/wallpaper.png'**.
 If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
-The standard VitaShell colors file is provided in the **'Downloads'** section
+The standard VitaShell colors file is provided in the **'release'** section
 
 ### Multi-language ###
 Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file must be UTF-8 encoded and 'x' is one of the language listed below:**
@@ -37,13 +37,16 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
-The english language file is provided in the **'Downloads'** section
+The english language file is provided in the **'release'** section
 
 ### VitaShell themes and translations collection ###
 This is an unofficial VitaShell themes and translations host:
+
 https://github.com/xy2iii/vitashell-themes
+
 Be sure you send your customized design or language file to there.
 
+### Changelog 0.8 ###
 - Added support for >2GB zip archives (dropped support for 7zip and rar though).
 - Added cache system for zipfs (faster file reading when browsing in zip archives).
 - Added possibility to customize the application's UI.
