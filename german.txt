@@ -1,4 +1,4 @@
-# VitaShell default language file by TheFloW
+# VitaShell german translation by VegaRoXas
 
 ERROR							= "Fehler 0x%08X."
 OK								= "OK"
