@@ -15,25 +15,25 @@ The standard VitaShell colors file is provided in the 'Downloads' section
 ### Multi-language ###
 Put your language file at 'ux0:VitaShell/language/x.txt', where the file must be UTF-8 encoded and 'x' is one of the language listed below:
 
-japanese
-english_us
-french
-spanish
-german
-italian
-dutch
-portuguese
-russian
-korean
-chinese_t
-chinese_s
-finnish
-swedish
-danish
-norwegian
-polish
-portuguese_br
-english_gb
+- japanese
+- english_us
+- french
+- spanish
+- german
+- italian
+- dutch
+- portuguese
+- russian
+- korean
+- chinese_t
+- chinese_s
+- finnish
+- swedish
+- danish
+- norwegian
+- polish
+- portuguese_br
+- english_gb
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
