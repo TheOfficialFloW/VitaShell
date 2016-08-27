@@ -5,7 +5,7 @@ This homebrew was an entry of the Revitalize PS Vita homebrew competition and wo
 
 ### Donation ###
 Any amount of donation is a big support for VitaShell development and therefore highly appreciated:
-https://www.paypal.com/de/cgi-bin/webscr?cmd=_flow&SESSION=QjLBBjF2eZKdtKIP8Wvb_fMfbCRsxJDUKHiDrbEkXqlgfuww2njId3_Sn8G&dispatch=5885d80a13c0db1f8e263663d3faee8de2b8031b89187c030b37e57608011f58
+https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y7CVA9VSJA2VW
 
 ### Customization ###
 Put your colors file at **'ux0:VitaShell/language/theme/colors.txt'** and if wanted a PNG wallpaper file at **'ux0:VitaShell/language/theme/wallpaper.png'**.
