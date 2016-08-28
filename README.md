@@ -68,6 +68,7 @@ Be sure you pull request your customized design or language file there.
 - Added customization possibility for ftp icon, battery, dialog and context menu.
 - Added random wallpaper feature.
 - Changed location of themes to 'ux0:VitaShell/theme/YOUR_THEME_NAME'.
+- Fixed russian and korean language support.
 
 ### Changelog 0.8 ###
 - Added support for >2GB zip archives (dropped support for 7zip and rar though).
