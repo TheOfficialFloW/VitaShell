@@ -27,7 +27,7 @@ You can customize those files:
 
 **Dialog and context image:** If these files are not available, the colors **DIALOG_BG_COLOR** and **CONTEXT_MENU_COLOR** from **'colors.txt'** will be used instead.
 
-The standard VitaShell theme is provided in 'VitaShellCustomization.rar' and available in the **'release'** section.
+The standard VitaShell theme is provided in **'VitaShellCustomization.rar'** and available in the **'release'** section.
 
 ### Multi-language ###
 Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file must be UTF-8 encoded and 'x' is one of the language listed below:**
@@ -54,7 +54,8 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
-The english language file is provided in 'VitaShellCustomization.rar' and available in the **'release'** section.
+
+The english language file is provided in **'VitaShellCustomization.rar'** and available in the **'release'** section.
 
 ### VitaShell themes and translations collection ###
 This is an unofficial VitaShell themes and translations collection:
