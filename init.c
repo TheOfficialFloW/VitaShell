@@ -21,10 +21,6 @@
 #include "file.h"
 #include "utils.h"
 
-extern unsigned char _binary_resources_ftp_png_start;
-extern unsigned char _binary_resources_battery_png_start;
-extern unsigned char _binary_resources_battery_bar_red_png_start;
-extern unsigned char _binary_resources_battery_bar_green_png_start;
 extern unsigned char _binary_resources_headphone_png_start;
 extern unsigned char _binary_resources_audio_previous_png_start;
 extern unsigned char _binary_resources_audio_pause_png_start;
@@ -34,8 +30,7 @@ extern unsigned char _binary_resources_audio_next_png_start;
 vita2d_pgf *font = NULL;
 char font_size_cache[256];
 
-vita2d_texture *ftp_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL, *battery_bar_green_image = NULL, *headphone_image = NULL;
-vita2d_texture *audio_previous_image = NULL, *audio_pause_image = NULL, *audio_play_image = NULL, *audio_next_image = NULL;
+vita2d_texture *headphone_image = NULL, *audio_previous_image = NULL, *audio_pause_image = NULL, *audio_play_image = NULL, *audio_next_image = NULL;
 
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
@@ -94,10 +89,6 @@ void initVita2dLib() {
 		font_size_cache[i] = vita2d_pgf_text_width(font, FONT_SIZE, character);
 	}
 
-	ftp_image = vita2d_load_PNG_buffer(&_binary_resources_ftp_png_start);
-	battery_image = vita2d_load_PNG_buffer(&_binary_resources_battery_png_start);
-	battery_bar_red_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_red_png_start);
-	battery_bar_green_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_green_png_start);
 	headphone_image = vita2d_load_PNG_buffer(&_binary_resources_headphone_png_start);
 	audio_previous_image = vita2d_load_PNG_buffer(&_binary_resources_audio_previous_png_start);
 	audio_pause_image = vita2d_load_PNG_buffer(&_binary_resources_audio_pause_png_start);
@@ -106,10 +97,6 @@ void initVita2dLib() {
 }
 
 void finishVita2dLib() {
-	vita2d_free_texture(battery_bar_green_image);
-	vita2d_free_texture(battery_bar_red_image);
-	vita2d_free_texture(battery_image);
-	vita2d_free_texture(ftp_image);
 	vita2d_free_texture(headphone_image);
 	vita2d_free_texture(audio_previous_image);
 	vita2d_free_texture(audio_pause_image);
@@ -118,9 +105,6 @@ void finishVita2dLib() {
 	vita2d_free_pgf(font);
 	vita2d_fini();
 
-	battery_bar_green_image = NULL;
-	battery_bar_red_image = NULL;
-	battery_image = NULL;
 	font = NULL;
 	headphone_image = NULL;
 	audio_previous_image = NULL;

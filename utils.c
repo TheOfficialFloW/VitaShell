@@ -19,6 +19,8 @@
 #include "main.h"
 #include "file.h"
 #include "message_dialog.h"
+#include "uncommon_dialog.h"
+#include "theme.h"
 #include "language.h"
 #include "utils.h"
 
@@ -30,6 +32,56 @@ static void *net_memory = NULL;
 static int net_init = -1;
 
 static int lock_power = 0;
+
+static uint64_t wallpaper_time_start = 0;
+static int wallpaper_random_delay = 0;
+static float wallpaper_alpha = 255.0f;
+
+void startDrawing() {
+	vita2d_start_drawing();
+	vita2d_set_clear_color(BACKGROUND_COLOR);
+	vita2d_clear_screen();
+
+	if (wallpaper_time_start == 0) {
+		wallpaper_time_start = sceKernelGetProcessTimeWide();
+		wallpaper_random_delay = randomNumber(15, 30);
+	}
+
+	if ((sceKernelGetProcessTimeWide() - wallpaper_time_start) >= (wallpaper_random_delay * 1000 * 1000)) {
+		int random_num = randomNumber(0, wallpaper_count - 1);
+
+		vita2d_texture *random_wallpaper_image = wallpaper_image[random_num];
+		if (random_wallpaper_image != current_wallpaper_image) {
+			previous_wallpaper_image = current_wallpaper_image;
+			current_wallpaper_image = random_wallpaper_image;
+			wallpaper_alpha = 0.0f;
+		}
+
+		wallpaper_time_start = 0;
+	}
+
+	if (current_wallpaper_image) {
+		if (previous_wallpaper_image) {
+			vita2d_draw_texture(previous_wallpaper_image, 0.0f, 0.0f);
+		}
+
+		if (wallpaper_alpha < 255.0f) {
+			vita2d_draw_texture_tint(current_wallpaper_image, 0.0f, 0.0f, RGBA8(255, 255, 255, (int)wallpaper_alpha));
+			wallpaper_alpha += 1.5f;
+		} else {
+			vita2d_draw_texture(current_wallpaper_image, 0.0f, 0.0f);
+			previous_wallpaper_image = NULL;
+		}
+	}
+}
+
+void endDrawing() {
+	drawUncommonDialog();
+	vita2d_end_drawing();
+	vita2d_common_dialog_update();
+	vita2d_swap_buffers();
+	sceDisplayWaitVblankStart();
+}
 
 void errorDialog(int error) {
 	if (error < 0) {
@@ -211,6 +263,10 @@ void getTimeString(char *string, int time_format, SceDateTime *time) {
 			sprintf(string, "%02d:%02d", time->hour, time->minute);
 			break;
 	}
+}
+
+int randomNumber(int low, int high) {
+   return rand() % (high - low + 1) + low;
 }
 
 int debugPrintf(char *text, ...) {

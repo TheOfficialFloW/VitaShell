@@ -292,7 +292,7 @@ int hexViewer(char *file) {
 		}
 
 		// Start drawing
-		START_DRAWING();
+		startDrawing();
 
 		// Draw shell info
 		drawShellInfo(file);
@@ -361,7 +361,7 @@ int hexViewer(char *file) {
 		}
 
 		// End drawing
-		END_DRAWING();
+		endDrawing();
 	}
 
 	hexListEmpty(&list);

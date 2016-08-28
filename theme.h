@@ -19,6 +19,8 @@
 #ifndef __THEME_H__
 #define __THEME_H__
 
+#define MAX_WALLPAPERS 10
+
 extern int BACKGROUND_COLOR;
 extern int GENERAL_COLOR;
 extern int TITLE_COLOR;
@@ -39,7 +41,12 @@ extern int PROGRESS_BAR_BG_COLOR;
 extern int HEX_OFFSET_COLOR;
 extern int HEX_NIBBLE_COLOR;
 
-extern vita2d_texture *bg_tex;
+extern vita2d_texture *ftp_image, *dialog_image, *context_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image;
+
+extern vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
+extern vita2d_texture *previous_wallpaper_image, *current_wallpaper_image;
+
+extern int wallpaper_count;
 
 void loadTheme();
 

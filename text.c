@@ -247,7 +247,7 @@ int textViewer(char *file) {
 		}
 
 		// Start drawing
-		START_DRAWING();
+		startDrawing();
 
 		// Draw shell info
 		drawShellInfo(file);
@@ -283,7 +283,7 @@ int textViewer(char *file) {
 		}
 
 		// End drawing
-		END_DRAWING();
+		endDrawing();
 	}
 
 	running = 0;

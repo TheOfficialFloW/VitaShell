@@ -59,37 +59,17 @@
 
 #include "functions.h"
 
-#include "uncommon_dialog.h"
-
 #define ENABLE_DEBUGNET_LOGGING 1
 #define ENABLE_FILE_LOGGING 1
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0
-#define VITASHELL_VERSION_MINOR 8
+#define VITASHELL_VERSION_MINOR 85
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
-#define START_DRAWING() \
-{ \
-	vita2d_start_drawing(); \
-	vita2d_set_clear_color(BACKGROUND_COLOR); \
-	vita2d_clear_screen(); \
-	if (bg_tex) \
-		vita2d_draw_texture(bg_tex, 0.0f, 0.0f); \
-}
-
-#define END_DRAWING() \
-{ \
-	drawUncommonDialog(); \
-	vita2d_end_drawing(); \
-	vita2d_common_dialog_update(); \
-	vita2d_swap_buffers(); \
-	sceDisplayWaitVblankStart(); \
-}
 
 #define NOALPHA 0xFF
 
@@ -195,8 +175,7 @@ enum DialogSteps {
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
-extern vita2d_texture *ftp_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image, *headphone_image;
-extern vita2d_texture *audio_previous_image, *audio_pause_image, *audio_play_image, *audio_next_image;
+extern vita2d_texture *headphone_image, *audio_previous_image, *audio_pause_image, *audio_play_image, *audio_next_image;
 
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 

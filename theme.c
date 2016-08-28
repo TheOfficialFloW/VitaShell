@@ -17,8 +17,14 @@
 */
 
 #include "main.h"
+#include "file.h"
 #include "config.h"
 #include "theme.h"
+
+extern unsigned char _binary_resources_ftp_png_start;
+extern unsigned char _binary_resources_battery_png_start;
+extern unsigned char _binary_resources_battery_bar_red_png_start;
+extern unsigned char _binary_resources_battery_bar_green_png_start;
 
 extern unsigned char _binary_resources_colors_txt_start;
 extern unsigned char _binary_resources_colors_txt_size;
@@ -43,7 +49,13 @@ int PROGRESS_BAR_BG_COLOR;
 int HEX_OFFSET_COLOR;
 int HEX_NIBBLE_COLOR;
 
-vita2d_texture *bg_tex = NULL;
+vita2d_texture *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL, *battery_bar_green_image = NULL;
+
+vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
+
+vita2d_texture *previous_wallpaper_image = NULL, *current_wallpaper_image = NULL;
+
+int wallpaper_count = 0;
 
 void loadTheme() {
 	#define COLOR_ENTRY(name) { #name, CONFIG_TYPE_HEXDECIMAL, (void *)&name }
@@ -73,11 +85,97 @@ void loadTheme() {
 	readConfigBuffer(&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
 	// Load custom config file
-	if (use_custom_config)
-		readConfig("ux0:VitaShell/theme/colors.txt", colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
-
 	if (use_custom_config) {
-		if (!bg_tex)
-			bg_tex = vita2d_load_PNG_file("ux0:VitaShell/theme/wallpaper.png");
+		char path[MAX_PATH_LENGTH];
+
+		char *theme_name = NULL;
+		ConfigEntry theme_entries[] = {
+			{ "THEME_NAME", CONFIG_TYPE_STRING, (void *)&theme_name },
+		};
+
+		// Load theme config
+		readConfig("ux0:VitaShell/theme/theme.txt", theme_entries, sizeof(theme_entries) / sizeof(ConfigEntry));
+
+		if (theme_name) {
+			// Load colors config
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
+			readConfig(path, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
+
+			// Load pngs
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/ftp.png", theme_name);
+			ftp_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/dialog.png", theme_name);
+			dialog_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/context.png", theme_name);
+			context_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery.png", theme_name);
+			battery_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery_bar_red.png", theme_name);
+			battery_bar_red_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery_bar_green.png", theme_name);
+			battery_bar_green_image = vita2d_load_PNG_file(path);
+
+			// Wallpapers
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wallpaper.png", theme_name);
+			vita2d_texture *image = vita2d_load_PNG_file(path);
+			if (image)
+				wallpaper_image[wallpaper_count++] = image;
+
+			int i;
+			for (i = 1; i < MAX_WALLPAPERS; i++) {
+				snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wallpaper%d.png", theme_name, i + 1);
+				vita2d_texture *image = vita2d_load_PNG_file(path);
+				if (image)
+					wallpaper_image[wallpaper_count++] = image;
+			}
+
+			// Set random wallpaper
+			int random_num = randomNumber(0, wallpaper_count - 1);
+			current_wallpaper_image = wallpaper_image[random_num];
+		}
 	}
+
+	// Load default pngs
+	if (!ftp_image)
+		ftp_image = vita2d_load_PNG_buffer(&_binary_resources_ftp_png_start);
+
+	if (!dialog_image) {
+		dialog_image = vita2d_create_empty_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
+		void *data = vita2d_texture_get_datap(dialog_image);
+
+		int y;
+		for (y = 0; y < SCREEN_HEIGHT; y++) {
+			int x;
+			for (x = 0; x < SCREEN_WIDTH; x++) {
+				((uint32_t *)data)[x + y * SCREEN_WIDTH] = DIALOG_BG_COLOR;
+			}
+		}
+	}
+
+	if (!context_image) {
+		context_image = vita2d_create_empty_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
+		void *data = vita2d_texture_get_datap(context_image);
+
+		int y;
+		for (y = 0; y < SCREEN_HEIGHT; y++) {
+			int x;
+			for (x = 0; x < SCREEN_WIDTH; x++) {
+				((uint32_t *)data)[x + y * SCREEN_WIDTH] = CONTEXT_MENU_COLOR;
+			}
+		}
+	}
+
+	if (!battery_image)
+		battery_image = vita2d_load_PNG_buffer(&_binary_resources_battery_png_start);
+
+	if (!battery_bar_red_image)
+		battery_bar_red_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_red_png_start);
+
+	if (!battery_bar_green_image)
+		battery_bar_green_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_green_png_start);
 }

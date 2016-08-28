@@ -8,9 +8,23 @@ Any amount of donation is a big support for VitaShell development and therefore 
 https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y7CVA9VSJA2VW
 
 ### Customization ###
-Put your colors file at **'ux0:VitaShell/theme/colors.txt'** and if wanted a PNG wallpaper file at **'ux0:VitaShell/theme/wallpaper.png'**.
-If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
-The standard VitaShell colors file is provided in the **'release'** section
+You can customize those files:
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/colors.txt'**: All colors adjustable
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaper.png'**: Wallpaper #1
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/ftp.png'**: Ftp icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/context.png'**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery.png'**: Battery border icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_green.png'**: Green battery bar
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_red.png'**: Red battery bar
+
+**General info:** You don't need to have all these files in your custom theme, if one of them is missing, the default one will be loaded instead.
+**Wallpapers info:** You can have **ten wallpapers** which VitaShell will display at random interval. If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
+**Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
+**Dialog and context image:** If these files are not available, the colors **DIALOG_BG_COLOR** and **CONTEXT_MENU_COLOR** from from **'colors.txt'** will be used instead.
+
+The standard VitaShell theme is provided in 'VitaShellCustomization.rar' and available the **'release'** section.
 
 ### Multi-language ###
 Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file must be UTF-8 encoded and 'x' is one of the language listed below:**
@@ -37,7 +51,7 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
-The english language file is provided in the **'release'** section
+The english language file is provided in 'VitaShellCustomization.rar' and available in the **'release'** section.
 
 ### VitaShell themes and translations collection ###
 This is an unofficial VitaShell themes and translations collection:
@@ -45,6 +59,11 @@ This is an unofficial VitaShell themes and translations collection:
 https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
+
+### Changelog 0.85 ###
+- Added customization possibility for ftp icon, battery, dialog and context menu.
+- Added random wallpaper feature.
+- Changed location of themes to 'ux0:VitaShell/theme/YOUR_THEME_NAME'.
 
 ### Changelog 0.8 ###
 - Added support for >2GB zip archives (dropped support for 7zip and rar though).

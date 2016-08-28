@@ -50,7 +50,7 @@
 #include "utils.h"
 #include "audioplayer.h"
 
-int _newlib_heap_size_user = 32 * 1024 * 1024;
+int _newlib_heap_size_user = 64 * 1024 * 1024;
 
 #define MAX_DIR_LEVELS 1024
 
@@ -512,7 +512,7 @@ void drawContextMenu() {
 
 	// Draw context menu
 	if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
-		vita2d_draw_rectangle(SCREEN_WIDTH - ctx_menu_width, 0.0f, ctx_menu_width, SCREEN_HEIGHT, CONTEXT_MENU_COLOR);
+		vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_menu_width, 0.0f, 0.0f, 0.0f, ctx_menu_width, SCREEN_HEIGHT);
 
 		int i;
 		for (i = 0; i < N_MENU_ENTRIES; i++) {
@@ -1110,7 +1110,7 @@ int shellMain() {
 		}
 
 		// Start drawing
-		START_DRAWING();
+		startDrawing();
 
 		// Draw shell info
 		drawShellInfo(file_list.path);
@@ -1211,7 +1211,7 @@ int shellMain() {
 		drawContextMenu();
 
 		// End drawing
-		END_DRAWING();
+		endDrawing();
 	}
 
 	// Empty lists
@@ -1278,6 +1278,9 @@ int main(int argc, const char *argv[]) {
 	readPad();
 	if (current_buttons & SCE_CTRL_LTRIGGER)
 		use_custom_config = 0;
+
+	// Init random number generator
+	srand(time(NULL));
 
 	// Make VitaShell folders
 	sceIoMkdir("ux0:VitaShell", 0777);

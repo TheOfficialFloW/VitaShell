@@ -50,6 +50,9 @@ enum {
 extern SceCtrlData pad;
 extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
 
+void startDrawing();
+void endDrawing();
+
 void errorDialog(int error);
 void infoDialog(char *msg, ...);
 
@@ -66,6 +69,8 @@ int addEndSlash(char *path);
 void getSizeString(char *string, uint64_t size);
 void getDateString(char *string, int date_format, SceDateTime *time);
 void getTimeString(char *string, int time_format, SceDateTime *time);
+
+int randomNumber(int low, int high);
 
 int debugPrintf(char *text, ...);
 

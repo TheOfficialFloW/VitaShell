@@ -21,6 +21,7 @@
 #include "theme.h"
 #include "language.h"
 #include "utils.h"
+#include "uncommon_dialog.h"
 
 typedef struct {
 	int status;
@@ -222,7 +223,7 @@ int drawUncommonDialog() {
 	// Dialog background
 	float x = CENTER(SCREEN_WIDTH, uncommon_dialog.max_width);
 	float y = CENTER(SCREEN_HEIGHT, uncommon_dialog.max_height);
-	vita2d_draw_rectangle(x, y, uncommon_dialog.max_width, uncommon_dialog.max_height, DIALOG_BG_COLOR);
+	vita2d_draw_texture_scale(dialog_image, x, y, uncommon_dialog.max_width / vita2d_texture_get_width(dialog_image), uncommon_dialog.max_height / vita2d_texture_get_height(dialog_image));
 
 	// Draw message
 	float string_y = y + SHELL_MARGIN_Y - 2.0f;

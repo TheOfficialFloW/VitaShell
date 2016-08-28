@@ -127,7 +127,7 @@ int readEntry(char *line, ConfigEntry *entries, int n_entries) {
 		return -1;
 
 	// Name of entry
-	char name[MAX_NAME_LENGTH];
+	char name[MAX_CONFIG_NAME_LENGTH];
 	strncpy(name, line, p - line);
 	name[p - line] = '\0';
 
@@ -181,7 +181,7 @@ int readEntry(char *line, ConfigEntry *entries, int n_entries) {
 
 int readConfigBuffer(void *buffer, int size, ConfigEntry *entries, int n_entries) {
 	int res = 0;
-	char line[MAX_LINE_LENGTH];
+	char line[MAX_CONFIG_LINE_LENGTH];
 	char *p = buffer;
 
 	// Skip UTF-8 bom
