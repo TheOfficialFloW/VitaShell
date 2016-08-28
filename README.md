@@ -19,7 +19,7 @@ You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_green.png'**: Green battery bar
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_red.png'**: Red battery bar
 
-**General info:** You don't need to have all these files in your custom theme, if one of them is missing, the default one will be loaded instead.
+**General info:** You don't need to have all these files in your custom theme, if one of them is missing, the default image file will be loaded instead.
 
 **Wallpapers info:** You can have **ten wallpapers** which VitaShell will display at random interval. If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
 
