@@ -25,7 +25,7 @@ You can customize those files:
 
 **Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
 
-**Dialog and context image:** If these files are not available, the colors **DIALOG_BG_COLOR** and **CONTEXT_MENU_COLOR** from from **'colors.txt'** will be used instead.
+**Dialog and context image:** If these files are not available, the colors **DIALOG_BG_COLOR** and **CONTEXT_MENU_COLOR** from **'colors.txt'** will be used instead.
 
 The standard VitaShell theme is provided in 'VitaShellCustomization.rar' and available in the **'release'** section.
 
