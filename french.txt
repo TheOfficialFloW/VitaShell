@@ -1,4 +1,5 @@
-# VitaShell french translation by xy2_
+# VitaShell french translation by xy2_ 
+# Updated by Dragoon1010
 
 ERROR							= "Erreur 0x%08X."
 OK								= "OK"
@@ -26,5 +27,6 @@ DELETE_FILE_QUESTION			= "Voulez-vous vraiment supprimer ce fichier ?"
 DELETE_FOLDER_QUESTION			= "Voulez-vous vraiment supprimer ce dossier ?"
 DELETE_FILES_FOLDERS_QUESTION	= "Voulez-vous vraiment supprimer ces fichiers/dossiers ?"
 INSTALL_QUESTION				= "Voulez-vous vraiment installer cette archive ?"
+SAVE_MODIFICATIONS  = "Voulez vous sauvegarder les modifications ?"
 WIFI_ERROR						= "Vous devez activer le Wi-Fi pour utiliser cette fonction."
 FTP_SERVER						= "Serveur FTP actif à l'adresse \ftp://%s:%i\\Appuyez sur 'OK' pour garder en tâche de fond.\Appuyez sur 'Annuler' pour l'arrêter."
