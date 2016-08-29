@@ -29,6 +29,8 @@ typedef struct {
 	int buttonType;
 	int buttonId;
 	char msg[512];
+	float x;
+	float y;
 	float max_width;
 	float max_height;
 	int progress;
@@ -81,6 +83,14 @@ void calculateDialogBoxSize() {
 	// More space for buttons
 	if (uncommon_dialog.buttonType != SCE_MSG_DIALOG_BUTTON_TYPE_NONE)
 		uncommon_dialog.max_height += 2.0f * FONT_Y_SPACE;
+
+	// Position
+	uncommon_dialog.x = CENTER(SCREEN_WIDTH, uncommon_dialog.max_width);
+	uncommon_dialog.y = CENTER(SCREEN_HEIGHT, uncommon_dialog.max_height);
+
+	// Align
+	int y_n = (int)((float)(uncommon_dialog.y - 2.0f) / FONT_Y_SPACE) - 1;
+	uncommon_dialog.y = (float)y_n * FONT_Y_SPACE + 2.0f;
 }
 
 int sceMsgDialogInit(const SceMsgDialogParam *param) {
@@ -221,12 +231,10 @@ int drawUncommonDialog() {
 		return 0;
 
 	// Dialog background
-	float x = CENTER(SCREEN_WIDTH, uncommon_dialog.max_width);
-	float y = CENTER(SCREEN_HEIGHT, uncommon_dialog.max_height);
-	vita2d_draw_texture_scale(dialog_image, x, y, uncommon_dialog.max_width / vita2d_texture_get_width(dialog_image), uncommon_dialog.max_height / vita2d_texture_get_height(dialog_image));
+	vita2d_draw_texture_scale(dialog_image, uncommon_dialog.x, uncommon_dialog.y, uncommon_dialog.max_width / vita2d_texture_get_width(dialog_image), uncommon_dialog.max_height / vita2d_texture_get_height(dialog_image));
 
 	// Draw message
-	float string_y = y + SHELL_MARGIN_Y - 2.0f;
+	float string_y = uncommon_dialog.y + SHELL_MARGIN_Y - 2.0f;
 
 	int len = strlen(uncommon_dialog.msg);
 	char *string = uncommon_dialog.msg;
@@ -235,7 +243,7 @@ int drawUncommonDialog() {
 	for (i = 0; i < len + 1; i++) {
 		if (uncommon_dialog.msg[i] == '\n') {
 			uncommon_dialog.msg[i] = '\0';
-			pgf_draw_text(x + SHELL_MARGIN_X, string_y, GENERAL_COLOR, FONT_SIZE, string);
+			pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, GENERAL_COLOR, FONT_SIZE, string);
 			uncommon_dialog.msg[i] = '\n';
 
 			string = uncommon_dialog.msg + i + 1;
@@ -243,7 +251,7 @@ int drawUncommonDialog() {
 		}
 
 		if (uncommon_dialog.msg[i] == '\0') {
-			pgf_draw_text(x + SHELL_MARGIN_X, string_y, GENERAL_COLOR, FONT_SIZE, string);
+			pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, GENERAL_COLOR, FONT_SIZE, string);
 			string_y += FONT_Y_SPACE;
 		}
 	}
@@ -272,8 +280,8 @@ int drawUncommonDialog() {
 	// Progress bar
 	if (uncommon_dialog.mode == SCE_MSG_DIALOG_MODE_PROGRESS_BAR) {
 		float width = uncommon_dialog.max_width - 2.0f * SHELL_MARGIN_X;
-		vita2d_draw_rectangle(x + SHELL_MARGIN_X, string_y + 10.0f, width, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_BG_COLOR);
-		vita2d_draw_rectangle(x + SHELL_MARGIN_X, string_y + 10.0f, uncommon_dialog.progress * width / 100.0f, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_COLOR);
+		vita2d_draw_rectangle(uncommon_dialog.x + SHELL_MARGIN_X, string_y + 10.0f, width, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_BG_COLOR);
+		vita2d_draw_rectangle(uncommon_dialog.x + SHELL_MARGIN_X, string_y + 10.0f, uncommon_dialog.progress * width / 100.0f, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_COLOR);
 
 		char string[8];
 		sprintf(string, "%d%%", uncommon_dialog.progress);

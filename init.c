@@ -49,7 +49,7 @@ extern unsigned char _binary_resources_audio_pause_png_start;
 extern unsigned char _binary_resources_audio_play_png_start;
 extern unsigned char _binary_resources_audio_next_png_start;
 
-DefaultFile default_files[] = {
+static DefaultFile default_files[] = {
 	{ "ux0:VitaShell/language/english_us.txt", (void *)&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size },
 	{ "ux0:VitaShell/theme/theme.txt", (void *)&_binary_resources_theme_txt_start, (int)&_binary_resources_theme_txt_size },
 	{ "ux0:VitaShell/theme/Default/colors.txt", (void *)&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size },
