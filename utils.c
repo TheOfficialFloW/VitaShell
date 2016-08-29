@@ -254,13 +254,22 @@ void getDateString(char *string, int date_format, SceDateTime *time) {
 }
 
 void getTimeString(char *string, int time_format, SceDateTime *time) {
+	
+	SceDateTime	time_local;
+	SceRtcTick	tick_utc;
+	SceRtcTick	tick_local;
+	
+	sceRtcGetTick(time,&tick_utc);
+	sceRtcConvertUtcToLocalTime(&tick_utc,&tick_local);
+	sceRtcSetTick(&time_local,&tick_local);
+	
 	switch(time_format) {
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
-			sprintf(string, "%02d:%02d %s", (time->hour > 12) ? (time->hour - 12) : ((time->hour == 0) ? 12 : time->hour), time->minute, time->hour >= 12 ? "PM" : "AM");
+			sprintf(string, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour - 12) : ((time_local.hour == 0) ? 12 : time_local.hour), time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
 			break;
 
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_24HR:
-			sprintf(string, "%02d:%02d", time->hour, time->minute);
+			sprintf(string, "%02d:%02d", time_local.hour, time_local.minute);
 			break;
 	}
 }

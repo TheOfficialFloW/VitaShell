@@ -325,7 +325,7 @@ void drawShellInfo(char *path) {
 
 	// Date & time
 	SceDateTime time;
-	sceRtcGetCurrentClockLocalTime(&time);
+	sceRtcGetCurrentClock(&time,0);
 
 	char date_string[16];
 	getDateString(date_string, date_format, &time);
