@@ -95,7 +95,7 @@ char *getString(char *str) {
 	out[len] = '\0';
 
 	int i;
-	for (i = 0; i < strlen(out); i++) {
+	for (i = 0; i < len; i++) {
 		if (out[i] == '\\')
 			out[i] = '\n';
 	}
@@ -202,7 +202,7 @@ int readConfigBuffer(void *buffer, int size, ConfigEntry *entries, int n_entries
 		}
 	} while (res > 0);
 
-	return 0;	
+	return 0;
 }
 
 int readConfig(char *path, ConfigEntry *entries, int n_entries) {

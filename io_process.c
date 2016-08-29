@@ -31,8 +31,6 @@ void closeWaitDialog() {
 	while (updateMessageDialog() != MESSAGE_DIALOG_RESULT_NONE) {
 		sceKernelDelayThread(1000);
 	}
-
-	dialog_step = DIALOG_STEP_CANCELLED;
 }
 
 int cancelHandler() {
@@ -145,6 +143,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 		int res = removePath(path, &value, folders + files, SetProgress, cancelHandler);
 		if (res <= 0) {
 			closeWaitDialog();
+			dialog_step = DIALOG_STEP_CANCELLED;
 			errorDialog(res);
 			goto EXIT;
 		}
@@ -210,6 +209,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 			if (cancelHandler()) {
 				closeWaitDialog();
+				dialog_step = DIALOG_STEP_CANCELLED;
 				goto EXIT;
 			}
 
@@ -273,6 +273,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 				int res = extractArchivePath(src_path, dst_path, &value, size + folders, SetProgress, cancelHandler);
 				if (res <= 0) {
 					closeWaitDialog();
+					dialog_step = DIALOG_STEP_CANCELLED;
 					errorDialog(res);
 					goto EXIT;
 				}
@@ -280,6 +281,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 				int res = copyPath(src_path, dst_path, &value, size + folders, SetProgress, cancelHandler);
 				if (res <= 0) {
 					closeWaitDialog();
+					dialog_step = DIALOG_STEP_CANCELLED;
 					errorDialog(res);
 					goto EXIT;
 				}

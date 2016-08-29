@@ -1,0 +1,3 @@
+# VitaShell theme file
+
+THEME_NAME = "Default"

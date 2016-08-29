@@ -1279,14 +1279,6 @@ int main(int argc, const char *argv[]) {
 	if (current_buttons & SCE_CTRL_LTRIGGER)
 		use_custom_config = 0;
 
-	// Init random number generator
-	srand(time(NULL));
-
-	// Make VitaShell folders
-	sceIoMkdir("ux0:VitaShell", 0777);
-	sceIoMkdir("ux0:VitaShell/language", 0777);
-	sceIoMkdir("ux0:VitaShell/theme", 0777);
-
 	// Load theme
 	loadTheme();
 

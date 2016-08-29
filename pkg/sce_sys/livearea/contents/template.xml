@@ -12,7 +12,7 @@
 	<frame id="frame2">
 		<liveitem>
 			<text valign="bottom" align="left" text-align="left" text-valign="bottom" line-space="3" ellipsis="on">
-				<str color="#ffffff" size="50"  bold="on" shadow="on">VitaShell</str>
+				<str color="#ffffff" size="50" bold="on" shadow="on">VitaShell</str>
 			</text>
 		</liveitem>
 	</frame>
@@ -28,9 +28,8 @@
 	<frame id="frame4">
 		<liveitem>
 			<text align="left" text-align="left" word-wrap="off" ellipsis="on">
-				<str size="18" color="#ffffff" shadow="on">v0.8</str>
+				<str size="18" color="#ffffff" shadow="on">v0.85</str>
 			</text>
 		</liveitem>
 	</frame>
-	
 </livearea>

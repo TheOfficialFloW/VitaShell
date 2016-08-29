@@ -22,6 +22,8 @@
 #include "theme.h"
 
 extern unsigned char _binary_resources_ftp_png_start;
+extern unsigned char _binary_resources_dialog_png_start;
+extern unsigned char _binary_resources_context_png_start;
 extern unsigned char _binary_resources_battery_png_start;
 extern unsigned char _binary_resources_battery_bar_red_png_start;
 extern unsigned char _binary_resources_battery_bar_green_png_start;
@@ -144,31 +146,11 @@ void loadTheme() {
 	if (!ftp_image)
 		ftp_image = vita2d_load_PNG_buffer(&_binary_resources_ftp_png_start);
 
-	if (!dialog_image) {
-		dialog_image = vita2d_create_empty_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
-		void *data = vita2d_texture_get_datap(dialog_image);
+	if (!dialog_image)
+		dialog_image = vita2d_load_PNG_buffer(&_binary_resources_dialog_png_start);
 
-		int y;
-		for (y = 0; y < SCREEN_HEIGHT; y++) {
-			int x;
-			for (x = 0; x < SCREEN_WIDTH; x++) {
-				((uint32_t *)data)[x + y * SCREEN_WIDTH] = DIALOG_BG_COLOR;
-			}
-		}
-	}
-
-	if (!context_image) {
-		context_image = vita2d_create_empty_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
-		void *data = vita2d_texture_get_datap(context_image);
-
-		int y;
-		for (y = 0; y < SCREEN_HEIGHT; y++) {
-			int x;
-			for (x = 0; x < SCREEN_WIDTH; x++) {
-				((uint32_t *)data)[x + y * SCREEN_WIDTH] = CONTEXT_MENU_COLOR;
-			}
-		}
-	}
+	if (!context_image)
+		context_image = vita2d_load_PNG_buffer(&_binary_resources_context_png_start);
 
 	if (!battery_image)
 		battery_image = vita2d_load_PNG_buffer(&_binary_resources_battery_png_start);

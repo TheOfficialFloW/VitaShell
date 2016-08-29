@@ -246,6 +246,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		uint64_t authid = *(uint64_t *)(buffer + 0x80);
 		if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
 			closeWaitDialog();
+
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
 			dialog_step = DIALOG_STEP_INSTALL_WARNING;
 
@@ -262,6 +263,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
 			// Init again
 			initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+			dialog_step = DIALOG_STEP_INSTALLING;
 		}
 	}
 
@@ -284,6 +286,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
 	if (res <= 0) {
 		closeWaitDialog();
+		dialog_step = DIALOG_STEP_CANCELLED;
 		errorDialog(res);
 		goto EXIT;
 	}

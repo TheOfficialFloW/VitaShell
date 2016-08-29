@@ -23,6 +23,12 @@
 
 extern int language, enter_button, date_format, time_format;
 
+typedef struct {
+	char *path;
+	void *buffer;
+	int size;
+} DefaultFile;
+
 void initSceAppUtil();
 void finishSceAppUtil();
 

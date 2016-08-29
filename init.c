@@ -21,11 +21,45 @@
 #include "file.h"
 #include "utils.h"
 
+extern unsigned char _binary_resources_ftp_png_start;
+extern unsigned char _binary_resources_ftp_png_size;
+extern unsigned char _binary_resources_dialog_png_start;
+extern unsigned char _binary_resources_dialog_png_size;
+extern unsigned char _binary_resources_context_png_start;
+extern unsigned char _binary_resources_context_png_size;
+extern unsigned char _binary_resources_battery_png_start;
+extern unsigned char _binary_resources_battery_png_size;
+extern unsigned char _binary_resources_battery_bar_red_png_start;
+extern unsigned char _binary_resources_battery_bar_red_png_size;
+extern unsigned char _binary_resources_battery_bar_green_png_start;
+extern unsigned char _binary_resources_battery_bar_green_png_size;
+
+extern unsigned char _binary_resources_theme_txt_start;
+extern unsigned char _binary_resources_theme_txt_size;
+
+extern unsigned char _binary_resources_colors_txt_start;
+extern unsigned char _binary_resources_colors_txt_size;
+
+extern unsigned char _binary_resources_english_us_txt_start;
+extern unsigned char _binary_resources_english_us_txt_size;
+
 extern unsigned char _binary_resources_headphone_png_start;
 extern unsigned char _binary_resources_audio_previous_png_start;
 extern unsigned char _binary_resources_audio_pause_png_start;
 extern unsigned char _binary_resources_audio_play_png_start;
 extern unsigned char _binary_resources_audio_next_png_start;
+
+DefaultFile default_files[] = {
+	{ "ux0:VitaShell/language/english_us.txt", (void *)&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size },
+	{ "ux0:VitaShell/theme/theme.txt", (void *)&_binary_resources_theme_txt_start, (int)&_binary_resources_theme_txt_size },
+	{ "ux0:VitaShell/theme/Default/colors.txt", (void *)&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size },
+	{ "ux0:VitaShell/theme/Default/ftp.png", (void *)&_binary_resources_ftp_png_start, (int)&_binary_resources_ftp_png_size },
+	{ "ux0:VitaShell/theme/Default/dialog.png", (void *)&_binary_resources_dialog_png_start, (int)&_binary_resources_dialog_png_size },
+	{ "ux0:VitaShell/theme/Default/context.png", (void *)&_binary_resources_context_png_start, (int)&_binary_resources_context_png_size },
+	{ "ux0:VitaShell/theme/Default/battery.png", (void *)&_binary_resources_battery_png_start, (int)&_binary_resources_battery_png_size },
+	{ "ux0:VitaShell/theme/Default/battery_bar_red.png", (void *)&_binary_resources_battery_bar_red_png_start, (int)&_binary_resources_battery_bar_red_png_size },
+	{ "ux0:VitaShell/theme/Default/battery_bar_green.png", (void *)&_binary_resources_battery_bar_green_png_start, (int)&_binary_resources_battery_bar_green_png_size },
+};
 
 vita2d_pgf *font = NULL;
 char font_size_cache[256];
@@ -114,6 +148,9 @@ void finishVita2dLib() {
 }
 
 void initVitaShell() {
+	// Init random number generator
+	srand(time(NULL));
+
 	// Set sampling mode
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	
@@ -136,6 +173,21 @@ void initVitaShell() {
 
 	// Init power tick thread
 	initPowerTickThread();
+
+	// Make VitaShell folders
+	sceIoMkdir("ux0:VitaShell", 0777);
+	sceIoMkdir("ux0:VitaShell/language", 0777);
+	sceIoMkdir("ux0:VitaShell/theme", 0777);
+	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
+
+	// Write default files if they don't exist
+	int i;
+	for (i = 0; i < (sizeof(default_files) / sizeof(DefaultFile)); i++) {
+		SceIoStat stat;
+		memset(&stat, 0, sizeof(stat));
+		if (sceIoGetstat(default_files[i].path, &stat) < 0)
+			WriteFile(default_files[i].path, default_files[i].buffer, default_files[i].size);
+	}
 }
 
 void finishVitaShell() {
