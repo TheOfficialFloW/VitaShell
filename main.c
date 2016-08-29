@@ -325,7 +325,7 @@ void drawShellInfo(char *path) {
 
 	// Date & time
 	SceDateTime time;
-	sceRtcGetCurrentClock(&time,0);
+	sceRtcGetCurrentClock(&time, 0);
 
 	char date_string[16];
 	getDateString(date_string, date_format, &time);
@@ -734,7 +734,7 @@ int dialogSteps() {
 		case DIALOG_STEP_ERROR:
 		case DIALOG_STEP_INFO:
 		case DIALOG_STEP_SYSTEM:
-			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				dialog_step = DIALOG_STEP_NONE;
 			}
 
@@ -744,7 +744,7 @@ int dialogSteps() {
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
 		case DIALOG_STEP_INSTALLED:
-			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
 			}
@@ -757,7 +757,7 @@ int dialogSteps() {
 			break;
 			
 		case DIALOG_STEP_MOVED:
-			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				fileListEmpty(&copy_list);
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;

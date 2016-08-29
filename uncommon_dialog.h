@@ -26,6 +26,13 @@
 #define TRIANGLE "\xE2\x96\xB3"
 #define CIRCLE "\xE2\x97\x8B"
 
+enum UncommonAnimationMode {
+	UNCOMMON_DIALOG_CLOSED,
+	UNCOMMON_DIALOG_CLOSING,
+	UNCOMMON_DIALOG_OPENED,
+	UNCOMMON_DIALOG_OPENING,
+};
+
 int drawUncommonDialog();
 
 #endif
