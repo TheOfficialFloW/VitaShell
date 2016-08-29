@@ -89,7 +89,7 @@ void calculateDialogBoxSize() {
 	uncommon_dialog.y = CENTER(SCREEN_HEIGHT, uncommon_dialog.max_height);
 
 	// Align
-	int y_n = (int)((float)(uncommon_dialog.y - 2.0f) / FONT_Y_SPACE) - 1;
+	int y_n = (int)((float)(uncommon_dialog.y - 2.0f) / FONT_Y_SPACE);
 	uncommon_dialog.y = (float)y_n * FONT_Y_SPACE + 2.0f;
 }
 
