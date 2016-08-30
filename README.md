@@ -51,6 +51,7 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 - polish
 - portuguese_br
 - english_gb
+- greeklish
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
