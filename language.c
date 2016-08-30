@@ -42,7 +42,8 @@ static char *lang[] ={
 	"norwegian",
 	"polish",
 	"portuguese_br",
-	"english_gb"
+	"english_gb",
+	"greeklish"
 };
 
 char *language_container[LANGUAGE_CONTRAINER_SIZE];
