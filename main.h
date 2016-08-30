@@ -59,6 +59,7 @@
 
 #include "functions.h"
 
+
 #define ENABLE_DEBUGNET_LOGGING 1
 #define ENABLE_FILE_LOGGING 1
 
@@ -71,6 +72,31 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+
+enum Colors {
+	// Primary colors
+	RED				= 0xFF0000FF,
+	GREEN			= 0xFF00FF00,
+	BLUE			= 0xFFFF0000,
+	// Secondary colors
+	CYAN			= 0xFFFFFF00,
+	MAGENTA			= 0xFFFF00FF,
+	YELLOW			= 0xFF00FFFF,
+	// Tertiary colors
+	AZURE			= 0xFFFF7F00,
+	VIOLET			= 0xFFFF007F,
+	ROSE			= 0xFF7F00FF,
+	ORANGE			= 0xFF007FFF,
+	CHARTREUSE		= 0xFF00FF7F,
+	SPRING_GREEN	= 0xFF7FFF00,
+	// Grayscale
+	WHITE			= 0xFFFFFFFF,
+	LITEGRAY		= 0xFFBFBFBF,
+	GRAY			= 0xFF7F7F7F,
+	DARKGRAY		= 0xFF3F3F3F,
+	BLACK			= 0xFF000000
+};
+
 #define NOALPHA 0xFF
 
 #define COLOR_ALPHA(color, alpha) (color & 0x00FFFFFF) | ((alpha & 0xFF) << 24)
@@ -78,7 +104,7 @@
 // Font
 #define FONT_SIZE 1.0f
 #define FONT_X_SPACE 15.0f
-#define FONT_Y_SPACE 23.0f
+#define FONT_Y_SPACE 28.0f
 
 #define pgf_draw_text(x, y, color, scale, text) \
 	vita2d_pgf_draw_text(font, x, (y) + 20, color, scale, text)
@@ -108,7 +134,7 @@
 #define HEX_OFFSET_SPACE 34.0f
 
 // Scroll bar
-#define SCROLL_BAR_X 0.0f
+#define SCROLL_BAR_X 5.0f
 #define SCROLL_BAR_WIDTH 8.0f
 #define SCROLL_BAR_MIN_HEIGHT 4.0f
 
@@ -121,14 +147,15 @@
 #define MARK_WIDTH (SCREEN_WIDTH - 2.0f * SHELL_MARGIN_X)
 #define INFORMATION_X 680.0f
 #define MAX_NAME_WIDTH 530.0f
+#define MAX_NAME_WIDTH_TILE 145.0f
 
 // Uncommon dialog
 #define UNCOMMON_DIALOG_PROGRESS_BAR_BOX_WIDTH 420.0f
 #define UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT 8.0f
 
 // Max entries
-#define MAX_POSITION 16
-#define MAX_ENTRIES 17
+#define MAX_POSITION 999 //16
+#define MAX_ENTRIES 999 //17
 
 #define BIG_BUFFER_SIZE 16 * 1024 * 1024
 
@@ -159,13 +186,13 @@ enum DialogSteps {
 
 	DIALOG_STEP_DELETE_QUESTION,
 	DIALOG_STEP_DELETE_CONFIRMED,
+	DIALOG_STEP_INSTALL_WARNING,
+ 	DIALOG_STEP_INSTALL_WARNING_AGREED,
 	DIALOG_STEP_DELETING,
 	DIALOG_STEP_DELETED,
 
 	DIALOG_STEP_INSTALL_QUESTION,
 	DIALOG_STEP_INSTALL_CONFIRMED,
-	DIALOG_STEP_INSTALL_WARNING,
-	DIALOG_STEP_INSTALL_WARNING_AGREED,
 	DIALOG_STEP_INSTALLING,
 	DIALOG_STEP_INSTALLED,
 
@@ -176,6 +203,10 @@ extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
 extern vita2d_texture *headphone_image, *audio_previous_image, *audio_pause_image, *audio_play_image, *audio_next_image;
+extern vita2d_texture *game_card_storage_image, *game_card_image, *memory_card_image, *os0_image ;
+extern vita2d_texture *run_file_image, *img_file_image, *unknown_file_image, *sa0_image, *ur0_image, *vd0_image, *vs0_image;
+extern vita2d_texture *savedata0_image, *folder_image, *pd0_image, *app0_image, *ud0_image, *mark_image, *music_image;
+extern vita2d_texture *title_bar_bg_image, *default_wallpaper;
 
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
@@ -184,9 +215,15 @@ extern int dialog_step;
 extern int use_custom_config;
 
 void drawScrollBar(int pos, int n);
+
+void drawScrollBar2(int file_list_length);
+
 void drawShellInfo(char *path);
 
 int isInArchive();
+
+
+int TOUCH_FRONT();
 
 #endif
 
