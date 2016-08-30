@@ -20,7 +20,7 @@
 	TODO:
 	- Fix time
 	- Hide mount points
-	- Network update
+	- Network update	
 	- Context menu: 'More' entry
 	- Inverse sort, sort by date, size
 	- vita2dlib: Handle big images > 4096
@@ -50,9 +50,10 @@
 #include "utils.h"
 #include "audioplayer.h"
 
-int _newlib_heap_size_user = 64 * 1024 * 1024;
+int _newlib_heap_size_user = 32 * 1024 * 1024;
 
 #define MAX_DIR_LEVELS 1024
+#define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 
 // File lists
 static FileList file_list, mark_list, copy_list;
@@ -95,6 +96,219 @@ int dialog_step = DIALOG_STEP_NONE;
 
 // Use custom config
 int use_custom_config = 1;
+
+float width_item = 150.0f;
+int height_item = 170.0f;
+int length_row = 6;
+float length_border = 5.0f;
+
+float slide_value = 0;
+float slide_value_limit = 0;
+float slide_value_hold = 0;
+float speed_slide = 10.0f;
+int value_cur_pos = 0;
+int x_rel_pos_old = 0;
+int y_rel_pos_old = 0;
+bool animate = false;
+clock_t time_on_touch_start = 0;
+int Position = 0;
+
+bool touch_press = false;
+SceTouchData touch;	
+int countTouch = 0;
+int pre_touch_y = 0;
+int pre_touch_x = 0;
+bool touch_nothing = false;
+
+// State_Touch is global value to certain function TOUCH_FRONT alway return absolute one value for one time.
+int State_Touch = -1;
+bool saved_loc = false;
+bool have_slide = false;
+bool have_touch_hold = false;
+bool have_touch = true;
+int MIN_SLIDE_VERTTICAL = 40.0f;
+int MIN_SLIDE_HORIZONTAL = 100.0f;
+int AREA_TOUCH = 40.0f;
+bool disable_touch = false;
+
+
+// Output:
+//	0 : Touch down select
+//	1 : Touch up select
+//	2 : Double touch (temporary disable)
+//  3 : Hold Touch
+//  4 : Empty slot
+//	5 : Empty slot
+//	6 : Touch slide up
+//	7 : Touch slide down
+//  8 : Touch slide left
+//  9 : Touch slide right
+int TOUCH_FRONT() {	
+	sceTouchPeek(0, &touch, 1);
+		
+	if(touch_press & (touch.reportNum == 0) ) {
+		saved_loc = false;			
+		time_on_touch_start = 0;	
+		//have_touch_hold = false;
+
+		//Touch up Select Event
+		//prevent event slide
+		if (!have_slide) {			
+			State_Touch = 1;					
+
+		//Touch Double Event		
+		//prevent event slide
+		//if (!have_slide) 
+			//if ((touch.report[0].x < pre_touch_x + AREA_TOUCH) & (touch.report[0].x > pre_touch_x - AREA_TOUCH) & (touch.report[0].y < pre_touch_y + AREA_TOUCH) & (touch.report[0].y > pre_touch_y - AREA_TOUCH)) {
+				//countTouch++;			
+			//}						
+		}
+		else {
+			touch_nothing = false;			
+		}
+
+
+		if (countTouch >= 2) {			
+			countTouch = 0;
+			//State_Touch = 2;			
+		}
+				
+		//reset listen event slide
+		have_slide = false;	
+	}
+
+	if (touch.reportNum > 0) {
+		touch_press = true;		
+		
+		if (!saved_loc) {
+			if (touch.report[0].x > pre_touch_x + AREA_TOUCH || touch.report[0].x < pre_touch_x - AREA_TOUCH) {			 
+				pre_touch_x = touch.report[0].x;
+				countTouch = 0;
+			}
+			if (touch.report[0].y > pre_touch_y + AREA_TOUCH || touch.report[0].y < pre_touch_y - AREA_TOUCH) {
+				pre_touch_y = touch.report[0].y;				
+				countTouch = 0;
+			}
+			time_on_touch_start = clock();
+			saved_loc = true;
+			slide_value_hold = slide_value;
+
+			//Touch down Select Event				
+			State_Touch = 0;					
+			
+		}
+
+		//Touch Slide Up Event
+		if (touch.report[0].y < pre_touch_y - MIN_SLIDE_VERTTICAL) {			
+			State_Touch = 6;							
+			have_slide = true;									
+			return State_Touch;
+		}
+
+		//Touch Slide Down Event
+		if (touch.report[0].y > pre_touch_y + MIN_SLIDE_VERTTICAL) {			
+			State_Touch = 7;												
+			have_slide = true;				
+			return State_Touch;
+		}
+
+		//Touch Slide Left Event
+		if (touch.report[0].x < pre_touch_x - MIN_SLIDE_HORIZONTAL) {			
+			State_Touch = 8;						
+			have_slide = true;									
+			return State_Touch;
+		}
+
+		//Touch Slide Right Event
+		if (touch.report[0].x > pre_touch_x + MIN_SLIDE_HORIZONTAL) {			
+			State_Touch = 9;										
+			have_slide = true;				
+			return State_Touch;
+		}
+
+		if (!have_slide) {												
+			if (((float)(clock() - time_on_touch_start)/CLOCKS_PER_SEC  > 0.4f) & (time_on_touch_start > 0)) {
+				if ((touch.report[0].x < pre_touch_x + AREA_TOUCH) & (touch.report[0].x > pre_touch_x - AREA_TOUCH) & (touch.report[0].y < pre_touch_y + AREA_TOUCH) & (touch.report[0].y > pre_touch_y - AREA_TOUCH)) {
+					State_Touch = 3;							
+					return State_Touch;			
+				}
+			}																
+		}
+	}
+	else touch_press = false;
+
+	return State_Touch;
+}
+
+
+float animate_border = 1;
+bool reverse = false;
+void DrawBorderRect(int x, int y, int w, int h, unsigned int color, int width_glow, bool enable_animate, bool half) {
+	int i = 0;
+	int a = 255;	
+	int count = 0;
+	if (enable_animate) {
+	if (reverse) {
+		if (animate_border <= 0.95) {			
+				animate_border += 0.005f;
+		}
+		else reverse = false;
+	}
+	else {
+		animate_border -= 0.01f;
+		if (animate_border <= 0.51f)
+			reverse = true;
+	}
+	}
+
+	if (half) {
+		for (i = 0; i <= width_glow; i ++) {		
+			if  (i == 0) 
+				count = 1;
+			else 
+				count = pow(2, i * animate_border); 
+		
+
+		vita2d_draw_line(x - i, y - i, x + w + i, y - i, COLOR_ALPHA(color, a/count));	
+		vita2d_draw_line(x + w + i, y - i, x + w + i - 1, y + h + i - 1, COLOR_ALPHA(color, a/count));		
+		vita2d_draw_line(x + w + i, y + h + i, x - i , y + h + i, COLOR_ALPHA(color, a/count));			
+		vita2d_draw_line(x - i, y + h + i, x - i - 1, y - i - 1, COLOR_ALPHA(color, a/count));	
+					
+		}
+	}
+	else {
+		for (i = - width_glow; i <= width_glow; i ++) {
+			if (i < 0) 
+				count = pow(2, - (i * animate_border)); 
+			else 
+				if  (i == 0) 
+					count = 1;
+				else 
+					count = pow(2, i * animate_border); 
+			
+
+			vita2d_draw_line(x - i, y - i, x + w + i, y - i, COLOR_ALPHA(color, a/count));	
+			vita2d_draw_line(x + w + i, y - i, x + w + i - 1, y + h + i - 1, COLOR_ALPHA(color, a/count));		
+			vita2d_draw_line(x + w + i, y + h + i, x - i , y + h + i, COLOR_ALPHA(color, a/count));			
+			vita2d_draw_line(x - i, y + h + i, x - i - 1, y - i - 1, COLOR_ALPHA(color, a/count));	
+						
+		}
+	}
+}
+
+
+void return_current_pos() {
+	have_touch = false;
+	if ((rel_pos / length_row * (height_item + length_border) < -slide_value) || (rel_pos / length_row * (height_item + length_border) + height_item > -slide_value + (SCREEN_HEIGHT - START_Y))) {			
+			animate = true;
+			if (rel_pos /  length_row == file_list.length/ length_row)
+				Position = - (rel_pos /  length_row * (height_item +  length_border)) - length_border;	
+			else
+				Position = - (rel_pos /  length_row * (height_item +  length_border));// - length_border;				
+		}
+}
+
+
 
 void dirLevelUp() {
 	base_pos_list[dir_level] = base_pos;
@@ -147,6 +361,7 @@ DIR_UP_RETURN:
 	rel_pos = rel_pos_list[dir_level];
 	dirUpCloseArchive();
 }
+
 
 int refreshFileList() {
 	int ret = 0, res = 0;
@@ -247,7 +462,7 @@ void resetFileLists() {
 int handleFile(char *file, FileListEntry *entry) {
 	int res = 0;
 
-	int type = getFileType(file);
+	int type = getFileType(file);	
 	switch (type) {
 		case FILE_TYPE_VPK:
 		case FILE_TYPE_ZIP:
@@ -294,6 +509,22 @@ int handleFile(char *file, FileListEntry *entry) {
 	return type;
 }
 
+void drawScrollBar2(int file_list_length) {
+	if (file_list_length / length_row * (height_item + length_border) > SCREEN_HEIGHT - START_Y) {
+		
+		float view_size = SCREEN_HEIGHT - START_Y;
+		float max_scroll = (file_list_length / length_row * (height_item + length_border)) + view_size - height_item;
+		vita2d_draw_rectangle(SCROLL_BAR_X, START_Y + 10.0f , SCROLL_BAR_WIDTH, view_size - FONT_Y_SPACE - 15.0f, SCROLL_BAR_BG_COLOR);// COLOR_ALPHA(GRAY, 0xC8));	
+		
+		float height = ( (view_size - FONT_Y_SPACE - 15.0f) * view_size)/ max_scroll ;
+		float y = ( (-slide_value ) * (view_size - FONT_Y_SPACE - 15.0f )  )  / max_scroll  + START_Y + 10.0f;
+		if (y < START_Y + 10.0f) y = START_Y + 10.0f;
+		//if (y > view_size - FONT_Y_SPACE - 15.0f) y = view_size - FONT_Y_SPACE - 15.0f;
+				
+		vita2d_draw_rectangle(SCROLL_BAR_X, y, SCROLL_BAR_WIDTH, height, SCROLL_BAR_COLOR);// COLOR_ALPHA(WHITE, 0x64));
+	}
+}
+
 void drawScrollBar(int pos, int n) {
 	if (n > MAX_POSITION) {
 		vita2d_draw_rectangle(SCROLL_BAR_X, START_Y, SCROLL_BAR_WIDTH, MAX_ENTRIES * FONT_Y_SPACE, SCROLL_BAR_BG_COLOR);
@@ -306,12 +537,17 @@ void drawScrollBar(int pos, int n) {
 }
 
 void drawShellInfo(char *path) {
+	float SHELL_MARGIN_Y_CUSTOM = 2.0f;
+	vita2d_draw_rectangle(0, 0, SCREEN_WIDTH , PATH_Y + FONT_Y_SPACE, COLOR_ALPHA(WHITE, 0xC8));
+	vita2d_draw_texture(title_bar_bg_image, 0, 0);
+
 	// Title
-	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
+	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y_CUSTOM, WHITE, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
+	//pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y_CUSTOM, WHITE, FONT_SIZE, "VitaShell %d.%d DEBUG : %s | %f| %f", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR, debug, debug2, debug3);
 
 	// Battery
 	float battery_x = ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_texture_get_width(battery_image));
-	vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y + 3.0f);
+	vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y_CUSTOM + 3.0f);
 
 	vita2d_texture *battery_bar_image = battery_bar_green_image;
 
@@ -321,11 +557,11 @@ void drawShellInfo(char *path) {
 	float percent = scePowerGetBatteryLifePercent() / 100.0f;
 
 	float width = vita2d_texture_get_width(battery_bar_image);
-	vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
+	vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y_CUSTOM + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
 
 	// Date & time
 	SceDateTime time;
-	sceRtcGetCurrentClock(&time, 0);
+	sceRtcGetCurrentClock(&time,0);
 
 	char date_string[16];
 	getDateString(date_string, date_format, &time);
@@ -336,11 +572,11 @@ void drawShellInfo(char *path) {
 	char string[64];
 	sprintf(string, "%s  %s", date_string, time_string);
 	float date_time_x = ALIGN_LEFT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string));
-	pgf_draw_text(date_time_x, SHELL_MARGIN_Y, DATE_TIME_COLOR, FONT_SIZE, string);
+	pgf_draw_text(date_time_x, SHELL_MARGIN_Y_CUSTOM, WHITE, FONT_SIZE, string);
 
 	// FTP
 	if (ftpvita_is_initialized())
-		vita2d_draw_texture(ftp_image, date_time_x - 30.0f, SHELL_MARGIN_Y + 3.0f);
+		vita2d_draw_texture(ftp_image, date_time_x - 30.0f, SHELL_MARGIN_Y_CUSTOM + 3.0f);
 
 	// TODO: make this more elegant
 	// Path
@@ -365,8 +601,9 @@ void drawShellInfo(char *path) {
 
 	strcpy(path_second_line, path + i);
 
-	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
-	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
+	//vita2d_draw_rectangle(0, PATH_Y, SCREEN_WIDTH , FONT_Y_SPACE, COLOR_ALPHA(BLACK, 0xC8));
+	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, BLACK, FONT_SIZE, path_first_line);
+	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, BLACK, FONT_SIZE, path_second_line);
 
 	char str[128];
 
@@ -487,9 +724,32 @@ void initContextMenu() {
 		ctx_menu_pos = -1;
 }
 
+
 float easeOut(float x0, float x1, float a) {
-	float dx = (x1 - x0);
-	return ((dx * a) > 0.5f) ? (dx * a) : dx;
+	float dx = (x1 - x0);	
+	if (dx > 0)
+		return ((dx * a) > 0.91f) ? (dx * a) : dx;
+	else
+	 	return ((dx * a) < -1) ? (dx * a) : dx;	
+}
+
+void slide_to_location( float speed) {
+	if (animate) {	
+			if (slide_value < Position){
+				slide_value -= easeOut(Position , slide_value , speed);
+				if (slide_value >= Position) {					
+					animate = false;
+					Position = 0;
+				}
+			}
+			else {
+				slide_value -= easeOut(Position , slide_value , speed);
+				if (slide_value <= Position) {					
+					animate = false;
+					Position = 0;
+				}
+			}
+	}
 }
 
 void drawContextMenu() {
@@ -513,7 +773,6 @@ void drawContextMenu() {
 	// Draw context menu
 	if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
 		vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_menu_width, 0.0f, 0.0f, 0.0f, ctx_menu_width, SCREEN_HEIGHT);
-
 		int i;
 		for (i = 0; i < N_MENU_ENTRIES; i++) {
 			if (menu_entries[i].visibility == VISIBILITY_UNUSED)
@@ -521,13 +780,13 @@ void drawContextMenu() {
 
 			float y = START_Y + (i * FONT_Y_SPACE);
 
-			uint32_t color = GENERAL_COLOR;
+			uint32_t color = WHITE;
 
 			if (i == ctx_menu_pos)
-				color = FOCUS_COLOR;
+				color = GREEN;
 
 			if (menu_entries[i].visibility == VISIBILITY_INVISIBLE)
-				color = INVISIBLE_COLOR;
+				color = DARKGRAY;
 
 			pgf_draw_text(SCREEN_WIDTH - ctx_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[menu_entries[i].name]);
 		}
@@ -558,7 +817,9 @@ void contextMenuCtrl() {
 	}
 
 	// Back
-	if (pressed_buttons & SCE_CTRL_TRIANGLE || pressed_buttons & SCE_CTRL_CANCEL) {
+	if (pressed_buttons & SCE_CTRL_TRIANGLE || pressed_buttons & SCE_CTRL_CANCEL || (TOUCH_FRONT() == 9)) {
+		//Reset state everytime TOUCH_FRONT called
+		State_Touch = -1;
 		ctx_menu_mode = CONTEXT_MENU_CLOSING;
 	}
 
@@ -722,6 +983,7 @@ void contextMenuCtrl() {
 		ctx_menu_mode = CONTEXT_MENU_CLOSING;
 	}
 }
+
 
 int dialogSteps() {
 	int refresh = 0;
@@ -916,6 +1178,7 @@ int dialogSteps() {
 	return refresh;
 }
 
+
 void fileBrowserMenuCtrl() {
 	// Hidden trigger
 	if (current_buttons & SCE_CTRL_LTRIGGER && current_buttons & SCE_CTRL_RTRIGGER && current_buttons & SCE_CTRL_START) {
@@ -954,9 +1217,6 @@ void fileBrowserMenuCtrl() {
 					}
 				}
 			}
-
-			// Lock power timers
-			powerLock();
 		}
 
 		// Dialog
@@ -966,31 +1226,126 @@ void fileBrowserMenuCtrl() {
 		}
 	}
 
-	// Move
-	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
-		if (rel_pos > 0) {
-			rel_pos--;
-		} else {
-			if (base_pos > 0) {
-				base_pos--;
+	
+		if ((TOUCH_FRONT() == 0) & (ctx_menu_mode == CONTEXT_MENU_CLOSED)) {
+			//Reset state everytime TOUCH_FRONT called
+		  State_Touch = -1;
+		  have_touch = true;
+		  int i = 0;
+		  int column = 0;
+		  int row = 0;
+		  float t_y = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT) - height_item - slide_value;
+		  float t_x = lerp(touch.report[0].x, 1920, SCREEN_WIDTH) - width_item;		  
+		  	while (true) {			 
+			  float x = SHELL_MARGIN_X + (column * width_item);				  		  
+			  float y = START_Y + (row * height_item) ;
+			  if ((t_x <= x) & (t_y <= y)) {
+				  
+				  if (i < file_list.length) {					
+					rel_pos = i;
+				  }
+				  else touch_nothing = true;							
+				break;								  
+			  }
+			  else {
+					i++;				  
+					column++;
+					if (column >= length_row) {
+						column = 0;						
+						row ++;
+						
+					}
+			  }			
+		  }		  
+  	}
+
+
+	//Slide up
+	if ((TOUCH_FRONT() == 6) & (ctx_menu_mode == CONTEXT_MENU_CLOSED)) {
+		//Reset state everytime TOUCH_FRONT called		
+		State_Touch = -1;		
+		if ((slide_value  > -slide_value_limit) ) {
+			if (slide_value_limit > SCREEN_HEIGHT - START_Y) {	
+				slide_value -=  slide_value - (-(pre_touch_y - touch.report[0].y) + slide_value_hold);										
 			}
 		}
-	} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+		else {
+			animate = true;
+			Position = -slide_value_limit;			
+		}
+	}
+
+	//Slide down
+	if ((TOUCH_FRONT() == 7) & (ctx_menu_mode == CONTEXT_MENU_CLOSED)) {
+		//Reset state everytime TOUCH_FRONT called
+		State_Touch = -1;		
+		if((slide_value < 0)) {	
+			slide_value -= slide_value - ((touch.report[0].y - pre_touch_y) + slide_value_hold);						
+		}
+		else {
+			animate = true;
+			Position = 0;			
+		}
+	}
+
+	// Move
+	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {				
+		if ((rel_pos - length_row) > 0) {			
+			rel_pos-= length_row;
+		}
+		else {
+			rel_pos = 0;
+			if ((base_pos - length_row) > 0) {
+					base_pos -= length_row;
+				} 
+				else {
+					base_pos = 0;
+				}
+		}
+		return_current_pos();	
+	} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN ) {									
+		if ((rel_pos + length_row) < file_list.length) {
+			rel_pos += length_row;
+			if ((rel_pos + length_row) > MAX_POSITION - length_row) {
+				if ((base_pos + rel_pos + length_row) < file_list.length) {
+					if ((base_pos + length_row) < MAX_POSITION) {
+						base_pos += length_row;	
+					}										
+				}
+				
+			}
+		}
+		else {
+					rel_pos = file_list.length - base_pos -1;
+				}
+		return_current_pos();		
+	} else if (hold_buttons & SCE_CTRL_RIGHT || hold2_buttons & SCE_CTRL_LEFT_ANALOG_RIGHT) {
 		if ((rel_pos + 1) < file_list.length) {
 			if ((rel_pos + 1) < MAX_POSITION) {
 				rel_pos++;
 			} else {
-				if ((base_pos + rel_pos + 1) < file_list.length) {
-					base_pos++;
+				if ((base_pos + rel_pos + length_row) < file_list.length) {
+					base_pos += length_row;	
 				}
 			}
 		}
+		return_current_pos();
+	} else if (hold_buttons & SCE_CTRL_LEFT || hold2_buttons & SCE_CTRL_LEFT_ANALOG_LEFT) {
+		if (rel_pos > 0) {
+			rel_pos--;
+		} else {
+			if (base_pos > 0) {
+				base_pos -= length_row;
+			}
+		}
+		return_current_pos();
 	}
 
 	// Not at 'home'
 	if (dir_level > 0) {
 		// Context menu trigger
-		if (pressed_buttons & SCE_CTRL_TRIANGLE) {
+		if ((pressed_buttons & SCE_CTRL_TRIANGLE) || (TOUCH_FRONT() == 8)) {
+			State_Touch = -1;
 			if (ctx_menu_mode == CONTEXT_MENU_CLOSED) {
 				initContextMenu();
 				ctx_menu_mode = CONTEXT_MENU_OPENING;
@@ -998,7 +1353,10 @@ void fileBrowserMenuCtrl() {
 		}
 
 		// Mark entry
-		if (pressed_buttons & SCE_CTRL_SQUARE) {
+		if ((pressed_buttons & SCE_CTRL_SQUARE) || ((TOUCH_FRONT() == 3) & !have_touch_hold & !touch_nothing & (ctx_menu_mode == CONTEXT_MENU_CLOSED))) {
+			State_Touch = -1;
+
+			have_touch_hold = true;
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 			if (strcmp(file_entry->name, DIR_UP) != 0) {
 				if (!fileListFindEntry(&mark_list, file_entry->name)) {
@@ -1012,20 +1370,40 @@ void fileBrowserMenuCtrl() {
 		}
 
 		// Back
-		if (pressed_buttons & SCE_CTRL_CANCEL) {
+		if (pressed_buttons & SCE_CTRL_CANCEL || (TOUCH_FRONT() == 9)) {
+			State_Touch = -1;
+			//reset position to top
+			slide_value = 0;
+			Position = 0;
+
 			fileListEmpty(&mark_list);
 			dirUp();
 			refreshFileList();
 		}
 	}
 
-	// Handle
-	if (pressed_buttons & SCE_CTRL_ENTER) {
+	// Handle 
+	if (pressed_buttons & SCE_CTRL_ENTER || ((TOUCH_FRONT() == 1) & (ctx_menu_mode == CONTEXT_MENU_CLOSED))) {	
+		State_Touch = -1;
+				
+		if (touch_nothing || have_touch_hold) {			
+			touch_nothing = false;
+			have_touch_hold = false;
+			return;
+		}
+
+		
+
 		fileListEmpty(&mark_list);
 
 		// Handle file or folder
 		FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 		if (file_entry->is_folder) {
+
+			//reset position to top
+			slide_value = 0;
+			Position = 0;
+
 			if (strcmp(file_entry->name, DIR_UP) == 0) {
 				dirUp();
 			} else {
@@ -1047,7 +1425,7 @@ void fileBrowserMenuCtrl() {
 		} else {
 			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 			int type = handleFile(cur_file, file_entry);
-
+			
 			// Archive mode
 			if (type == FILE_TYPE_ZIP) {
 				is_in_archive = 1;
@@ -1065,6 +1443,7 @@ void fileBrowserMenuCtrl() {
 	}
 }
 
+
 int shellMain() {
 	// Position
 	memset(base_pos_list, 0, sizeof(base_pos_list));
@@ -1076,12 +1455,12 @@ int shellMain() {
 
 	// Reset file lists
 	resetFileLists();
-
+	
 	while (1) {
 		readPad();
-
-		int refresh = 0;
-
+		
+		int refresh = 0;				
+		
 		// Control
 		if (dialog_step == DIALOG_STEP_NONE) {
 			if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
@@ -1094,13 +1473,13 @@ int shellMain() {
 		}
 
 		// Receive system event
-		SceAppMgrSystemEvent event;
-		sceAppMgrReceiveSystemEvent(&event);
-
-		// Refresh on app resume
-		if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
-			refresh = 1;
-		}
+ 		SceAppMgrSystemEvent event;
+ 		sceAppMgrReceiveSystemEvent(&event);
+ 
+ 		// Refresh on app resume
+ 		if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
+ 			refresh = 1;
+ 		}
 
 		if (refresh) {
 			// Refresh lists
@@ -1111,101 +1490,304 @@ int shellMain() {
 
 		// Start drawing
 		startDrawing();
-
-		// Draw shell info
-		drawShellInfo(file_list.path);
+		vita2d_draw_texture_part(default_wallpaper, 0, START_Y - 1 , 0 , START_Y - 1, SCREEN_WIDTH, vita2d_texture_get_height(default_wallpaper));	
+		//vita2d_draw_texture(bg_down_image, 0, START_Y - 1);		
 
 		// Draw scroll bar
-		drawScrollBar(base_pos, file_list.length);
+		drawScrollBar2(file_list.length);
 
 		// Draw
 		FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos);
 
 		int i;
-		for (i = 0; i < MAX_ENTRIES && (base_pos + i) < file_list.length; i++) {
-			uint32_t color = GENERAL_COLOR;
-
-			// Folder
-			if (file_entry->is_folder)
-				color = FOLDER_COLOR;
-
-			// Images
-			if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) {
-				color = IMAGE_COLOR;
+		int w = -1;
+		int h = 0;
+		int cur_pos = 0; // Current position
+		
+		for (i = 0; i < file_list.length && (base_pos + i) < file_list.length; i++) {
+			
+			if ((i % length_row == 0) & (i != 0)) {
+				w = 0;
+				h++;							
+			}
+			else {
+				w++;				
 			}
 
-			// Archives
-			if (!isInArchive()) {
-				if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) {
-					color = ARCHIVE_COLOR;
+			float x = SHELL_MARGIN_X + (width_item * w);
+			float y = START_Y + (h * height_item);			
+
+			x += length_border * w;
+			y += length_border * (h + 1);													
+			
+			//if item out user view is NEXT_FILE
+			if ((y + slide_value + height_item > 0) & (y + slide_value < SCREEN_HEIGHT))
+			{
+				//vita2d_texture *icon = NULL;			
+				int icon = 0;
+					
+				//Special Folder
+				if (strcmp(file_entry->name, "gro0:") == 0) {				
+					icon = 1;										
+				} else
+				if (strcmp(file_entry->name, "grw0:") == 0) {				
+					icon = 2;										
+				} else
+				if (strcmp(file_entry->name, "ux0:") == 0) {				
+					icon = 3;							
+				} else
+				if (strcmp(file_entry->name, "os0:") == 0) {				
+					icon = 4;				
+				} else
+				if (strcmp(file_entry->name, "sa0:") == 0) {				
+					icon = 5;				
+				} else
+				if (strcmp(file_entry->name, "ur0:") == 0) {				
+					icon = 6;				
+				} else
+				if (strcmp(file_entry->name, "vd0:") == 0) {				
+					icon = 7;				
+				} else
+				if (strcmp(file_entry->name, "vs0:") == 0) {				
+					icon = 8;				
+				} else
+				if (strcmp(file_entry->name, "savedata0:") == 0) {				
+					icon = 9;				
+				} else
+				if (strcmp(file_entry->name, "pd0:") == 0) {				
+					icon = 10;				
+				} else
+				if (strcmp(file_entry->name, "app0:") == 0) {				
+					icon = 11;				
+				} else
+				if (strcmp(file_entry->name, "ud0:") == 0) {				
+					icon = 12;				
+				} 
+				
+				else {
+						// Folder default
+						if (file_entry->is_folder) {							
+							/*strcpy(path_icon,file_list.path);
+							addEndSlash(path_icon);
+							strcat(path_icon,file_entry->name);
+							addEndSlash(path_icon);
+							strcat(path_icon,"sce_sys");
+							addEndSlash(path_icon);
+							strcat(path_icon,"icon0.png");
+							if( access(path_icon , F_OK ) != -1 ) {								
+								icon = 99;
+								//sceKernelStartThread(thid2, sizeof(path_icon), path_icon);
+							}*/
+															
+								icon = 15;
+							}
+
+							// Images
+						if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG) {
+								icon = 16;								
+						} 
+
+							// Archives
+						if (!isInArchive()) {
+								if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) {
+									icon = 17;									
+								}
+						}
+
+						if (file_entry->type == FILE_TYPE_MP3) {
+								icon = 18;								
+						}  								
 				}
+				
+				// File name
+				int length = strlen(file_entry->name);
+				int line_width = 0;
+
+				int j;
+				for (j = 0; j < length; j++) {
+					char ch_width = font_size_cache[(int)file_entry->name[j]];
+
+					// Too long
+					if ((line_width + ch_width) >= MAX_NAME_WIDTH_TILE)
+						break;
+
+					// Increase line width
+					line_width += ch_width;
+				}
+						
+				vita2d_draw_rectangle(x , y + slide_value , width_item, height_item , COLOR_ALPHA(DARKGRAY, 0xC8));
+												
+				switch(icon) {
+					case 1  :
+						vita2d_draw_texture_scale(game_card_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);											
+						break;
+					
+					case 2  :
+						vita2d_draw_texture_scale(game_card_storage_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);											
+						break;
+						
+					case 3  :					
+						vita2d_draw_texture_scale(memory_card_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);										
+						break;  
+
+					case 4  :
+						vita2d_draw_texture_scale(os0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);															
+						break;
+
+					case 5  :
+						vita2d_draw_texture_scale(sa0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break;  	  
+					
+					case 6  :
+						vita2d_draw_texture_scale(ur0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break;  	  
+					
+					case 7  :
+						vita2d_draw_texture_scale(vd0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break;  	  
+					
+					case 8  :
+						vita2d_draw_texture_scale(vs0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break; 
+
+					case 9  :
+						vita2d_draw_texture_scale(savedata0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break;
+
+					case 10  :
+						vita2d_draw_texture_scale(pd0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break;
+
+					case 11  :
+						vita2d_draw_texture_scale(app0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break;
+
+					case 12  :
+						vita2d_draw_texture_scale(ud0_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break;
+							
+					
+					case 15  :
+						vita2d_draw_texture_scale(folder_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);															
+						break; 
+
+					case 16  :
+						vita2d_draw_texture_scale(img_file_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break; 
+					
+					case 17  :
+						vita2d_draw_texture_scale(run_file_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break; 
+
+					case 18  :
+						vita2d_draw_texture_scale(music_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);														
+						break; 
+
+					case 99  :
+																									
+						break; 
+
+					default  :						
+						vita2d_draw_texture_scale(unknown_file_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);																				
+						break; 
+														
+					break;
+					
+				}
+			
+				char ch = 0;
+
+				if (j != length) {
+					ch = file_entry->name[j];
+					file_entry->name[j] = '\0';
+				}
+
+				// Draw shortened file name			
+				pgf_draw_text(x + 2.0f, y + height_item - FONT_Y_SPACE + slide_value, WHITE, FONT_SIZE, file_entry->name);
+				
+
+				if (j != length)
+					file_entry->name[j] = ch;
 			}
+			else 
+				goto NEXT_FILE;
+
+			 vita2d_draw_texture_part(default_wallpaper, 0, 0 ,0 , 0, SCREEN_WIDTH, START_Y - 1);	
+		
+			//vita2d_draw_texture(bg_up_image, 0, 0);	
+
+			// Draw shell info
+			drawShellInfo(file_list.path);
 
 			// Current position
-			if (i == rel_pos)
-				color = FOCUS_COLOR;
-
-			float y = START_Y + (i * FONT_Y_SPACE);
+			if (i == rel_pos) {	
+				x_rel_pos_old -= easeOut(x, x_rel_pos_old, 0.2f);
+				y_rel_pos_old -= easeOut(y, y_rel_pos_old, 0.2f);																
+				cur_pos = i;				
+			}
 
 			// Marked
-			if (fileListFindEntry(&mark_list, file_entry->name))
-				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
-
-			// File name
-			int length = strlen(file_entry->name);
-			int line_width = 0;
-
-			int j;
-			for (j = 0; j < length; j++) {
-				char ch_width = font_size_cache[(int)file_entry->name[j]];
-
-				// Too long
-				if ((line_width + ch_width) >= MAX_NAME_WIDTH)
-					break;
-
-				// Increase line width
-				line_width += ch_width;
-			}
-
-			char ch = 0;
-
-			if (j != length) {
-				ch = file_entry->name[j];
-				file_entry->name[j] = '\0';
-			}
-
-			// Draw shortened file name
-			pgf_draw_text(SHELL_MARGIN_X, y, color, FONT_SIZE, file_entry->name);
-
-			if (j != length)
-				file_entry->name[j] = ch;
-
-			// File information
-			if (strcmp(file_entry->name, DIR_UP) != 0) {
-				// Folder/size
-				char size_string[16];
-				getSizeString(size_string, file_entry->size);
-
-				char *str = file_entry->is_folder ? language_container[FOLDER] : size_string;
-
-				pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
-
-				// Date
-				char date_string[16];
-				getDateString(date_string, date_format, &file_entry->time);
-
-				char time_string[24];
-				getTimeString(time_string, time_format, &file_entry->time);
-
-				char string[64];
-				sprintf(string, "%s %s", date_string, time_string);
-
-				pgf_draw_text(ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), y, color, FONT_SIZE, string);
-			}
-
+			if (fileListFindEntry(&mark_list, file_entry->name)) {
+				vita2d_draw_rectangle(x , y + slide_value , width_item, height_item , COLOR_ALPHA(BLUE, 0x40));
+				vita2d_draw_texture(mark_image, x + width_item - vita2d_texture_get_width(mark_image) - length_border, y + slide_value + length_border );									
+			}			
+			
+NEXT_FILE:			
 			// Next
 			file_entry = file_entry->next;
 		}
+
+		//Draw Border
+		if (!have_touch) {			
+			DrawBorderRect (x_rel_pos_old, y_rel_pos_old + slide_value , width_item, height_item, GREEN, 6, true, true);							
+		
+			//Redraw ShellInfo to cover border
+			if (y_rel_pos_old + slide_value < START_Y) {
+				 vita2d_draw_texture_part(default_wallpaper, 0, 0 ,0 , 0, vita2d_texture_get_width(default_wallpaper), START_Y - 1);	
+
+				// Draw shell info
+				drawShellInfo(file_list.path);
+			}
+		}
+					
+		FileListEntry *file_entry2 = fileListGetNthEntry(&file_list, cur_pos + base_pos);
+		vita2d_draw_rectangle(0, SCREEN_HEIGHT - FONT_Y_SPACE, SCREEN_WIDTH, FONT_Y_SPACE, COLOR_ALPHA(BLACK, 0xC8));
+		// Draw shortened file name
+		pgf_draw_text(5.0f , SCREEN_HEIGHT - FONT_Y_SPACE, WHITE, FONT_SIZE, file_entry2->name);
+
+		// File information
+		if (strcmp(file_entry2->name, DIR_UP) != 0) {
+			// Folder/size
+			char size_string[16];
+			getSizeString(size_string, file_entry2->size);
+
+			char *str = file_entry2->is_folder ? language_container[FOLDER] : size_string;
+
+			pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - FONT_Y_SPACE, WHITE, FONT_SIZE, str);
+
+			// Date
+			char date_string[16];
+			getDateString(date_string, date_format, &file_entry2->time);
+
+			char time_string[24];
+			getTimeString(time_string, time_format, &file_entry2->time);
+
+			char string[64];
+			sprintf(string, "%s %s", date_string, time_string);
+
+			pgf_draw_text(ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), SCREEN_HEIGHT - FONT_Y_SPACE, WHITE, FONT_SIZE, string);
+		}		
+			
+	
+
+		if ( h > 0)
+			slide_value_limit = h * (height_item + length_border) + length_border;
+		else 
+			slide_value_limit = h * (height_item + length_border);
+		
+		//Animation fot multi purpose 
+		slide_to_location( 0.1f);	
+		
 
 		// Draw context menu
 		drawContextMenu();
@@ -1213,6 +1795,8 @@ int shellMain() {
 		// End drawing
 		endDrawing();
 	}
+
+	
 
 	// Empty lists
 	fileListEmpty(&copy_list);
@@ -1236,6 +1820,9 @@ void initShell() {
 
 	ctx_menu_max_width += 2.0f * CONTEXT_MENU_MARGIN;
 	ctx_menu_max_width = MAX(ctx_menu_max_width, CONTEXT_MENU_MIN_WIDTH);
+
+	x_rel_pos_old = SHELL_MARGIN_X;
+	y_rel_pos_old = START_Y + length_border;	
 }
 
 void getNetInfo() {
