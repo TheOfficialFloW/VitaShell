@@ -64,6 +64,12 @@ https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
 
+### Changelog 0.86 ###
+- Added dialog box animation and aligned dialog box y to make it look better.
+- Fixed wrong time string for files and folders. Thanks to persona5.
+- Fixed INSTALL_WARNING text crash.
+- Added default files creating.
+
 ### Changelog 0.85 ###
 - Added customization possibility for ftp icon, battery, dialog and context menu.
 - Added random wallpaper feature.

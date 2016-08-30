@@ -18,7 +18,6 @@
 
 /*
 	TODO:
-	- Fix time
 	- Hide mount points
 	- Network update
 	- Context menu: 'More' entry
