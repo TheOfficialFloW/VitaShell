@@ -21,27 +21,27 @@
 #include "file.h"
 #include "utils.h"
 
- extern unsigned char _binary_resources_ftp_png_start;
- extern unsigned char _binary_resources_ftp_png_size;
- extern unsigned char _binary_resources_dialog_png_start;
- extern unsigned char _binary_resources_dialog_png_size;
- extern unsigned char _binary_resources_context_png_start;
- extern unsigned char _binary_resources_context_png_size;
- extern unsigned char _binary_resources_battery_png_start;
- extern unsigned char _binary_resources_battery_png_size;
- extern unsigned char _binary_resources_battery_bar_red_png_start;
- extern unsigned char _binary_resources_battery_bar_red_png_size;
- extern unsigned char _binary_resources_battery_bar_green_png_start;
- extern unsigned char _binary_resources_battery_bar_green_png_size;
- 
- extern unsigned char _binary_resources_theme_txt_start;
- extern unsigned char _binary_resources_theme_txt_size;
- 
- extern unsigned char _binary_resources_colors_txt_start;
- extern unsigned char _binary_resources_colors_txt_size;
- 
- extern unsigned char _binary_resources_english_us_txt_start;
- extern unsigned char _binary_resources_english_us_txt_size;
+extern unsigned char _binary_resources_ftp_png_start;
+extern unsigned char _binary_resources_ftp_png_size;
+extern unsigned char _binary_resources_dialog_png_start;
+extern unsigned char _binary_resources_dialog_png_size;
+extern unsigned char _binary_resources_context_png_start;
+extern unsigned char _binary_resources_context_png_size;
+extern unsigned char _binary_resources_battery_png_start;
+extern unsigned char _binary_resources_battery_png_size;
+extern unsigned char _binary_resources_battery_bar_red_png_start;
+extern unsigned char _binary_resources_battery_bar_red_png_size;
+extern unsigned char _binary_resources_battery_bar_green_png_start;
+extern unsigned char _binary_resources_battery_bar_green_png_size;
+
+extern unsigned char _binary_resources_theme_txt_start;
+extern unsigned char _binary_resources_theme_txt_size;
+
+extern unsigned char _binary_resources_colors_txt_start;
+extern unsigned char _binary_resources_colors_txt_size;
+
+extern unsigned char _binary_resources_english_us_txt_start;
+extern unsigned char _binary_resources_english_us_txt_size;
 
 extern unsigned char _binary_resources_headphone_png_start;
 extern unsigned char _binary_resources_audio_previous_png_start;

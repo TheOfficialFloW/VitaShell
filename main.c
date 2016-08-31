@@ -1780,9 +1780,9 @@ NEXT_FILE:
 	
 
 		if ( h > 0)
-			slide_value_limit = h * (height_item + length_border) + length_border;
+			slide_value_limit = h * (height_item + length_border ) + length_border;
 		else 
-			slide_value_limit = h * (height_item + length_border);
+			slide_value_limit = h * (height_item + length_border );
 		
 		//Animation fot multi purpose 
 		slide_to_location( 0.1f);	

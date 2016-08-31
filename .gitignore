@@ -1,1 +1,8 @@
-.o
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+*.vpk
+*.velf 
+*.bin

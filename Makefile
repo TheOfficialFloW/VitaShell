@@ -5,7 +5,7 @@ OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file
 		   audioplayer.o minizip/unzip.o minizip/ioapi.o
 
 RESOURCES_PNG = resources/ftp.png resources/dialog.png resources/context.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
-		   resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
+		   resources/audio_next.png resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
 		   resources/bg_wallpaper.png resources/vita_game_card.png resources/vita_game_card_storage.png \
 		   resources/os0.png resources/memory_card.png resources/run_file.png resources/unknown_file.png resources/image_file.png \
 		   resources/sa0.png resources/ur0.png resources/vd0.png resources/vs0.png resources/savedata0.png resources/pd0.png resources/app0.png \
