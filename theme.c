@@ -139,13 +139,6 @@ void loadTheme() {
 			// Set random wallpaper
 			int random_num = randomNumber(0, wallpaper_count - 1);
 			current_wallpaper_image = wallpaper_image[random_num];
-
-			if (current_wallpaper_image) {
-				vita2d_free_texture(default_wallpaper);
-				default_wallpaper = NULL;
-				
-				default_wallpaper = current_wallpaper_image;
-			}
 		}
 	}
 

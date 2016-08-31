@@ -6,7 +6,7 @@ OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file
 
 RESOURCES_PNG = resources/ftp.png resources/dialog.png resources/context.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
 		   resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
-		   resources/audio_next.png resources/bg_wallpaper.png resources/vita_game_card.png resources/vita_game_card_storage.png \
+		   resources/bg_wallpaper.png resources/vita_game_card.png resources/vita_game_card_storage.png \
 		   resources/os0.png resources/memory_card.png resources/run_file.png resources/unknown_file.png resources/image_file.png \
 		   resources/sa0.png resources/ur0.png resources/vd0.png resources/vs0.png resources/savedata0.png resources/pd0.png resources/app0.png \
 		   resources/ud0.png resources/folder.png resources/mark.png resources/music_file.png resources/title_bar_bg.png
@@ -39,7 +39,7 @@ ASFLAGS  = $(CFLAGS)
 all: $(TARGET).vpk
 
 %.vpk: eboot.bin
-	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.85 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
+	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.86 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin \
 		--add pkg/sce_sys/icon0.png=sce_sys/icon0.png \
 		--add pkg/sce_sys/pic0.png=sce_sys/pic0.png \
