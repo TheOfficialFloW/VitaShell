@@ -1,4 +1,4 @@
-# VitaShell Dutch translation by Marvin4578
+# VitaShell Dutch translation v1.1 by Marvin4578
 
 ERROR							= "Foutmelding 0x%08X."
 OK								= "OK"
@@ -7,7 +7,7 @@ NO								= "Nee"
 CANCEL							= "Annuleren"
 OFFSET							= "Offset"
 MARK_ALL						= "Markeer alles"
-UNMARK_ALL						= "Markering ongedaan maken"
+UNMARK_ALL						= "Markering opheffen"
 MOVE							= "Verplaatsen"
 COPY							= "Kopiëren"
 PASTE							= "Plakken"
@@ -26,5 +26,5 @@ DELETE_FILE_QUESTION			= "Weet je zeker dat je dit bestand wilt verwijderen?"
 DELETE_FOLDER_QUESTION			= "Weet je zeker dat je deze map wilt verwijderen?"
 DELETE_FILES_FOLDERS_QUESTION	= "Weet je zeker dat je deze bestanden/mappen wilt verwijderen?"
 INSTALL_QUESTION				= "Wil je dit pakket installeren?"
-WIFI_ERROR						= "Je moet Wi-Fi inschakelen om dit te kunnen gebruiken."
+WIFI_ERROR						= "Je moet Wi-Fi inschakelen om deze functie te kunnen gebruiken."
 FTP_SERVER						= "FTP server draait nu op \ftp://%s:%i\\Druk op 'OK' om de server in de achtergrond te laten draaien.\Druk op 'Annuleren' om de verbinding af te breken."
