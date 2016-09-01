@@ -48,6 +48,7 @@
 #include "language.h"
 #include "utils.h"
 #include "audioplayer.h"
+#include "sfo.h"
 
 int _newlib_heap_size_user = 64 * 1024 * 1024;
 
@@ -278,6 +279,10 @@ int handleFile(char *file, FileListEntry *entry) {
 			
 		case FILE_TYPE_ZIP:
 			res = archiveOpen(file);
+			break;
+
+		case FILE_TYPE_SFO:
+			res = SFOReader(file);
 			break;
 			
 		default:
