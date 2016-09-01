@@ -80,9 +80,6 @@ int SFOReader(char* file)
 			drawScrollBar(current_pos, sfo_header->indexTableEntries);
 		}
 
-		pgf_draw_textf(SHELL_MARGIN_X + 750, START_Y, GENERAL_COLOR, FONT_SIZE, "%d", scroll_allow);
-		pgf_draw_textf(SHELL_MARGIN_X + 750, START_Y + FONT_Y_SPACE, GENERAL_COLOR, FONT_SIZE, "%d", line_show);
-
 	    // Faire le systéme pour baisé l'écran
 		for (i = 0; i < line_show; i++)
 		{
