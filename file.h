@@ -35,9 +35,9 @@ enum FileTypes {
 	FILE_TYPE_JPEG,
 	FILE_TYPE_PNG,
 	FILE_TYPE_MP3,
+	FILE_TYPE_SFO,
 	FILE_TYPE_VPK,
 	FILE_TYPE_ZIP,
-	FILE_TYPE_SFO,
 };
 
 enum SortFlags {

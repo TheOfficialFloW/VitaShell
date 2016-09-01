@@ -360,9 +360,9 @@ static ExtensionType extension_types[] = {
 	{ ".JPEG", FILE_TYPE_JPEG },
 	{ ".PNG",  FILE_TYPE_PNG },
 	{ ".MP3",  FILE_TYPE_MP3 },
+	{ ".SFO",  FILE_TYPE_SFO },
 	{ ".VPK",  FILE_TYPE_VPK },
 	{ ".ZIP",  FILE_TYPE_ZIP },
-	{ ".SFO",  FILE_TYPE_SFO },
 };
 
 int getFileType(char *file) {

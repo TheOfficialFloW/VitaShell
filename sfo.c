@@ -1,3 +1,21 @@
+/*
+	VitaShell
+	Copyright (C) 2015-2016, TheFloW
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "main.h"
 #include "archive.h"
 #include "file.h"
@@ -9,7 +27,7 @@
 #include "utils.h"
 #include "sfo.h"
 
-int SFOReader(char* file) {
+int SFOReader(char *file) {
 	uint8_t *buffer = malloc(BIG_BUFFER_SIZE);
 	if (!buffer)
 		return -1;
@@ -27,19 +45,11 @@ int SFOReader(char* file) {
 		return size;
 	}
 
-	sfo_header_t *sfo_header = (sfo_header_t*)buffer;
-	if (sfo_header->magic != 0x46535000)
-    		return -1;
+	SfoHeader *sfo_header = (SfoHeader *)buffer;
+	if (sfo_header->magic != SFO_MAGIC)
+    	return -1;
 
-	int scroll_allow = sfo_header->indexTableEntries - MAX_ENTRIES;
-	if (scroll_allow < 0)
-		scroll_allow = 0;
-
-	int line_show = sfo_header->indexTableEntries;
-	if (line_show > MAX_ENTRIES)
-		line_show = MAX_ENTRIES; 
-
-	int current_pos = 0;
+	int base_pos = 0, rel_pos = 0;
 
 	while (1) {
 		readPad();
@@ -49,11 +59,23 @@ int SFOReader(char* file) {
 		}
 
 		if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
-			if (current_pos != 0)
-				current_pos--;
+			if (rel_pos > 0) {
+				rel_pos--;
+			} else {
+				if (base_pos > 0) {
+					base_pos--;
+				}
+			}
 		} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-			if (current_pos != scroll_allow)
-				current_pos++;
+			if ((rel_pos + 1) < sfo_header->count) {
+				if ((rel_pos + 1) < MAX_POSITION) {
+					rel_pos++;
+				} else {
+					if ((base_pos + rel_pos + 1) < sfo_header->count) {
+						base_pos++;
+					}
+				}
+			}
 		}
 
 		// Start drawing
@@ -62,26 +84,35 @@ int SFOReader(char* file) {
 		// Draw shell info
 		drawShellInfo(file);
 
-	    	sfo_index_t *sfo_index;
-	    	int i;
+	    // Draw scroll bar
+	   	drawScrollBar(base_pos, sfo_header->count);
 
-	    	// Draw scroll bar
-	   	if (scroll_allow > 0)
-			drawScrollBar(current_pos, sfo_header->indexTableEntries);
+		int i;
+		for (i = 0; i < MAX_ENTRIES && (base_pos + i) < sfo_header->count; i++) {
+			SfoEntry *entries = (SfoEntry *)(buffer + sizeof(SfoHeader) + (sizeof(SfoEntry) * (i + base_pos)));
 
-		for (i = 0; i < line_show; i++) {
-			sfo_index = (sfo_index_t*)(buffer + sizeof(sfo_header_t) + (sizeof(sfo_index_t) * (i + current_pos)));
+			uint32_t color = (rel_pos == i) ? FOCUS_COLOR : GENERAL_COLOR;
 
-	    		char* key = (char*)buffer + sfo_header->keyTableOffset + sfo_index->keyOffset;
-			pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), GENERAL_COLOR, FONT_SIZE, "%s", key);
+	    	char *name = (char *)buffer + sfo_header->keyofs + entries->nameofs;
+			pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, "%s", name);
 
-			if (sfo_index->param_fmt == 1028) {
-				unsigned int* value = (unsigned int*)buffer + sfo_header->dataTableOffset + sfo_index->dataOffset;
-				pgf_draw_textf(SHELL_MARGIN_X + 450, START_Y + (FONT_Y_SPACE * i), GENERAL_COLOR, FONT_SIZE, "%d", *value);
-			} else {
-				char* value = (char*)buffer + sfo_header->dataTableOffset + sfo_index->dataOffset;
-				pgf_draw_textf(SHELL_MARGIN_X + 450, START_Y + (FONT_Y_SPACE * i), GENERAL_COLOR, FONT_SIZE, "%s", value);
+			char string[128];
+
+			void *data = (void *)buffer + sfo_header->valofs + entries->dataofs;
+			switch (entries->type) {
+				case PSF_TYPE_BIN:
+					break;
+					
+				case PSF_TYPE_STR:
+					snprintf(string, sizeof(string), "%s", data);
+					break;
+					
+				case PSF_TYPE_VAL:
+					snprintf(string, sizeof(string), "%X", *(uint32_t *)data);
+					break;
 			}
+
+			pgf_draw_textf(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, string);
 		}
 
 		// End drawing
