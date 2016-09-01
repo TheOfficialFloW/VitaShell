@@ -29,12 +29,11 @@ int SFOReader(char* file)
 	}
 
 	sfo_header_t *sfo_header = (sfo_header_t*)buffer;
-	if (sfo_header->magic != 0x46535000)
-    {
-    	return -1;
-    }
+	if (sfo_header->magic != 0x46535000) {
+    		return -1;
+    	}
 
-    int scroll_allow = sfo_header->indexTableEntries - MAX_ENTRIES;
+	int scroll_allow = sfo_header->indexTableEntries - MAX_ENTRIES;
 	if (scroll_allow < 0) { scroll_allow = 0; }
 
 	int line_show = sfo_header->indexTableEntries;
@@ -72,20 +71,19 @@ int SFOReader(char* file)
 		// Draw shell info
 		drawShellInfo(file);
 
-	    sfo_index_t *sfo_index;
-	    int i;
+	    	sfo_index_t *sfo_index;
+	    	int i;
 
-	    // Draw scroll bar
+	    	// Draw scroll bar
 	   	if (scroll_allow > 0) {
 			drawScrollBar(current_pos, sfo_header->indexTableEntries);
 		}
 
-	    // Faire le systéme pour baisé l'écran
 		for (i = 0; i < line_show; i++)
 		{
 			sfo_index = (sfo_index_t*)(buffer + sizeof(sfo_header_t) + (sizeof(sfo_index_t) * (i + current_pos)));
 
-	    	char* key = (char*)buffer + sfo_header->keyTableOffset + sfo_index->keyOffset;
+	    		char* key = (char*)buffer + sfo_header->keyTableOffset + sfo_index->keyOffset;
 			pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), GENERAL_COLOR, FONT_SIZE, "%s", key);
 
 			if (sfo_index->param_fmt == 1028)
