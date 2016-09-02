@@ -1,6 +1,6 @@
 TITLE_ID = VITASHELL
 TARGET   = VitaShell
-OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file.o text.o hex.o \
+OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file.o text.o hex.o sfo.o \
 		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o \
 		   audioplayer.o minizip/unzip.o minizip/ioapi.o
 

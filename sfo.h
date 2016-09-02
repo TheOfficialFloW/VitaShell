@@ -16,13 +16,35 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PACKAGE_INSTALLER_H__
-#define __PACKAGE_INSTALLER_H__
 
-typedef struct {
-	char *file;
-} InstallArguments;
+#ifndef __SFO_H__
+#define __SFO_H__
 
-int install_thread(SceSize args_size, InstallArguments *args);
+// Struct from : http://www.vitadevwiki.com/index.php?title=System_File_Object_(SFO)_(PSF)
+
+#define SFO_MAGIC 0x46535000
+
+#define PSF_TYPE_BIN 0
+#define PSF_TYPE_STR 2
+#define PSF_TYPE_VAL 4
+
+typedef struct SfoHeader {
+	uint32_t magic;
+	uint32_t version;
+	uint32_t keyofs;
+	uint32_t valofs;
+	uint32_t count;
+} __attribute__((packed)) SfoHeader;
+
+typedef struct SfoEntry {
+	uint16_t nameofs;
+	uint8_t  alignment;
+	uint8_t  type;
+	uint32_t valsize;
+	uint32_t totalsize;
+	uint32_t dataofs;
+} __attribute__((packed)) SfoEntry;
+
+int SFOReader(char *file);
 
 #endif

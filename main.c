@@ -48,6 +48,7 @@
 #include "language.h"
 #include "utils.h"
 #include "audioplayer.h"
+#include "sfo.h"
 
 int _newlib_heap_size_user = 32 * 1024 * 1024;
 
@@ -494,6 +495,10 @@ int handleFile(char *file, FileListEntry *entry) {
 		case FILE_TYPE_ZIP:
 			res = archiveOpen(file);
 			break;
+
+		case FILE_TYPE_SFO:
+ 			res = SFOReader(file);
+ 			break;
 			
 		default:
 			errorDialog(type);
@@ -1344,7 +1349,7 @@ void fileBrowserMenuCtrl() {
 	if (dir_level > 0) {
 		// Context menu trigger
 		if ((pressed_buttons & SCE_CTRL_TRIANGLE) || (TOUCH_FRONT() == 8)) {
-			State_Touch = -1;
+			State_Touch = -1;			  			
 			if (ctx_menu_mode == CONTEXT_MENU_CLOSED) {
 				initContextMenu();
 				ctx_menu_mode = CONTEXT_MENU_OPENING;
@@ -1441,6 +1446,14 @@ void fileBrowserMenuCtrl() {
 		}
 	}
 }
+
+int get_length_free_size() {	
+	uint64_t free_size = 0, max_size = 0;
+	sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
+	int length_free_size = width_item - (width_item * free_size) / max_size;								
+	return length_free_size;				
+}
+
 
 
 int shellMain() {
@@ -1613,6 +1626,7 @@ int shellMain() {
 					// Increase line width
 					line_width += ch_width;
 				}
+				
 						
 				vita2d_draw_rectangle(x , y + slide_value , width_item, height_item , COLOR_ALPHA(DARKGRAY, 0xC8));
 												
@@ -1625,7 +1639,11 @@ int shellMain() {
 						vita2d_draw_texture_scale(game_card_storage_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);											
 						break;
 						
-					case 3  :					
+					case 3  :															
+						if ((100 * get_length_free_size()) / width_item >= 90)
+							vita2d_draw_rectangle(x , y + slide_value , get_length_free_size() , 5.0f , RED);
+						else
+							vita2d_draw_rectangle(x , y + slide_value , get_length_free_size() , 5.0f , GREEN);	
 						vita2d_draw_texture_scale(memory_card_image,  x + 10.0f, y + slide_value + 10.0f, 1.2f, 1.2f);										
 						break;  
 
