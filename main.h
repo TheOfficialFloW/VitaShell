@@ -120,7 +120,7 @@
 // File browser
 #define MARK_WIDTH (SCREEN_WIDTH - 2.0f * SHELL_MARGIN_X)
 #define INFORMATION_X 680.0f
-#define MAX_NAME_WIDTH 530.0f
+#define MAX_NAME_WIDTH 500.0f
 
 // Uncommon dialog
 #define UNCOMMON_DIALOG_PROGRESS_BAR_BOX_WIDTH 420.0f

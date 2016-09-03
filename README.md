@@ -12,12 +12,17 @@ You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/colors.txt'**: All colors adjustable
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaper.png'**: Wallpaper #1
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X (X is a value from 2-10)
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/ftp.png'**: Ftp icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/context.png'**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery.png'**: Battery border icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_green.png'**: Green battery bar
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_red.png'**: Red battery bar
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_charge.png'**: Charging battery bar
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/ftp.png'**: Ftp icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/archive_icon.png'**: Archive icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/file_icon.png'**: File icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/folder_icon.png'**: Folder icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/image_icon.png'**: Image icon
 
 **General info:** You don't need to have all these files in your custom theme, if one of them is missing, the default image file will be loaded instead.
 
@@ -50,7 +55,7 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 - norwegian
 - polish
 - portuguese_br
-- english_gb
+- turksish
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
@@ -65,6 +70,9 @@ https://github.com/xy2iii/vitashell-themes
 Be sure you pull request your customized design or language file there.
 
 ### Changelog X ###
+- Added file icon by littlebalup.
+- Added charging battery icon by ribbid987.
+- Added sfo reader by theorywrong.
 - Added translation support for turkish (english_gb uses the same id as turkish, fix it Sony!).
 - Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.
 - Fixed bug where copied files and folders of archives didn't stay on clipboard.

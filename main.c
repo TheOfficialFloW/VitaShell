@@ -1185,7 +1185,7 @@ int shellMain() {
 			}
 
 			// Draw shortened file name
-			pgf_draw_text(SHELL_MARGIN_X + 25.0f, y, color, FONT_SIZE, file_entry->name);
+			pgf_draw_text(SHELL_MARGIN_X + 26.0f, y, color, FONT_SIZE, file_entry->name);
 
 			if (j != length)
 				file_entry->name[j] = ch;
