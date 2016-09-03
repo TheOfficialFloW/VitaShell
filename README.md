@@ -10,6 +10,10 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y7CVA9VSJA2
 ### Customization ###
 You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/colors.txt'**: All colors adjustable
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_browser.txt'**: Background for file browser
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_hexeditor.txt'**: Background for hex editor
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_texteditor.txt'**: Background for text editor
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_photoviewer.txt'**: Background for photo viewer
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaper.png'**: Wallpaper #1
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X (X is a value from 2-10)
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
@@ -24,11 +28,11 @@ You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/folder_icon.png'**: Folder icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/image_icon.png'**: Image icon
 
+**Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
+
 **General info:** You don't need to have all these files in your custom theme, if one of them is missing, the default image file will be loaded instead.
 
-**Wallpapers info:** You can have **ten wallpapers** which VitaShell will display at random interval. If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
-
-**Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
+**Wallpapers info:** Wallpapers overlay background images. You can have **ten wallpapers** which VitaShell will display at random interval. If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
 
 **Dialog and context image:** If these files are not available, the colors **DIALOG_BG_COLOR** and **CONTEXT_MENU_COLOR** from **'colors.txt'** will be used instead.
 
@@ -70,6 +74,7 @@ https://github.com/xy2iii/vitashell-themes
 Be sure you pull request your customized design or language file there.
 
 ### Changelog X ###
+- Added possibility to use specific background for file browser, hex editor, text editor, photo viewer.
 - Added file icon by littlebalup.
 - Added charging battery icon by ribbid987.
 - Added sfo reader by theorywrong.

@@ -152,7 +152,7 @@ void loadTheme() {
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_texteditor.png", theme_name);
  			bg_text_image = vita2d_load_PNG_file(path);
 
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_photo.png", theme_name);
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_photoviewer.png", theme_name);
  			bg_photo_image = vita2d_load_PNG_file(path);
 
 			// Wallpapers
