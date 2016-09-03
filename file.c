@@ -363,6 +363,7 @@ static ExtensionType extension_types[] = {
 	{ ".SFO",  FILE_TYPE_SFO },
 	{ ".VPK",  FILE_TYPE_VPK },
 	{ ".ZIP",  FILE_TYPE_ZIP },
+	{ ".TXT",  FILE_TYPE_TXT },
 };
 
 int getFileType(char *file) {

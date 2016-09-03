@@ -33,6 +33,8 @@ extern unsigned char _binary_resources_audio_icon_png_start;
 extern unsigned char _binary_resources_audio_icon_png_size;
 extern unsigned char _binary_resources_sfo_icon_png_start;
 extern unsigned char _binary_resources_sfo_icon_png_size;
+extern unsigned char _binary_resources_text_icon_png_start;
+extern unsigned char _binary_resources_text_icon_png_size;
 extern unsigned char _binary_resources_ftp_png_start;
 extern unsigned char _binary_resources_ftp_png_size;
 extern unsigned char _binary_resources_battery_png_start;
@@ -69,6 +71,7 @@ static DefaultFile default_files[] = {
 	{ "ux0:VitaShell/theme/Default/image_icon.png", (void *)&_binary_resources_image_icon_png_start, (int)&_binary_resources_image_icon_png_size },
 	{ "ux0:VitaShell/theme/Default/audio_icon.png", (void *)&_binary_resources_audio_icon_png_start, (int)&_binary_resources_audio_icon_png_size },
 	{ "ux0:VitaShell/theme/Default/sfo_icon.png", (void *)&_binary_resources_sfo_icon_png_start, (int)&_binary_resources_sfo_icon_png_size },
+	{ "ux0:VitaShell/theme/Default/text_icon.png", (void *)&_binary_resources_text_icon_png_start, (int)&_binary_resources_text_icon_png_size },
 	{ "ux0:VitaShell/theme/Default/ftp.png", (void *)&_binary_resources_ftp_png_start, (int)&_binary_resources_ftp_png_size },
 	{ "ux0:VitaShell/theme/Default/battery.png", (void *)&_binary_resources_battery_png_start, (int)&_binary_resources_battery_png_size },
 	{ "ux0:VitaShell/theme/Default/battery_bar_red.png", (void *)&_binary_resources_battery_bar_red_png_start, (int)&_binary_resources_battery_bar_red_png_size },

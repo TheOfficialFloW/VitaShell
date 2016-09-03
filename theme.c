@@ -28,6 +28,7 @@ extern unsigned char _binary_resources_archive_icon_png_start;
 extern unsigned char _binary_resources_image_icon_png_start;
 extern unsigned char _binary_resources_audio_icon_png_start;
 extern unsigned char _binary_resources_sfo_icon_png_start;
+extern unsigned char _binary_resources_text_icon_png_start;
 extern unsigned char _binary_resources_ftp_png_start;
 extern unsigned char _binary_resources_battery_png_start;
 extern unsigned char _binary_resources_battery_bar_red_png_start;
@@ -57,7 +58,7 @@ int PROGRESS_BAR_BG_COLOR;
 int HEX_OFFSET_COLOR;
 int HEX_NIBBLE_COLOR;
 
-vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL,
+vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
 			   *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
 			   *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL,
 			   *bg_text_image = NULL, *bg_photo_image = NULL;
@@ -130,6 +131,9 @@ void loadTheme() {
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/sfo_icon.png", theme_name);
 			sfo_icon = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/text_icon.png", theme_name);
+			text_icon = vita2d_load_PNG_file(path);
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/ftp.png", theme_name);
 			ftp_image = vita2d_load_PNG_file(path);
@@ -204,6 +208,9 @@ void loadTheme() {
 
 	if (!sfo_icon)
 		sfo_icon = vita2d_load_PNG_buffer(&_binary_resources_sfo_icon_png_start);
+
+	if (!text_icon)
+		text_icon = vita2d_load_PNG_buffer(&_binary_resources_text_icon_png_start);
 
 	if (!ftp_image)
 		ftp_image = vita2d_load_PNG_buffer(&_binary_resources_ftp_png_start);

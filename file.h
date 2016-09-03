@@ -38,6 +38,7 @@ enum FileTypes {
 	FILE_TYPE_SFO,
 	FILE_TYPE_VPK,
 	FILE_TYPE_ZIP,
+	FILE_TYPE_TXT,
 };
 
 enum SortFlags {

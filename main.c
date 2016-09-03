@@ -258,6 +258,7 @@ int handleFile(char *file, FileListEntry *entry) {
 	}
 
 	switch (type) {
+		case FILE_TYPE_TXT:
 		case FILE_TYPE_UNKNOWN:
 			res = textViewer(file);
 			break;
@@ -1150,6 +1151,9 @@ int shellMain() {
 				} else if (file_entry->type == FILE_TYPE_SFO) { // SFO
 					// note: specific color to be determined
 					vita2d_draw_texture(sfo_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_TXT) { // TXT
+					// note: specific color to be determined
+					vita2d_draw_texture(text_icon, SHELL_MARGIN_X, y + 3.0f);
 				} else { // Other files
 					vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
 				}
