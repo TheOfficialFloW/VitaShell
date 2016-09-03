@@ -319,8 +319,11 @@ void drawShellInfo(char *path) {
 
 	vita2d_texture *battery_bar_image = battery_bar_green_image;
 
-	if (scePowerIsLowBattery())
+	if (scePowerIsLowBattery()){
 		battery_bar_image = battery_bar_red_image;
+	} else if (scePowerIsBatteryCharging()) {
+		battery_bar_image = battery_bar_charge_image;
+	}
 
 	float percent = scePowerGetBatteryLifePercent() / 100.0f;
 
