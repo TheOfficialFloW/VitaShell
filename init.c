@@ -21,6 +21,14 @@
 #include "file.h"
 #include "utils.h"
 
+extern unsigned char _binary_resources_folder_icon_png_start;
+extern unsigned char _binary_resources_folder_icon_png_size;
+extern unsigned char _binary_resources_file_icon_png_start;
+extern unsigned char _binary_resources_file_icon_png_size;
+extern unsigned char _binary_resources_archive_icon_png_start;
+extern unsigned char _binary_resources_archive_icon_png_size;
+extern unsigned char _binary_resources_image_icon_png_start;
+extern unsigned char _binary_resources_image_icon_png_size;
 extern unsigned char _binary_resources_ftp_png_start;
 extern unsigned char _binary_resources_ftp_png_size;
 extern unsigned char _binary_resources_dialog_png_start;
@@ -53,6 +61,10 @@ static DefaultFile default_files[] = {
 	{ "ux0:VitaShell/language/english_us.txt", (void *)&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size },
 	{ "ux0:VitaShell/theme/theme.txt", (void *)&_binary_resources_theme_txt_start, (int)&_binary_resources_theme_txt_size },
 	{ "ux0:VitaShell/theme/Default/colors.txt", (void *)&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size },
+	{ "ux0:VitaShell/theme/Default/folder_icon.png", (void *)&_binary_resources_folder_icon_png_start, (int)&_binary_resources_folder_icon_png_size },
+	{ "ux0:VitaShell/theme/Default/file_icon.png", (void *)&_binary_resources_file_icon_png_start, (int)&_binary_resources_file_icon_png_size },
+	{ "ux0:VitaShell/theme/Default/archive_icon.png", (void *)&_binary_resources_archive_icon_png_start, (int)&_binary_resources_archive_icon_png_size },
+	{ "ux0:VitaShell/theme/Default/image_icon.png", (void *)&_binary_resources_image_icon_png_start, (int)&_binary_resources_image_icon_png_size },
 	{ "ux0:VitaShell/theme/Default/ftp.png", (void *)&_binary_resources_ftp_png_start, (int)&_binary_resources_ftp_png_size },
 	{ "ux0:VitaShell/theme/Default/dialog.png", (void *)&_binary_resources_dialog_png_start, (int)&_binary_resources_dialog_png_size },
 	{ "ux0:VitaShell/theme/Default/context.png", (void *)&_binary_resources_context_png_start, (int)&_binary_resources_context_png_size },

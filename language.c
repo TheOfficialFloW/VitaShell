@@ -92,6 +92,7 @@ void loadLanguage(int id) {
 		LANGUAGE_ENTRY(SAVE_MODIFICATIONS),
 		LANGUAGE_ENTRY(WIFI_ERROR),
 		LANGUAGE_ENTRY(FTP_SERVER),
+		LANGUAGE_ENTRY(SYS_INFO),
 	};
 
 	// Load default config file

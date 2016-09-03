@@ -937,7 +937,7 @@ void fileBrowserMenuCtrl() {
 		getSizeString(free_size_string, free_size);
 		getSizeString(max_size_string, max_size);
 
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, "System software: %s\nModel: 0x%08X\nMAC address: %s\nIP address: %s\nMemory card: %s/%s", sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string);
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string);
 		dialog_step = DIALOG_STEP_SYSTEM;
 	}
 
@@ -1128,28 +1128,31 @@ int shellMain() {
 		int i;
 		for (i = 0; i < MAX_ENTRIES && (base_pos + i) < file_list.length; i++) {
 			uint32_t color = GENERAL_COLOR;
+			float y = START_Y + (i * FONT_Y_SPACE);
 
 			// Folder
-			if (file_entry->is_folder)
+			if (file_entry->is_folder) {
 				color = FOLDER_COLOR;
-
-			// Images
-			if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) {
-				color = IMAGE_COLOR;
+				vita2d_draw_texture(folder_icon, SHELL_MARGIN_X, y + 3.0f);
 			}
-
+			// Images
+			else if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) {
+				color = IMAGE_COLOR;
+				vita2d_draw_texture(image_icon, SHELL_MARGIN_X, y + 3.0f);
+			}
 			// Archives
-			if (!isInArchive()) {
+			else if (!isInArchive()) {
 				if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) {
 					color = ARCHIVE_COLOR;
+					vita2d_draw_texture(archive_icon, SHELL_MARGIN_X, y + 3.0f);
 				}
+			// Other file
+				else vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
 			}
 
 			// Current position
 			if (i == rel_pos)
 				color = FOCUS_COLOR;
-
-			float y = START_Y + (i * FONT_Y_SPACE);
 
 			// Marked
 			if (fileListFindEntry(&mark_list, file_entry->name))
@@ -1179,7 +1182,7 @@ int shellMain() {
 			}
 
 			// Draw shortened file name
-			pgf_draw_text(SHELL_MARGIN_X, y, color, FONT_SIZE, file_entry->name);
+			pgf_draw_text(SHELL_MARGIN_X + 25.0f, y, color, FONT_SIZE, file_entry->name);
 
 			if (j != length)
 				file_entry->name[j] = ch;
