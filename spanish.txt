@@ -1,4 +1,4 @@
-﻿# VitaShell spanish translation by Shadyck and fixed by Darkmet98
+﻿# VitaShell spanish translation by Shadyck and fixed by Darkmet98 and Keizel
 
 ERROR                                = "Error 0x%08X."
 OK                                   = "Aceptar"
@@ -30,3 +30,4 @@ INSTALL_WARNING                      = "Este fichero requiere de permisos especi
 SAVE_MODIFICATIONS                   = "¿Quieres guardar estas modificaciones?"
 WIFI_ERROR                           = "Tienes que activar la conexión Wi-Fi para usar esta función."
 FTP_SERVER                           = "El servidor FTP está activo en\ftp://%s:%i\\Pulsa 'Aceptar' para mantenerlo en segundo plano.\Pulsa 'Cancelar' para desconectarte."
+SYS_INFO                             = "Versión del sistema: %s\Modelo: 0x%08X\Dirección MAC: %s\Dirección IP: %s\Tarjeta de memoria: %s/%s"
