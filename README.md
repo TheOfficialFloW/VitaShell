@@ -7,10 +7,10 @@ This homebrew was an entry of the Revitalize PS Vita homebrew competition and wo
 ### Customization ###
 You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/colors.txt'**: All colors adjustable
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_browser.txt'**: Background for file browser
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_hexeditor.txt'**: Background for hex editor
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_texteditor.txt'**: Background for text editor
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_photoviewer.txt'**: Background for photo viewer
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_browser.png'**: Background for file browser
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_hexeditor.png'**: Background for hex editor
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_texteditor.png'**: Background for text editor
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_photoviewer.png'**: Background for photo viewer
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaper.png'**: Wallpaper #1
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X (X is a value from 2-10)
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
