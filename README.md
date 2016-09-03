@@ -3,9 +3,6 @@
 VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you a file manager, package installer, built-in FTP and much more.
 This homebrew was an entry of the Revitalize PS Vita homebrew competition and won the first prize. HENkaku's molecularShell is also based on VitaShell.
 
-### Donation ###
-Any amount of donation is a big support for VitaShell development and therefore highly appreciated:
-https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y7CVA9VSJA2VW
 
 ### Customization ###
 You can customize those files:
@@ -59,7 +56,7 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 - norwegian
 - polish
 - portuguese_br
-- turksish
+- turkish
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
