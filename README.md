@@ -10,20 +10,29 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y7CVA9VSJA2
 ### Customization ###
 You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/colors.txt'**: All colors adjustable
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_browser.txt'**: Background for file browser
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_hexeditor.txt'**: Background for hex editor
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_texteditor.txt'**: Background for text editor
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_photoviewer.txt'**: Background for photo viewer
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaper.png'**: Wallpaper #1
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X (X is a value from 2-10)
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/ftp.png'**: Ftp icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/context.png'**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery.png'**: Battery border icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_green.png'**: Green battery bar
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_red.png'**: Red battery bar
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_charge.png'**: Charging battery bar
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/ftp.png'**: Ftp icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/archive_icon.png'**: Archive icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/file_icon.png'**: File icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/folder_icon.png'**: Folder icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/image_icon.png'**: Image icon
+
+**Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
 
 **General info:** You don't need to have all these files in your custom theme, if one of them is missing, the default image file will be loaded instead.
 
-**Wallpapers info:** You can have **ten wallpapers** which VitaShell will display at random interval. If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
-
-**Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
+**Wallpapers info:** Wallpapers overlay background images. You can have **ten wallpapers** which VitaShell will display at random interval. If no wallpaper is available, **BACKGROUND_COLOR** from **'colors.txt'** will be used.
 
 **Dialog and context image:** If these files are not available, the colors **DIALOG_BG_COLOR** and **CONTEXT_MENU_COLOR** from **'colors.txt'** will be used instead.
 
@@ -50,7 +59,7 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 - norwegian
 - polish
 - portuguese_br
-- english_gb
+- turksish
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
@@ -63,6 +72,18 @@ This is an unofficial VitaShell themes and translations collection:
 https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
+
+### Changelog 0.9 ###
+- Added possibility to use specific background for file browser, hex editor, text editor, photo viewer.
+- Added files and folder icons by littlebalup.
+- Added charging battery icon by ribbid987.
+- Added sfo reader by theorywrong.
+- Added translation support for turkish (english_gb uses the same id as turkish, fix it Sony!).
+- Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.
+- Fixed bug where copied files and folders of archives didn't stay on clipboard.
+- Allow auto screen-off.
+- System information trigger combo changed to START instead of L+R+START.
+  System information can now also be translated, thanks to littlebalup.
 
 ### Changelog 0.86 ###
 - Added dialog box animation and aligned dialog box y to make it look better.

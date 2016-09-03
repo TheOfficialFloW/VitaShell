@@ -292,7 +292,7 @@ int hexViewer(char *file) {
 		}
 
 		// Start drawing
-		startDrawing();
+		startDrawing(bg_hex_image);
 
 		// Draw shell info
 		drawShellInfo(file);

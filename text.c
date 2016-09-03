@@ -247,7 +247,7 @@ int textViewer(char *file) {
 		}
 
 		// Start drawing
-		startDrawing();
+		startDrawing(bg_text_image);
 
 		// Draw shell info
 		drawShellInfo(file);

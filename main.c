@@ -222,10 +222,10 @@ void refreshCopyList() {
 		char path[MAX_PATH_LENGTH];
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_list.path, entry->name);
 
-		// TODO: fix for archives
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
-		if (sceIoGetstat(path, &stat) < 0)
+		int res = sceIoGetstat(path, &stat);
+		if (res < 0 && res != 0x80010014)
 			fileListRemoveEntry(&copy_list, entry);
 
 		// Next
@@ -319,8 +319,11 @@ void drawShellInfo(char *path) {
 
 	vita2d_texture *battery_bar_image = battery_bar_green_image;
 
-	if (scePowerIsLowBattery())
+	if (scePowerIsBatteryCharging()) {
+		battery_bar_image = battery_bar_charge_image;
+	} else if (scePowerIsLowBattery()) {
 		battery_bar_image = battery_bar_red_image;
+	} 
 
 	float percent = scePowerGetBatteryLifePercent() / 100.0f;
 
@@ -921,8 +924,8 @@ int dialogSteps() {
 }
 
 void fileBrowserMenuCtrl() {
-	// Hidden trigger
-	if (current_buttons & SCE_CTRL_LTRIGGER && current_buttons & SCE_CTRL_RTRIGGER && current_buttons & SCE_CTRL_START) {
+	// System information
+	if (current_buttons & SCE_CTRL_START) {
 		SceSystemSwVersionParam sw_ver_param;
 		sw_ver_param.size = sizeof(SceSystemSwVersionParam);
 		sceKernelGetSystemSwVersion(&sw_ver_param);
@@ -1114,7 +1117,7 @@ int shellMain() {
 		}
 
 		// Start drawing
-		startDrawing();
+		startDrawing(bg_browser_image);
 
 		// Draw shell info
 		drawShellInfo(file_list.path);
@@ -1134,20 +1137,16 @@ int shellMain() {
 			if (file_entry->is_folder) {
 				color = FOLDER_COLOR;
 				vita2d_draw_texture(folder_icon, SHELL_MARGIN_X, y + 3.0f);
-			}
-			// Images
-			else if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) {
-				color = IMAGE_COLOR;
-				vita2d_draw_texture(image_icon, SHELL_MARGIN_X, y + 3.0f);
-			}
-			// Archives
-			else if (!isInArchive()) {
-				if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) {
+			} else {
+				if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) { // Images
+					color = IMAGE_COLOR;
+					vita2d_draw_texture(image_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) { // Archive
 					color = ARCHIVE_COLOR;
 					vita2d_draw_texture(archive_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else { // Other files
+					vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
 				}
-			// Other file
-				else vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
 			}
 
 			// Current position
@@ -1182,7 +1181,7 @@ int shellMain() {
 			}
 
 			// Draw shortened file name
-			pgf_draw_text(SHELL_MARGIN_X + 25.0f, y, color, FONT_SIZE, file_entry->name);
+			pgf_draw_text(SHELL_MARGIN_X + 26.0f, y, color, FONT_SIZE, file_entry->name);
 
 			if (j != length)
 				file_entry->name[j] = ch;

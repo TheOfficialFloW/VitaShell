@@ -428,7 +428,7 @@ int audioPlayer(char *file, FileList *list, FileListEntry *entry, int *base_pos,
 			}
 
 			// Start drawing
-			startDrawing();
+			startDrawing(NULL);
 			int nameLength = strlen(entry->name);
 			vita2d_pgf_draw_text(font, SCREEN_WIDTH / 2 - nameLength * 5.5, SCREEN_HEIGHT - 190, GENERAL_COLOR, 1.0f, entry->name);
 			

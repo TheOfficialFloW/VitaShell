@@ -4,9 +4,10 @@ OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file
 		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o \
 		   audioplayer.o minizip/unzip.o minizip/ioapi.o
 
-RESOURCES_PNG = resources/folder_icon.png resources/file_icon.png resources/archive_icon.png resources/image_icon.png resources/ftp.png resources/dialog.png resources/context.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
-		   resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
-		   resources/audio_next.png
+RESOURCES_PNG = resources/folder_icon.png resources/file_icon.png resources/archive_icon.png resources/image_icon.png resources/ftp.png \
+				resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png resources/battery_bar_charge.png \
+				resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
+				resources/audio_next.png
 RESOURCES_TXT = resources/theme.txt resources/colors.txt resources/english_us.txt
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
 
@@ -36,7 +37,7 @@ ASFLAGS  = $(CFLAGS)
 all: $(TARGET).vpk
 
 %.vpk: eboot.bin
-	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.86 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
+	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.90 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin \
 		--add pkg/sce_sys/icon0.png=sce_sys/icon0.png \
 		--add pkg/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
