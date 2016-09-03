@@ -106,7 +106,6 @@ int power_tick_thread(SceSize args, void *argp) {
 	while (1) {
 		if (lock_power) {
 			sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_AUTO_SUSPEND);
-			sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_OLED_OFF);
 		}
 
 		sceKernelDelayThread(10 * 1000 * 1000);

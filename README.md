@@ -64,6 +64,12 @@ https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
 
+### Changelog X ###
+- Added translation support for turkish (english_gb uses the same id as turkish, fix it Sony!).
+- Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.
+- Fixed bug where copied files and folders of archives didn't stay on clipboard.
+- Allow auto screen-off.
+
 ### Changelog 0.86 ###
 - Added dialog box animation and aligned dialog box y to make it look better.
 - Fixed wrong time string for files and folders. Thanks to persona5.
