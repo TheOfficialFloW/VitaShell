@@ -55,10 +55,10 @@ int _newlib_heap_size_user = 64 * 1024 * 1024;
 #define MAX_DIR_LEVELS 1024
 
 // File lists
-static FileList file_list, mark_list, copy_list;
+static FileList file_list, mark_list, copy_list, install_list;
 
 // Paths
-static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH];
+static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], installListPath[MAX_PATH_LENGTH];
 
 // Position
 static int base_pos = 0, rel_pos = 0;
@@ -233,6 +233,25 @@ void refreshCopyList() {
 	}
 }
 
+void refreshInstallList() {
+       FileListEntry *entry = install_list.head;
+
+       int length = install_list.length;
+
+       if (length > 0) {
+               // Get next entry already now to prevent crash after entry is removed
+               FileListEntry *next = entry->next;
+
+               fileListRemoveEntry(&install_list, entry);
+
+               // Next
+               if(next != NULL) {
+                       entry = next;
+               }
+       }
+}
+
+
 void resetFileLists() {
 	memset(&file_list, 0, sizeof(FileList));
 	memset(&mark_list, 0, sizeof(FileList));
@@ -398,6 +417,7 @@ void drawShellInfo(char *path) {
 
 enum MenuEntrys {
 	MENU_ENTRY_MARK_UNMARK_ALL,
+	MENU_ENTRY_INSTALL_ALL,
 	MENU_ENTRY_EMPTY_1,
 	MENU_ENTRY_MOVE,
 	MENU_ENTRY_COPY,
@@ -422,6 +442,7 @@ typedef struct {
 
 MenuEntry menu_entries[] = {
 	{ MARK_ALL, VISIBILITY_INVISIBLE },
+	{ INSTALL_ALL, VISIBILITY_INVISIBLE },
 	{ -1, VISIBILITY_UNUSED },
 	{ MOVE, VISIBILITY_INVISIBLE },
 	{ COPY, VISIBILITY_INVISIBLE },
@@ -449,6 +470,7 @@ void initContextMenu() {
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
 		menu_entries[MENU_ENTRY_MARK_UNMARK_ALL].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_COPY].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
@@ -461,6 +483,7 @@ void initContextMenu() {
 
 	// Invisble write operations in archives
 	if (isInArchive()) { // TODO: read-only mount points
+		menu_entries[MENU_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
@@ -724,6 +747,36 @@ void contextMenuCtrl() {
 				dialog_step = DIALOG_STEP_NEW_FOLDER;
 				break;
 			}
+
+			case MENU_ENTRY_INSTALL_ALL:
+			{
+				// Empty install list
+				fileListEmpty(&install_list);
+
+				FileListEntry *file_entry = file_list.head->next; // Ignore '..'
+
+				int i;
+				for (i = 0; i < file_list.length - 1; i++) {
+					char fileInstallPath[MAX_PATH_LENGTH];
+					snprintf(fileInstallPath, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+
+					int type = getFileType(fileInstallPath);
+					if (type == FILE_TYPE_VPK) {
+							FileListEntry *install_entry = malloc(sizeof(FileListEntry));
+							memcpy(install_entry, file_entry, sizeof(FileListEntry));
+							fileListAddEntry(&install_list, install_entry, SORT_NONE);
+					}
+
+					// Next
+					file_entry = file_entry->next;
+				}
+				strcpy(install_list.path, file_list.path);
+
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
+				dialog_step = DIALOG_STEP_INSTALL_QUESTION;
+				
+				break;
+			}
 		}
 
 		ctx_menu_mode = CONTEXT_MENU_CLOSING;
@@ -840,7 +893,13 @@ int dialogSteps() {
 		case DIALOG_STEP_INSTALL_CONFIRMED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				InstallArguments args;
-				args.file = cur_file;
+				if(install_list.length > 0) {
+					FileListEntry *entryInstallList = install_list.head;
+					snprintf(installListPath, MAX_PATH_LENGTH, "%s%s", install_list.path, entryInstallList->name);
+					args.file = installListPath;
+				} else {
+					args.file = cur_file;
+				}
 
 				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
 				if (thid >= 0)
@@ -1091,6 +1150,14 @@ int shellMain() {
 
 		// Control
 		if (dialog_step == DIALOG_STEP_NONE) {
+			if(install_list.length > 0) {
+				refreshInstallList();
+				if(install_list.length > 0) {
+					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
+					dialog_step = DIALOG_STEP_INSTALL_QUESTION;
+				}
+			}
+
 			if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
 				contextMenuCtrl();
 			} else {

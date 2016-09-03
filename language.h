@@ -51,6 +51,7 @@ enum LanguageContainer {
 	WIFI_ERROR,
 	FTP_SERVER,
 	SYS_INFO,
+	INSTALL_ALL,
 	LANGUAGE_CONTRAINER_SIZE,
 };
 
