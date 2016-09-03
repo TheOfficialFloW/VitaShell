@@ -21,6 +21,10 @@
 #include "config.h"
 #include "theme.h"
 
+extern unsigned char _binary_resources_folder_icon_png_start;
+extern unsigned char _binary_resources_file_icon_png_start;
+extern unsigned char _binary_resources_archive_icon_png_start;
+extern unsigned char _binary_resources_image_icon_png_start;
 extern unsigned char _binary_resources_ftp_png_start;
 extern unsigned char _binary_resources_dialog_png_start;
 extern unsigned char _binary_resources_context_png_start;
@@ -51,7 +55,7 @@ int PROGRESS_BAR_BG_COLOR;
 int HEX_OFFSET_COLOR;
 int HEX_NIBBLE_COLOR;
 
-vita2d_texture *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL, *battery_bar_green_image = NULL;
+vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL, *battery_bar_green_image = NULL;
 
 vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
 
@@ -104,6 +108,18 @@ void loadTheme() {
 			readConfig(path, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
 			// Load pngs
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/folder_icon.png", theme_name);
+			folder_icon = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/file_icon.png", theme_name);
+			file_icon = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/archive_icon.png", theme_name);
+			archive_icon = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/image_icon.png", theme_name);
+			image_icon = vita2d_load_PNG_file(path);
+
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/ftp.png", theme_name);
 			ftp_image = vita2d_load_PNG_file(path);
 
@@ -143,6 +159,18 @@ void loadTheme() {
 	}
 
 	// Load default pngs
+	if (!folder_icon)
+		folder_icon = vita2d_load_PNG_buffer(&_binary_resources_folder_icon_png_start);
+
+	if (!file_icon)
+		file_icon = vita2d_load_PNG_buffer(&_binary_resources_file_icon_png_start);
+
+	if (!archive_icon)
+		archive_icon = vita2d_load_PNG_buffer(&_binary_resources_archive_icon_png_start);
+
+	if (!image_icon)
+		image_icon = vita2d_load_PNG_buffer(&_binary_resources_image_icon_png_start);
+
 	if (!ftp_image)
 		ftp_image = vita2d_load_PNG_buffer(&_binary_resources_ftp_png_start);
 
