@@ -3,17 +3,14 @@
 VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you a file manager, package installer, built-in FTP and much more.
 This homebrew was an entry of the Revitalize PS Vita homebrew competition and won the first prize. HENkaku's molecularShell is also based on VitaShell.
 
-### Donation ###
-Any amount of donation is a big support for VitaShell development and therefore highly appreciated:
-https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Y7CVA9VSJA2VW
 
 ### Customization ###
 You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/colors.txt'**: All colors adjustable
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_browser.txt'**: Background for file browser
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_hexeditor.txt'**: Background for hex editor
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_texteditor.txt'**: Background for text editor
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_photoviewer.txt'**: Background for photo viewer
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_browser.png'**: Background for file browser
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_hexeditor.png'**: Background for hex editor
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_texteditor.png'**: Background for text editor
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_photoviewer.png'**: Background for photo viewer
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaper.png'**: Wallpaper #1
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X (X is a value from 2-10)
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
@@ -59,7 +56,7 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 - norwegian
 - polish
 - portuguese_br
-- turksish
+- turkish
 
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
@@ -79,7 +76,7 @@ Be sure you pull request your customized design or language file there.
 - Added charging battery icon by ribbid987.
 - Added sfo reader by theorywrong.
 - Added translation support for turkish (english_gb uses the same id as turkish, fix it Sony!).
-- Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.
+- ~~Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.~~
 - Fixed bug where copied files and folders of archives didn't stay on clipboard.
 - Allow auto screen-off.
 - System information trigger combo changed to START instead of L+R+START.
