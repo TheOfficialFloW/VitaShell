@@ -1117,7 +1117,7 @@ int shellMain() {
 		}
 
 		// Start drawing
-		startDrawing();
+		startDrawing(bg_browser_image);
 
 		// Draw shell info
 		drawShellInfo(file_list.path);
@@ -1137,20 +1137,16 @@ int shellMain() {
 			if (file_entry->is_folder) {
 				color = FOLDER_COLOR;
 				vita2d_draw_texture(folder_icon, SHELL_MARGIN_X, y + 3.0f);
-			}
-			// Images
-			else if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) {
-				color = IMAGE_COLOR;
-				vita2d_draw_texture(image_icon, SHELL_MARGIN_X, y + 3.0f);
-			}
-			// Archives
-			else if (!isInArchive()) {
-				if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) {
+			} else {
+				if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) { // Images
+					color = IMAGE_COLOR;
+					vita2d_draw_texture(image_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) { // Archive
 					color = ARCHIVE_COLOR;
 					vita2d_draw_texture(archive_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else { // Other files
+					vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
 				}
-			// Other file
-				else vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
 			}
 
 			// Current position
