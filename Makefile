@@ -5,7 +5,7 @@ OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file
 		   audioplayer.o minizip/unzip.o minizip/ioapi.o
 
 RESOURCES_PNG = resources/ftp.png resources/dialog.png resources/context.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
-		   resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
+		   resources/battery_bar_charge.png resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
 		   resources/audio_next.png
 RESOURCES_TXT = resources/theme.txt resources/colors.txt resources/english_us.txt
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)

@@ -33,6 +33,8 @@ extern unsigned char _binary_resources_battery_bar_red_png_start;
 extern unsigned char _binary_resources_battery_bar_red_png_size;
 extern unsigned char _binary_resources_battery_bar_green_png_start;
 extern unsigned char _binary_resources_battery_bar_green_png_size;
+extern unsigned char _binary_resources_battery_bar_charge_png_start;
+extern unsigned char _binary_resources_battery_bar_charge_png_size;
 
 extern unsigned char _binary_resources_theme_txt_start;
 extern unsigned char _binary_resources_theme_txt_size;
@@ -59,6 +61,7 @@ static DefaultFile default_files[] = {
 	{ "ux0:VitaShell/theme/Default/battery.png", (void *)&_binary_resources_battery_png_start, (int)&_binary_resources_battery_png_size },
 	{ "ux0:VitaShell/theme/Default/battery_bar_red.png", (void *)&_binary_resources_battery_bar_red_png_start, (int)&_binary_resources_battery_bar_red_png_size },
 	{ "ux0:VitaShell/theme/Default/battery_bar_green.png", (void *)&_binary_resources_battery_bar_green_png_start, (int)&_binary_resources_battery_bar_green_png_size },
+	{ "ux0:VitaShell/theme/Default/battery_bar_charge.png", (void *)&_binary_resources_battery_bar_charge_png_start, (int)&_binary_resources_battery_bar_charge_png_size },
 };
 
 vita2d_pgf *font = NULL;

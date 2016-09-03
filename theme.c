@@ -27,6 +27,7 @@ extern unsigned char _binary_resources_context_png_start;
 extern unsigned char _binary_resources_battery_png_start;
 extern unsigned char _binary_resources_battery_bar_red_png_start;
 extern unsigned char _binary_resources_battery_bar_green_png_start;
+extern unsigned char _binary_resources_battery_bar_charge_png_start;
 
 extern unsigned char _binary_resources_colors_txt_start;
 extern unsigned char _binary_resources_colors_txt_size;
@@ -51,7 +52,7 @@ int PROGRESS_BAR_BG_COLOR;
 int HEX_OFFSET_COLOR;
 int HEX_NIBBLE_COLOR;
 
-vita2d_texture *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL, *battery_bar_green_image = NULL;
+vita2d_texture *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL, *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL;
 
 vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
 
@@ -122,6 +123,9 @@ void loadTheme() {
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery_bar_green.png", theme_name);
 			battery_bar_green_image = vita2d_load_PNG_file(path);
 
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery_bar_charge.png", theme_name);
+			battery_bar_charge_image = vita2d_load_PNG_file(path);
+
 			// Wallpapers
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wallpaper.png", theme_name);
 			vita2d_texture *image = vita2d_load_PNG_file(path);
@@ -160,4 +164,7 @@ void loadTheme() {
 
 	if (!battery_bar_green_image)
 		battery_bar_green_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_green_png_start);
+
+	if (!battery_bar_charge_image)
+		battery_bar_charge_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_charge_png_start);
 }
