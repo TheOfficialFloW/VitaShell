@@ -924,8 +924,8 @@ int dialogSteps() {
 }
 
 void fileBrowserMenuCtrl() {
-	// Hidden trigger
-	if (current_buttons & SCE_CTRL_LTRIGGER && current_buttons & SCE_CTRL_RTRIGGER && current_buttons & SCE_CTRL_START) {
+	// System information
+	if (current_buttons & SCE_CTRL_START) {
 		SceSystemSwVersionParam sw_ver_param;
 		sw_ver_param.size = sizeof(SceSystemSwVersionParam);
 		sceKernelGetSystemSwVersion(&sw_ver_param);

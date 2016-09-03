@@ -73,15 +73,17 @@ https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
 
-### Changelog X ###
+### Changelog 0.9 ###
 - Added possibility to use specific background for file browser, hex editor, text editor, photo viewer.
-- Added file icon by littlebalup.
+- Added files and folder icons by littlebalup.
 - Added charging battery icon by ribbid987.
 - Added sfo reader by theorywrong.
 - Added translation support for turkish (english_gb uses the same id as turkish, fix it Sony!).
 - Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.
 - Fixed bug where copied files and folders of archives didn't stay on clipboard.
 - Allow auto screen-off.
+- System information trigger combo changed to START instead of L+R+START.
+  System information can now also be translated, thanks to littlebalup.
 
 ### Changelog 0.86 ###
 - Added dialog box animation and aligned dialog box y to make it look better.
