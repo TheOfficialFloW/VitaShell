@@ -76,7 +76,7 @@ Be sure you pull request your customized design or language file there.
 - Added charging battery icon by ribbid987.
 - Added sfo reader by theorywrong.
 - Added translation support for turkish (english_gb uses the same id as turkish, fix it Sony!).
-- Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.
+- ~~Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.~~
 - Fixed bug where copied files and folders of archives didn't stay on clipboard.
 - Allow auto screen-off.
 - System information trigger combo changed to START instead of L+R+START.
