@@ -20,5 +20,6 @@
 #define __NETWORK_UPDATE_H__
 
 int network_update_thread(SceSize args, void *argp);
+int update_extract_thread(SceSize args, void *argp);
 
 #endif

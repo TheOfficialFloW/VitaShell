@@ -19,10 +19,20 @@
 #include "main.h"
 #include "io_process.h"
 #include "network_update.h"
+#include "package_installer.h"
+#include "archive.h"
 #include "file.h"
 #include "message_dialog.h"
 #include "language.h"
 #include "utils.h"
+
+#define BASE_ADDRESS "https://github.com/TheOfficialFloW/VitaShell/releases/download"
+#define VITASHELL_UPDATE_FILE "ux0:VitaShell/VitaShell.vpk"
+
+extern unsigned char _binary_resources_updater_eboot_bin_start;
+extern unsigned char _binary_resources_updater_eboot_bin_size;
+extern unsigned char _binary_resources_updater_param_bin_start;
+extern unsigned char _binary_resources_updater_param_bin_size;
 
 int getDownloadFileSize(char *src, uint64_t *size) {
 	int tpl = sceHttpCreateTemplate("VitaShell/1.00 libhttp/1.1", SCE_HTTP_VERSION_1_1, 1);
@@ -117,7 +127,7 @@ int downloadProcess(char *version_string) {
 
 	// Download url
 	char url[128];
-	sprintf(url, "https://github.com/TheOfficialFloW/VitaShell/releases/download/%s/VitaShell.vpk", version_string);
+	sprintf(url, BASE_ADDRESS "/%s/VitaShell.vpk", version_string);
 
 	// File size
 	uint64_t size = 0;
@@ -128,7 +138,7 @@ int downloadProcess(char *version_string) {
 
 	// Download
 	uint64_t value = 0;
-	int res = downloadFile(url, "ux0:VitaShell/Vitashell.vpk", &value, size, SetProgress, cancelHandler);
+	int res = downloadFile(url, VITASHELL_UPDATE_FILE, &value, size, SetProgress, cancelHandler);
 	if (res <= 0) {
 		closeWaitDialog();
 		dialog_step = DIALOG_STEP_CANCELLED;
@@ -158,7 +168,7 @@ EXIT:
 int network_update_thread(SceSize args, void *argp) {
 	sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
 
-	if (downloadFile("http://github.com/TheOfficialFloW/VitaShell/releases/download/0.0/version.bin", "ux0:VitaShell/version.bin", NULL, 0, NULL, NULL) > 0) {
+	if (downloadFile(BASE_ADDRESS "/0.0/version.bin", "ux0:VitaShell/version.bin", NULL, 0, NULL, NULL) > 0) {
 		uint32_t version = 0;
 		ReadFile("ux0:VitaShell/version.bin", &version, sizeof(uint32_t));
 		sceIoRemove("ux0:VitaShell/version.bin");
@@ -194,6 +204,102 @@ int network_update_thread(SceSize args, void *argp) {
 			}
 		}
 	}
+
+	return sceKernelExitDeleteThread(0);
+}
+
+int installUpdater() {
+	// Recursively clean up package_temp directory
+	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	sceIoMkdir(PACKAGE_PARENT, 0777);
+
+	sceIoMkdir("ux0:ptmp", 0777);
+	sceIoMkdir("ux0:ptmp/pkg", 0777);
+	sceIoMkdir("ux0:ptmp/pkg/sce_sys", 0777);
+
+	WriteFile("ux0:ptmp/pkg/eboot.bin", (void *)&_binary_resources_updater_eboot_bin_start, (int)&_binary_resources_updater_eboot_bin_size);
+	WriteFile("ux0:ptmp/pkg/sce_sys/param.sfo", (void *)&_binary_resources_updater_param_bin_start, (int)&_binary_resources_updater_param_bin_size);
+
+	// Make head.bin
+	makeHeadBin();
+
+	// Promote
+	promote(PACKAGE_DIR);
+}
+
+int update_extract_thread(SceSize args, void *argp) {
+	SceUID thid = -1;
+
+	// Lock power timers
+	powerLock();
+
+	// Set progress to 0%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+
+	// Install updater
+	installUpdater();
+
+	// Recursively clean up package_temp directory
+	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	sceIoMkdir(PACKAGE_PARENT, 0777);
+
+	// Open archive
+	int res = archiveOpen(VITASHELL_UPDATE_FILE);
+	if (res < 0) {
+		closeWaitDialog();
+		errorDialog(res);
+		goto EXIT;
+	}
+
+	// Src path
+	char *src_path = VITASHELL_UPDATE_FILE "/";
+
+	// Get archive path info
+	uint64_t size = 0;
+	uint32_t folders = 0, files = 0;
+	getArchivePathInfo(src_path, &size, &folders, &files);
+
+	// Update thread
+	thid = createStartUpdateThread(size + folders);
+
+	// Extract process
+	uint64_t value = 0;
+
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+	if (res <= 0) {
+		closeWaitDialog();
+		dialog_step = DIALOG_STEP_CANCELLED;
+		errorDialog(res);
+		goto EXIT;
+	}
+
+	// Remove update file
+	sceIoRemove(VITASHELL_UPDATE_FILE);
+
+	// Make head.bin
+	res = makeHeadBin();
+	if (res < 0) {
+		closeWaitDialog();
+		errorDialog(res);
+		goto EXIT;
+	}
+
+	// Set progress to 100%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+	sceKernelDelayThread(COUNTUP_WAIT);
+
+	// Close
+	sceMsgDialogClose();
+
+	dialog_step = DIALOG_STEP_EXTRACTED;
+
+EXIT:
+	if (thid >= 0)
+		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	// Unlock power timers
+	powerUnlock();
 
 	return sceKernelExitDeleteThread(0);
 }

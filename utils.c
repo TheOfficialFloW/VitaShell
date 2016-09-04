@@ -301,3 +301,17 @@ int debugPrintf(char *text, ...) {
 #endif
 	return 0;
 }
+
+int launchAppByUriExit(char *titleid) {
+	char uri[32];
+	sprintf(uri, "psgm:play?titleid=%s", titleid);
+
+	sceKernelDelayThread(10000);
+	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
+	sceKernelDelayThread(10000);
+	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
+
+	sceKernelExitProcess(0);
+
+	return 0;
+}
