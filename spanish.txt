@@ -35,4 +35,4 @@ WIFI_ERROR                           = "Tienes que activar la conexión Wi-Fi pa
 FTP_SERVER                           = "El servidor FTP está activo en\ftp://%s:%i\\Pulsa 'Aceptar' para mantenerlo en segundo plano.\Pulsa 'Cancelar' para desconectarte."
 SYS_INFO                             = "Versión del sistema: %s\Modelo: 0x%08X\Dirección MAC: %s\Dirección IP: %s\Tarjeta de memoria: %s/%s"
 INSTALL_ALL                          = "Instalar todo"
-UPDATE_QUESTION                      = "VitaShell %s esta disponible.\\¿Quieres actualizar la aplicación?"
+UPDATE_QUESTION                      = "VitaShell %s está disponible.\\¿Quieres actualizar la aplicación?"
