@@ -258,6 +258,7 @@ int handleFile(char *file, FileListEntry *entry) {
 	}
 
 	switch (type) {
+		case FILE_TYPE_TXT:
 		case FILE_TYPE_UNKNOWN:
 			res = textViewer(file);
 			break;
@@ -1138,12 +1139,21 @@ int shellMain() {
 				color = FOLDER_COLOR;
 				vita2d_draw_texture(folder_icon, SHELL_MARGIN_X, y + 3.0f);
 			} else {
-				if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) { // Images
+				if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG) { // Images
 					color = IMAGE_COLOR;
 					vita2d_draw_texture(image_icon, SHELL_MARGIN_X, y + 3.0f);
 				} else if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) { // Archive
 					color = ARCHIVE_COLOR;
 					vita2d_draw_texture(archive_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_MP3) { // Audio
+					color = IMAGE_COLOR;
+					vita2d_draw_texture(audio_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_SFO) { // SFO
+					// note: specific color to be determined
+					vita2d_draw_texture(sfo_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_TXT) { // TXT
+					// note: specific color to be determined
+					vita2d_draw_texture(text_icon, SHELL_MARGIN_X, y + 3.0f);
 				} else { // Other files
 					vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
 				}
