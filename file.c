@@ -419,6 +419,24 @@ FileListEntry *fileListGetNthEntry(FileList *list, int n) {
 	return entry;
 }
 
+int fileListGetNumberByName(FileList *list, char *name) {
+	FileListEntry *entry = list->head;
+
+	int name_length = strlen(name);
+
+	int n = 0;
+
+	while (entry) {
+		if (entry->name_length == name_length && strcmp(entry->name, name) == 0)
+			break;
+
+		n++;
+		entry = entry->next;
+	}
+
+	return n;
+}
+
 void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 	entry->next = NULL;
 	entry->previous = NULL;

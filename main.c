@@ -149,6 +149,39 @@ DIR_UP_RETURN:
 	dirUpCloseArchive();
 }
 
+void focusOnFilename(char *name) {
+	int name_pos = fileListGetNumberByName(&file_list, name);
+	if (name_pos < file_list.length) {
+		while (1) {
+			int index = base_pos + rel_pos;
+			if (index == name_pos)
+				break;
+
+			if (index > name_pos) {
+				if (rel_pos > 0) {
+					rel_pos--;
+				} else {
+					if (base_pos > 0) {
+						base_pos--;
+					}
+				}
+			}
+
+			if (index < name_pos) {
+				if ((rel_pos + 1) < file_list.length) {
+					if ((rel_pos + 1) < MAX_POSITION) {
+						rel_pos++;
+					} else {
+						if ((base_pos + rel_pos + 1) < file_list.length) {
+							base_pos++;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 int refreshFileList() {
 	int ret = 0, res = 0;
 
@@ -948,6 +981,9 @@ int dialogSteps() {
 					FileListEntry *entry = install_list.head;
 					snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
 					args.file = install_path;
+
+					// Focus
+					focusOnFilename(entry->name);
 
 					// Remove entry
 					fileListRemoveEntry(&install_list, entry);
