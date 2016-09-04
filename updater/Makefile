@@ -1,24 +1,25 @@
 TITLE_ID = VSUPDATER
-TARGET   = VitaShellUpdater
+TARGET   = updater
 OBJS     = main.o
 
-LIBS =
-PREFIX  = arm-vita-eabi
-CC      = $(PREFIX)-gcc
-CFLAGS  = -Wl,-q -Wall -O3 -marm
-ASFLAGS = $(CFLAGS)
+LIBS     = -lSceAppMgr_stub ../libpromoter/libScePromoterUtil_stub.a -lSceSysmodule_stub
+
+PREFIX   = arm-vita-eabi
+CC       = $(PREFIX)-gcc
+CFLAGS   = -Wl,-q -Wall -O3 -marm
+ASFLAGS  = $(CFLAGS)
 
 all: $(TARGET).vpk
 
 %.vpk: eboot.bin
-	vita-mksfoex -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
+	vita-mksfoex -s TITLE_ID=$(TITLE_ID) "VitaShell Updater" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin $@
 
 eboot.bin: $(TARGET).velf
 	vita-make-fself $< $@
 
 %.velf: %.elf
-	vita-elf-create $< $@
+	vita-elf-create $< $@ ../libpromoter/promoterutil.json
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@

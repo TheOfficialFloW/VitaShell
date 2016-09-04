@@ -10,7 +10,8 @@ RESOURCES_PNG = resources/folder_icon.png resources/file_icon.png resources/arch
 				resources/battery_bar_charge.png resources/headphone.png resources/audio_previous.png resources/audio_pause.png \
 				resources/audio_play.png resources/audio_next.png
 RESOURCES_TXT = resources/theme.txt resources/colors.txt resources/english_us.txt
-OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
+RESOURCES_BIN = resources/updater_eboot.bin resources/updater_param.bin
+OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(RESOURCES_BIN:.bin=.o)
 
 LIBS = -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
@@ -38,7 +39,7 @@ ASFLAGS  = $(CFLAGS)
 all: $(TARGET).vpk
 
 %.vpk: eboot.bin
-	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.90 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
+	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.91 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin \
 		--add pkg/sce_sys/icon0.png=sce_sys/icon0.png \
 		--add pkg/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
@@ -58,6 +59,8 @@ $(TARGET).elf: $(OBJS)
 %.o: %.png
 	$(PREFIX)-ld -r -b binary -o $@ $^
 %.o: %.txt
+	$(PREFIX)-ld -r -b binary -o $@ $^
+%.o: %.bin
 	$(PREFIX)-ld -r -b binary -o $@ $^
 
 clean:

@@ -70,6 +70,13 @@ https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
 
+### Changelog 0.91 ###
+- Added automatic network update. VitaShell will now notify you when there's a new update.
+  You'll then be able to download it within the VitaShell application and it will update both
+  molecularShell and VitaShell to the newest verison.
+- Added text and audio file icon by littlebalup.
+- Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.
+
 ### Changelog 0.9 ###
 - Added possibility to use specific background for file browser, hex editor, text editor, photo viewer.
 - Added files and folder icons by littlebalup.

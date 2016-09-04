@@ -71,4 +71,6 @@ int randomNumber(int low, int high);
 
 int debugPrintf(char *text, ...);
 
+int launchAppByUriExit(char *titleid);
+
 #endif

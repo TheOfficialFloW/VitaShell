@@ -19,9 +19,18 @@
 #ifndef __PACKAGE_INSTALLER_H__
 #define __PACKAGE_INSTALLER_H__
 
+#define ntohl __builtin_bswap32
+
+#define PACKAGE_PARENT "ux0:ptmp"
+#define PACKAGE_DIR PACKAGE_PARENT "/pkg"
+#define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
+
 typedef struct {
 	char *file;
 } InstallArguments;
+
+int promote(char *path);
+int makeHeadBin();
 
 int install_thread(SceSize args_size, InstallArguments *args);
 

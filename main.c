@@ -278,7 +278,9 @@ int handleFile(char *file, FileListEntry *entry) {
 	}
 
 	switch (type) {
+		case FILE_TYPE_INI:
 		case FILE_TYPE_TXT:
+		case FILE_TYPE_XML:
 		case FILE_TYPE_UNKNOWN:
 			res = textViewer(file);
 			break;
@@ -811,7 +813,6 @@ int dialogSteps() {
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
 		case DIALOG_STEP_INSTALLED:
-		case DIALOG_STEP_DOWNLOADED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -887,7 +888,7 @@ int dialogSteps() {
 			}
 
 			break;
-			
+
 		case DIALOG_STEP_INSTALL_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
@@ -992,6 +993,65 @@ int dialogSteps() {
 				dialog_step = DIALOG_STEP_NONE;
 			}
 
+			break;
+			
+		case DIALOG_STEP_INSTALL_QUESTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+				dialog_step = DIALOG_STEP_INSTALL_CONFIRMED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
+		case DIALOG_STEP_INSTALL_CONFIRMED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				InstallArguments args;
+				args.file = cur_file;
+
+				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, sizeof(InstallArguments), &args);
+
+				dialog_step = DIALOG_STEP_INSTALLING;
+			}
+
+			break;
+			
+		case DIALOG_STEP_INSTALL_WARNING:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				dialog_step = DIALOG_STEP_INSTALL_WARNING_AGREED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_CANCELLED;
+			}
+
+			break;
+			
+		case DIALOG_STEP_UPDATE_QUESTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DOWNLOADING]);
+				dialog_step = DIALOG_STEP_DOWNLOADING;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+			
+		case DIALOG_STEP_DOWNLOADED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+
+				SceUID thid = sceKernelCreateThread("update_extract_thread", (SceKernelThreadEntry)update_extract_thread, 0x40, 0x10000, 0, 0, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, 0, NULL);
+
+				dialog_step = DIALOG_STEP_EXTRACTING;
+			}
+
+			break;
+			
+		case DIALOG_STEP_EXTRACTED:
+			launchAppByUriExit("VSUPDATER");
+			dialog_step = DIALOG_STEP_NONE;
 			break;
 	}
 
@@ -1233,7 +1293,7 @@ int shellMain() {
 				} else if (file_entry->type == FILE_TYPE_SFO) { // SFO
 					// note: specific color to be determined
 					vita2d_draw_texture(sfo_icon, SHELL_MARGIN_X, y + 3.0f);
-				} else if (file_entry->type == FILE_TYPE_TXT) { // TXT
+				} else if (file_entry->type == FILE_TYPE_INI || file_entry->type == FILE_TYPE_TXT || file_entry->type == FILE_TYPE_XML) { // TXT
 					// note: specific color to be determined
 					vita2d_draw_texture(text_icon, SHELL_MARGIN_X, y + 3.0f);
 				} else { // Other files
