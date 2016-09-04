@@ -424,8 +424,8 @@ void drawShellInfo(char *path) {
 }
 
 enum MenuEntrys {
-	MENU_ENTRY_MARK_UNMARK_ALL,
 	MENU_ENTRY_INSTALL_ALL,
+	MENU_ENTRY_MARK_UNMARK_ALL,	
 	MENU_ENTRY_EMPTY_1,
 	MENU_ENTRY_MOVE,
 	MENU_ENTRY_COPY,
@@ -449,8 +449,8 @@ typedef struct {
 } MenuEntry;
 
 MenuEntry menu_entries[] = {
-	{ MARK_ALL, VISIBILITY_INVISIBLE },
 	{ INSTALL_ALL, VISIBILITY_INVISIBLE },
+	{ MARK_ALL, VISIBILITY_INVISIBLE },	
 	{ -1, VISIBILITY_UNUSED },
 	{ MOVE, VISIBILITY_INVISIBLE },
 	{ COPY, VISIBILITY_INVISIBLE },
@@ -478,7 +478,6 @@ void initContextMenu() {
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
 		menu_entries[MENU_ENTRY_MARK_UNMARK_ALL].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_COPY].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
@@ -491,12 +490,15 @@ void initContextMenu() {
 
 	// Invisble write operations in archives
 	if (isInArchive()) { // TODO: read-only mount points
-		menu_entries[MENU_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = VISIBILITY_INVISIBLE;
+	}
+
+	if(file_entry->type != FILE_TYPE_VPK) {
+		menu_entries[MENU_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
 	}
 
 	// TODO: Moving from one mount point to another is not possible
