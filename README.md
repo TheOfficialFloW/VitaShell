@@ -20,10 +20,14 @@ You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_red.png'**: Red battery bar
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_charge.png'**: Charging battery bar
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/ftp.png'**: Ftp icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/audio_icon.png'**: Audio icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/archive_icon.png'**: Archive icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/file_icon.png'**: File icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/folder_icon.png'**: Folder icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/image_icon.png'**: Image icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/sfo_icon.png'**: SFO icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/text_icon.png'**: Text icon
+
 
 **Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
 
