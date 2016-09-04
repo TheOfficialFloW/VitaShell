@@ -37,6 +37,7 @@
 #include "init.h"
 #include "io_process.h"
 #include "package_installer.h"
+#include "network_update.h"
 #include "archive.h"
 #include "photo.h"
 #include "file.h"
@@ -277,6 +278,7 @@ int handleFile(char *file, FileListEntry *entry) {
 	}
 
 	switch (type) {
+		case FILE_TYPE_TXT:
 		case FILE_TYPE_UNKNOWN:
 			res = textViewer(file);
 			break;
@@ -330,7 +332,12 @@ void drawScrollBar(int pos, int n) {
 
 void drawShellInfo(char *path) {
 	// Title
-	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "VitaShell %d.%d", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
+	char version[8];
+	sprintf(version, "%X.%X", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
+	if (version[3] == '0')
+		version[3] = '\0';
+
+	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "VitaShell %s", version);
 
 	// Battery
 	float battery_x = ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_texture_get_width(battery_image));
@@ -804,6 +811,7 @@ int dialogSteps() {
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
 		case DIALOG_STEP_INSTALLED:
+		case DIALOG_STEP_DOWNLOADED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -919,6 +927,14 @@ int dialogSteps() {
 
 			break;
 			
+		case DIALOG_STEP_UPDATE_QUESTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DOWNLOADING]);
+				dialog_step = DIALOG_STEP_UPDATE_CONFIRMED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
 		case DIALOG_STEP_RENAME:
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
@@ -1205,12 +1221,21 @@ int shellMain() {
 				color = FOLDER_COLOR;
 				vita2d_draw_texture(folder_icon, SHELL_MARGIN_X, y + 3.0f);
 			} else {
-				if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG || file_entry->type == FILE_TYPE_MP3) { // Images
+				if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG) { // Images
 					color = IMAGE_COLOR;
 					vita2d_draw_texture(image_icon, SHELL_MARGIN_X, y + 3.0f);
 				} else if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) { // Archive
 					color = ARCHIVE_COLOR;
 					vita2d_draw_texture(archive_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_MP3) { // Audio
+					color = IMAGE_COLOR;
+					vita2d_draw_texture(audio_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_SFO) { // SFO
+					// note: specific color to be determined
+					vita2d_draw_texture(sfo_icon, SHELL_MARGIN_X, y + 3.0f);
+				} else if (file_entry->type == FILE_TYPE_TXT) { // TXT
+					// note: specific color to be determined
+					vita2d_draw_texture(text_icon, SHELL_MARGIN_X, y + 3.0f);
 				} else { // Other files
 					vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
 				}
@@ -1312,16 +1337,6 @@ void initShell() {
 }
 
 void getNetInfo() {
-	static char memory[16 * 1024];
-
-	SceNetInitParam param;
-	param.memory = memory;
-	param.size = sizeof(memory);
-	param.flags = 0;
-
-	int net_init = sceNetInit(&param);
-	int netctl_init = sceNetCtlInit();
-
 	// Get mac address
 	sceNetGetMacAddress(&mac, 0);
 
@@ -1332,12 +1347,6 @@ void getNetInfo() {
 	} else {
 		strcpy(ip, info.ip_address);
 	}
-
-	if (netctl_init >= 0)
-		sceNetCtlTerm();
-
-	if (net_init >= 0)
-		sceNetTerm();
 }
 
 int main(int argc, const char *argv[]) {
@@ -1357,6 +1366,11 @@ int main(int argc, const char *argv[]) {
 
 	// Load language
 	loadLanguage(language);
+
+	// Automatic network update
+	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x40, 0x10000, 0, 0, NULL);
+	if (thid >= 0)
+		sceKernelStartThread(thid, 0, NULL);
 
 	// Main
 	initShell();

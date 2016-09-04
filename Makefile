@@ -1,21 +1,22 @@
 TITLE_ID = VITASHELL
 TARGET   = VitaShell
-OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file.o text.o hex.o sfo.o \
+OBJS     = main.o init.o io_process.o package_installer.o network_update.o archive.o photo.o file.o text.o hex.o sfo.o \
 		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o \
 		   audioplayer.o minizip/unzip.o minizip/ioapi.o
 
-RESOURCES_PNG = resources/folder_icon.png resources/file_icon.png resources/archive_icon.png resources/image_icon.png resources/ftp.png \
-				resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png resources/battery_bar_charge.png \
-				resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
-				resources/audio_next.png
+RESOURCES_PNG = resources/folder_icon.png resources/file_icon.png resources/archive_icon.png resources/image_icon.png \
+				resources/audio_icon.png resources/sfo_icon.png resources/text_icon.png\
+				resources/ftp.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
+				resources/battery_bar_charge.png resources/headphone.png resources/audio_previous.png resources/audio_pause.png \
+				resources/audio_play.png resources/audio_next.png
 RESOURCES_TXT = resources/theme.txt resources/colors.txt resources/english_us.txt
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
 
 LIBS = -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
 	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
-	   -lSceKernel_stub -lSceNet_stub -lSceNetCtl_stub \
-	   -lSceSysmodule_stub -lScePower_stub -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
+	   -lSceHttp_stub -lSceKernel_stub -lSceNet_stub -lSceNetCtl_stub \
+	   -lSceSsl_stub -lSceSysmodule_stub -lScePower_stub -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
 	   -lSceAudio_stub -lSceAudiodec_stub -lSceTouch_stub
 
 #NETDBG_IP ?= 192.168.1.50

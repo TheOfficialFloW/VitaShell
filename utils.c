@@ -290,8 +290,6 @@ int debugPrintf(char *text, ...) {
 	vsprintf(string, text, list);
 	va_end(list);
 
-	netdbg(string);
-
 #ifdef ENABLE_FILE_LOGGING
 	SceUID fd = sceIoOpen("ux0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
 	if (fd >= 0) {
@@ -302,90 +300,4 @@ int debugPrintf(char *text, ...) {
 
 #endif
 	return 0;
-}
-
-int netdbg_init() {
-	int ret = 0;
-#ifdef NETDBG_ENABLE
-	SceNetSockaddrIn server;
-	SceNetInitParam initparam;
-	SceUShort16 port = NETDBG_DEFAULT_PORT;
-
-#ifdef NETDBG_PORT
-	port = NETDBG_PORT;
-#endif
-
-	/* Init Net */
-	ret = sceNetShowNetstat();
-	if (ret == SCE_NET_ERROR_ENOTINIT) {
-		net_memory = malloc(NET_INIT_SIZE);
-
-		initparam.memory = net_memory;
-		initparam.size = NET_INIT_SIZE;
-		initparam.flags = 0;
-
-		ret = net_init = sceNetInit(&initparam);
-		if (net_init < 0)
-			goto error_netinit;
-	} else if (ret != 0) {
-		goto error_netstat;
-	}
-
-	server.sin_len = sizeof(server);
-	server.sin_family = SCE_NET_AF_INET;
-	sceNetInetPton(SCE_NET_AF_INET, NETDBG_IP, &server.sin_addr);
-	server.sin_port = sceNetHtons(port);
-	memset(server.sin_zero, 0, sizeof(server.sin_zero));
-
-	ret = netdbg_sock = sceNetSocket("VitaShellNetDbg", SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
-	if (netdbg_sock < 0)
-		goto error_netsock;
-
-	ret = sceNetConnect(netdbg_sock, (SceNetSockaddr *)&server, sizeof(server));
-	if (ret < 0)
-		goto error_netconnect;
-
-	return 0;
-
-error_netconnect:
-	sceNetSocketClose(netdbg_sock);
-	netdbg_sock = -1;
-error_netsock:
-	if (net_init == 0) {
-		sceNetTerm();
-		net_init = -1;
-	}
-error_netinit:
-	if (net_memory) {
-		free(net_memory);
-		net_memory = NULL;
-	}
-error_netstat:
-#endif
-	return ret;
-}
-
-void netdbg_fini() {
-	if (netdbg_sock > 0) {
-		sceNetSocketClose(netdbg_sock);
-		if (net_init == 0)
-			sceNetTerm();
-		if (net_memory)
-			free(net_memory);
-		netdbg_sock = -1;
-		net_init = -1;
-		net_memory = NULL;
-	}
-}
-
-int netdbg(const char *text, ...) {
-	va_list list;
-	char string[512];
-	if (netdbg_sock > 0) {
-		va_start(list, text);
-		vsprintf(string, text, list);
-		va_end(list);
-		return sceNetSend(netdbg_sock, string, strlen(string), 0);
-	}
-	return -1;
 }

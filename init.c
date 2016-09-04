@@ -29,6 +29,12 @@ extern unsigned char _binary_resources_archive_icon_png_start;
 extern unsigned char _binary_resources_archive_icon_png_size;
 extern unsigned char _binary_resources_image_icon_png_start;
 extern unsigned char _binary_resources_image_icon_png_size;
+extern unsigned char _binary_resources_audio_icon_png_start;
+extern unsigned char _binary_resources_audio_icon_png_size;
+extern unsigned char _binary_resources_sfo_icon_png_start;
+extern unsigned char _binary_resources_sfo_icon_png_size;
+extern unsigned char _binary_resources_text_icon_png_start;
+extern unsigned char _binary_resources_text_icon_png_size;
 extern unsigned char _binary_resources_ftp_png_start;
 extern unsigned char _binary_resources_ftp_png_size;
 extern unsigned char _binary_resources_battery_png_start;
@@ -63,6 +69,9 @@ static DefaultFile default_files[] = {
 	{ "ux0:VitaShell/theme/Default/file_icon.png", (void *)&_binary_resources_file_icon_png_start, (int)&_binary_resources_file_icon_png_size },
 	{ "ux0:VitaShell/theme/Default/archive_icon.png", (void *)&_binary_resources_archive_icon_png_start, (int)&_binary_resources_archive_icon_png_size },
 	{ "ux0:VitaShell/theme/Default/image_icon.png", (void *)&_binary_resources_image_icon_png_start, (int)&_binary_resources_image_icon_png_size },
+	{ "ux0:VitaShell/theme/Default/audio_icon.png", (void *)&_binary_resources_audio_icon_png_start, (int)&_binary_resources_audio_icon_png_size },
+	{ "ux0:VitaShell/theme/Default/sfo_icon.png", (void *)&_binary_resources_sfo_icon_png_start, (int)&_binary_resources_sfo_icon_png_size },
+	{ "ux0:VitaShell/theme/Default/text_icon.png", (void *)&_binary_resources_text_icon_png_start, (int)&_binary_resources_text_icon_png_size },
 	{ "ux0:VitaShell/theme/Default/ftp.png", (void *)&_binary_resources_ftp_png_start, (int)&_binary_resources_ftp_png_size },
 	{ "ux0:VitaShell/theme/Default/battery.png", (void *)&_binary_resources_battery_png_start, (int)&_binary_resources_battery_png_size },
 	{ "ux0:VitaShell/theme/Default/battery_bar_red.png", (void *)&_binary_resources_battery_bar_red_png_start, (int)&_binary_resources_battery_bar_red_png_size },
@@ -156,13 +165,35 @@ void finishVita2dLib() {
 	audio_next_image = NULL;
 }
 
+void initNet() {
+	static char memory[16 * 1024];
+
+	SceNetInitParam param;
+	param.memory = memory;
+	param.size = sizeof(memory);
+	param.flags = 0;
+
+	sceNetInit(&param);
+	sceNetCtlInit();
+
+	sceSslInit(300 * 1024);
+	sceHttpInit(40 * 1024);
+}
+
+void finishNet() {
+	sceSslTerm();
+	sceHttpTerm();
+	sceNetCtlTerm();
+	sceNetTerm();	
+}
+
 void initVitaShell() {
 	// Init random number generator
 	srand(time(NULL));
 
 	// Set sampling mode
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
-	
+
 	// Enable front touchscreen
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 
@@ -173,12 +204,13 @@ void initVitaShell() {
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
 
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) != SCE_SYSMODULE_LOADED)
+		sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
+
 	// Init
 	initSceAppUtil();
 	initVita2dLib();
-
-	// Init netdbg
-	netdbg_init();
+	initNet();
 
 	// Init power tick thread
 	initPowerTickThread();
@@ -200,14 +232,15 @@ void initVitaShell() {
 }
 
 void finishVitaShell() {
-	// Finish netdbg
-	netdbg_fini();
-
 	// Finish
+	finishNet();
 	finishVita2dLib();
 	finishSceAppUtil();
 	
 	// Unload modules
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) == SCE_SYSMODULE_LOADED)
+		sceSysmoduleUnloadModule(SCE_SYSMODULE_HTTPS);
+
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) == SCE_SYSMODULE_LOADED)
 		sceSysmoduleUnloadModule(SCE_SYSMODULE_NET);
 
