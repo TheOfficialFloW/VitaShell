@@ -208,6 +208,7 @@ int makeHeadBin() {
 
 int install_thread(SceSize args_size, InstallArguments *args) {
 	SceUID thid = -1;
+	int assisted = args->assisted;
 
 	// Lock power timers
 	powerLock();
@@ -229,36 +230,38 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	}
 
 	// Check permissions
-	char path[MAX_PATH_LENGTH];
-	snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
-	SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
-	if (fd >= 0) {
-		char buffer[0x88];
-		archiveFileRead(fd, buffer, sizeof(buffer));
-		archiveFileClose(fd);
+	if (assisted) {
+		char path[MAX_PATH_LENGTH];
+		snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
+		SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
+		if (fd >= 0) {
+			char buffer[0x88];
+			archiveFileRead(fd, buffer, sizeof(buffer));
+			archiveFileClose(fd);
 
-		// Team molecule's request: Full permission access warning
-		uint64_t authid = *(uint64_t *)(buffer + 0x80);
-		if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
-			closeWaitDialog();
-
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
-			dialog_step = DIALOG_STEP_INSTALL_WARNING;
-
-			// Wait for response
-			while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
-				sceKernelDelayThread(1000);
-			}
-
-			// Cancelled
-			if (dialog_step == DIALOG_STEP_CANCELLED) {
+			// Team molecule's request: Full permission access warning
+			uint64_t authid = *(uint64_t *)(buffer + 0x80);
+			if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
 				closeWaitDialog();
-				goto EXIT;
-			}
 
-			// Init again
-			initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
-			dialog_step = DIALOG_STEP_INSTALLING;
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
+				dialog_step = DIALOG_STEP_INSTALL_WARNING;
+
+				// Wait for response
+				while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
+					sceKernelDelayThread(1000);
+				}
+
+				// Cancelled
+				if (dialog_step == DIALOG_STEP_CANCELLED) {
+					closeWaitDialog();
+					goto EXIT;
+				}
+
+				// Init again
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+				dialog_step = DIALOG_STEP_INSTALLING;
+			}
 		}
 	}
 
@@ -311,12 +314,17 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
 	dialog_step = DIALOG_STEP_INSTALLED;
 
+
 EXIT:
 	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
 
 	// Unlock power timers
 	powerUnlock();
+
+	if (args->completed_callback != NULL) {
+		args->completed_callback(args->completed_callback_arg);
+	}
 
 	return sceKernelExitDeleteThread(0);
 }
