@@ -1,5 +1,5 @@
-# VitaShell french translation by xy2_ 
-# Updated by Dragoon1010
+﻿# VitaShell french translation by xy2_ 
+# Updated by Dragoon1010 (For VitaShell 0.9)
 
 ERROR							= "Erreur 0x%08X."
 OK								= "OK"
@@ -24,10 +24,11 @@ COPYING							= "Copie en cours..."
 DELETING						= "Suppression en cours..."
 INSTALLING						= "Installation en cours..."
 INSTALL_WARNING     = "Cette application requiert des autorisations supplémentaires.\Elle pourrais avoir accès à vos informations personnelles.\Si vous ne l'avez pas obtenu de source sûr,\procédez avec précautions.\\Voulez vous tout de même l'installer ?"
+INSTALL_QUESTION				= "Voulez-vous vraiment installer cette archive ?"
 DELETE_FILE_QUESTION			= "Voulez-vous vraiment supprimer ce fichier ?"
 DELETE_FOLDER_QUESTION			= "Voulez-vous vraiment supprimer ce dossier ?"
 DELETE_FILES_FOLDERS_QUESTION	= "Voulez-vous vraiment supprimer ces fichiers/dossiers ?"
-INSTALL_QUESTION				= "Voulez-vous vraiment installer cette archive ?"
 SAVE_MODIFICATIONS  = "Voulez vous sauvegarder les modifications ?"
 WIFI_ERROR						= "Vous devez activer le Wi-Fi pour utiliser cette fonction."
 FTP_SERVER						= "Serveur FTP actif à l'adresse \ftp://%s:%i\\Appuyez sur 'OK' pour garder en tâche de fond.\Appuyez sur 'Annuler' pour l'arrêter."
+SYS_INFO                             = "Logiciel système : %s\Modèle : 0x%08X\addresse MAC : %s\addresse IP : %s\Mémoire restante : %s/%s"
