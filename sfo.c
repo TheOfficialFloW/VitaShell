@@ -79,7 +79,7 @@ int SFOReader(char *file) {
 		}
 
 		// Start drawing
-		startDrawing();
+		startDrawing(bg_text_image);
 
 		// Draw shell info
 		drawShellInfo(file);
@@ -104,11 +104,11 @@ int SFOReader(char *file) {
 					break;
 					
 				case PSF_TYPE_STR:
-					snprintf(string, sizeof(string), "%s", data);
+					snprintf(string, sizeof(string), "%s", (char *)data);
 					break;
 					
 				case PSF_TYPE_VAL:
-					snprintf(string, sizeof(string), "%X", *(uint32_t *)data);
+					snprintf(string, sizeof(string), "%X", *(unsigned int *)data);
 					break;
 			}
 

@@ -27,9 +27,11 @@
 #include <psp2/display.h>
 #include <psp2/kernel/modulemgr.h>
 #include <psp2/kernel/processmgr.h>
+#include <psp2/libssl.h>
 #include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/ime_dialog.h>
+#include <psp2/net/http.h>
 #include <psp2/net/net.h>
 #include <psp2/net/netctl.h>
 #include <psp2/message_dialog.h>
@@ -60,12 +62,13 @@
 #include "functions.h"
 
 
-#define ENABLE_DEBUGNET_LOGGING 1
 #define ENABLE_FILE_LOGGING 1
 
 // VitaShell version major.minor
-#define VITASHELL_VERSION_MAJOR 0
-#define VITASHELL_VERSION_MINOR 86
+#define VITASHELL_VERSION_MAJOR 0x0
+#define VITASHELL_VERSION_MINOR 0x91
+ 
+#define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
@@ -146,7 +149,7 @@ enum Colors {
 // File browser
 #define MARK_WIDTH (SCREEN_WIDTH - 2.0f * SHELL_MARGIN_X)
 #define INFORMATION_X 680.0f
-#define MAX_NAME_WIDTH 530.0f
+#define MAX_NAME_WIDTH 500.0f
 #define MAX_NAME_WIDTH_TILE 145.0f
 
 // Uncommon dialog
@@ -197,6 +200,12 @@ enum DialogSteps {
 	DIALOG_STEP_INSTALLED,
 
 	DIALOG_STEP_RENAME,
+
+	DIALOG_STEP_UPDATE_QUESTION,
+	DIALOG_STEP_DOWNLOADING,
+ 	DIALOG_STEP_DOWNLOADED,
+	DIALOG_STEP_EXTRACTING,
+ 	DIALOG_STEP_EXTRACTED,
 };
 
 extern vita2d_pgf *font;

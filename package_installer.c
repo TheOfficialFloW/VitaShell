@@ -31,12 +31,6 @@
 
 #include "resources/base_head_bin.h"
 
-#define ntohl __builtin_bswap32
-
-#define PACKAGE_PARENT "ux0:ptmp"
-#define PACKAGE_DIR PACKAGE_PARENT "/pkg"
-#define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
-
 void loadScePaf() {
 	uint32_t ptr[0x100] = { 0 };
 	ptr[0] = 0;
@@ -68,7 +62,7 @@ int promote(char *path) {
 		if (res < 0)
 			return res;
 
-		sceKernelDelayThread(300 * 1000);
+		sceKernelDelayThread(100 * 1000);
 	} while (state);
 
 	int result = 0;

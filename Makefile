@@ -1,23 +1,27 @@
 TITLE_ID = VITASHELL
 TARGET   = VitaShell
-OBJS     = main.o init.o io_process.o package_installer.o archive.o photo.o file.o text.o hex.o sfo.o \
+OBJS     = main.o init.o io_process.o package_installer.o network_update.o archive.o photo.o file.o text.o hex.o sfo.o \
 		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o \
 		   audioplayer.o minizip/unzip.o minizip/ioapi.o
-
-RESOURCES_PNG = resources/ftp.png resources/dialog.png resources/context.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
-		   resources/audio_next.png resources/headphone.png resources/audio_previous.png resources/audio_pause.png resources/audio_play.png \
-		   resources/bg_wallpaper.png resources/vita_game_card.png resources/vita_game_card_storage.png \
-		   resources/os0.png resources/memory_card.png resources/run_file.png resources/unknown_file.png resources/image_file.png \
-		   resources/sa0.png resources/ur0.png resources/vd0.png resources/vs0.png resources/savedata0.png resources/pd0.png resources/app0.png \
-		   resources/ud0.png resources/folder.png resources/mark.png resources/music_file.png resources/title_bar_bg.png
+		   
+RESOURCES_PNG = resources/folder_icon.png resources/file_icon.png resources/archive_icon.png resources/image_icon.png \
+			resources/audio_icon.png resources/sfo_icon.png resources/text_icon.png\
+			resources/ftp.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
+			resources/battery_bar_charge.png resources/headphone.png resources/audio_previous.png resources/audio_pause.png \
+			resources/audio_play.png resources/audio_next.png \
+		   	resources/bg_wallpaper.png resources/vita_game_card.png resources/vita_game_card_storage.png \
+		   	resources/os0.png resources/memory_card.png resources/run_file.png resources/unknown_file.png resources/image_file.png \
+		   	resources/sa0.png resources/ur0.png resources/vd0.png resources/vs0.png resources/savedata0.png resources/pd0.png resources/app0.png \
+		   	resources/ud0.png resources/folder.png resources/mark.png resources/music_file.png resources/title_bar_bg.png 
 RESOURCES_TXT = resources/theme.txt resources/colors.txt resources/english_us.txt
-OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o)
+RESOURCES_BIN = resources/updater_eboot.bin resources/updater_param.bin
+OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(RESOURCES_BIN:.bin=.o)
 
 LIBS = -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
 	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
-	   -lSceKernel_stub -lSceNet_stub -lSceNetCtl_stub \
-	   -lSceSysmodule_stub -lScePower_stub -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
+	   -lSceHttp_stub -lSceKernel_stub -lSceNet_stub -lSceNetCtl_stub \
+ 	   -lSceSsl_stub -lSceSysmodule_stub -lScePower_stub -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
 	   -lSceAudio_stub -lSceAudiodec_stub -lSceTouch_stub
 
 #NETDBG_IP ?= 192.168.1.50
@@ -39,7 +43,7 @@ ASFLAGS  = $(CFLAGS)
 all: $(TARGET).vpk
 
 %.vpk: eboot.bin
-	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.86 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
+	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.91 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin \
 		--add pkg/sce_sys/icon0.png=sce_sys/icon0.png \
 		--add pkg/sce_sys/pic0.png=sce_sys/pic0.png \
@@ -61,7 +65,9 @@ $(TARGET).elf: $(OBJS)
 	$(PREFIX)-ld -r -b binary -o $@ $^
 %.o: %.txt
 	$(PREFIX)-ld -r -b binary -o $@ $^
-
+%.o: %.bin
+	$(PREFIX)-ld -r -b binary -o $@ $^
+	
 clean:
 	@rm -rf $(TARGET).vpk $(TARGET).velf $(TARGET).elf $(OBJS) \
 		eboot.bin param.sfo

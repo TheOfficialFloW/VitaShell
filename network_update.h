@@ -16,22 +16,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __INIT_H__
-#define __INIT_H__
+#ifndef __NETWORK_UPDATE_H__
+#define __NETWORK_UPDATE_H__
 
-#include "file.h"
-
-#define NET_INIT_SIZE 1 * 1024 * 1024
-
-extern int language, enter_button, date_format, time_format;
-
-typedef struct {
-	char *path;
-	void *buffer;
-	int size;
-} DefaultFile;
-
-void initVitaShell();
-void finishVitaShell();
+int network_update_thread(SceSize args, void *argp);
+int update_extract_thread(SceSize args, void *argp);
 
 #endif

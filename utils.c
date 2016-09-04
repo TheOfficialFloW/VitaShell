@@ -37,30 +37,35 @@ static uint64_t wallpaper_time_start = 0;
 static int wallpaper_random_delay = 0;
 static float wallpaper_alpha = 255.0f;
 
-void startDrawing() {
+void startDrawing(vita2d_texture *bg) {
 	vita2d_start_drawing();
 	vita2d_set_clear_color(BACKGROUND_COLOR);
 	vita2d_clear_screen();
 
-	if (wallpaper_time_start == 0) {
-		wallpaper_time_start = sceKernelGetProcessTimeWide();
-		wallpaper_random_delay = randomNumber(15, 30);
-	}
+	// Background image
+	if (bg)
+		vita2d_draw_texture(bg, 0.0f, 0.0f);
 
-	if ((sceKernelGetProcessTimeWide() - wallpaper_time_start) >= (wallpaper_random_delay * 1000 * 1000)) {
-		int random_num = randomNumber(0, wallpaper_count - 1);
-
-		vita2d_texture *random_wallpaper_image = wallpaper_image[random_num];
-		if (random_wallpaper_image != current_wallpaper_image) {
-			previous_wallpaper_image = current_wallpaper_image;
-			current_wallpaper_image = random_wallpaper_image;
-			wallpaper_alpha = 0.0f;
+	// Wallpaper
+	if (current_wallpaper_image) {
+		if (wallpaper_time_start == 0) {
+			wallpaper_time_start = sceKernelGetProcessTimeWide();
+			wallpaper_random_delay = randomNumber(15, 30);
 		}
 
-		wallpaper_time_start = 0;
-	}
+		if ((sceKernelGetProcessTimeWide() - wallpaper_time_start) >= (wallpaper_random_delay * 1000 * 1000)) {
+			int random_num = randomNumber(0, wallpaper_count - 1);
 
-	if (current_wallpaper_image) {
+			vita2d_texture *random_wallpaper_image = wallpaper_image[random_num];
+			if (random_wallpaper_image != current_wallpaper_image) {
+				previous_wallpaper_image = current_wallpaper_image;
+				current_wallpaper_image = random_wallpaper_image;
+				wallpaper_alpha = 0.0f;
+			}
+
+			wallpaper_time_start = 0;
+		}
+
 		if (previous_wallpaper_image) {
 			vita2d_draw_texture(previous_wallpaper_image, 0.0f, 0.0f);
 		}
@@ -106,7 +111,6 @@ int power_tick_thread(SceSize args, void *argp) {
 	while (1) {
 		if (lock_power) {
 			sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_AUTO_SUSPEND);
-			sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_OLED_OFF);
 		}
 
 		sceKernelDelayThread(10 * 1000 * 1000);
@@ -286,8 +290,6 @@ int debugPrintf(char *text, ...) {
 	vsprintf(string, text, list);
 	va_end(list);
 
-	netdbg(string);
-
 #ifdef ENABLE_FILE_LOGGING
 	SceUID fd = sceIoOpen("ux0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
 	if (fd >= 0) {
@@ -300,88 +302,16 @@ int debugPrintf(char *text, ...) {
 	return 0;
 }
 
-int netdbg_init() {
-	int ret = 0;
-#ifdef NETDBG_ENABLE
-	SceNetSockaddrIn server;
-	SceNetInitParam initparam;
-	SceUShort16 port = NETDBG_DEFAULT_PORT;
+int launchAppByUriExit(char *titleid) {
+	char uri[32];
+	sprintf(uri, "psgm:play?titleid=%s", titleid);
 
-#ifdef NETDBG_PORT
-	port = NETDBG_PORT;
-#endif
+	sceKernelDelayThread(10000);
+	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
+	sceKernelDelayThread(10000);
+	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
 
-	/* Init Net */
-	ret = sceNetShowNetstat();
-	if (ret == SCE_NET_ERROR_ENOTINIT) {
-		net_memory = malloc(NET_INIT_SIZE);
-
-		initparam.memory = net_memory;
-		initparam.size = NET_INIT_SIZE;
-		initparam.flags = 0;
-
-		ret = net_init = sceNetInit(&initparam);
-		if (net_init < 0)
-			goto error_netinit;
-	} else if (ret != 0) {
-		goto error_netstat;
-	}
-
-	server.sin_len = sizeof(server);
-	server.sin_family = SCE_NET_AF_INET;
-	sceNetInetPton(SCE_NET_AF_INET, NETDBG_IP, &server.sin_addr);
-	server.sin_port = sceNetHtons(port);
-	memset(server.sin_zero, 0, sizeof(server.sin_zero));
-
-	ret = netdbg_sock = sceNetSocket("VitaShellNetDbg", SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
-	if (netdbg_sock < 0)
-		goto error_netsock;
-
-	ret = sceNetConnect(netdbg_sock, (SceNetSockaddr *)&server, sizeof(server));
-	if (ret < 0)
-		goto error_netconnect;
+	sceKernelExitProcess(0);
 
 	return 0;
-
-error_netconnect:
-	sceNetSocketClose(netdbg_sock);
-	netdbg_sock = -1;
-error_netsock:
-	if (net_init == 0) {
-		sceNetTerm();
-		net_init = -1;
-	}
-error_netinit:
-	if (net_memory) {
-		free(net_memory);
-		net_memory = NULL;
-	}
-error_netstat:
-#endif
-	return ret;
-}
-
-void netdbg_fini() {
-	if (netdbg_sock > 0) {
-		sceNetSocketClose(netdbg_sock);
-		if (net_init == 0)
-			sceNetTerm();
-		if (net_memory)
-			free(net_memory);
-		netdbg_sock = -1;
-		net_init = -1;
-		net_memory = NULL;
-	}
-}
-
-int netdbg(const char *text, ...) {
-	va_list list;
-	char string[512];
-	if (netdbg_sock > 0) {
-		va_start(list, text);
-		vsprintf(string, text, list);
-		va_end(list);
-		return sceNetSend(netdbg_sock, string, strlen(string), 0);
-	}
-	return -1;
 }

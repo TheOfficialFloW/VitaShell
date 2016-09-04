@@ -22,6 +22,9 @@
 #include "language.h"
 #include "utils.h"
 #include "uncommon_dialog.h"
+#include <stdbool.h> 
+
+#define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 
 typedef struct {
 	int animation_mode;
@@ -39,6 +42,35 @@ typedef struct {
 } UncommonDialog;
 
 static UncommonDialog uncommon_dialog;
+
+bool lock = false;
+SceTouchData touch;	
+
+// State_Touch is global value to certain function TOUCH_FRONT_DIALOG alway return absolute one value for one time.
+int Touch_Up = -1;
+
+int AREA_TOUCH_DIALOG = 100.0f;
+int type_touch = 0; 
+
+float x_d_start = 0;
+float x_d_end = 0;
+float y_d = 0;
+
+// Output:
+//	1 : Touch up select
+int TOUCH_FRONT_DIALOG() {	
+	sceTouchPeek(0, &touch, 1);
+		
+	if(lock & (touch.reportNum == 0) ) {							
+			Touch_Up = 1;						
+	}
+
+	if (touch.reportNum > 0) {
+		lock = true;							
+	}
+	else lock = false;
+	return Touch_Up;
+}
 
 void calculateDialogBoxSize() {
 	int len = strlen(uncommon_dialog.msg);
@@ -140,53 +172,71 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
 
 SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 	if (uncommon_dialog.status == SCE_COMMON_DIALOG_STATUS_RUNNING) {
+
+		if (TOUCH_FRONT_DIALOG() == 1) {
+						Touch_Up = -1;
+						float t_x = touch.report[0].x;						 		  
+						float t_y = touch.report[0].y;					
+						if ((t_x < x_d_end) & (t_x > x_d_start) & (t_y < y_d + FONT_Y_SPACE) & (t_y > y_d - FONT_Y_SPACE)) {						
+								type_touch = 1;
+						}
+						else {
+							type_touch = 2;
+						}																
+					}
+
 		switch (uncommon_dialog.buttonType) {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK:
 			{
-				if (pressed_buttons & SCE_CTRL_ENTER) {
+				if ((pressed_buttons & SCE_CTRL_ENTER) || (type_touch == 1)) {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_OK;
 				}
-
+				type_touch = 0;
 				break;
 			}
 			
 			case SCE_MSG_DIALOG_BUTTON_TYPE_YESNO:
 			{
-				if (pressed_buttons & SCE_CTRL_ENTER) {
+				
+
+				if ((pressed_buttons & SCE_CTRL_ENTER) || (type_touch == 1)) {
+					
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_YES;
+					
 				}
 
-				if (pressed_buttons & SCE_CTRL_CANCEL) {
+				if ((pressed_buttons & SCE_CTRL_CANCEL) || (type_touch == 2)) {
+					
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_NO;
 				}
-
+				type_touch = 0;
 				break;
 			}
 			
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL:
 			{
-				if (pressed_buttons & SCE_CTRL_ENTER) {
+				if ((pressed_buttons & SCE_CTRL_ENTER) || (type_touch == 1))  {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_YES;
 				}
 
-				if (pressed_buttons & SCE_CTRL_CANCEL) {
+				if ((pressed_buttons & SCE_CTRL_CANCEL) || (type_touch == 2))  {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_NO;
 				}
-
+				type_touch = 0;
 				break;
 			}
 			
 			case SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL:
 			{
-				if (pressed_buttons & SCE_CTRL_CANCEL) {
+				if ((pressed_buttons & SCE_CTRL_CANCEL) || (type_touch == 1))  {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 				}
-
+				type_touch = 0;
 				break;
 			}
 		}
@@ -310,6 +360,7 @@ int drawUncommonDialog() {
 				sprintf(button_string, "%s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[CANCEL]);
 				break;
 		}
+		//vita2d_draw_rectangle(x_d_start , y_d , x_d_end - x_d_start, y_d +  FONT_Y_SPACE, WHITE);
 
 		// Progress bar
 		if (uncommon_dialog.mode == SCE_MSG_DIALOG_MODE_PROGRESS_BAR) {
@@ -332,6 +383,12 @@ int drawUncommonDialog() {
 				pgf_draw_text(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)), string_y + FONT_Y_SPACE, GENERAL_COLOR, FONT_SIZE, button_string);
 				break;
 		}
+		x_d_start = uncommon_dialog.x + uncommon_dialog.width;
+		x_d_end = uncommon_dialog.x + uncommon_dialog.width + CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, string));
+		y_d = uncommon_dialog.y + uncommon_dialog.height + string_y + FONT_Y_SPACE;
+	
+				
+				
 	}
 
 	return 0;

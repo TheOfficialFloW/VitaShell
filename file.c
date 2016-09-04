@@ -356,12 +356,15 @@ typedef struct {
 
 static ExtensionType extension_types[] = {
 	{ ".BMP",  FILE_TYPE_BMP },
+	{ ".INI",  FILE_TYPE_INI },
 	{ ".JPG",  FILE_TYPE_JPEG },
 	{ ".JPEG", FILE_TYPE_JPEG },
-	{ ".PNG",  FILE_TYPE_PNG },
 	{ ".MP3",  FILE_TYPE_MP3 },
+	{ ".PNG",  FILE_TYPE_PNG },
 	{ ".SFO",  FILE_TYPE_SFO },
+	{ ".TXT",  FILE_TYPE_TXT },
 	{ ".VPK",  FILE_TYPE_VPK },
+	{ ".XML",  FILE_TYPE_XML },
 	{ ".ZIP",  FILE_TYPE_ZIP },
 };
 

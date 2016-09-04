@@ -28,9 +28,6 @@
 #define ANALOG_THRESHOLD 64
 #define ANALOG_SENSITIVITY 16
 
-#define NET_INIT_SIZE 1 * 1024 * 1024
-#define NETDBG_DEFAULT_PORT 9023
-
 enum {
 	SCE_CTRL_RIGHT_ANALOG_UP	= 0x0020000,
 	SCE_CTRL_RIGHT_ANALOG_RIGHT	= 0x0040000,
@@ -50,7 +47,7 @@ enum {
 extern SceCtrlData pad;
 extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
 
-void startDrawing();
+void startDrawing(vita2d_texture *bg);
 void endDrawing();
 
 void errorDialog(int error);
@@ -74,8 +71,6 @@ int randomNumber(int low, int high);
 
 int debugPrintf(char *text, ...);
 
-int netdbg_init();
-void netdbg_fini();
-int netdbg(const char *text, ...);
+int launchAppByUriExit(char *titleid);
 
 #endif
