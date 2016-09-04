@@ -1,7 +1,7 @@
 ﻿# VitaShell language file ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus
 
-ERROR                   = "Ошибка 0x%08X."
-OK                      = "OK"
+ERROR                                         = "Ошибка 0x%08X."
+OK                                            = "OK"
 YES                                           = "Да"
 NO                                            = "Нет"
 CANCEL                                        = "Отмена"
