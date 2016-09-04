@@ -59,7 +59,7 @@ int _newlib_heap_size_user = 64 * 1024 * 1024;
 static FileList file_list, mark_list, copy_list, install_list;
 
 // Paths
-static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], installListPath[MAX_PATH_LENGTH];
+static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], install_path[MAX_PATH_LENGTH];
 
 // Position
 static int base_pos = 0, rel_pos = 0;
@@ -232,24 +232,6 @@ void refreshCopyList() {
 		// Next
 		entry = next;
 	}
-}
-
-void refreshInstallList() {
-       FileListEntry *entry = install_list.head;
-
-       int length = install_list.length;
-
-       if (length > 0) {
-               // Get next entry already now to prevent crash after entry is removed
-               FileListEntry *next = entry->next;
-
-               fileListRemoveEntry(&install_list, entry);
-
-               // Next
-               if(next != NULL) {
-                       entry = next;
-               }
-       }
 }
 
 void resetFileLists() {
@@ -767,22 +749,23 @@ void contextMenuCtrl() {
 
 				int i;
 				for (i = 0; i < file_list.length - 1; i++) {
-					char fileInstallPath[MAX_PATH_LENGTH];
-					snprintf(fileInstallPath, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+					char path[MAX_PATH_LENGTH];
+					snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
-					int type = getFileType(fileInstallPath);
+					int type = getFileType(path);
 					if (type == FILE_TYPE_VPK) {
-							FileListEntry *install_entry = malloc(sizeof(FileListEntry));
-							memcpy(install_entry, file_entry, sizeof(FileListEntry));
-							fileListAddEntry(&install_list, install_entry, SORT_NONE);
+						FileListEntry *install_entry = malloc(sizeof(FileListEntry));
+						memcpy(install_entry, file_entry, sizeof(FileListEntry));
+						fileListAddEntry(&install_list, install_entry, SORT_NONE);
 					}
 
 					// Next
 					file_entry = file_entry->next;
 				}
+
 				strcpy(install_list.path, file_list.path);
 
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_ALL_QUESTION]);
 				dialog_step = DIALOG_STEP_INSTALL_QUESTION;
 				
 				break;
@@ -813,7 +796,6 @@ int dialogSteps() {
 		// With refresh
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
-		case DIALOG_STEP_INSTALLED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -963,9 +945,12 @@ int dialogSteps() {
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				InstallArguments args;
 				if(install_list.length > 0) {
-					FileListEntry *entryInstallList = install_list.head;
-					snprintf(installListPath, MAX_PATH_LENGTH, "%s%s", install_list.path, entryInstallList->name);
-					args.file = installListPath;
+					FileListEntry *entry = install_list.head;
+					snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
+					args.file = install_path;
+
+					// Remove entry
+					fileListRemoveEntry(&install_list, entry);
 				} else {
 					args.file = cur_file;
 				}
@@ -984,6 +969,19 @@ int dialogSteps() {
 				dialog_step = DIALOG_STEP_INSTALL_WARNING_AGREED;
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				dialog_step = DIALOG_STEP_CANCELLED;
+			}
+
+			break;
+			
+		case DIALOG_STEP_INSTALLED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				if(install_list.length > 0) {
+					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+					dialog_step = DIALOG_STEP_INSTALL_CONFIRMED;
+					break;
+				}
+
+				dialog_step = DIALOG_STEP_NONE;
 			}
 
 			break;
@@ -1186,14 +1184,6 @@ int shellMain() {
 
 		// Control
 		if (dialog_step == DIALOG_STEP_NONE) {
-			if(install_list.length > 0) {
-				refreshInstallList();
-				if(install_list.length > 0) {
-					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
-					dialog_step = DIALOG_STEP_INSTALL_QUESTION;
-				}
-			}			
-
 			if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
 				contextMenuCtrl();
 			} else {
