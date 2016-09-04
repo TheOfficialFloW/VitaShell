@@ -57,10 +57,10 @@ int _newlib_heap_size_user = 32 * 1024 * 1024;
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 
 // File lists
-static FileList file_list, mark_list, copy_list;
+static FileList file_list, mark_list, copy_list, install_list;
 
 // Paths
-static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH];
+static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], install_path[MAX_PATH_LENGTH];
 
 // Position
 static int base_pos = 0, rel_pos = 0;
@@ -370,6 +370,39 @@ DIR_UP_RETURN:
 	dirUpCloseArchive();
 }
 
+void focusOnFilename(char *name) {
+ 	int name_pos = fileListGetNumberByName(&file_list, name);
+ 	if (name_pos < file_list.length) {
+ 		while (1) {
+ 			int index = base_pos + rel_pos;
+ 			if (index == name_pos)
+ 				break;
+ 
+ 			if (index > name_pos) {
+ 				if (rel_pos > 0) {
+ 					rel_pos--;
+ 				} else {
+ 					if (base_pos > 0) {
+ 						base_pos--;
+ 					}
+ 				}
+ 			}
+ 
+ 			if (index < name_pos) {
+ 				if ((rel_pos + 1) < file_list.length) {
+ 					if ((rel_pos + 1) < MAX_POSITION) {
+ 						rel_pos++;
+ 					} else {
+ 						if ((base_pos + rel_pos + 1) < file_list.length) {
+ 							base_pos++;
+ 						}
+ 					}
+ 				}
+ 			}
+ 		}
+ 	}
+ }
+
 
 int refreshFileList() {
 	int ret = 0, res = 0;
@@ -470,7 +503,7 @@ void resetFileLists() {
 int handleFile(char *file, FileListEntry *entry) {
 	int res = 0;
 
-	int type = getFileType(file);	
+	int type = getFileType(file);
 	switch (type) {
 		case FILE_TYPE_VPK:
 		case FILE_TYPE_ZIP:
@@ -481,7 +514,9 @@ int handleFile(char *file, FileListEntry *entry) {
 	}
 
 	switch (type) {
+		case FILE_TYPE_INI:
 		case FILE_TYPE_TXT:
+		case FILE_TYPE_XML:
 		case FILE_TYPE_UNKNOWN:
 			res = textViewer(file);
 			break;
@@ -506,8 +541,8 @@ int handleFile(char *file, FileListEntry *entry) {
 			break;
 
 		case FILE_TYPE_SFO:
- 			res = SFOReader(file);
- 			break;
+			res = SFOReader(file);
+			break;
 			
 		default:
 			errorDialog(type);
@@ -647,6 +682,7 @@ void drawShellInfo(char *path) {
 }
 
 enum MenuEntrys {
+	MENU_ENTRY_INSTALL_ALL,
 	MENU_ENTRY_MARK_UNMARK_ALL,
 	MENU_ENTRY_EMPTY_1,
 	MENU_ENTRY_MOVE,
@@ -671,6 +707,7 @@ typedef struct {
 } MenuEntry;
 
 MenuEntry menu_entries[] = {
+	{ INSTALL_ALL, VISIBILITY_INVISIBLE },
 	{ MARK_ALL, VISIBILITY_INVISIBLE },
 	{ -1, VISIBILITY_UNUSED },
 	{ MOVE, VISIBILITY_INVISIBLE },
@@ -699,6 +736,7 @@ void initContextMenu() {
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
 		menu_entries[MENU_ENTRY_MARK_UNMARK_ALL].visibility = VISIBILITY_INVISIBLE;
+		
 		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_COPY].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
@@ -711,12 +749,17 @@ void initContextMenu() {
 
 	// Invisble write operations in archives
 	if (isInArchive()) { // TODO: read-only mount points
+		
 		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = VISIBILITY_INVISIBLE;
 	}
+
+	if(file_entry->type != FILE_TYPE_VPK) {
+ 		menu_entries[MENU_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
+ 	}
 
 	// TODO: Moving from one mount point to another is not possible
 
@@ -998,6 +1041,38 @@ void contextMenuCtrl() {
 				dialog_step = DIALOG_STEP_NEW_FOLDER;
 				break;
 			}
+
+			case MENU_ENTRY_INSTALL_ALL:
+ 			{
+ 				// Empty install list
+ 				fileListEmpty(&install_list);
+ 
+ 				FileListEntry *file_entry = file_list.head->next; // Ignore '..'
+ 
+ 				int i;
+ 				for (i = 0; i < file_list.length - 1; i++) {
+ 					char path[MAX_PATH_LENGTH];
+ 					snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+ 
+ 					int type = getFileType(path);
+ 					if (type == FILE_TYPE_VPK) {
+ 							FileListEntry *install_entry = malloc(sizeof(FileListEntry));
+ 							memcpy(install_entry, file_entry, sizeof(FileListEntry));
+ 							fileListAddEntry(&install_list, install_entry, SORT_NONE);
+ 					}
+ 
+ 					// Next
+ 					file_entry = file_entry->next;
+ 				}
+
+ 				strcpy(install_list.path, file_list.path);
+ 
+ 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_ALL_QUESTION]);
+ 				dialog_step = DIALOG_STEP_INSTALL_QUESTION;
+ 				
+ 				break;
+ 			}
+
 		}
 
 		ctx_menu_mode = CONTEXT_MENU_CLOSING;
@@ -1024,8 +1099,7 @@ int dialogSteps() {
 			
 		// With refresh
 		case DIALOG_STEP_COPIED:
-		case DIALOG_STEP_DELETED:
-		case DIALOG_STEP_INSTALLED:	
+		case DIALOG_STEP_DELETED:		
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -1174,7 +1248,20 @@ int dialogSteps() {
  		case DIALOG_STEP_INSTALL_CONFIRMED:
  			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
  				InstallArguments args;
- 				args.file = cur_file;
+ 				
+				 if(install_list.length > 0) {
+ 					FileListEntry *entry = install_list.head;
+ 					snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
+ 					args.file = install_path;
+					
+					// Focus
+ 					focusOnFilename(entry->name);
+
+ 					// Remove entry
+ 					fileListRemoveEntry(&install_list, entry);
+ 				} else {
+ 					args.file = cur_file;
+ 				}
  
  				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
  				if (thid >= 0)
@@ -1194,6 +1281,19 @@ int dialogSteps() {
  
  			break;
  			
+			case DIALOG_STEP_INSTALLED:
+ 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+ 				if(install_list.length > 0) {
+ 					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+ 					dialog_step = DIALOG_STEP_INSTALL_CONFIRMED;
+ 					break;
+ 				}
+ 
+ 				dialog_step = DIALOG_STEP_NONE;
+ 			}
+ 
+ 			break;
+
  		case DIALOG_STEP_UPDATE_QUESTION:
  			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
  				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DOWNLOADING]);
@@ -1516,7 +1616,7 @@ int shellMain() {
 		int refresh = 0;				
 		
 		// Control
-		if (dialog_step == DIALOG_STEP_NONE) {
+		if (dialog_step == DIALOG_STEP_NONE) {			
 			if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
 				contextMenuCtrl();
 			} else {
@@ -1811,8 +1911,36 @@ NEXT_FILE:
 					
 		FileListEntry *file_entry2 = fileListGetNthEntry(&file_list, cur_pos + base_pos);
 		vita2d_draw_rectangle(0, SCREEN_HEIGHT - FONT_Y_SPACE, SCREEN_WIDTH, FONT_Y_SPACE, COLOR_ALPHA(BLACK, 0xC8));
+
+		//Folder
+		uint32_t color = GENERAL_COLOR;
+
+		if (file_entry2->is_folder) {
+			color = FOLDER_COLOR;
+			vita2d_draw_texture(folder_icon, SHELL_MARGIN_X, SCREEN_HEIGHT - FONT_Y_SPACE + 3.0f);
+		} else {
+			if (file_entry2->type == FILE_TYPE_BMP || file_entry2->type == FILE_TYPE_PNG || file_entry2->type == FILE_TYPE_JPEG) { // Images
+				color = IMAGE_COLOR;
+				vita2d_draw_texture(image_icon, SHELL_MARGIN_X, SCREEN_HEIGHT - FONT_Y_SPACE + 3.0f);
+			} else if (file_entry2->type == FILE_TYPE_VPK || file_entry2->type == FILE_TYPE_ZIP) { // Archive
+				color = ARCHIVE_COLOR;
+				vita2d_draw_texture(archive_icon, SHELL_MARGIN_X, SCREEN_HEIGHT - FONT_Y_SPACE + 3.0f);
+			} else if (file_entry2->type == FILE_TYPE_MP3) { // Audio
+				color = IMAGE_COLOR;
+				vita2d_draw_texture(audio_icon, SHELL_MARGIN_X, SCREEN_HEIGHT - FONT_Y_SPACE + 3.0f);
+			} else if (file_entry2->type == FILE_TYPE_SFO) { // SFO
+				// note: specific color to be determined
+				vita2d_draw_texture(sfo_icon, SHELL_MARGIN_X, SCREEN_HEIGHT - FONT_Y_SPACE + 3.0f);
+			} else if (file_entry2->type == FILE_TYPE_INI || file_entry2->type == FILE_TYPE_TXT || file_entry2->type == FILE_TYPE_XML) { // TXT
+				// note: specific color to be determined
+				vita2d_draw_texture(text_icon, SHELL_MARGIN_X, SCREEN_HEIGHT - FONT_Y_SPACE + 3.0f);
+			} else { // Other files
+				vita2d_draw_texture(file_icon, SHELL_MARGIN_X, SCREEN_HEIGHT - FONT_Y_SPACE + 3.0f);
+			}
+		}
+
 		// Draw shortened file name
-		pgf_draw_text(5.0f , SCREEN_HEIGHT - FONT_Y_SPACE, WHITE, FONT_SIZE, file_entry2->name);
+		pgf_draw_text(SHELL_MARGIN_X + 26.0f, SCREEN_HEIGHT - FONT_Y_SPACE, WHITE, FONT_SIZE, file_entry2->name);
 
 		// File information
 		if (strcmp(file_entry2->name, DIR_UP) != 0) {
