@@ -208,7 +208,7 @@ int network_update_thread(SceSize args, void *argp) {
 	return sceKernelExitDeleteThread(0);
 }
 
-int installUpdater() {
+void installUpdater() {
 	// Recursively clean up package_temp directory
 	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
