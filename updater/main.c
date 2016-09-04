@@ -188,7 +188,7 @@ cleanup:
 
 int main(int argc, const char *argv[]) {
 	char *titleid = get_title_id(PACKAGE_DIR "/sce_sys/param.sfo");
-	if (strcmp(titleid, "VITASHELL") == 0) {
+	if (titleid && strcmp(titleid, "VITASHELL") == 0) {
 		copyFile(PACKAGE_DIR "/eboot.bin", "ux0:app/MLCL00001/eboot.bin");
 
 		if (promote(PACKAGE_DIR) >= 0)
