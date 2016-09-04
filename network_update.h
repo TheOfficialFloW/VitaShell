@@ -19,4 +19,6 @@
 #ifndef __NETWORK_UPDATE_H__
 #define __NETWORK_UPDATE_H__
 
+int network_update_thread(SceSize args, void *argp);
+
 #endif

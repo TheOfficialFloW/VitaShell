@@ -20,10 +20,12 @@
 #include "io_process.h"
 #include "network_update.h"
 #include "file.h"
+#include "message_dialog.h"
+#include "language.h"
 #include "utils.h"
 
 int getDownloadFileSize(char *src, uint64_t *size) {
-	int tpl = sceHttpCreateTemplate("VitaShell", 2, 1);
+	int tpl = sceHttpCreateTemplate("VitaShell/1.00 libhttp/1.1", SCE_HTTP_VERSION_1_1, 1);
 	if (tpl < 0)
 		return tpl;
 
@@ -31,7 +33,7 @@ int getDownloadFileSize(char *src, uint64_t *size) {
 	if (conn < 0)
 		return conn;
 
-	int req = sceHttpCreateRequestWithURL(conn, 0, src, 0);
+	int req = sceHttpCreateRequestWithURL(conn, SCE_HTTP_METHOD_GET, src, 0);
 	if (req < 0)
 		return req;
 
@@ -103,7 +105,7 @@ int downloadFile(char *src, char *dst, uint64_t *value, uint64_t max, void (* Se
 	return ret;
 }
 
-int download_thread(SceSize args_size, void *args) {
+int downloadProcess(char *version_string) {
 	SceUID thid = -1;
 
 	// Lock power timers
@@ -113,7 +115,26 @@ int download_thread(SceSize args_size, void *args) {
 	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
 	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
-	// do stuff
+	// Download url
+	char url[128];
+	sprintf(url, "https://github.com/TheOfficialFloW/VitaShell/releases/download/%s/VitaShell.vpk", version_string);
+
+	// File size
+	uint64_t size = 0;
+	getDownloadFileSize(url, &size);
+
+	// Update thread
+	thid = createStartUpdateThread(size);
+
+	// Download
+	uint64_t value = 0;
+	int res = downloadFile(url, "ux0:VitaShell/Vitashell.vpk", &value, size, SetProgress, cancelHandler);
+	if (res <= 0) {
+		closeWaitDialog();
+		dialog_step = DIALOG_STEP_CANCELLED;
+		errorDialog(res);
+		goto EXIT;
+	}
 
 	// Set progress to 100%
 	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
@@ -122,7 +143,7 @@ int download_thread(SceSize args_size, void *args) {
 	// Close
 	sceMsgDialogClose();
 
-	//dialog_step = DIALOG_STEP_DOWNLOADED;
+	dialog_step = DIALOG_STEP_DOWNLOADED;
 
 EXIT:
 	if (thid >= 0)
@@ -134,7 +155,7 @@ EXIT:
 	return sceKernelExitDeleteThread(0);
 }
 
-int automaticNetworkUpdate() {
+int network_update_thread(SceSize args, void *argp) {
 	sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
 
 	if (downloadFile("http://github.com/TheOfficialFloW/VitaShell/releases/download/0.0/version.bin", "ux0:VitaShell/version.bin", NULL, 0, NULL, NULL) > 0) {
@@ -142,20 +163,37 @@ int automaticNetworkUpdate() {
 		ReadFile("ux0:VitaShell/version.bin", &version, sizeof(uint32_t));
 		sceIoRemove("ux0:VitaShell/version.bin");
 
-		debugPrintf("newest: 0x%08X, current: 0x%08X\n", version, VITASHELL_VERSION);
+		// Only show update question if no dialog is running
+		if (dialog_step == DIALOG_STEP_NONE) {
+			// New update available
+			if (version > VITASHELL_VERSION) {
+				int major = version >> 0x18;
+				int minor = version >> 0x10;
 
-		if (version >= VITASHELL_VERSION) { // TODO, only >
-			int major = version >> 0x18;
-			int minor = version >> 0x10;
+				char version_string[8];
+				sprintf(version_string, "%X.%X", major, minor);
+				if (version_string[3] == '0')
+					version_string[3] = '\0';
 
-			char version_string[8];
-			sprintf(version_string, "%X.%X", major, minor);
-			if (version_string[3] == '0')
-				version_string[3] = '\0';
+				// Update question
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[UPDATE_QUESTION], version_string);
+				dialog_step = DIALOG_STEP_UPDATE_QUESTION;
 
-			char url[128];
-			sprintf(url, "https://github.com/TheOfficialFloW/VitaShell/releases/download/%s/VitaShell.vpk", version_string);
-			downloadFile(url, "ux0:VitaShell/Vitashell.vpk", NULL, 0, NULL, NULL);
+				// Wait for response
+				while (dialog_step == DIALOG_STEP_UPDATE_QUESTION) {
+					sceKernelDelayThread(1000);
+				}
+
+				// No
+				if (dialog_step == DIALOG_STEP_NONE) {
+					return 0;
+				}
+
+				// Yes
+				return downloadProcess(version_string);
+			}
 		}
 	}
+
+	return sceKernelExitDeleteThread(0);
 }

@@ -758,6 +758,7 @@ int dialogSteps() {
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
 		case DIALOG_STEP_INSTALLED:
+		case DIALOG_STEP_DOWNLOADED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -867,6 +868,14 @@ int dialogSteps() {
 
 			break;
 			
+		case DIALOG_STEP_UPDATE_QUESTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DOWNLOADING]);
+				dialog_step = DIALOG_STEP_UPDATE_CONFIRMED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
 		case DIALOG_STEP_RENAME:
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
@@ -1292,7 +1301,9 @@ int main(int argc, const char *argv[]) {
 	loadLanguage(language);
 
 	// Automatic network update
-	automaticNetworkUpdate();
+	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x40, 0x10000, 0, 0, NULL);
+	if (thid >= 0)
+		sceKernelStartThread(thid, 0, NULL);
 
 	// Main
 	initShell();
