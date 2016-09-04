@@ -165,13 +165,35 @@ void finishVita2dLib() {
 	audio_next_image = NULL;
 }
 
+void initNet() {
+	static char memory[16 * 1024];
+
+	SceNetInitParam param;
+	param.memory = memory;
+	param.size = sizeof(memory);
+	param.flags = 0;
+
+	sceNetInit(&param);
+	sceNetCtlInit();
+
+	sceSslInit(300 * 1024);
+	sceHttpInit(40 * 1024);
+}
+
+void finishNet() {
+	sceSslTerm();
+	sceHttpTerm();
+	sceNetCtlTerm();
+	sceNetTerm();	
+}
+
 void initVitaShell() {
 	// Init random number generator
 	srand(time(NULL));
 
 	// Set sampling mode
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
-	
+
 	// Enable front touchscreen
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 
@@ -182,12 +204,13 @@ void initVitaShell() {
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
 
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) != SCE_SYSMODULE_LOADED)
+		sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
+
 	// Init
 	initSceAppUtil();
 	initVita2dLib();
-
-	// Init netdbg
-	netdbg_init();
+	initNet();
 
 	// Init power tick thread
 	initPowerTickThread();
@@ -209,14 +232,15 @@ void initVitaShell() {
 }
 
 void finishVitaShell() {
-	// Finish netdbg
-	netdbg_fini();
-
 	// Finish
+	finishNet();
 	finishVita2dLib();
 	finishSceAppUtil();
 	
 	// Unload modules
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) == SCE_SYSMODULE_LOADED)
+		sceSysmoduleUnloadModule(SCE_SYSMODULE_HTTPS);
+
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) == SCE_SYSMODULE_LOADED)
 		sceSysmoduleUnloadModule(SCE_SYSMODULE_NET);
 

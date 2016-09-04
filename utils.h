@@ -28,9 +28,6 @@
 #define ANALOG_THRESHOLD 64
 #define ANALOG_SENSITIVITY 16
 
-#define NET_INIT_SIZE 1 * 1024 * 1024
-#define NETDBG_DEFAULT_PORT 9023
-
 enum {
 	SCE_CTRL_RIGHT_ANALOG_UP	= 0x0020000,
 	SCE_CTRL_RIGHT_ANALOG_RIGHT	= 0x0040000,
@@ -73,9 +70,5 @@ void getTimeString(char *string, int time_format, SceDateTime *time);
 int randomNumber(int low, int high);
 
 int debugPrintf(char *text, ...);
-
-int netdbg_init();
-void netdbg_fini();
-int netdbg(const char *text, ...);
 
 #endif

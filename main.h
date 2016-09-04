@@ -27,9 +27,11 @@
 #include <psp2/display.h>
 #include <psp2/kernel/modulemgr.h>
 #include <psp2/kernel/processmgr.h>
+#include <psp2/libssl.h>
 #include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/ime_dialog.h>
+#include <psp2/net/http.h>
 #include <psp2/net/net.h>
 #include <psp2/net/netctl.h>
 #include <psp2/message_dialog.h>
@@ -59,12 +61,13 @@
 
 #include "functions.h"
 
-#define ENABLE_DEBUGNET_LOGGING 1
 #define ENABLE_FILE_LOGGING 1
 
 // VitaShell version major.minor
-#define VITASHELL_VERSION_MAJOR 0
-#define VITASHELL_VERSION_MINOR 9
+#define VITASHELL_VERSION_MAJOR 0x0
+#define VITASHELL_VERSION_MINOR 0x90
+
+#define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
