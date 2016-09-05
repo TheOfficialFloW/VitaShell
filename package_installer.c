@@ -209,13 +209,16 @@ int makeHeadBin() {
 int install_thread(SceSize args_size, InstallArguments *args) {
 	SceUID thid = -1;
 	int assisted = args->assisted;
+	int exit_result = 0;
 
 	// Lock power timers
 	powerLock();
 
-	// Set progress to 0%
-	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
-	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+	if (assisted) {
+		// Set progress to 0%
+		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+		sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+	}
 
 	// Recursively clean up package_temp directory
 	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
@@ -224,8 +227,11 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	// Open archive
 	int res = archiveOpen(args->file);
 	if (res < 0) {
-		closeWaitDialog();
-		errorDialog(res);
+		if (assisted) {
+			closeWaitDialog();
+			errorDialog(res);
+		}
+		exit_result = -1;
 		goto EXIT;
 	}
 
@@ -255,6 +261,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 				// Cancelled
 				if (dialog_step == DIALOG_STEP_CANCELLED) {
 					closeWaitDialog();
+					exit_result = -2;
 					goto EXIT;
 				}
 
@@ -281,39 +288,53 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	// Extract process
 	uint64_t value = 0;
 
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+	if (assisted) {
+		res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, NULL, NULL);
+	} else {
+		res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+	}
 	if (res <= 0) {
-		closeWaitDialog();
-		dialog_step = DIALOG_STEP_CANCELLED;
-		errorDialog(res);
+		if (assisted) {
+			closeWaitDialog();
+			dialog_step = DIALOG_STEP_CANCELLED;
+			errorDialog(res);
+		}
+		exit_result = -3;
 		goto EXIT;
 	}
 
 	// Make head.bin
 	res = makeHeadBin();
 	if (res < 0) {
-		closeWaitDialog();
-		errorDialog(res);
+		if (assisted) {
+			closeWaitDialog();
+			errorDialog(res);
+		}
+		exit_result = -4;
 		goto EXIT;
 	}
 
 	// Promote
 	res = promote(PACKAGE_DIR);
 	if (res < 0) {
-		closeWaitDialog();
-		errorDialog(res);
+		if (assisted) {
+			closeWaitDialog();
+			errorDialog(res);
+		}
+		exit_result = -5;
 		goto EXIT;
 	}
 
-	// Set progress to 100%
-	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
-	sceKernelDelayThread(COUNTUP_WAIT);
+	if (assisted) {
+		// Set progress to 100%
+		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+		sceKernelDelayThread(COUNTUP_WAIT);
 
-	// Close
-	sceMsgDialogClose();
+		// Close
+		sceMsgDialogClose();
 
-	dialog_step = DIALOG_STEP_INSTALLED;
-
+		dialog_step = DIALOG_STEP_INSTALLED;
+	}
 
 EXIT:
 	if (thid >= 0)
@@ -322,5 +343,5 @@ EXIT:
 	// Unlock power timers
 	powerUnlock();
 
-	return sceKernelExitDeleteThread(0);
+	return sceKernelExitDeleteThread(exit_result);
 }

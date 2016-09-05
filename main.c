@@ -1406,20 +1406,17 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 	args.file = path;
 	args.assisted = 0;
 
-	closeWaitDialog();
-	dialog_step = DIALOG_STEP_NONE;
-	ctx_menu_mode = CONTEXT_MENU_CLOSING;
-
 	SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
 	if (thid >= 0) {
+		int exitStatus = 0;
 		sceKernelStartThread(thid, sizeof(InstallArguments), &args);
-		sceKernelWaitThreadEnd(thid, NULL, NULL);
+		sceKernelWaitThreadEnd(thid, &exitStatus, NULL);
 
-		// Send EOL
-		ftpvita_ext_client_send_ctrl_msg(client, "200 OK PROMOTING\r\n");
-
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
-		dialog_step = DIALOG_STEP_FTP;
+		if (exitStatus == 0) {
+			ftpvita_ext_client_send_ctrl_msg(client, "200 OK PROMOTING\r\n");
+		} else {
+			ftpvita_ext_client_send_ctrl_msg(client, "500 ERROR PROMOTING\r\n");
+		}
 	}
 }
 
