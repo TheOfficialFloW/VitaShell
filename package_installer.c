@@ -256,9 +256,9 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	uint64_t value = 0;
 
 	if (assisted) {
-		res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, NULL, NULL);
-	} else {
 		res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+	} else {
+		res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL, 0, NULL, NULL);
 	}
 	if (res <= 0) {
 		if (assisted) {
