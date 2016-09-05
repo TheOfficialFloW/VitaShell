@@ -976,7 +976,8 @@ int dialogSteps() {
 			
 		case DIALOG_STEP_INSTALL_CONFIRMED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
-				InstallArguments args;
+				InstallArguments args = {0};
+				args.assisted = 1;
 				if(install_list.length > 0) {
 					FileListEntry *entry = install_list.head;
 					snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
@@ -1089,6 +1090,7 @@ void fileBrowserMenuCtrl() {
 						ftpvita_add_device(mount_points[i]);
 					}
 				}
+				ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);
 			}
 
 			// Lock power timers
@@ -1392,6 +1394,32 @@ void getNetInfo() {
 		strcpy(ip, "-");
 	} else {
 		strcpy(ip, info.ip_address);
+	}
+}
+
+void ftpvita_PROM(ftpvita_client_info_t *client) {
+	char cmd[64];
+	char path[MAX_PATH_LENGTH];
+	sscanf(client->recv_buffer, "%s %s", cmd, path);
+
+	InstallArguments args = {0};
+	args.file = path;
+	args.assisted = 0;
+
+	closeWaitDialog();
+	dialog_step = DIALOG_STEP_NONE;
+	ctx_menu_mode = CONTEXT_MENU_CLOSING;
+
+	SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
+	if (thid >= 0) {
+		sceKernelStartThread(thid, sizeof(InstallArguments), &args);
+		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+		// Send EOL
+		ftpvita_ext_client_send_ctrl_msg(client, "200 OK PROMOTING\r\n");
+
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
+		dialog_step = DIALOG_STEP_FTP;
 	}
 }
 
