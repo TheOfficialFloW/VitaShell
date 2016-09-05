@@ -1,4 +1,5 @@
-# VitaShell Dutch translation v1.1 by Marvin4578
+# VitaShell Dutch translation v1.2 by Marvin4578
+# New strings added for Vitashell 0.9
 
 ERROR							= "Foutmelding 0x%08X."
 OK								= "OK"
@@ -28,3 +29,11 @@ DELETE_FILES_FOLDERS_QUESTION	= "Weet je zeker dat je deze bestanden/mappen wilt
 INSTALL_QUESTION				= "Wil je dit pakket installeren?"
 WIFI_ERROR						= "Je moet Wi-Fi inschakelen om deze functie te kunnen gebruiken."
 FTP_SERVER						= "FTP server draait nu op \ftp://%s:%i\\Druk op 'OK' om de server in de achtergrond te laten draaien.\Druk op 'Annuleren' om de verbinding af te breken."
+DOWNLOADING                          = "Downloaden..."
+EXTRACTING                           = "Uitpakken..."
+INSTALL_ALL_QUESTION                 = "Wil je alle pakketten in deze map installeren?"
+INSTALL_WARNING                      = "Dit pakket heeft toegang tot uitgebreide machtigingen.\Het zal daardoor toegang hebben tot persoonlijke informatie.\Als je het pakket niet van een vertrouwde bron verkregen hebt,\kun je op je eigen risico verdergaan.\\Wil je het pakket alsnog installeren?"
+SAVE_MODIFICATIONS                   = "Wil je de veranderingen opslaan?"
+SYS_INFO                             = "Systeemsoftware: %s\Model: 0x%08X\MAC-adres: %s\IP-adres: %s\Geheugenkaart: %s/%s"
+INSTALL_ALL                          = "Installeer alles"
+UPDATE_QUESTION                      = "VitaShell %s is nu beschikbaar.\\Wil je dit programma updaten?"
