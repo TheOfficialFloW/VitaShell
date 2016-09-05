@@ -1371,9 +1371,6 @@ void getNetInfo() {
 	}
 }
 
-void ftpvita_PROM_done(void *_client) {
-}
-
 void ftpvita_PROM(ftpvita_client_info_t *client) {
 	char cmd[64];
 	char path[MAX_PATH_LENGTH];
@@ -1382,8 +1379,6 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 	InstallArguments args = {0};
 	args.file = path;
 	args.assisted = 0;
-	args.completed_callback_arg = client;
-	args.completed_callback = ftpvita_PROM_done;
 
 	closeWaitDialog();
 	dialog_step = DIALOG_STEP_NONE;
@@ -1399,7 +1394,6 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 
 		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
 		dialog_step = DIALOG_STEP_FTP;
-		ctx_menu_mode = CONTEXT_MENU_OPENED;
 	}
 }
 

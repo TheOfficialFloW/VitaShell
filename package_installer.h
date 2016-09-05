@@ -28,8 +28,6 @@
 typedef struct {
 	char *file;
 	int assisted;
-	void *completed_callback_arg;
-	void (*completed_callback)(void*);
 } InstallArguments;
 
 int promote(char *path);

@@ -322,9 +322,5 @@ EXIT:
 	// Unlock power timers
 	powerUnlock();
 
-	if (args->completed_callback != NULL) {
-		args->completed_callback(args->completed_callback_arg);
-	}
-
 	return sceKernelExitDeleteThread(0);
 }
