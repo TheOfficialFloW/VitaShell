@@ -244,22 +244,22 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	strcpy(src_path, args->file);
 	addEndSlash(src_path);
 
-	// Get archive path info
-	uint64_t size = 0;
-	uint32_t folders = 0, files = 0;
-	getArchivePathInfo(src_path, &size, &folders, &files);
-
-	// Update thread
-	thid = createStartUpdateThread(size + folders);
-
 	// Extract process
-	uint64_t value = 0;
-
 	if (assisted) {
+		// Get archive path info
+		uint64_t size = 0;
+		uint32_t folders = 0, files = 0;
+		getArchivePathInfo(src_path, &size, &folders, &files);
+
+		// Update thread
+		thid = createStartUpdateThread(size + folders);
+
+		uint64_t value = 0;
 		res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
 	} else {
 		res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL, 0, NULL, NULL);
 	}
+
 	if (res <= 0) {
 		if (assisted) {
 			closeWaitDialog();
@@ -270,6 +270,17 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		goto EXIT;
 	}
 
+	// Close archive
+	res = archiveClose();
+	if (res < 0) {
+		if (assisted) {
+			closeWaitDialog();
+			errorDialog(res);
+		}
+		exit_result = -4;
+		goto EXIT;
+	}
+
 	// Make head.bin
 	res = makeHeadBin();
 	if (res < 0) {
@@ -277,7 +288,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 			closeWaitDialog();
 			errorDialog(res);
 		}
-		exit_result = -4;
+		exit_result = -5;
 		goto EXIT;
 	}
 
@@ -288,7 +299,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 			closeWaitDialog();
 			errorDialog(res);
 		}
-		exit_result = -5;
+		exit_result = -6;
 		goto EXIT;
 	}
 
