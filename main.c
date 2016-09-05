@@ -56,10 +56,10 @@ int _newlib_heap_size_user = 64 * 1024 * 1024;
 #define MAX_DIR_LEVELS 1024
 
 // File lists
-static FileList file_list, mark_list, copy_list;
+static FileList file_list, mark_list, copy_list, install_list;
 
 // Paths
-static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH];
+static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], install_path[MAX_PATH_LENGTH];
 
 // Position
 static int base_pos = 0, rel_pos = 0;
@@ -147,6 +147,39 @@ DIR_UP_RETURN:
 	base_pos = base_pos_list[dir_level];
 	rel_pos = rel_pos_list[dir_level];
 	dirUpCloseArchive();
+}
+
+void focusOnFilename(char *name) {
+	int name_pos = fileListGetNumberByName(&file_list, name);
+	if (name_pos < file_list.length) {
+		while (1) {
+			int index = base_pos + rel_pos;
+			if (index == name_pos)
+				break;
+
+			if (index > name_pos) {
+				if (rel_pos > 0) {
+					rel_pos--;
+				} else {
+					if (base_pos > 0) {
+						base_pos--;
+					}
+				}
+			}
+
+			if (index < name_pos) {
+				if ((rel_pos + 1) < file_list.length) {
+					if ((rel_pos + 1) < MAX_POSITION) {
+						rel_pos++;
+					} else {
+						if ((base_pos + rel_pos + 1) < file_list.length) {
+							base_pos++;
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 int refreshFileList() {
@@ -406,7 +439,8 @@ void drawShellInfo(char *path) {
 }
 
 enum MenuEntrys {
-	MENU_ENTRY_MARK_UNMARK_ALL,
+	MENU_ENTRY_INSTALL_ALL,
+	MENU_ENTRY_MARK_UNMARK_ALL,	
 	MENU_ENTRY_EMPTY_1,
 	MENU_ENTRY_MOVE,
 	MENU_ENTRY_COPY,
@@ -430,7 +464,8 @@ typedef struct {
 } MenuEntry;
 
 MenuEntry menu_entries[] = {
-	{ MARK_ALL, VISIBILITY_INVISIBLE },
+	{ INSTALL_ALL, VISIBILITY_INVISIBLE },
+	{ MARK_ALL, VISIBILITY_INVISIBLE },	
 	{ -1, VISIBILITY_UNUSED },
 	{ MOVE, VISIBILITY_INVISIBLE },
 	{ COPY, VISIBILITY_INVISIBLE },
@@ -475,6 +510,10 @@ void initContextMenu() {
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = VISIBILITY_INVISIBLE;
+	}
+
+	if(file_entry->type != FILE_TYPE_VPK) {
+		menu_entries[MENU_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
 	}
 
 	// TODO: Moving from one mount point to another is not possible
@@ -733,6 +772,37 @@ void contextMenuCtrl() {
 				dialog_step = DIALOG_STEP_NEW_FOLDER;
 				break;
 			}
+			
+			case MENU_ENTRY_INSTALL_ALL:
+			{
+				// Empty install list
+				fileListEmpty(&install_list);
+
+				FileListEntry *file_entry = file_list.head->next; // Ignore '..'
+
+				int i;
+				for (i = 0; i < file_list.length - 1; i++) {
+					char path[MAX_PATH_LENGTH];
+					snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+
+					int type = getFileType(path);
+					if (type == FILE_TYPE_VPK) {
+						FileListEntry *install_entry = malloc(sizeof(FileListEntry));
+						memcpy(install_entry, file_entry, sizeof(FileListEntry));
+						fileListAddEntry(&install_list, install_entry, SORT_NONE);
+					}
+
+					// Next
+					file_entry = file_entry->next;
+				}
+
+				strcpy(install_list.path, file_list.path);
+
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_ALL_QUESTION]);
+				dialog_step = DIALOG_STEP_INSTALL_QUESTION;
+				
+				break;
+			}
 		}
 
 		ctx_menu_mode = CONTEXT_MENU_CLOSING;
@@ -759,7 +829,6 @@ int dialogSteps() {
 		// With refresh
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
-		case DIALOG_STEP_INSTALLED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -908,7 +977,19 @@ int dialogSteps() {
 		case DIALOG_STEP_INSTALL_CONFIRMED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				InstallArguments args;
-				args.file = cur_file;
+				if(install_list.length > 0) {
+					FileListEntry *entry = install_list.head;
+					snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
+					args.file = install_path;
+
+					// Focus
+					focusOnFilename(entry->name);
+
+					// Remove entry
+					fileListRemoveEntry(&install_list, entry);
+				} else {
+					args.file = cur_file;
+				}
 
 				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
 				if (thid >= 0)
@@ -924,6 +1005,19 @@ int dialogSteps() {
 				dialog_step = DIALOG_STEP_INSTALL_WARNING_AGREED;
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				dialog_step = DIALOG_STEP_CANCELLED;
+			}
+
+			break;
+			
+		case DIALOG_STEP_INSTALLED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				if(install_list.length > 0) {
+					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+					dialog_step = DIALOG_STEP_INSTALL_CONFIRMED;
+					break;
+				}
+
+				dialog_step = DIALOG_STEP_NONE;
 			}
 
 			break;
