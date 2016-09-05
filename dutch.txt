@@ -1,5 +1,5 @@
 # VitaShell Dutch translation v1.2 by Marvin4578
-# New strings added for Vitashell 0.9
+# New strings added for Vitashell 0.91
 
 ERROR							= "Foutmelding 0x%08X."
 OK								= "OK"
