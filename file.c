@@ -39,6 +39,27 @@ static char *mount_points[] = {
 
 #define N_MOUNT_POINTS (sizeof(mount_points) / sizeof(char **))
 
+int allocateReadFile(char *file, void **buffer) {
+	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
+	if (fd < 0)
+		return fd;
+
+	int off = sceIoLseek32(fd, 0, SCE_SEEK_CUR);
+	int size = sceIoLseek32(fd, 0, SCE_SEEK_END);
+	sceIoLseek(fd, off, SCE_SEEK_SET);
+
+	*buffer = malloc(size);
+	if (!*buffer) {
+		sceIoClose(fd);
+		return -1;
+	}
+
+	int read = sceIoRead(fd, *buffer, size);
+	sceIoClose(fd);
+
+	return read;
+}
+
 int ReadFile(char *file, void *buf, int size) {
 	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)

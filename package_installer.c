@@ -81,51 +81,6 @@ int promote(char *path) {
 	return result;
 }
 
-char *get_title_id(const char *filename) {
-	char *res = NULL;
-	long size = 0;
-	FILE *fin = NULL;
-	char *buf = NULL;
-	int i;
-
-	SfoHeader *header;
-	SfoEntry *entry;
-	
-	fin = fopen(filename, "rb");
-	if (!fin)
-		goto cleanup;
-	if (fseek(fin, 0, SEEK_END) != 0)
-		goto cleanup;
-	if ((size = ftell(fin)) == -1)
-		goto cleanup;
-	if (fseek(fin, 0, SEEK_SET) != 0)
-		goto cleanup;
-	buf = calloc(1, size + 1);
-	if (!buf)
-		goto cleanup;
-	if (fread(buf, size, 1, fin) != 1)
-		goto cleanup;
-
-	header = (SfoHeader*)buf;
-	entry = (SfoEntry*)(buf + sizeof(SfoHeader));
-	for (i = 0; i < header->count; ++i, ++entry) {
-		const char *name = buf + header->keyofs + entry->nameofs;
-		const char *value = buf + header->valofs + entry->dataofs;
-		if (name >= buf + size || value >= buf + size)
-			break;
-		if (strcmp(name, "TITLE_ID") == 0)
-			res = strdup(value);
-	}
-
-cleanup:
-	if (buf)
-		free(buf);
-	if (fin)
-		fclose(fin);
-
-	return res;
-}
-
 void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
 	SHA1_CTX ctx;
 	uint8_t sha1[20];
@@ -163,10 +118,23 @@ int makeHeadBin() {
 	if (sceIoGetstat(HEAD_BIN, &stat) >= 0)
 		return -1;
 
+	// Read param.sfo
+	void *sfo_buffer = NULL;
+	int res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
+	if (res < 0)
+		return res;
+
 	// Get title id
-	char *title_id = get_title_id(PACKAGE_DIR "/sce_sys/param.sfo");
-	if (!title_id)// || strlen(title_id) != 9) // Enforce TITLEID format?
+	char titleid[12];
+	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+	if (strlen(titleid) != 9) // Enforce TITLE_ID format
 		return -2;
+
+	// Free sfo buffer
+	free(sfo_buffer);
+
+	// TODO: check category for update installation
+	// TODO: use real content_id
 
 	// Allocate head.bin buffer
 	uint8_t *head_bin = malloc(sizeof(base_head_bin));
@@ -174,7 +142,7 @@ int makeHeadBin() {
 
 	// Write full titleid
 	char full_title_id[128];
-	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", title_id);
+	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", titleid);
 	strncpy((char *)&head_bin[0x30], full_title_id, 48);
 
 	// hmac of pkg header
@@ -201,7 +169,6 @@ int makeHeadBin() {
 	WriteFile(HEAD_BIN, head_bin, sizeof(base_head_bin));
 
 	free(head_bin);
-	free(title_id);
 
 	return 0;
 }
