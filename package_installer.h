@@ -27,12 +27,12 @@
 
 typedef struct {
 	char *file;
-	int assisted;
 } InstallArguments;
 
 int promote(char *path);
 int makeHeadBin();
 
+int installPackage(char *file);
 int install_thread(SceSize args_size, InstallArguments *args);
 
 #endif
