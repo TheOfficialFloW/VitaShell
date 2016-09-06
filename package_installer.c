@@ -214,7 +214,9 @@ int installPackage(char *file) {
 }
 
 int install_thread(SceSize args_size, InstallArguments *args) {
+	int res;
 	SceUID thid = -1;
+	char path[MAX_PATH_LENGTH];
 
 	// Lock power timers
 	powerLock();
@@ -228,15 +230,22 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
-	int res = archiveOpen(args->file);
+	res = archiveOpen(args->file);
 	if (res < 0) {
 		closeWaitDialog();
 		errorDialog(res);
 		goto EXIT;
 	}
 
+	// Check for param.sfo
+	snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+	if (archiveFileGetstat(path, NULL) < 0) {
+		closeWaitDialog();
+		errorDialog(-2);
+		goto EXIT;
+	}
+
 	// Check permissions
-	char path[MAX_PATH_LENGTH];
 	snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
 	SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
 	if (fd >= 0) {

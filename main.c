@@ -708,9 +708,27 @@ void contextMenuCtrl() {
 			}
 
 			case MENU_ENTRY_PASTE:
-				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[copy_mode == COPY_MODE_MOVE ? MOVING : COPYING]);
+			{
+				int copy_text = 0;
+
+				switch (copy_mode) {
+					case COPY_MODE_NORMAL:
+						copy_text = COPYING;
+						break;
+						
+					case COPY_MODE_MOVE:
+						copy_text = MOVING;
+						break;
+						
+					case COPY_MODE_EXTRACT:
+						copy_text = EXTRACTING;
+						break;
+				}
+
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[copy_text]);
 				dialog_step = DIALOG_STEP_PASTE;
 				break;
+			}
 
 			case MENU_ENTRY_DELETE:
 			{
@@ -852,6 +870,7 @@ int dialogSteps() {
 			
 		case DIALOG_STEP_FTP:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				powerUnlock();
