@@ -48,6 +48,11 @@ enum SortFlags {
 	SORT_BY_NAME_AND_FOLDER,
 };
 
+enum MoveFlags {
+	MOVE_INTEGRATE	= 0x1, // Integrate directories
+	MOVE_REPLACE	= 0x2, // Replace files
+};
+
 typedef struct FileListEntry {
 	struct FileListEntry *next;
 	struct FileListEntry *previous;
@@ -78,6 +83,7 @@ int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files);
 int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
 int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
 int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
+int movePath(char *src_path, char *dst_path, int flags, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
 
 int getFileType(char *file);
 

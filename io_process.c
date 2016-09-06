@@ -196,9 +196,10 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
+			removeEndSlash(src_path);
+			removeEndSlash(dst_path);
 
-			int res = sceIoRename(src_path, dst_path);
-			// TODO: if (res == SCE_ERROR_ERRNO_EEXIST) if folder
+			int res = movePath(src_path, dst_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL, 0, NULL, NULL);
 			if (res < 0) {
 				closeWaitDialog();
 				errorDialog(res);

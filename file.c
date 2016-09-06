@@ -245,7 +245,7 @@ int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
 	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
-		return -1;
+		return -2;
 	}
 
 	SceUID fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
@@ -305,7 +305,7 @@ int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
 	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
-		return -1;
+		return -2;
 	}
 
 	SceUID dfd = sceIoDopen(src_path);
@@ -365,6 +365,99 @@ int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 		sceIoDclose(dfd);
 	} else {
 		return copyFile(src_path, dst_path, value, max, SetProgress, cancelHandler);
+	}
+
+	return 1;
+}
+
+int movePath(char *src_path, char *dst_path, int flags, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+	// The source and destination paths are identical
+	if (strcmp(src_path, dst_path) == 0) {
+		return -1;
+	}
+
+	// The destination is a subfolder of the source folder
+	int len = strlen(src_path);
+	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
+		return -2;
+	}
+
+	int res = sceIoRename(src_path, dst_path);
+	if (res == SCE_ERROR_ERRNO_EEXIST && flags & (MOVE_INTEGRATE | MOVE_REPLACE)) {
+		// Src stat
+		SceIoStat src_stat;
+		memset(&src_stat, 0, sizeof(SceIoStat));
+		res = sceIoGetstat(src_path, &src_stat);
+		if (res < 0)
+			return res;
+
+		// Dst stat
+		SceIoStat dst_stat;
+		memset(&dst_stat, 0, sizeof(SceIoStat));
+		res = sceIoGetstat(dst_path, &dst_stat);
+		if (res < 0)
+			return res;
+
+		// Is dir
+		int src_is_dir = SCE_S_ISDIR(src_stat.st_mode);
+		int dst_is_dir = SCE_S_ISDIR(dst_stat.st_mode);
+
+		// One of them is a file and the other a directory, no replacement or integration possible
+		if (src_is_dir != dst_is_dir)
+			return -3;
+
+		// Replace file
+		if (!src_is_dir && !dst_is_dir && flags & MOVE_REPLACE) {
+			sceIoRemove(dst_path);
+
+			res = sceIoRename(src_path, dst_path);
+			if (res < 0)
+				return res;
+
+			return 1;
+		}
+
+		// Integrate directory
+		if (src_is_dir && dst_is_dir && flags & MOVE_INTEGRATE) {
+			SceUID dfd = sceIoDopen(src_path);
+			if (dfd < 0)
+				return dfd;
+
+			int res = 0;
+
+			do {
+				SceIoDirent dir;
+				memset(&dir, 0, sizeof(SceIoDirent));
+
+				res = sceIoDread(dfd, &dir);
+				if (res > 0) {
+					if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
+						continue;
+
+					char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
+					snprintf(new_src_path, MAX_PATH_LENGTH, "%s/%s", src_path, dir.d_name);
+
+					char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
+					snprintf(new_dst_path, MAX_PATH_LENGTH, "%s/%s", dst_path, dir.d_name);
+
+					// Recursive move
+					int ret = movePath(new_src_path, new_dst_path, flags, value, max, SetProgress, cancelHandler);
+
+					free(new_dst_path);
+					free(new_src_path);
+
+					if (ret <= 0) {
+						sceIoDclose(dfd);
+						return ret;
+					}
+				}
+			} while (res > 0);
+
+			sceIoDclose(dfd);
+			
+			// Integrated, now remove this directory
+			sceIoRmdir(src_path);
+		}
 	}
 
 	return 1;
