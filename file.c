@@ -20,6 +20,7 @@
 #include "archive.h"
 #include "file.h"
 #include "utils.h"
+#include "sha1.h"
 
 static char *mount_points[] = {
 	"app0:",
@@ -92,6 +93,47 @@ int getFileSize(char *pInputFileName)
 	
 	sceIoClose(fd);
 	return fileSize;
+}
+
+int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+	SHA1_CTX ctx;
+	sha1_init(&ctx);
+
+	SceUID fd = sceIoOpen(pInputFileName, SCE_O_RDONLY, 0);
+	if (fd < 0)
+		return fd;
+
+	void *buf = malloc(TRANSFER_SIZE);
+
+	int read;
+	while ((read = sceIoRead(fd, buf, TRANSFER_SIZE)) > 0)
+	{
+		sha1_update(&ctx, buf, read);
+		if(value)
+			(*value)++;
+
+		if(SetProgress)
+			SetProgress(value ? *value : 0, max);
+
+		if(cancelHandler && cancelHandler()) {
+			free(buf);
+			sceIoClose(fd);
+			return 0;
+		}
+
+		// This is CPU intensive so the progress bar won't refresh unless we sleep
+		// DIALOG_WAIT seemed too long for this application
+		// so I set it to 1/2 of a second every 8192 TRANSFER_SIZE blocks
+		if((*value)%8192 == 0)
+			sceKernelDelayThread(500000);
+	}
+
+	sha1_final(&ctx, pSha1Out);
+
+	free(buf);
+
+	sceIoClose(fd);
+	return 1;
 }
 
 int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
