@@ -39,8 +39,47 @@ void loadScePaf() {
 	sceSysmoduleLoadModuleInternalWithArg(0x80000008, sizeof(scepaf_argp), scepaf_argp, ptr);
 }
 
+int promoteUpdate(char *path) {
+	int res;
+
+	// Read param.sfo
+	void *sfo_buffer = NULL;
+	res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
+	if (res < 0)
+		return res;
+
+	// Get titleid
+	char titleid[12];
+	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+
+	// Get category
+	char category[4];
+	getSfoString(sfo_buffer, "CATEGORY", category, sizeof(category));
+
+	// Free sfo buffer
+	free(sfo_buffer);
+
+	// Update installation
+	if (strcmp(category, "gp") == 0) {
+		char app_path[MAX_PATH_LENGTH];
+		snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", titleid);
+
+		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL, 0, NULL, NULL);
+		if (res < 0)
+			return res;
+
+		res = movePath(app_path, path, 0, NULL, 0, NULL, NULL);
+		if (res < 0)
+			return res;
+	}
+
+	return 0;
+}
+
 int promote(char *path) {
 	int res;
+
+	promoteUpdate(path);
 
 	loadScePaf();
 
@@ -133,7 +172,6 @@ int makeHeadBin() {
 	// Free sfo buffer
 	free(sfo_buffer);
 
-	// TODO: check category for update installation
 	// TODO: use real content_id
 
 	// Allocate head.bin buffer

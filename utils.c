@@ -206,6 +206,10 @@ int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time) {
 	return 0;
 }
 
+int hasEndSlash(char *path) {
+	return path[strlen(path) - 1] == '/';
+}
+
 int removeEndSlash(char *path) {
 	int len = strlen(path);
 

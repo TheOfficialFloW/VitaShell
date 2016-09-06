@@ -109,7 +109,7 @@ int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) 
 					continue;
 
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-				snprintf(new_path, MAX_PATH_LENGTH, "%s/%s", path, dir.d_name);
+				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
 				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
 					int ret = getPathInfo(new_path, size, folders, files);
@@ -168,7 +168,7 @@ int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(u
 					continue;
 
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-				snprintf(new_path, MAX_PATH_LENGTH, "%s/%s", path, dir.d_name);
+				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
 				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
 					int ret = removePath(new_path, value, max, SetProgress, cancelHandler);
@@ -244,7 +244,7 @@ int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
+	if (strncmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
 		return -2;
 	}
 
@@ -304,7 +304,7 @@ int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
+	if (strncmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
 		return -2;
 	}
 
@@ -339,10 +339,10 @@ int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 					continue;
 
 				char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-				snprintf(new_src_path, MAX_PATH_LENGTH, "%s/%s", src_path, dir.d_name);
+				snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
 				char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
-				snprintf(new_dst_path, MAX_PATH_LENGTH, "%s/%s", dst_path, dir.d_name);
+				snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
 				int ret = 0;
 
@@ -378,7 +378,7 @@ int movePath(char *src_path, char *dst_path, int flags, uint64_t *value, uint64_
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncmp(src_path, dst_path, len) == 0 && dst_path[len] == '/') {
+	if (strncmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
 		return -2;
 	}
 
@@ -435,10 +435,10 @@ int movePath(char *src_path, char *dst_path, int flags, uint64_t *value, uint64_
 						continue;
 
 					char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-					snprintf(new_src_path, MAX_PATH_LENGTH, "%s/%s", src_path, dir.d_name);
+					snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
 					char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
-					snprintf(new_dst_path, MAX_PATH_LENGTH, "%s/%s", dst_path, dir.d_name);
+					snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
 					// Recursive move
 					int ret = movePath(new_src_path, new_dst_path, flags, value, max, SetProgress, cancelHandler);

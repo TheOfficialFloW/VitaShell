@@ -60,6 +60,7 @@ void powerUnlock();
 void readPad();
 int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time);
 
+int hasEndSlash(char *path);
 int removeEndSlash(char *path);
 int addEndSlash(char *path);
 
