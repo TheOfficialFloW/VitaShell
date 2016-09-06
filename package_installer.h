@@ -27,6 +27,7 @@
 
 typedef struct {
 	char *file;
+	int assisted;
 } InstallArguments;
 
 int promote(char *path);

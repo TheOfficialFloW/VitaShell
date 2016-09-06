@@ -69,6 +69,7 @@ typedef struct {
 	int folders;
 } FileList;
 
+int allocateReadFile(char *file, void **buffer);
 int ReadFile(char *file, void *buf, int size);
 int WriteFile(char *file, void *buf, int size);
 

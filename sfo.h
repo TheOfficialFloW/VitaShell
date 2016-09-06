@@ -45,6 +45,9 @@ typedef struct SfoEntry {
 	uint32_t dataofs;
 } __attribute__((packed)) SfoEntry;
 
+int getSfoValue(void *buffer, char *name, uint32_t *value);
+int getSfoString(void *buffer, char *name, char *string, int length);
+
 int SFOReader(char *file);
 
 #endif

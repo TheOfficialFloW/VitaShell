@@ -27,6 +27,38 @@
 #include "utils.h"
 #include "sfo.h"
 
+int getSfoValue(void *buffer, char *name, uint32_t *value) {
+	SfoHeader *header = (SfoHeader *)buffer;
+	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
+
+	int i;
+	for (i = 0; i < header->count; i++) {
+		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
+			*value = *(uint32_t *)(buffer + header->valofs + entries[i].dataofs);
+			return 0;
+		}
+	}
+
+	return -1;
+}
+
+int getSfoString(void *buffer, char *name, char *string, int length) {
+	SfoHeader *header = (SfoHeader *)buffer;
+	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
+
+	int i;
+	for (i = 0; i < header->count; i++) {
+		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
+			memset(string, 0, length);
+			strncpy(string, buffer + header->valofs + entries[i].dataofs, length);
+			string[length - 1] = '\0';
+			return 0;
+		}
+	}
+
+	return -1;
+}
+
 int SFOReader(char *file) {
 	uint8_t *buffer = malloc(BIG_BUFFER_SIZE);
 	if (!buffer)

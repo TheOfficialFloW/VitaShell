@@ -81,51 +81,6 @@ int promote(char *path) {
 	return result;
 }
 
-char *get_title_id(const char *filename) {
-	char *res = NULL;
-	long size = 0;
-	FILE *fin = NULL;
-	char *buf = NULL;
-	int i;
-
-	SfoHeader *header;
-	SfoEntry *entry;
-	
-	fin = fopen(filename, "rb");
-	if (!fin)
-		goto cleanup;
-	if (fseek(fin, 0, SEEK_END) != 0)
-		goto cleanup;
-	if ((size = ftell(fin)) == -1)
-		goto cleanup;
-	if (fseek(fin, 0, SEEK_SET) != 0)
-		goto cleanup;
-	buf = calloc(1, size + 1);
-	if (!buf)
-		goto cleanup;
-	if (fread(buf, size, 1, fin) != 1)
-		goto cleanup;
-
-	header = (SfoHeader*)buf;
-	entry = (SfoEntry*)(buf + sizeof(SfoHeader));
-	for (i = 0; i < header->count; ++i, ++entry) {
-		const char *name = buf + header->keyofs + entry->nameofs;
-		const char *value = buf + header->valofs + entry->dataofs;
-		if (name >= buf + size || value >= buf + size)
-			break;
-		if (strcmp(name, "TITLE_ID") == 0)
-			res = strdup(value);
-	}
-
-cleanup:
-	if (buf)
-		free(buf);
-	if (fin)
-		fclose(fin);
-
-	return res;
-}
-
 void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
 	SHA1_CTX ctx;
 	uint8_t sha1[20];
@@ -163,10 +118,23 @@ int makeHeadBin() {
 	if (sceIoGetstat(HEAD_BIN, &stat) >= 0)
 		return -1;
 
+	// Read param.sfo
+	void *sfo_buffer = NULL;
+	int res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
+	if (res < 0)
+		return res;
+
 	// Get title id
-	char *title_id = get_title_id(PACKAGE_DIR "/sce_sys/param.sfo");
-	if (!title_id)// || strlen(title_id) != 9) // Enforce TITLEID format?
+	char titleid[12];
+	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+	if (strlen(titleid) != 9) // Enforce TITLE_ID format
 		return -2;
+
+	// Free sfo buffer
+	free(sfo_buffer);
+
+	// TODO: check category for update installation
+	// TODO: use real content_id
 
 	// Allocate head.bin buffer
 	uint8_t *head_bin = malloc(sizeof(base_head_bin));
@@ -174,7 +142,7 @@ int makeHeadBin() {
 
 	// Write full titleid
 	char full_title_id[128];
-	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", title_id);
+	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", titleid);
 	strncpy((char *)&head_bin[0x30], full_title_id, 48);
 
 	// hmac of pkg header
@@ -201,20 +169,23 @@ int makeHeadBin() {
 	WriteFile(HEAD_BIN, head_bin, sizeof(base_head_bin));
 
 	free(head_bin);
-	free(title_id);
 
 	return 0;
 }
 
 int install_thread(SceSize args_size, InstallArguments *args) {
 	SceUID thid = -1;
+	int assisted = args->assisted;
+	int exit_result = 0;
 
 	// Lock power timers
 	powerLock();
 
-	// Set progress to 0%
-	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
-	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+	if (assisted) {
+		// Set progress to 0%
+		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+		sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+	}
 
 	// Recursively clean up package_temp directory
 	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
@@ -223,42 +194,48 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	// Open archive
 	int res = archiveOpen(args->file);
 	if (res < 0) {
-		closeWaitDialog();
-		errorDialog(res);
+		if (assisted) {
+			closeWaitDialog();
+			errorDialog(res);
+		}
+		exit_result = -1;
 		goto EXIT;
 	}
 
 	// Check permissions
-	char path[MAX_PATH_LENGTH];
-	snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
-	SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
-	if (fd >= 0) {
-		char buffer[0x88];
-		archiveFileRead(fd, buffer, sizeof(buffer));
-		archiveFileClose(fd);
+	if (assisted) {
+		char path[MAX_PATH_LENGTH];
+		snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
+		SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
+		if (fd >= 0) {
+			char buffer[0x88];
+			archiveFileRead(fd, buffer, sizeof(buffer));
+			archiveFileClose(fd);
 
-		// Team molecule's request: Full permission access warning
-		uint64_t authid = *(uint64_t *)(buffer + 0x80);
-		if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
-			closeWaitDialog();
-
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
-			dialog_step = DIALOG_STEP_INSTALL_WARNING;
-
-			// Wait for response
-			while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
-				sceKernelDelayThread(1000);
-			}
-
-			// Cancelled
-			if (dialog_step == DIALOG_STEP_CANCELLED) {
+			// Team molecule's request: Full permission access warning
+			uint64_t authid = *(uint64_t *)(buffer + 0x80);
+			if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
 				closeWaitDialog();
-				goto EXIT;
-			}
 
-			// Init again
-			initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
-			dialog_step = DIALOG_STEP_INSTALLING;
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
+				dialog_step = DIALOG_STEP_INSTALL_WARNING;
+
+				// Wait for response
+				while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
+					sceKernelDelayThread(1000);
+				}
+
+				// Cancelled
+				if (dialog_step == DIALOG_STEP_CANCELLED) {
+					closeWaitDialog();
+					exit_result = -2;
+					goto EXIT;
+				}
+
+				// Init again
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+				dialog_step = DIALOG_STEP_INSTALLING;
+			}
 		}
 	}
 
@@ -267,49 +244,75 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	strcpy(src_path, args->file);
 	addEndSlash(src_path);
 
-	// Get archive path info
-	uint64_t size = 0;
-	uint32_t folders = 0, files = 0;
-	getArchivePathInfo(src_path, &size, &folders, &files);
-
-	// Update thread
-	thid = createStartUpdateThread(size + folders);
-
 	// Extract process
-	uint64_t value = 0;
+	if (assisted) {
+		// Get archive path info
+		uint64_t size = 0;
+		uint32_t folders = 0, files = 0;
+		getArchivePathInfo(src_path, &size, &folders, &files);
 
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+		// Update thread
+		thid = createStartUpdateThread(size + folders);
+
+		uint64_t value = 0;
+		res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+	} else {
+		res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL, 0, NULL, NULL);
+	}
+
 	if (res <= 0) {
-		closeWaitDialog();
-		dialog_step = DIALOG_STEP_CANCELLED;
-		errorDialog(res);
+		if (assisted) {
+			closeWaitDialog();
+			dialog_step = DIALOG_STEP_CANCELLED;
+			errorDialog(res);
+		}
+		exit_result = -3;
+		goto EXIT;
+	}
+
+	// Close archive
+	res = archiveClose();
+	if (res < 0) {
+		if (assisted) {
+			closeWaitDialog();
+			errorDialog(res);
+		}
+		exit_result = -4;
 		goto EXIT;
 	}
 
 	// Make head.bin
 	res = makeHeadBin();
 	if (res < 0) {
-		closeWaitDialog();
-		errorDialog(res);
+		if (assisted) {
+			closeWaitDialog();
+			errorDialog(res);
+		}
+		exit_result = -5;
 		goto EXIT;
 	}
 
 	// Promote
 	res = promote(PACKAGE_DIR);
 	if (res < 0) {
-		closeWaitDialog();
-		errorDialog(res);
+		if (assisted) {
+			closeWaitDialog();
+			errorDialog(res);
+		}
+		exit_result = -6;
 		goto EXIT;
 	}
 
-	// Set progress to 100%
-	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
-	sceKernelDelayThread(COUNTUP_WAIT);
+	if (assisted) {
+		// Set progress to 100%
+		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+		sceKernelDelayThread(COUNTUP_WAIT);
 
-	// Close
-	sceMsgDialogClose();
+		// Close
+		sceMsgDialogClose();
 
-	dialog_step = DIALOG_STEP_INSTALLED;
+		dialog_step = DIALOG_STEP_INSTALLED;
+	}
 
 EXIT:
 	if (thid >= 0)
@@ -318,5 +321,5 @@ EXIT:
 	// Unlock power timers
 	powerUnlock();
 
-	return sceKernelExitDeleteThread(0);
+	return sceKernelExitDeleteThread(exit_result);
 }
