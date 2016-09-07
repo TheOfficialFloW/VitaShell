@@ -320,3 +320,71 @@ EXIT:
 
 	return sceKernelExitDeleteThread(0);
 }
+
+int hash_thread(SceSize args_size, HashArguments *args) {
+	SceUID thid = -1;
+
+	// Lock power timers
+	powerLock();
+
+	// Set progress to 0%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+
+	uint64_t max = (uint64_t) (getFileSize(args->file_path)/(TRANSFER_SIZE));
+
+	// SHA1 process
+	uint64_t value = 0;
+
+	// Spin off a thread to update the progress dialog 
+	thid = createStartUpdateThread(max);
+
+	uint8_t sha1out[20];
+	int res = getFileSha1(args->file_path, sha1out, &value, max, SetProgress, cancelHandler);
+	if (res <= 0) {
+		// SHA1 Didn't complete successfully, or was cancelled
+		closeWaitDialog();
+		dialog_step = DIALOG_STEP_CANCELLED;
+		errorDialog(res);
+		goto EXIT;
+	}
+
+	// Since we hit here, we're done. Set progress to 100%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+	sceKernelDelayThread(COUNTUP_WAIT);
+
+	// Close
+	closeWaitDialog();
+
+	char sha1msg[41];
+	int i;
+
+	// Construct SHA1 sum string
+	for (i = 0; i < 20; i++) {
+		sprintf(sha1msg + (2*i), "%02x ", sha1out[i]);
+	}
+
+	sha1msg[40] = '\0';
+
+	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, sha1msg);
+	dialog_step = DIALOG_STEP_HASH_DISPLAY;
+
+	// Wait for response
+	while (dialog_step == DIALOG_STEP_HASH_DISPLAY) {
+		sceKernelDelayThread(1000);
+	}
+
+	closeWaitDialog();
+	sceMsgDialogClose();
+
+EXIT:
+
+	// Ensure the update thread ends gracefully
+	if(thid>=0)
+		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	powerUnlock();
+
+	// Kill current thread
+	return sceKernelExitDeleteThread(0);
+}

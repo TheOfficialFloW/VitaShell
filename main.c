@@ -450,6 +450,7 @@ enum MenuEntrys {
 	MENU_ENTRY_RENAME,
 	MENU_ENTRY_EMPTY_4,
 	MENU_ENTRY_NEW_FOLDER,
+	MENU_ENTRY_SHA1,
 };
 
 enum MenuVisibilities {
@@ -475,6 +476,7 @@ MenuEntry menu_entries[] = {
 	{ RENAME, VISIBILITY_INVISIBLE },
 	{ -1, VISIBILITY_UNUSED },
 	{ NEW_FOLDER, VISIBILITY_INVISIBLE },
+	{ SHA1, VISIBILITY_INVISIBLE }
 };
 
 #define N_MENU_ENTRIES (sizeof(menu_entries) / sizeof(MenuEntry))
@@ -497,6 +499,7 @@ void initContextMenu() {
 		menu_entries[MENU_ENTRY_COPY].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_SHA1].visibility = VISIBILITY_INVISIBLE;
 	}
 
 	// Invisible 'Paste' if nothing is copied yet
@@ -510,6 +513,11 @@ void initContextMenu() {
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_SHA1].visibility  = VISIBILITY_INVISIBLE;
+	}
+
+	if(file_entry->is_folder) {
+		menu_entries[MENU_ENTRY_SHA1].visibility = VISIBILITY_INVISIBLE;
 	}
 
 	if(file_entry->type != FILE_TYPE_VPK) {
@@ -790,6 +798,14 @@ void contextMenuCtrl() {
 				dialog_step = DIALOG_STEP_NEW_FOLDER;
 				break;
 			}
+
+			case MENU_ENTRY_SHA1:
+			{
+				// Ensure user wants to actually take the hash
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[HASH_FILE_QUESTION]);
+				dialog_step = DIALOG_STEP_HASH_QUESTION;
+				break;
+			}
 			
 			case MENU_ENTRY_INSTALL_ALL:
 			{
@@ -982,7 +998,48 @@ int dialogSteps() {
 			}
 
 			break;
+
+		case DIALOG_STEP_HASH_QUESTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				// Throw up the progress bar, enter hashing state
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[HASHING]);
+				dialog_step = DIALOG_STEP_HASH_CONFIRMED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				// Quit
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+
+		case DIALOG_STEP_HASH_CONFIRMED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				// User has confirmed desire to hash, get requested file entry
+				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+				// Place the full file path in cur_file
+				snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+
+				HashArguments args;
+				args.file_path = cur_file;
+
+				// Create a thread to run out actual sum
+				SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x10000, 0, 0, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, sizeof(HashArguments), &args);
 			
+				dialog_step = DIALOG_STEP_HASHING;
+			}
+
+			break;
+
+		case DIALOG_STEP_HASH_DISPLAY:
+			// Reset dialog state when user selects yes/no
+			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+
 		case DIALOG_STEP_INSTALL_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
