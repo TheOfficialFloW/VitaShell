@@ -23,6 +23,9 @@
 #include "hex.h"
 #include "theme.h"
 #include "utils.h"
+#include "language.h"
+#include "ime_dialog.h"
+#include "message_dialog.h"
 
 void textListAddEntry(TextList *list, TextListEntry *entry) {
 	entry->next = NULL;
@@ -134,8 +137,11 @@ int textViewer(char *file) {
 
 	int size = 0;
 
+	int modify_allowed = 1;
+
 	if (isInArchive()) {
 		size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
+		modify_allowed = 0;
 	} else {
 		size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
 	}
@@ -156,10 +162,11 @@ int textViewer(char *file) {
 	int i;
 	for (i = 0; i < MAX_ENTRIES; i++) {
 		TextListEntry *entry = malloc(sizeof(TextListEntry));
+		entry->line_number = i;
 
 		int length = textReadLine(buffer, offset_list[i], size, entry->line);
 		offset_list[i + 1] = offset_list[i] + length;
-
+		
 		textListAddEntry(&list, entry);
 	}
 
@@ -171,79 +178,168 @@ int textViewer(char *file) {
 	if (thid >= 0)
 		sceKernelStartThread(thid, sizeof(argp), &argp);
 
+	int edit_line = 0;
+	int changed = 0;
+	int save_question = 0;
+
 	while (1) {
 		readPad();
 
-		if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
-			if (rel_pos > 0) {
-				rel_pos--;
-			} else {
-				if (base_pos > 0) {
-					base_pos--;
-
-					// Tail to head
-					list.tail->next = list.head;
-					list.head->previous = list.tail;
-					list.head = list.tail;
-
-					// Second last to tail
-					list.tail = list.tail->previous;
-					list.tail->next = NULL;
-
-					// No previous
-					list.head->previous = NULL;
-
-					// Read
-					textReadLine(buffer, offset_list[base_pos], size, list.head->line);
-				}
-			}
-		} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-			if (offset_list[rel_pos + 1] < size) {
-				if ((rel_pos + 1) < MAX_POSITION) {
-					rel_pos++;
+		if (!save_question) {
+			if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+				if (rel_pos > 0) {
+					rel_pos--;
 				} else {
-					if (offset_list[base_pos + rel_pos + 1] < size) {
-						base_pos++;
+					if (base_pos > 0) {
+						base_pos--;
 
-						// Head to tail
-						list.head->previous = list.tail;
+						// Tail to head
 						list.tail->next = list.head;
-						list.tail = list.head;
+						list.head->previous = list.tail;
+						list.head = list.tail;
 
-						// Second first to head
-						list.head = list.head->next;
-						list.head->previous = NULL;
-
-						// No next
+						// Second last to tail
+						list.tail = list.tail->previous;
 						list.tail->next = NULL;
 
+						// No previous
+						list.head->previous = NULL;
+
+						// Update line_number
+						list.head->line_number = base_pos;
+
 						// Read
-						int length = textReadLine(buffer, offset_list[base_pos + MAX_ENTRIES - 1], size, list.tail->line);
-						offset_list[base_pos + MAX_ENTRIES] = offset_list[base_pos + MAX_ENTRIES - 1] + length;
+						textReadLine(buffer, offset_list[base_pos], size, list.head->line);
 					}
 				}
+			} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+				if (offset_list[rel_pos + 1] < size) {
+					if ((rel_pos + 1) < MAX_POSITION) {
+						rel_pos++;
+					} else {
+						if (offset_list[base_pos + rel_pos + 1] < size) {
+							base_pos++;
+
+							// Head to tail
+							list.head->previous = list.tail;
+							list.tail->next = list.head;
+							list.tail = list.head;
+
+							// Second first to head
+							list.head = list.head->next;
+							list.head->previous = NULL;
+
+							// No next
+							list.tail->next = NULL;
+
+							// Update line_number
+							list.tail->line_number = base_pos + MAX_ENTRIES - 1;
+
+							// Read
+							int length = textReadLine(buffer, offset_list[base_pos + MAX_ENTRIES - 1], size, list.tail->line);
+							offset_list[base_pos + MAX_ENTRIES] = offset_list[base_pos + MAX_ENTRIES - 1] + length;
+						}
+					}
+				}
+			} else if(modify_allowed && !edit_line && hold_buttons & SCE_CTRL_ENTER) {
+				int line_start = offset_list[base_pos + rel_pos];
+				
+				char line[MAX_LINE_CHARACTERS];
+				textReadLine(buffer, line_start, size, line);
+
+				initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS);
+
+				edit_line = 1;
 			}
-		}
 
-		// Page skip
-		if (hold_buttons & SCE_CTRL_LTRIGGER) {
+			if (edit_line) {
+				int ime_result = updateImeDialog();
 
-		}
+				if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+					int line_start = offset_list[base_pos + rel_pos];
+					
+					char line[MAX_LINE_CHARACTERS];
+					int length = textReadLine(buffer, line_start, size, line);
 
-		if (hold_buttons & SCE_CTRL_RTRIGGER) {
+					// Don't count newline 
+					if (buffer[line_start + length - 1] == '\n') {
+						length--;
+					}
 
-		}
+					char *new_line = (char *)getImeDialogInputTextUTF8();
+					int new_length = strlen(new_line);
 
-		// Cancel
-		if (pressed_buttons & SCE_CTRL_CANCEL) {
-			hex_viewer = 0;
-			break;
-		}
+					// Move data if size has changed
+					if (new_length != length) {
+						memmove(&buffer[line_start+new_length], &buffer[line_start+length], size-line_start-length);
+						size = size + (new_length - length);
+					}
 
-		// Switch to hex viewer
-		if (pressed_buttons & SCE_CTRL_SQUARE) {
-			hex_viewer = 1;
-			break;
+					// Copy new line into buffer
+					memcpy(&buffer[line_start], new_line, new_length);
+
+					// Update entries
+					int i;
+					TextListEntry *entry = list.head;
+					for (i = 0; i < MAX_ENTRIES; i++) {
+						if (!entry) {
+							break;
+						}
+						
+						entry->line_number = base_pos + i;
+
+						int length = textReadLine(buffer, offset_list[base_pos + i], size, entry->line);
+						offset_list[base_pos + i + 1] = offset_list[base_pos + i] + length;
+
+						entry = entry->next;
+					}
+
+					edit_line = 0;
+					changed = 1;
+
+				} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+					edit_line = 0;
+				}
+			}
+
+			// Page skip
+			if (hold_buttons & SCE_CTRL_LTRIGGER) {
+
+			}
+
+			if (hold_buttons & SCE_CTRL_RTRIGGER) {
+
+			}
+
+			// Cancel
+			if (pressed_buttons & SCE_CTRL_CANCEL) {
+				if (changed) {
+					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SAVE_MODIFICATIONS]);
+					save_question = 1;
+				} else {
+					hex_viewer = 0;
+					break;
+				}
+			}
+
+			// Switch to hex viewer
+			if (pressed_buttons & SCE_CTRL_SQUARE) {
+				hex_viewer = 1;
+				break;
+			}
+		} else {
+			int msg_result = updateMessageDialog();
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				SceUID fd = sceIoOpen(file, SCE_O_WRONLY, 0777);
+				if (fd >= 0) {
+					sceIoWrite(fd, buffer, size);
+					sceIoClose(fd);
+				}
+
+				break;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				break;
+			}
 		}
 
 		// Start drawing
@@ -262,7 +358,14 @@ int textViewer(char *file) {
 		for (i = 0; i < list.length; i++) {
 			char *line = entry->line;
 
-			float x = SHELL_MARGIN_X;
+			if (entry->line_number < n_lines) {
+				char line_str[5];
+				snprintf(line_str, 5, "%04i", entry->line_number);
+
+				pgf_draw_text(SHELL_MARGIN_X, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? FOCUS_COLOR : GENERAL_COLOR, FONT_SIZE, line_str);
+			}
+
+			float x = TEXT_START_X;
 
 			while (*line) {
 				char *p = strchr(line, '\t');
