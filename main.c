@@ -48,8 +48,6 @@
 
 int _newlib_heap_size_user = 64 * 1024 * 1024;
 
-#define CONTEXT_MENU_MORE_WIDTH 180.0f
-
 #define MAX_DIR_LEVELS 1024
 
 // File lists
@@ -77,6 +75,7 @@ static int ctx_menu_pos = -1;
 static int ctx_menu_more_pos = -1;
 static float ctx_menu_width = 0;
 static float ctx_menu_max_width = 0;
+static float ctx_menu_more_max_width = 0;
 
 // Net info
 static SceNetEtherAddr mac;
@@ -469,41 +468,16 @@ MenuEntry menu_entries[] = {
 #define N_MENU_ENTRIES (sizeof(menu_entries) / sizeof(MenuEntry))
 
 enum MenuMoreEntrys {
-	MENU_MORE_ENTRY_BACK,
-	MENU_MORE_ENTRY_EMPTY_1,
 	MENU_MORE_ENTRY_INSTALL_ALL,
 	MENU_MORE_ENTRY_CALCULATE_SHA1,
 };
 
 MenuEntry menu_more_entries[] = {
-	{ BACK, VISIBILITY_INVISIBLE },
-	{ -1, VISIBILITY_UNUSED },
 	{ INSTALL_ALL, VISIBILITY_INVISIBLE },
 	{ CALCULATE_SHA1, VISIBILITY_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
-
-void initContextMenuMore() {
-	int i;
-
-	// All visible
-	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-		if (menu_more_entries[i].visibility == VISIBILITY_INVISIBLE)
-			menu_more_entries[i].visibility = VISIBILITY_VISIBLE;
-	}
-
-	// Go to first entry
-	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-		if (menu_more_entries[i].visibility == VISIBILITY_VISIBLE) {
-			ctx_menu_more_pos = i;
-			break;
-		}
-	}
-
-	if (i == N_MENU_MORE_ENTRIES)
-		ctx_menu_more_pos = -1;
-}
 
 void initContextMenu() {
 	int i;
@@ -554,15 +528,6 @@ void initContextMenu() {
 		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = VISIBILITY_INVISIBLE;
-		//menu_entries[MENU_ENTRY_CALCULATE_SHA1].visibility  = VISIBILITY_INVISIBLE;
-	}
-
-	if(file_entry->is_folder) {
-		//menu_entries[MENU_ENTRY_CALCULATE_SHA1].visibility = VISIBILITY_INVISIBLE;
-	}
-
-	if(file_entry->type != FILE_TYPE_VPK) {
-		//menu_entries[MENU_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
 	}
 
 	// Mark/Unmark all text
@@ -587,6 +552,42 @@ void initContextMenu() {
 
 	if (i == N_MENU_ENTRIES)
 		ctx_menu_pos = -1;
+}
+
+void initContextMenuMore() {
+	int i;
+
+	// All visible
+	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
+		if (menu_more_entries[i].visibility == VISIBILITY_INVISIBLE)
+			menu_more_entries[i].visibility = VISIBILITY_VISIBLE;
+	}
+
+	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+	// Invisble write operations in archives
+	if (isInArchive()) {
+		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility  = VISIBILITY_INVISIBLE;
+	}
+
+	if(file_entry->is_folder) {
+		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = VISIBILITY_INVISIBLE;
+	}
+
+	if(file_entry->type != FILE_TYPE_VPK) {
+		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
+	}
+
+	// Go to first entry
+	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
+		if (menu_more_entries[i].visibility == VISIBILITY_VISIBLE) {
+			ctx_menu_more_pos = i;
+			break;
+		}
+	}
+
+	if (i == N_MENU_MORE_ENTRIES)
+		ctx_menu_more_pos = -1;
 }
 
 float easeOut(float x0, float x1, float a) {
@@ -624,8 +625,8 @@ void drawContextMenu() {
 
 	// Opening context menu 'More'
 	if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
-		if (ctx_menu_width < ctx_menu_max_width + CONTEXT_MENU_MORE_WIDTH) {
-			ctx_menu_width += easeOut(ctx_menu_width, ctx_menu_max_width + CONTEXT_MENU_MORE_WIDTH, 0.375f);
+		if (ctx_menu_width < ctx_menu_max_width + ctx_menu_more_max_width) {
+			ctx_menu_width += easeOut(ctx_menu_width, ctx_menu_max_width + ctx_menu_more_max_width, 0.375f);
 		} else {
 			ctx_menu_mode = CONTEXT_MENU_MORE_OPENED;
 		}
@@ -637,7 +638,7 @@ void drawContextMenu() {
 			vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_menu_width, 0.0f, 0.0f, 0.0f, ctx_menu_width, SCREEN_HEIGHT);
 		} else {
 			vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_menu_width, 0.0f, 0.0f, 0.0f, ctx_menu_max_width, SCREEN_HEIGHT);
-			vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_menu_width + ctx_menu_max_width, 0.0f, 0.0f, 0.0f, CONTEXT_MENU_MORE_WIDTH, SCREEN_HEIGHT); // TODO: another image
+			vita2d_draw_texture_part(context_more_image, SCREEN_WIDTH - ctx_menu_width + ctx_menu_max_width, 0.0f, 0.0f, 0.0f, ctx_menu_more_max_width, SCREEN_HEIGHT);
 		}
 
 		int i;
@@ -649,8 +650,11 @@ void drawContextMenu() {
 
 			uint32_t color = GENERAL_COLOR;
 
-			if (i == ctx_menu_pos)
-				color = FOCUS_COLOR;
+			if (i == ctx_menu_pos) {
+				if (ctx_menu_mode != CONTEXT_MENU_MORE_OPENED && ctx_menu_mode != CONTEXT_MENU_MORE_OPENING) {
+					color = FOCUS_COLOR;
+				}
+			}
 
 			if (menu_entries[i].visibility == VISIBILITY_INVISIBLE)
 				color = INVISIBLE_COLOR;
@@ -667,13 +671,16 @@ void drawContextMenu() {
 
 				uint32_t color = GENERAL_COLOR;
 
-				if (i == ctx_menu_more_pos)
-					color = FOCUS_COLOR;
+				if (i == ctx_menu_more_pos) {
+					if (ctx_menu_mode != CONTEXT_MENU_MORE_CLOSING) {
+						color = FOCUS_COLOR;
+					}
+				}
 
 				if (menu_more_entries[i].visibility == VISIBILITY_INVISIBLE)
 					color = INVISIBLE_COLOR;
 
-				pgf_draw_text(SCREEN_WIDTH - ctx_menu_width + CONTEXT_MENU_MARGIN + CONTEXT_MENU_MORE_WIDTH, y, color, FONT_SIZE, language_container[menu_more_entries[i].name]);
+				pgf_draw_text(SCREEN_WIDTH - ctx_menu_width + ctx_menu_max_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[menu_more_entries[i].name]);
 			}
 		}
 	}
@@ -1463,7 +1470,7 @@ int shellMain() {
 
 		int i;
 		for (i = 0; i < MAX_ENTRIES && (base_pos + i) < file_list.length; i++) {
-			uint32_t color = GENERAL_COLOR;
+			uint32_t color = FILE_COLOR;
 			float y = START_Y + (i * FONT_Y_SPACE);
 
 			vita2d_texture *icon = NULL;
@@ -1505,6 +1512,7 @@ int shellMain() {
 						break;
 						
 					default:
+						color = FILE_COLOR;
 						icon = file_icon;
 						break;
 				}
@@ -1607,6 +1615,14 @@ void initShell() {
 
 	ctx_menu_max_width += 2.0f * CONTEXT_MENU_MARGIN;
 	ctx_menu_max_width = MAX(ctx_menu_max_width, CONTEXT_MENU_MIN_WIDTH);
+
+	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
+		if (menu_more_entries[i].visibility != VISIBILITY_UNUSED)
+			ctx_menu_more_max_width = MAX(ctx_menu_more_max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_more_entries[i].name]));
+	}
+
+	ctx_menu_more_max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	ctx_menu_more_max_width = MAX(ctx_menu_more_max_width, CONTEXT_MENU_MORE_MIN_WIDTH);
 }
 
 void getNetInfo() {

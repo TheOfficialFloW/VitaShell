@@ -27,6 +27,7 @@ extern int TITLE_COLOR;
 extern int PATH_COLOR;
 extern int DATE_TIME_COLOR;
 extern int FOCUS_COLOR;
+extern int FILE_COLOR;
 extern int FOLDER_COLOR;
 extern int IMAGE_COLOR;
 extern int ARCHIVE_COLOR;
@@ -36,13 +37,14 @@ extern int MARKED_COLOR;
 extern int INVISIBLE_COLOR;
 extern int DIALOG_BG_COLOR;
 extern int CONTEXT_MENU_COLOR;
+extern int CONTEXT_MENU_MORE_COLOR;
 extern int PROGRESS_BAR_COLOR;
 extern int PROGRESS_BAR_BG_COLOR;
 extern int HEX_OFFSET_COLOR;
 extern int HEX_NIBBLE_COLOR;
 
 extern vita2d_texture *folder_icon, *file_icon, *archive_icon, *image_icon, *audio_icon, *sfo_icon, *text_icon,
-					  *ftp_image, *dialog_image, *context_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image,
+					  *ftp_image, *dialog_image, *context_image, *context_more_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image,
 					  *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image, *bg_photo_image;
 
 extern vita2d_texture *wallpaper_image[MAX_WALLPAPERS];

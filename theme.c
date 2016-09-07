@@ -44,6 +44,7 @@ int TITLE_COLOR;
 int PATH_COLOR;
 int DATE_TIME_COLOR;
 int FOCUS_COLOR;
+int FILE_COLOR;
 int FOLDER_COLOR;
 int IMAGE_COLOR;
 int ARCHIVE_COLOR;
@@ -53,13 +54,14 @@ int MARKED_COLOR;
 int INVISIBLE_COLOR;
 int DIALOG_BG_COLOR;
 int CONTEXT_MENU_COLOR;
+int CONTEXT_MENU_MORE_COLOR;
 int PROGRESS_BAR_COLOR;
 int PROGRESS_BAR_BG_COLOR;
 int HEX_OFFSET_COLOR;
 int HEX_NIBBLE_COLOR;
 
 vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
-			   *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
+			   *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
 			   *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL,
 			   *bg_text_image = NULL, *bg_photo_image = NULL;
 
@@ -78,6 +80,7 @@ void loadTheme() {
 		COLOR_ENTRY(PATH_COLOR),
 		COLOR_ENTRY(DATE_TIME_COLOR),
 		COLOR_ENTRY(FOCUS_COLOR),
+		COLOR_ENTRY(FILE_COLOR),
 		COLOR_ENTRY(FOLDER_COLOR),
 		COLOR_ENTRY(IMAGE_COLOR),
 		COLOR_ENTRY(ARCHIVE_COLOR),
@@ -87,6 +90,7 @@ void loadTheme() {
 		COLOR_ENTRY(INVISIBLE_COLOR),
 		COLOR_ENTRY(DIALOG_BG_COLOR),
 		COLOR_ENTRY(CONTEXT_MENU_COLOR),
+		COLOR_ENTRY(CONTEXT_MENU_MORE_COLOR),
 		COLOR_ENTRY(PROGRESS_BAR_COLOR),
 		COLOR_ENTRY(PROGRESS_BAR_BG_COLOR),
 		COLOR_ENTRY(HEX_OFFSET_COLOR),
@@ -143,6 +147,9 @@ void loadTheme() {
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/context.png", theme_name);
 			context_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/context_more.png", theme_name);
+			context_more_image = vita2d_load_PNG_file(path);
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery.png", theme_name);
 			battery_image = vita2d_load_PNG_file(path);
@@ -237,6 +244,19 @@ void loadTheme() {
 			int x;
 			for (x = 0; x < SCREEN_WIDTH; x++) {
 				((uint32_t *)data)[x + SCREEN_WIDTH * y] = CONTEXT_MENU_COLOR;
+			}
+		}
+	}
+
+	if (!context_more_image) {
+		context_more_image = vita2d_create_empty_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
+		void *data = vita2d_texture_get_datap(context_more_image);
+
+		int y;
+		for (y = 0; y < SCREEN_HEIGHT; y++) {
+			int x;
+			for (x = 0; x < SCREEN_WIDTH; x++) {
+				((uint32_t *)data)[x + SCREEN_WIDTH * y] = CONTEXT_MENU_MORE_COLOR;
 			}
 		}
 	}

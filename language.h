@@ -37,7 +37,6 @@ enum LanguageContainer {
 	RENAME,
 	NEW_FOLDER,
 	MORE,
-	BACK,
 	INSTALL_ALL,
 	CALCULATE_SHA1,
 	COPIED_FILE,
