@@ -59,6 +59,7 @@ enum LanguageContainer {
 	SHA1,
 	HASHING,
 	HASH_FILE_QUESTION,
+	EDIT_LINE,
 	LANGUAGE_CONTRAINER_SIZE,
 };
 
