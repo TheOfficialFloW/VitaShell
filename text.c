@@ -106,6 +106,22 @@ int textReadLine(char *buffer, int offset, int size, char *line) {
 	return i;
 }
 
+void updateTextEntries(char *buffer, int base_pos, int size, int *offset_list, TextListEntry *entry) {
+	int i;
+	for (i = 0; i < MAX_ENTRIES; i++) {
+		if (!entry) {
+			break;
+		}
+		
+		entry->line_number = base_pos + i;
+
+		int length = textReadLine(buffer, offset_list[base_pos + i], size, entry->line);
+		offset_list[base_pos + i + 1] = offset_list[base_pos + i] + length;
+
+		entry = entry->next;
+	}
+}
+
 static int running = 0;
 static int n_lines = 0;
 
@@ -279,20 +295,7 @@ int textViewer(char *file) {
 					memcpy(&buffer[line_start], new_line, new_length);
 
 					// Update entries
-					int i;
-					TextListEntry *entry = list.head;
-					for (i = 0; i < MAX_ENTRIES; i++) {
-						if (!entry) {
-							break;
-						}
-						
-						entry->line_number = base_pos + i;
-
-						int length = textReadLine(buffer, offset_list[base_pos + i], size, entry->line);
-						offset_list[base_pos + i + 1] = offset_list[base_pos + i] + length;
-
-						entry = entry->next;
-					}
+					updateTextEntries(buffer, base_pos, size, offset_list, list.head);
 
 					edit_line = 0;
 					changed = 1;
@@ -303,11 +306,24 @@ int textViewer(char *file) {
 			}
 
 			// Page skip
-			if (hold_buttons & SCE_CTRL_LTRIGGER) {
+			if (hold_buttons & SCE_CTRL_LTRIGGER || hold_buttons & SCE_CTRL_RTRIGGER) {
 
-			}
+				if (hold_buttons & SCE_CTRL_LTRIGGER) {  // Skip page up
+					base_pos = base_pos - MAX_ENTRIES;
+					if (base_pos < 0) {
+						base_pos = 0;
+						rel_pos = 0;
+					}
+				} else {  // Skip page down
+					base_pos = base_pos + MAX_ENTRIES;
+					if (base_pos >=  n_lines - MAX_POSITION) {
+						base_pos = n_lines - MAX_POSITION;
+						rel_pos = MAX_POSITION - 1;
+					}
+				}
 
-			if (hold_buttons & SCE_CTRL_RTRIGGER) {
+				// Update entries
+				updateTextEntries(buffer, base_pos, size, offset_list, list.head);
 
 			}
 
