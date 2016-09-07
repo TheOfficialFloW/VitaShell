@@ -263,7 +263,7 @@ int textViewer(char *file) {
 				char line[MAX_LINE_CHARACTERS];
 				textReadLine(buffer, line_start, size, line);
 
-				initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS);
+				initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, SCE_IME_OPTION_MULTILINE);
 
 				edit_line = 1;
 			}

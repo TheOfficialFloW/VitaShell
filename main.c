@@ -785,7 +785,7 @@ void contextMenuCtrl() {
 				strcpy(name, file_entry->name);
 				removeEndSlash(name);
 
-				initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH);
+				initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
 
 				dialog_step = DIALOG_STEP_RENAME;
 				break;
@@ -811,7 +811,7 @@ void contextMenuCtrl() {
 					count++;
 				}
 
-				initImeDialog(language_container[NEW_FOLDER], path + strlen(file_list.path), MAX_NAME_LENGTH);
+				initImeDialog(language_container[NEW_FOLDER], path + strlen(file_list.path), MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
 				dialog_step = DIALOG_STEP_NEW_FOLDER;
 				break;
 			}
