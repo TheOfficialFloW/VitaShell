@@ -42,6 +42,8 @@ extern int PROGRESS_BAR_COLOR;
 extern int PROGRESS_BAR_BG_COLOR;
 extern int HEX_OFFSET_COLOR;
 extern int HEX_NIBBLE_COLOR;
+extern int TEXT_LINE_NUMBER_COLOR;
+extern int TEXT_LINE_NUMBER_COLOR_FOCUS;
 
 extern vita2d_texture *folder_icon, *file_icon, *archive_icon, *image_icon, *audio_icon, *sfo_icon, *text_icon,
 					  *ftp_image, *dialog_image, *context_image, *context_more_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image,

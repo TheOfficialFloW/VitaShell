@@ -378,7 +378,7 @@ int textViewer(char *file) {
 				char line_str[5];
 				snprintf(line_str, 5, "%04i", entry->line_number);
 
-				pgf_draw_text(SHELL_MARGIN_X, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? FOCUS_COLOR : GENERAL_COLOR, FONT_SIZE, line_str);
+				pgf_draw_text(SHELL_MARGIN_X, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? TEXT_LINE_NUMBER_COLOR_FOCUS : TEXT_LINE_NUMBER_COLOR, FONT_SIZE, line_str);
 			}
 
 			float x = TEXT_START_X;

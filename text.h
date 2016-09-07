@@ -22,7 +22,7 @@
 #define MAX_LINES 1 * 1024 * 1024
 #define MAX_LINE_CHARACTERS 1024
 
-#define TEXT_START_X SHELL_MARGIN_X + 65.0f
+#define TEXT_START_X 97.0f
 
 typedef struct TextListEntry {
 	struct TextListEntry *next;
