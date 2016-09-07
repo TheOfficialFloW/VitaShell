@@ -96,25 +96,34 @@ int getFileSize(char *pInputFileName)
 }
 
 int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+
+	// Set up SHA1 context	
 	SHA1_CTX ctx;
 	sha1_init(&ctx);
 
+	// Open the file to read, else return the error
 	SceUID fd = sceIoOpen(pInputFileName, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
 
+	// Open up the buffer for copying data into
 	void *buf = malloc(TRANSFER_SIZE);
 
 	int read;
+
+	// Actually take the SHA1 sum
 	while ((read = sceIoRead(fd, buf, TRANSFER_SIZE)) > 0)
 	{
 		sha1_update(&ctx, buf, read);
+
+		// Defined in io_process.c, check to make sure pointer isn't null before incrementing
 		if(value)
-			(*value)++;
+			(*value)++; // Note: Max value is filesize/TRANSFER_SIZE
 
 		if(SetProgress)
 			SetProgress(value ? *value : 0, max);
 
+		// Check to see if cancelHandler exists, if so call it and free memory if cancelled
 		if(cancelHandler && cancelHandler()) {
 			free(buf);
 			sceIoClose(fd);
@@ -128,10 +137,13 @@ int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, uint64_t *value, uint64
 			sceKernelDelayThread(500000);
 	}
 
+	// Final iteration of SHA1 sum, dump final value into pSha1Out buffer
 	sha1_final(&ctx, pSha1Out);
 
+	// Free up file buffer
 	free(buf);
 
+	// Close file proper
 	sceIoClose(fd);
 	return 1;
 }

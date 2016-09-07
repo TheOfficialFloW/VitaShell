@@ -801,6 +801,7 @@ void contextMenuCtrl() {
 
 			case MENU_ENTRY_SHA1:
 			{
+				// Ensure user wants to actually take the hash
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[HASH_FILE_QUESTION]);
 				dialog_step = DIALOG_STEP_HASH_QUESTION;
 				break;
@@ -1000,10 +1001,11 @@ int dialogSteps() {
 
 		case DIALOG_STEP_HASH_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
-
+				// Throw up the progress bar, enter hashing state
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[HASHING]);
 				dialog_step = DIALOG_STEP_HASH_CONFIRMED;
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				// Quit
 				dialog_step = DIALOG_STEP_NONE;
 			}
 
@@ -1011,12 +1013,16 @@ int dialogSteps() {
 
 		case DIALOG_STEP_HASH_CONFIRMED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				// User has confirmed desire to hash, get requested file entry
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+				// Place the full file path in cur_file
 				snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
 				HashArguments args;
 				args.file_path = cur_file;
 
+				// Create a thread to run out actual sum
 				SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x10000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(HashArguments), &args);
@@ -1027,6 +1033,7 @@ int dialogSteps() {
 			break;
 
 		case DIALOG_STEP_HASH_DISPLAY:
+			// Reset dialog state when user selects yes/no
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				dialog_step = DIALOG_STEP_NONE;
 			}
