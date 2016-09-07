@@ -330,7 +330,7 @@ int textViewer(char *file) {
 		} else {
 			int msg_result = updateMessageDialog();
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
-				SceUID fd = sceIoOpen(file, SCE_O_WRONLY, 0777);
+				SceUID fd = sceIoOpen(file, SCE_O_WRONLY|SCE_O_TRUNC, 0777);
 				if (fd >= 0) {
 					sceIoWrite(fd, buffer, size);
 					sceIoClose(fd);
