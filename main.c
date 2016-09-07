@@ -506,6 +506,23 @@ void initContextMenu() {
 	if (copy_list.length == 0)
 		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
 
+	// Invisible 'Paste' if the files to move are not from the same partition
+	char *p = strchr(file_list.path, ':');
+	char *q = strchr(copy_list.path, ':');
+	if (p && q) {
+		*p = '\0';
+		*q = '\0';
+
+		if (strcmp(file_list.path, copy_list.path) != 0) {
+			menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
+		}
+
+		*q = ':';
+		*p = ':';
+	} else {
+		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
+	}
+
 	// Invisble write operations in archives
 	if (isInArchive()) { // TODO: read-only mount points
 		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;

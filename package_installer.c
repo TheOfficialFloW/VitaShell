@@ -44,9 +44,9 @@ int promoteUpdate(char *path) {
 
 	// Read param.sfo
 	void *sfo_buffer = NULL;
-	res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
-	if (res < 0)
-		return res;
+	int sfo_size = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
+	if (sfo_size < 0)
+		return sfo_size;
 
 	// Get titleid
 	char titleid[12];
@@ -56,22 +56,32 @@ int promoteUpdate(char *path) {
 	char category[4];
 	getSfoString(sfo_buffer, "CATEGORY", category, sizeof(category));
 
-	// Free sfo buffer
-	free(sfo_buffer);
-
 	// Update installation
 	if (strcmp(category, "gp") == 0) {
+		// Change category to 'gd'
+		setSfoString(sfo_buffer, "CATEGORY", "gd");
+		WriteFile(PACKAGE_DIR "/sce_sys/param.sfo", sfo_buffer, sfo_size);
+
+		// App path
 		char app_path[MAX_PATH_LENGTH];
 		snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", titleid);
 
+		// Integrate patch to app
 		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL, 0, NULL, NULL);
-		if (res < 0)
+		if (res < 0) {
+			free(sfo_buffer);
 			return res;
+		}
 
+		// Move app to promotion directory
 		res = movePath(app_path, path, 0, NULL, 0, NULL, NULL);
-		if (res < 0)
+		if (res < 0) {
+			free(sfo_buffer);
 			return res;
+		}
 	}
+
+	free(sfo_buffer);
 
 	return 0;
 }
@@ -165,23 +175,29 @@ int makeHeadBin() {
 
 	// Get title id
 	char titleid[12];
+	memset(titleid, 0, sizeof(titleid));
 	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
-	if (strlen(titleid) != 9) // Enforce TITLE_ID format
+
+	// Enforce TITLE_ID format
+	if (strlen(titleid) != 9)
 		return -2;
+
+	// Get content id
+	char contentid[48];
+	memset(contentid, 0, sizeof(contentid));
+	getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
 
 	// Free sfo buffer
 	free(sfo_buffer);
-
-	// TODO: use real content_id
 
 	// Allocate head.bin buffer
 	uint8_t *head_bin = malloc(sizeof(base_head_bin));
 	memcpy(head_bin, base_head_bin, sizeof(base_head_bin));
 
-	// Write full titleid
-	char full_title_id[128];
+	// Write full title id
+	char full_title_id[48];
 	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", titleid);
-	strncpy((char *)&head_bin[0x30], full_title_id, 48);
+	strncpy((char *)&head_bin[0x30], strlen(contentid) > 0 ? contentid : full_title_id, 48);
 
 	// hmac of pkg header
 	len = ntohl(*(uint32_t *)&head_bin[0xD0]);
