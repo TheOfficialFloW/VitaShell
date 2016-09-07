@@ -317,8 +317,8 @@ int textViewer(char *file) {
 				} else {  // Skip page down
 					base_pos = base_pos + MAX_ENTRIES;
 					if (base_pos >=  n_lines - MAX_POSITION) {
-						base_pos = n_lines - MAX_POSITION;
-						rel_pos = MAX_POSITION - 1;
+						base_pos = MAX(n_lines - MAX_POSITION, 0);
+						rel_pos = MIN(MAX_POSITION - 1, n_lines-1);
 					}
 				}
 
