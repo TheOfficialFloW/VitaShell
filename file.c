@@ -292,13 +292,13 @@ int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(u
 
 int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
 	// The source and destination paths are identical
-	if (strcmp(src_path, dst_path) == 0) {
+	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
 	}
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
+	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
 		return -2;
 	}
 
@@ -352,13 +352,13 @@ int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 
 int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
 	// The source and destination paths are identical
-	if (strcmp(src_path, dst_path) == 0) {
+	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
 	}
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
+	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
 		return -2;
 	}
 
@@ -426,13 +426,13 @@ int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 
 int movePath(char *src_path, char *dst_path, int flags, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
 	// The source and destination paths are identical
-	if (strcmp(src_path, dst_path) == 0) {
+	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
 	}
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
+	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
 		return -2;
 	}
 
@@ -564,7 +564,7 @@ FileListEntry *fileListFindEntry(FileList *list, char *name) {
 	int name_length = strlen(name);
 
 	while (entry) {
-		if (entry->name_length == name_length && strcmp(entry->name, name) == 0)
+		if (entry->name_length == name_length && strcasecmp(entry->name, name) == 0)
 			return entry;
 
 		entry = entry->next;
@@ -595,7 +595,7 @@ int fileListGetNumberByName(FileList *list, char *name) {
 	int n = 0;
 
 	while (entry) {
-		if (entry->name_length == name_length && strcmp(entry->name, name) == 0)
+		if (entry->name_length == name_length && strcasecmp(entry->name, name) == 0)
 			break;
 
 		n++;
@@ -701,7 +701,7 @@ int fileListRemoveEntryByName(FileList *list, char *name) {
 	int name_length = strlen(name);
 
 	while (entry) {
-		if (entry->name_length == name_length && strcmp(entry->name, name) == 0) {
+		if (entry->name_length == name_length && strcasecmp(entry->name, name) == 0) {
 			if (previous) {
 				previous->next = entry->next;
 			} else {
@@ -823,7 +823,7 @@ int fileListGetEntries(FileList *list, char *path) {
 		return fileListGetArchiveEntries(list, path);
 	}
 
-	if (strcmp(path, HOME_PATH) == 0) {
+	if (strcasecmp(path, HOME_PATH) == 0) {
 		return fileListGetMountPointEntries(list);
 	}
 
