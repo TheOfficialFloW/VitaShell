@@ -47,7 +47,7 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 
 	int i;
 	for (i = 0; i < archive_list.length; i++) {
-		if (archive_entry->name_length >= name_length && strncmp(archive_entry->name, archive_path, name_length) == 0) { // Needs a / at end
+		if (archive_entry->name_length >= name_length && strncasecmp(archive_entry->name, archive_path, name_length) == 0) { // Needs a / at end
 			char *p = strchr(archive_entry->name + name_length, '/'); // it's a sub-directory if it has got a slash
 
 			if (p)
@@ -251,7 +251,7 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
 
 	int i;
 	for (i = 0; i < archive_list.length; i++) {
-		if (archive_entry->name_length == name_length && strcmp(archive_entry->name, archive_path) == 0) {
+		if (archive_entry->name_length == name_length && strcasecmp(archive_entry->name, archive_path) == 0) {
 			if (stat) {
 				//stat->st_mode = 
 				//stat->st_attr = 
@@ -284,7 +284,7 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
 
 	int i;
 	for (i = 0; i < archive_list.length; i++) {
-		if (archive_entry->name_length == name_length && strcmp(archive_entry->name, archive_path) == 0) {
+		if (archive_entry->name_length == name_length && strcasecmp(archive_entry->name, archive_path) == 0) {
 			// Set pos
 			unzGoToFilePos64(uf, (unz64_file_pos *)&archive_entry->reserved);
 

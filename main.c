@@ -19,14 +19,9 @@
 /*
 	TODO:
 	- Hide mount points
-	- Network update
 	- Context menu: 'More' entry
 	- Inverse sort, sort by date, size
-	- vita2dlib: Handle big images > 4096
-	- Page skip for text viewer
 	- Hex editor byte group size
-	- Moving destination folder to subfolder of source folder prevention
-	- Moving a folder to a location where the folder does already exit causes error, so move its content.
 	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
 	- Shortcuts
 	- CPU changement
@@ -513,7 +508,7 @@ void initContextMenu() {
 		*p = '\0';
 		*q = '\0';
 
-		if (strcmp(file_list.path, copy_list.path) != 0) {
+		if (strcasecmp(file_list.path, copy_list.path) != 0) {
 			menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
 		}
 
@@ -969,7 +964,7 @@ int dialogSteps() {
 					strcpy(old_name, file_entry->name);
 					removeEndSlash(old_name);
 
-					if (strcmp(old_name, name) == 0) { // No change
+					if (strcasecmp(old_name, name) == 0) { // No change
 						dialog_step = DIALOG_STEP_NONE;
 					} else {
 						char old_path[MAX_PATH_LENGTH];
