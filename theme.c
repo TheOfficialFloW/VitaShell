@@ -61,6 +61,7 @@ int HEX_OFFSET_COLOR;
 int HEX_NIBBLE_COLOR;
 int TEXT_LINE_NUMBER_COLOR;
 int TEXT_LINE_NUMBER_COLOR_FOCUS;
+int TEXT_HIGHLIGHT_COLOR;
 
 vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
 			   *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
@@ -99,6 +100,7 @@ void loadTheme() {
 		COLOR_ENTRY(HEX_NIBBLE_COLOR),
 		COLOR_ENTRY(TEXT_LINE_NUMBER_COLOR),
 		COLOR_ENTRY(TEXT_LINE_NUMBER_COLOR_FOCUS),
+		COLOR_ENTRY(TEXT_HIGHLIGHT_COLOR),
 	};
 
 	// Load default config file

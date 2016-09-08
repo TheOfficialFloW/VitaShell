@@ -23,6 +23,7 @@ OPEN_HEX_EDITOR                      = "Open hex editor"
 
 # Text editor strings
 EDIT_LINE                            = "Edit line"
+ENTER_SEARCH_TERM                    = "Enter search term"
 CUT                                  = "Cut"
 
 # File browser context menu strings
@@ -37,6 +38,7 @@ RENAME                               = "Rename"
 NEW_FOLDER                           = "New folder"
 INSTALL_ALL                          = "Install all"
 CALCULATE_SHA1                       = "Calculate SHA1"
+SEARCH                               = "Search"
 
 # File browser strings
 COPIED_FILE                          = "Copied %d file."

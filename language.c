@@ -86,6 +86,7 @@ void loadLanguage(int id) {
 
 		// Text editor strings
 		LANGUAGE_ENTRY(EDIT_LINE),
+		LANGUAGE_ENTRY(ENTER_SEARCH_TERM),
 		LANGUAGE_ENTRY(CUT),
 
 		// File browser context menu strings
@@ -100,6 +101,7 @@ void loadLanguage(int id) {
 		LANGUAGE_ENTRY(NEW_FOLDER),
 		LANGUAGE_ENTRY(INSTALL_ALL),
 		LANGUAGE_ENTRY(CALCULATE_SHA1),
+		LANGUAGE_ENTRY(SEARCH),
 
 		// File browser strings
 		LANGUAGE_ENTRY(COPIED_FILE),
