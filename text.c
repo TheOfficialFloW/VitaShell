@@ -307,6 +307,14 @@ int textViewer(char *file) {
 					// Copy new line into buffer
 					memcpy(&buffer[line_start], new_line, new_length);
 
+					// Add new lines to n_lines
+					int i;
+					for (i = 0; i < new_length; i++) {
+						if (new_line[i] == '\n') {
+							n_lines++;
+						}
+					}
+					
 					// Update entries
 					updateTextEntries(buffer, base_pos, size, offset_list, list.head);
 
