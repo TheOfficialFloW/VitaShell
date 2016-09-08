@@ -277,7 +277,7 @@ int drawUncommonDialog() {
 		for (i = 0; i < len + 1; i++) {
 			if (uncommon_dialog.msg[i] == '\n') {
 				uncommon_dialog.msg[i] = '\0';
-				pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, GENERAL_COLOR, FONT_SIZE, string);
+				pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, string);
 				uncommon_dialog.msg[i] = '\n';
 
 				string = uncommon_dialog.msg + i + 1;
@@ -285,7 +285,7 @@ int drawUncommonDialog() {
 			}
 
 			if (uncommon_dialog.msg[i] == '\0') {
-				pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, GENERAL_COLOR, FONT_SIZE, string);
+				pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, string);
 				string_y += FONT_Y_SPACE;
 			}
 		}
@@ -319,7 +319,7 @@ int drawUncommonDialog() {
 
 			char string[8];
 			sprintf(string, "%d%%", uncommon_dialog.progress);
-			pgf_draw_text(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, string)), string_y + FONT_Y_SPACE, GENERAL_COLOR, FONT_SIZE, string);
+			pgf_draw_text(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, string);
 
 			string_y += 2.0f * FONT_Y_SPACE;
 		}
@@ -329,7 +329,7 @@ int drawUncommonDialog() {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_YESNO:
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL:
 			case SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL:
-				pgf_draw_text(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)), string_y + FONT_Y_SPACE, GENERAL_COLOR, FONT_SIZE, button_string);
+				pgf_draw_text(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, button_string);
 				break;
 		}
 	}

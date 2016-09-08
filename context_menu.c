@@ -109,11 +109,11 @@ void drawContextMenu(ContextMenu *ctx) {
 
 			float y = START_Y + (i * FONT_Y_SPACE);
 
-			uint32_t color = GENERAL_COLOR;
+			uint32_t color = CONTEXT_MENU_TEXT_COLOR;
 
 			if (i == ctx_menu_pos) {
 				if (ctx_menu_mode != CONTEXT_MENU_MORE_OPENED && ctx_menu_mode != CONTEXT_MENU_MORE_OPENING) {
-					color = FOCUS_COLOR;
+					color = CONTEXT_MENU_FOCUS_COLOR;
 				}
 			}
 
@@ -143,11 +143,11 @@ void drawContextMenu(ContextMenu *ctx) {
 
 				float y = START_Y + ((ctx->more_pos + i) * FONT_Y_SPACE);
 
-				uint32_t color = GENERAL_COLOR;
+				uint32_t color = CONTEXT_MENU_TEXT_COLOR;
 
 				if (i == ctx_menu_more_pos) {
 					if (ctx_menu_mode != CONTEXT_MENU_MORE_CLOSING) {
-						color = FOCUS_COLOR;
+						color = CONTEXT_MENU_FOCUS_COLOR;
 					}
 				}
 

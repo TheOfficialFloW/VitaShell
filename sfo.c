@@ -165,7 +165,7 @@ int SFOReader(char *file) {
 		for (i = 0; i < MAX_ENTRIES && (base_pos + i) < sfo_header->count; i++) {
 			SfoEntry *entries = (SfoEntry *)(buffer + sizeof(SfoHeader) + (sizeof(SfoEntry) * (i + base_pos)));
 
-			uint32_t color = (rel_pos == i) ? FOCUS_COLOR : GENERAL_COLOR;
+			uint32_t color = (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR;
 
 	    	char *name = (char *)buffer + sfo_header->keyofs + entries->nameofs;
 			pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, "%s", name);

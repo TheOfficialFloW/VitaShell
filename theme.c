@@ -38,11 +38,13 @@ extern unsigned char _binary_resources_battery_bar_charge_png_start;
 extern unsigned char _binary_resources_colors_txt_start;
 extern unsigned char _binary_resources_colors_txt_size;
 
+// Shell colors
 int BACKGROUND_COLOR;
-int GENERAL_COLOR;
 int TITLE_COLOR;
 int PATH_COLOR;
 int DATE_TIME_COLOR;
+
+// File browser colors
 int FOCUS_COLOR;
 int FILE_COLOR;
 int FOLDER_COLOR;
@@ -51,17 +53,34 @@ int ARCHIVE_COLOR;
 int SCROLL_BAR_COLOR;
 int SCROLL_BAR_BG_COLOR;
 int MARKED_COLOR;
-int INVISIBLE_COLOR;
-int DIALOG_BG_COLOR;
+
+// Context menu colors
+int CONTEXT_MENU_TEXT_COLOR;
+int CONTEXT_MENU_FOCUS_COLOR;
 int CONTEXT_MENU_COLOR;
 int CONTEXT_MENU_MORE_COLOR;
+int INVISIBLE_COLOR;
+
+// Dialog colors
+int DIALOG_COLOR;
+int DIALOG_BG_COLOR;
 int PROGRESS_BAR_COLOR;
 int PROGRESS_BAR_BG_COLOR;
+
+// Hex editor colors
+int HEX_COLOR;
 int HEX_OFFSET_COLOR;
 int HEX_NIBBLE_COLOR;
+
+// Text editor colors
+int TEXT_COLOR;
+int TEXT_FOCUS_COLOR;
 int TEXT_LINE_NUMBER_COLOR;
 int TEXT_LINE_NUMBER_COLOR_FOCUS;
 int TEXT_HIGHLIGHT_COLOR;
+
+// Photo viewer colors
+int PHOTO_ZOOM_COLOR;
 
 vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
 			   *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
@@ -77,11 +96,13 @@ int wallpaper_count = 0;
 void loadTheme() {
 	#define COLOR_ENTRY(name) { #name, CONFIG_TYPE_HEXDECIMAL, (void *)&name }
 	ConfigEntry colors_entries[] = {
+		// Shell colors
 		COLOR_ENTRY(BACKGROUND_COLOR),
-		COLOR_ENTRY(GENERAL_COLOR),
 		COLOR_ENTRY(TITLE_COLOR),
 		COLOR_ENTRY(PATH_COLOR),
 		COLOR_ENTRY(DATE_TIME_COLOR),
+
+		// File browser colors
 		COLOR_ENTRY(FOCUS_COLOR),
 		COLOR_ENTRY(FILE_COLOR),
 		COLOR_ENTRY(FOLDER_COLOR),
@@ -90,17 +111,34 @@ void loadTheme() {
 		COLOR_ENTRY(SCROLL_BAR_COLOR),
 		COLOR_ENTRY(SCROLL_BAR_BG_COLOR),
 		COLOR_ENTRY(MARKED_COLOR),
-		COLOR_ENTRY(INVISIBLE_COLOR),
-		COLOR_ENTRY(DIALOG_BG_COLOR),
+
+		// Context menu colors
+		COLOR_ENTRY(CONTEXT_MENU_TEXT_COLOR),
+		COLOR_ENTRY(CONTEXT_MENU_FOCUS_COLOR),
 		COLOR_ENTRY(CONTEXT_MENU_COLOR),
 		COLOR_ENTRY(CONTEXT_MENU_MORE_COLOR),
+		COLOR_ENTRY(INVISIBLE_COLOR),
+
+		// Dialog colors
+		COLOR_ENTRY(DIALOG_COLOR),
+		COLOR_ENTRY(DIALOG_BG_COLOR),
 		COLOR_ENTRY(PROGRESS_BAR_COLOR),
 		COLOR_ENTRY(PROGRESS_BAR_BG_COLOR),
+
+		// Hex editor colors
+		COLOR_ENTRY(HEX_COLOR),
 		COLOR_ENTRY(HEX_OFFSET_COLOR),
 		COLOR_ENTRY(HEX_NIBBLE_COLOR),
+
+		// Text editor colors
+		COLOR_ENTRY(TEXT_COLOR),
+		COLOR_ENTRY(TEXT_FOCUS_COLOR),
 		COLOR_ENTRY(TEXT_LINE_NUMBER_COLOR),
 		COLOR_ENTRY(TEXT_LINE_NUMBER_COLOR_FOCUS),
 		COLOR_ENTRY(TEXT_HIGHLIGHT_COLOR),
+
+		// Photo viewer colors
+		COLOR_ENTRY(PHOTO_ZOOM_COLOR),
 	};
 
 	// Load default config file

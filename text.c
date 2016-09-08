@@ -682,7 +682,7 @@ int textViewer(char *file) {
 					*search_highlight = '\0';
 				}
 
-				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? FOCUS_COLOR : GENERAL_COLOR, FONT_SIZE, line);
+				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR, FONT_SIZE, line);
 				line += strlen(line);
 
 

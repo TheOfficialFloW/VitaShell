@@ -327,7 +327,7 @@ int hexViewer(char *file) {
 				if (offset >= size)
 					break;
 
-				uint32_t color = GENERAL_COLOR;
+				uint32_t color = HEX_COLOR;
 
 				int on_line = 0;
 				if (rel_pos == (y * 0x10)) {
