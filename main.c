@@ -19,7 +19,6 @@
 /*
 	TODO:
 	- Hide mount points
-	- Context menu: 'More' entry
 	- Inverse sort, sort by date, size
 	- Hex editor byte group size
 	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
@@ -33,6 +32,7 @@
 #include "io_process.h"
 #include "package_installer.h"
 #include "network_update.h"
+#include "context_menu.h"
 #include "archive.h"
 #include "photo.h"
 #include "file.h"
@@ -49,6 +49,9 @@
 int _newlib_heap_size_user = 64 * 1024 * 1024;
 
 #define MAX_DIR_LEVELS 1024
+
+// Context menu
+static float ctx_menu_max_width = 0.0f, ctx_menu_more_max_width = 0.0f;
 
 // File lists
 static FileList file_list, mark_list, copy_list, install_list;
@@ -68,14 +71,6 @@ static int copy_mode = COPY_MODE_NORMAL;
 // Archive
 static int is_in_archive = 0;
 static int dir_level_archive = -1;
-
-// Context menu
-static int ctx_menu_mode = CONTEXT_MENU_CLOSED;
-static int ctx_menu_pos = -1;
-static int ctx_menu_more_pos = -1;
-static float ctx_menu_width = 0;
-static float ctx_menu_max_width = 0;
-static float ctx_menu_more_max_width = 0;
 
 // Net info
 static SceNetEtherAddr mac;
@@ -451,18 +446,18 @@ enum MenuEntrys {
 };
 
 MenuEntry menu_entries[] = {
-	{ MARK_ALL, VISIBILITY_INVISIBLE },
-	{ -1, VISIBILITY_UNUSED },
-	{ MOVE, VISIBILITY_INVISIBLE },
-	{ COPY, VISIBILITY_INVISIBLE },
-	{ PASTE, VISIBILITY_INVISIBLE },
-	{ -1, VISIBILITY_UNUSED },
-	{ DELETE, VISIBILITY_INVISIBLE },
-	{ RENAME, VISIBILITY_INVISIBLE },
-	{ -1, VISIBILITY_UNUSED },
-	{ NEW_FOLDER, VISIBILITY_INVISIBLE },
-	{ -1, VISIBILITY_UNUSED },
-	{ MORE, VISIBILITY_INVISIBLE }
+	{ MARK_ALL, CTX_VISIBILITY_INVISIBLE },
+	{ -1, CTX_VISIBILITY_UNUSED },
+	{ MOVE, CTX_VISIBILITY_INVISIBLE },
+	{ COPY, CTX_VISIBILITY_INVISIBLE },
+	{ PASTE, CTX_VISIBILITY_INVISIBLE },
+	{ -1, CTX_VISIBILITY_UNUSED },
+	{ DELETE, CTX_VISIBILITY_INVISIBLE },
+	{ RENAME, CTX_VISIBILITY_INVISIBLE },
+	{ -1, CTX_VISIBILITY_UNUSED },
+	{ NEW_FOLDER, CTX_VISIBILITY_INVISIBLE },
+	{ -1, CTX_VISIBILITY_UNUSED },
+	{ MORE, CTX_VISIBILITY_INVISIBLE }
 };
 
 #define N_MENU_ENTRIES (sizeof(menu_entries) / sizeof(MenuEntry))
@@ -473,36 +468,36 @@ enum MenuMoreEntrys {
 };
 
 MenuEntry menu_more_entries[] = {
-	{ INSTALL_ALL, VISIBILITY_INVISIBLE },
-	{ CALCULATE_SHA1, VISIBILITY_INVISIBLE },
+	{ INSTALL_ALL, CTX_VISIBILITY_INVISIBLE },
+	{ CALCULATE_SHA1, CTX_VISIBILITY_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
 
-void initContextMenu() {
+void setContextMenuVisibilities() {
 	int i;
 
 	// All visible
 	for (i = 0; i < N_MENU_ENTRIES; i++) {
-		if (menu_entries[i].visibility == VISIBILITY_INVISIBLE)
-			menu_entries[i].visibility = VISIBILITY_VISIBLE;
+		if (menu_entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
+			menu_entries[i].visibility = CTX_VISIBILITY_VISIBLE;
 	}
 
 	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
-		menu_entries[MENU_ENTRY_MARK_UNMARK_ALL].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_COPY].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
-		//menu_entries[MENU_ENTRY_SHA1].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_MARK_UNMARK_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_MOVE].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_COPY].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_DELETE].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_RENAME].visibility = CTX_VISIBILITY_INVISIBLE;
+		//menu_entries[MENU_ENTRY_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Invisible 'Paste' if nothing is copied yet
 	if (copy_list.length == 0)
-		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_PASTE].visibility = CTX_VISIBILITY_INVISIBLE;
 
 	// Invisible 'Paste' if the files to move are not from the same partition
 	char *p = strchr(file_list.path, ':');
@@ -512,22 +507,22 @@ void initContextMenu() {
 		*q = '\0';
 
 		if (strcasecmp(file_list.path, copy_list.path) != 0) {
-			menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
+			menu_entries[MENU_ENTRY_PASTE].visibility = CTX_VISIBILITY_INVISIBLE;
 		}
 
 		*q = ':';
 		*p = ':';
 	} else {
-		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_PASTE].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Invisble write operations in archives
 	if (isInArchive()) { // TODO: read-only mount points
-		menu_entries[MENU_ENTRY_MOVE].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_PASTE].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_DELETE].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_RENAME].visibility = VISIBILITY_INVISIBLE;
-		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_MOVE].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_PASTE].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_DELETE].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_RENAME].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_NEW_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Mark/Unmark all text
@@ -544,436 +539,278 @@ void initContextMenu() {
 
 	// Go to first entry
 	for (i = 0; i < N_MENU_ENTRIES; i++) {
-		if (menu_entries[i].visibility == VISIBILITY_VISIBLE) {
-			ctx_menu_pos = i;
+		if (menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			setContextMenuPos(i);
 			break;
 		}
 	}
 
 	if (i == N_MENU_ENTRIES)
-		ctx_menu_pos = -1;
+		setContextMenuPos(-1);
 }
 
-void initContextMenuMore() {
+void setContextMenuMoreVisibilities() {
 	int i;
 
 	// All visible
 	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-		if (menu_more_entries[i].visibility == VISIBILITY_INVISIBLE)
-			menu_more_entries[i].visibility = VISIBILITY_VISIBLE;
+		if (menu_more_entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
+			menu_more_entries[i].visibility = CTX_VISIBILITY_VISIBLE;
 	}
 
 	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 
 	// Invisble write operations in archives
 	if (isInArchive()) {
-		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility  = VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	if(file_entry->is_folder) {
-		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	if(file_entry->type != FILE_TYPE_VPK) {
-		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Go to first entry
 	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-		if (menu_more_entries[i].visibility == VISIBILITY_VISIBLE) {
-			ctx_menu_more_pos = i;
+		if (menu_more_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			setContextMenuMorePos(i);
 			break;
 		}
 	}
 
 	if (i == N_MENU_MORE_ENTRIES)
-		ctx_menu_more_pos = -1;
+		setContextMenuMorePos(-1);
 }
 
-float easeOut(float x0, float x1, float a) {
-	float dx = (x1 - x0);
-	return ((dx * a) > 0.5f) ? (dx * a) : dx;
-}
+int contextMenuEnterCallback(int pos) {
+	switch (pos) {
+		case MENU_ENTRY_MARK_UNMARK_ALL:
+		{
+			int on_marked_entry = 0;
+			int length = mark_list.length;
 
-void drawContextMenu() {
-	// Closing context menu
-	if (ctx_menu_mode == CONTEXT_MENU_CLOSING) {
-		if (ctx_menu_width > 0.0f) {
-			ctx_menu_width -= easeOut(0.0f, ctx_menu_width, 0.375f);
-		} else {
-			ctx_menu_mode = CONTEXT_MENU_CLOSED;
-		}
-	}
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			if (fileListFindEntry(&mark_list, file_entry->name))
+				on_marked_entry = 1;
 
-	// Opening context menu
-	if (ctx_menu_mode == CONTEXT_MENU_OPENING) {
-		if (ctx_menu_width < ctx_menu_max_width) {
-			ctx_menu_width += easeOut(ctx_menu_width, ctx_menu_max_width, 0.375f);
-		} else {
-			ctx_menu_mode = CONTEXT_MENU_OPENED;
-		}
-	}
+			// Empty mark list
+			fileListEmpty(&mark_list);
 
-	// Closing context menu 'More'
-	if (ctx_menu_mode == CONTEXT_MENU_MORE_CLOSING) {
-		if (ctx_menu_width > ctx_menu_max_width) {
-			ctx_menu_width -= easeOut(ctx_menu_max_width, ctx_menu_width, 0.375f);
-		} else {
-			ctx_menu_mode = CONTEXT_MENU_MORE_CLOSED;
-		}
-	}
+			// Mark all if not all entries are marked yet and we are not focusing on a marked entry
+			if (length != (file_list.length - 1) && !on_marked_entry) {
+				FileListEntry *file_entry = file_list.head->next; // Ignore '..'
 
-	// Opening context menu 'More'
-	if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
-		if (ctx_menu_width < ctx_menu_max_width + ctx_menu_more_max_width) {
-			ctx_menu_width += easeOut(ctx_menu_width, ctx_menu_max_width + ctx_menu_more_max_width, 0.375f);
-		} else {
-			ctx_menu_mode = CONTEXT_MENU_MORE_OPENED;
-		}
-	}
+				int i;
+				for (i = 0; i < file_list.length - 1; i++) {
+					FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
+					memcpy(mark_entry, file_entry, sizeof(FileListEntry));
+					fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
 
-	// Draw context menu
-	if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
-		if (ctx_menu_width < ctx_menu_max_width) {
-			vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_menu_width, 0.0f, 0.0f, 0.0f, ctx_menu_width, SCREEN_HEIGHT);
-		} else {
-			vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_menu_width, 0.0f, 0.0f, 0.0f, ctx_menu_max_width, SCREEN_HEIGHT);
-			vita2d_draw_texture_part(context_more_image, SCREEN_WIDTH - ctx_menu_width + ctx_menu_max_width, 0.0f, 0.0f, 0.0f, ctx_menu_more_max_width, SCREEN_HEIGHT);
-		}
-
-		int i;
-		for (i = 0; i < N_MENU_ENTRIES; i++) {
-			if (menu_entries[i].visibility == VISIBILITY_UNUSED)
-				continue;
-
-			float y = START_Y + (i * FONT_Y_SPACE);
-
-			uint32_t color = GENERAL_COLOR;
-
-			if (i == ctx_menu_pos) {
-				if (ctx_menu_mode != CONTEXT_MENU_MORE_OPENED && ctx_menu_mode != CONTEXT_MENU_MORE_OPENING) {
-					color = FOCUS_COLOR;
+					// Next
+					file_entry = file_entry->next;
 				}
 			}
 
-			if (menu_entries[i].visibility == VISIBILITY_INVISIBLE)
-				color = INVISIBLE_COLOR;
+			break;
+		}
+		
+		case MENU_ENTRY_MOVE:
+		case MENU_ENTRY_COPY:
+		{
+			// Mode
+			if (pos == MENU_ENTRY_MOVE) {
+				copy_mode = COPY_MODE_MOVE;
+			} else {
+				copy_mode = isInArchive() ? COPY_MODE_EXTRACT : COPY_MODE_NORMAL;
+			}
 
-			pgf_draw_text(SCREEN_WIDTH - ctx_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[menu_entries[i].name]);
+			// Empty copy list at first
+			if (copy_list.length > 0)
+				fileListEmpty(&copy_list);
+
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+			// Paths
+			if (fileListFindEntry(&mark_list, file_entry->name)) { // On marked entry
+				// Copy mark list to copy list
+				FileListEntry *mark_entry = mark_list.head;
+
+				int i;
+				for (i = 0; i < mark_list.length; i++) {
+					FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
+					memcpy(copy_entry, mark_entry, sizeof(FileListEntry));
+					fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
+
+					// Next
+					mark_entry = mark_entry->next;
+				}
+			} else {
+				FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
+				memcpy(copy_entry, file_entry, sizeof(FileListEntry));
+				fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
+			}
+
+			strcpy(copy_list.path, file_list.path);
+
+			char *message;
+
+			// On marked entry
+			if (fileListFindEntry(&copy_list, file_entry->name)) {
+				if (copy_list.length == 1) {
+					message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
+				} else {
+					message = language_container[COPIED_FILES_FOLDERS];
+				}
+			} else {
+				message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
+			}
+
+			// Copy message
+			infoDialog(message, copy_list.length);
+
+			break;
 		}
 
-		if (ctx_menu_mode == CONTEXT_MENU_MORE_CLOSING || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
-			for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-				if (menu_more_entries[i].visibility == VISIBILITY_UNUSED)
-					continue;
+		case MENU_ENTRY_PASTE:
+		{
+			int copy_text = 0;
 
-				float y = START_Y + ((MENU_ENTRY_MORE + i) * FONT_Y_SPACE);
-
-				uint32_t color = GENERAL_COLOR;
-
-				if (i == ctx_menu_more_pos) {
-					if (ctx_menu_mode != CONTEXT_MENU_MORE_CLOSING) {
-						color = FOCUS_COLOR;
-					}
-				}
-
-				if (menu_more_entries[i].visibility == VISIBILITY_INVISIBLE)
-					color = INVISIBLE_COLOR;
-
-				pgf_draw_text(SCREEN_WIDTH - ctx_menu_width + ctx_menu_max_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[menu_more_entries[i].name]);
-			}
-		}
-	}
-}
-
-void contextMenuCtrl() {
-	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
-		if (ctx_menu_mode == CONTEXT_MENU_OPENED) {
-			int i;
-			for (i = N_MENU_ENTRIES - 1; i >= 0; i--) {
-				if (menu_entries[i].visibility == VISIBILITY_VISIBLE) {
-					if (i < ctx_menu_pos) {
-						ctx_menu_pos = i;
-						break;
-					}
-				}
-			}
-		} else if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
-			int i;
-			for (i = N_MENU_MORE_ENTRIES - 1; i >= 0; i--) {
-				if (menu_more_entries[i].visibility == VISIBILITY_VISIBLE) {
-					if (i < ctx_menu_more_pos) {
-						ctx_menu_more_pos = i;
-						break;
-					}
-				}
-			}
-		}
-	} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-		if (ctx_menu_mode == CONTEXT_MENU_OPENED) {
-			int i;
-			for (i = 0; i < N_MENU_ENTRIES; i++) {
-				if (menu_entries[i].visibility == VISIBILITY_VISIBLE) {
-					if (i > ctx_menu_pos) {
-						ctx_menu_pos = i;
-						break;
-					}
-				}
-			}
-		} else {
-			int i;
-			for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-				if (menu_more_entries[i].visibility == VISIBILITY_VISIBLE) {
-					if (i > ctx_menu_more_pos) {
-						ctx_menu_more_pos = i;
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	// Close
-	if (pressed_buttons & SCE_CTRL_TRIANGLE) {
-		ctx_menu_mode = CONTEXT_MENU_CLOSING;
-	}
-
-	// Back
-	if (pressed_buttons & SCE_CTRL_CANCEL) {
-		if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
-			ctx_menu_mode = CONTEXT_MENU_MORE_CLOSING;
-		} else {
-			ctx_menu_mode = CONTEXT_MENU_CLOSING;
-		}
-	}
-
-	// Handle
-	if (pressed_buttons & SCE_CTRL_ENTER) {
-		if (ctx_menu_mode == CONTEXT_MENU_OPENED) {
-			switch (ctx_menu_pos) {
-				case MENU_ENTRY_MARK_UNMARK_ALL:
-				{
-					int on_marked_entry = 0;
-					int length = mark_list.length;
-
-					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-					if (fileListFindEntry(&mark_list, file_entry->name))
-						on_marked_entry = 1;
-
-					// Empty mark list
-					fileListEmpty(&mark_list);
-
-					// Mark all if not all entries are marked yet and we are not focusing on a marked entry
-					if (length != (file_list.length - 1) && !on_marked_entry) {
-						FileListEntry *file_entry = file_list.head->next; // Ignore '..'
-
-						int i;
-						for (i = 0; i < file_list.length - 1; i++) {
-							FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
-							memcpy(mark_entry, file_entry, sizeof(FileListEntry));
-							fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
-
-							// Next
-							file_entry = file_entry->next;
-						}
-					}
-
+			switch (copy_mode) {
+				case COPY_MODE_NORMAL:
+					copy_text = COPYING;
 					break;
-				}
-				
-				case MENU_ENTRY_MOVE:
-				case MENU_ENTRY_COPY:
-				{
-					// Mode
-					if (ctx_menu_pos == MENU_ENTRY_MOVE) {
-						copy_mode = COPY_MODE_MOVE;
-					} else {
-						copy_mode = isInArchive() ? COPY_MODE_EXTRACT : COPY_MODE_NORMAL;
-					}
-
-					// Empty copy list at first
-					if (copy_list.length > 0)
-						fileListEmpty(&copy_list);
-
-					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-
-					// Paths
-					if (fileListFindEntry(&mark_list, file_entry->name)) { // On marked entry
-						// Copy mark list to copy list
-						FileListEntry *mark_entry = mark_list.head;
-
-						int i;
-						for (i = 0; i < mark_list.length; i++) {
-							FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
-							memcpy(copy_entry, mark_entry, sizeof(FileListEntry));
-							fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
-
-							// Next
-							mark_entry = mark_entry->next;
-						}
-					} else {
-						FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
-						memcpy(copy_entry, file_entry, sizeof(FileListEntry));
-						fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
-					}
-
-					strcpy(copy_list.path, file_list.path);
-
-					char *message;
-
-					// On marked entry
-					if (fileListFindEntry(&copy_list, file_entry->name)) {
-						if (copy_list.length == 1) {
-							message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
-						} else {
-							message = language_container[COPIED_FILES_FOLDERS];
-						}
-					} else {
-						message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
-					}
-
-					// Copy message
-					infoDialog(message, copy_list.length);
-
-					break;
-				}
-
-				case MENU_ENTRY_PASTE:
-				{
-					int copy_text = 0;
-
-					switch (copy_mode) {
-						case COPY_MODE_NORMAL:
-							copy_text = COPYING;
-							break;
-							
-						case COPY_MODE_MOVE:
-							copy_text = MOVING;
-							break;
-							
-						case COPY_MODE_EXTRACT:
-							copy_text = EXTRACTING;
-							break;
-					}
-
-					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[copy_text]);
-					dialog_step = DIALOG_STEP_PASTE;
-					break;
-				}
-
-				case MENU_ENTRY_DELETE:
-				{
-					char *message;
-
-					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-
-					// On marked entry
-					if (fileListFindEntry(&mark_list, file_entry->name)) {
-						if (mark_list.length == 1) {
-							message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
-						} else {
-							message = language_container[DELETE_FILES_FOLDERS_QUESTION];
-						}
-					} else {
-						message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
-					}
-
-					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
-					dialog_step = DIALOG_STEP_DELETE_QUESTION;
-					break;
-				}
-
-				case MENU_ENTRY_RENAME:
-				{
-					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-
-					char name[MAX_NAME_LENGTH];
-					strcpy(name, file_entry->name);
-					removeEndSlash(name);
-
-					initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
-
-					dialog_step = DIALOG_STEP_RENAME;
-					break;
-				}
-				
-				case MENU_ENTRY_NEW_FOLDER:
-				{
-					// Find a new folder name
-					char path[MAX_PATH_LENGTH];
-
-					int count = 1;
-					while (1) {
-						if (count == 1) {
-							snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, language_container[NEW_FOLDER]);
-						} else {
-							snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
-						}
-
-						SceIoStat stat;
-						if (sceIoGetstat(path, &stat) < 0)
-							break;
-
-						count++;
-					}
-
-					initImeDialog(language_container[NEW_FOLDER], path + strlen(file_list.path), MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
-					dialog_step = DIALOG_STEP_NEW_FOLDER;
-					break;
-				}
-				
-				case MENU_ENTRY_MORE:
-				{
-					initContextMenuMore();
-					ctx_menu_mode = CONTEXT_MENU_MORE_OPENING;
-					return;
-				}
-			}
-		} else if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
-			switch (ctx_menu_more_pos) {
-				case MENU_MORE_ENTRY_INSTALL_ALL:
-				{
-					// Empty install list
-					fileListEmpty(&install_list);
-
-					FileListEntry *file_entry = file_list.head->next; // Ignore '..'
-
-					int i;
-					for (i = 0; i < file_list.length - 1; i++) {
-						char path[MAX_PATH_LENGTH];
-						snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-
-						int type = getFileType(path);
-						if (type == FILE_TYPE_VPK) {
-							FileListEntry *install_entry = malloc(sizeof(FileListEntry));
-							memcpy(install_entry, file_entry, sizeof(FileListEntry));
-							fileListAddEntry(&install_list, install_entry, SORT_NONE);
-						}
-
-						// Next
-						file_entry = file_entry->next;
-					}
-
-					strcpy(install_list.path, file_list.path);
-
-					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_ALL_QUESTION]);
-					dialog_step = DIALOG_STEP_INSTALL_QUESTION;
 					
+				case COPY_MODE_MOVE:
+					copy_text = MOVING;
 					break;
-				}
-				
-				case MENU_MORE_ENTRY_CALCULATE_SHA1:
-				{
-					// Ensure user wants to actually take the hash
-					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[HASH_FILE_QUESTION]);
-					dialog_step = DIALOG_STEP_HASH_QUESTION;
+					
+				case COPY_MODE_EXTRACT:
+					copy_text = EXTRACTING;
 					break;
-				}
 			}
+
+			initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[copy_text]);
+			dialog_step = DIALOG_STEP_PASTE;
+			break;
 		}
 
-		ctx_menu_mode = CONTEXT_MENU_CLOSING;
+		case MENU_ENTRY_DELETE:
+		{
+			char *message;
+
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+			// On marked entry
+			if (fileListFindEntry(&mark_list, file_entry->name)) {
+				if (mark_list.length == 1) {
+					message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
+				} else {
+					message = language_container[DELETE_FILES_FOLDERS_QUESTION];
+				}
+			} else {
+				message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
+			}
+
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
+			dialog_step = DIALOG_STEP_DELETE_QUESTION;
+			break;
+		}
+
+		case MENU_ENTRY_RENAME:
+		{
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+			char name[MAX_NAME_LENGTH];
+			strcpy(name, file_entry->name);
+			removeEndSlash(name);
+
+			initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
+
+			dialog_step = DIALOG_STEP_RENAME;
+			break;
+		}
+		
+		case MENU_ENTRY_NEW_FOLDER:
+		{
+			// Find a new folder name
+			char path[MAX_PATH_LENGTH];
+
+			int count = 1;
+			while (1) {
+				if (count == 1) {
+					snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, language_container[NEW_FOLDER]);
+				} else {
+					snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
+				}
+
+				SceIoStat stat;
+				if (sceIoGetstat(path, &stat) < 0)
+					break;
+
+				count++;
+			}
+
+			initImeDialog(language_container[NEW_FOLDER], path + strlen(file_list.path), MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
+			dialog_step = DIALOG_STEP_NEW_FOLDER;
+			break;
+		}
+		
+		case MENU_ENTRY_MORE:
+		{
+			setContextMenuMoreVisibilities();
+			return CONTEXT_MENU_MORE_OPENING;
+		}
 	}
+
+	return CONTEXT_MENU_CLOSING;
+}
+
+int contextMenuMoreEnterCallback(int pos) {
+	switch (pos) {
+		case MENU_MORE_ENTRY_INSTALL_ALL:
+		{
+			// Empty install list
+			fileListEmpty(&install_list);
+
+			FileListEntry *file_entry = file_list.head->next; // Ignore '..'
+
+			int i;
+			for (i = 0; i < file_list.length - 1; i++) {
+				char path[MAX_PATH_LENGTH];
+				snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+
+				int type = getFileType(path);
+				if (type == FILE_TYPE_VPK) {
+					FileListEntry *install_entry = malloc(sizeof(FileListEntry));
+					memcpy(install_entry, file_entry, sizeof(FileListEntry));
+					fileListAddEntry(&install_list, install_entry, SORT_NONE);
+				}
+
+				// Next
+				file_entry = file_entry->next;
+			}
+
+			strcpy(install_list.path, file_list.path);
+
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_ALL_QUESTION]);
+			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
+			
+			break;
+		}
+		
+		case MENU_MORE_ENTRY_CALCULATE_SHA1:
+		{
+			// Ensure user wants to actually take the hash
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[HASH_FILE_QUESTION]);
+			dialog_step = DIALOG_STEP_HASH_QUESTION;
+			break;
+		}
+	}
+
+	return CONTEXT_MENU_CLOSING;
 }
 
 int dialogSteps() {
@@ -1338,9 +1175,9 @@ void fileBrowserMenuCtrl() {
 	if (dir_level > 0) {
 		// Context menu trigger
 		if (pressed_buttons & SCE_CTRL_TRIANGLE) {
-			if (ctx_menu_mode == CONTEXT_MENU_CLOSED) {
-				initContextMenu();
-				ctx_menu_mode = CONTEXT_MENU_OPENING;
+			if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
+				setContextMenuVisibilities();
+				setContextMenuMode(CONTEXT_MENU_OPENING);
 			}
 		}
 
@@ -1424,6 +1261,18 @@ int shellMain() {
 	// Reset file lists
 	resetFileLists();
 
+	// Init context menu param
+	ContextMenu context_menu;
+	context_menu.menu_entries = menu_entries;
+	context_menu.n_menu_entries = N_MENU_ENTRIES;
+	context_menu.menu_more_entries = menu_more_entries;
+	context_menu.n_menu_more_entries = N_MENU_MORE_ENTRIES;
+	context_menu.menu_max_width = ctx_menu_max_width;
+	context_menu.menu_more_max_width = ctx_menu_more_max_width;
+	context_menu.more_pos = MENU_ENTRY_MORE;
+	context_menu.menuEnterCallback = contextMenuEnterCallback;
+	context_menu.menuMoreEnterCallback = contextMenuMoreEnterCallback;
+
 	while (1) {
 		readPad();
 
@@ -1431,8 +1280,8 @@ int shellMain() {
 
 		// Control
 		if (dialog_step == DIALOG_STEP_NONE) {
-			if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
-				contextMenuCtrl();
+			if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
+				contextMenuCtrl(&context_menu);
 			} else {
 				fileBrowserMenuCtrl();
 			}
@@ -1587,7 +1436,7 @@ int shellMain() {
 		}
 
 		// Draw context menu
-		drawContextMenu();
+		drawContextMenu(&context_menu);
 
 		// End drawing
 		endDrawing();
@@ -1601,10 +1450,10 @@ int shellMain() {
 	return 0;
 }
 
-void initShell() {
+void initContextMenuWidth() {
 	int i;
 	for (i = 0; i < N_MENU_ENTRIES; i++) {
-		if (menu_entries[i].visibility != VISIBILITY_UNUSED)
+		if (menu_entries[i].visibility != CTX_VISIBILITY_UNUSED)
 			ctx_menu_max_width = MAX(ctx_menu_max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_entries[i].name]));
 
 		if (menu_entries[i].name == MARK_ALL) {
@@ -1617,7 +1466,7 @@ void initShell() {
 	ctx_menu_max_width = MAX(ctx_menu_max_width, CONTEXT_MENU_MIN_WIDTH);
 
 	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-		if (menu_more_entries[i].visibility != VISIBILITY_UNUSED)
+		if (menu_more_entries[i].visibility != CTX_VISIBILITY_UNUSED)
 			ctx_menu_more_max_width = MAX(ctx_menu_more_max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_more_entries[i].name]));
 	}
 
@@ -1668,13 +1517,15 @@ int main(int argc, const char *argv[]) {
 	// Load language
 	loadLanguage(language);
 
+	// Init context menu width
+	initContextMenuWidth();
+
 	// Automatic network update
 	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x40, 0x10000, 0, 0, NULL);
 	if (thid >= 0)
 		sceKernelStartThread(thid, 0, NULL);
 
 	// Main
-	initShell();
 	shellMain();
 
 	// Finish VitaShell
