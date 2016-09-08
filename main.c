@@ -1178,8 +1178,8 @@ void fileBrowserMenuCtrl() {
 			int i;
 			void *buf = malloc(0x100);
 				for (i = 0; i < 15; i++) {
-				vshIoUmount(i * 0x100, 0, 0, 0); // id, unk1, unk2, unk3 (flags ?)
-				_vshIoMount(i * 0x100, 0, 2, buf); // id, unk, permission, work_buffer
+				vshIoUmount(0x300, 0, 0, 0); // id, unk1, unk2, unk3 (flags ?)
+				_vshIoMount(0x300, 0, 2, buf); // id, unk, permission, work_buffer
 				
 			}
 			
