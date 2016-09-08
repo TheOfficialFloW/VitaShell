@@ -120,8 +120,10 @@ void drawContextMenu(ContextMenu *ctx) {
 			if (ctx->menu_entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
 				color = INVISIBLE_COLOR;
 
+			// Draw entry text
 			pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[ctx->menu_entries[i].name]);
 
+			// Draw arrow for 'More'
 			if (i == ctx->more_pos) {
 				char *arrow = NULL;
 				if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
@@ -152,6 +154,7 @@ void drawContextMenu(ContextMenu *ctx) {
 				if (ctx->menu_more_entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
 					color = INVISIBLE_COLOR;
 
+				// Draw entry text
 				pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + ctx->menu_max_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[ctx->menu_more_entries[i].name]);
 			}
 		}
@@ -192,7 +195,7 @@ void contextMenuCtrl(ContextMenu *ctx) {
 					}
 				}
 			}
-		} else {
+		} else if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
 			int i;
 			for (i = 0; i < ctx->n_menu_more_entries; i++) {
 				if (ctx->menu_more_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
@@ -211,7 +214,7 @@ void contextMenuCtrl(ContextMenu *ctx) {
 	}
 
 	// Back
-	if (pressed_buttons & SCE_CTRL_CANCEL) {
+	if (pressed_buttons & SCE_CTRL_CANCEL || pressed_buttons & SCE_CTRL_LEFT) {
 		if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
 			ctx_menu_mode = CONTEXT_MENU_MORE_CLOSING;
 		} else {
@@ -220,11 +223,13 @@ void contextMenuCtrl(ContextMenu *ctx) {
 	}
 
 	// Handle
-	if (pressed_buttons & SCE_CTRL_ENTER) {
+	if (pressed_buttons & SCE_CTRL_ENTER || pressed_buttons & SCE_CTRL_RIGHT) {
 		if (ctx_menu_mode == CONTEXT_MENU_OPENED) {
-			ctx_menu_mode = ctx->menuEnterCallback(ctx_menu_pos);
+			if (ctx->menuEnterCallback)
+				ctx_menu_mode = ctx->menuEnterCallback(ctx_menu_pos);
 		} else if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
-			ctx_menu_mode = ctx->menuMoreEnterCallback(ctx_menu_more_pos);
+			if (ctx->menuMoreEnterCallback)
+				ctx_menu_mode = ctx->menuMoreEnterCallback(ctx_menu_more_pos);
 		}
 	}
 }

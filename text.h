@@ -19,7 +19,7 @@
 #ifndef __TEXT_H__
 #define __TEXT_H__
 
-#define MAX_LINES 1 * 1024 * 1024
+#define MAX_LINES 0x10000
 #define MAX_LINE_CHARACTERS 1024
 #define MAX_COPY_BUFFER_SIZE 1024
 
@@ -41,6 +41,8 @@ typedef struct {
 typedef struct CopyEntry {
 	char line[MAX_LINE_CHARACTERS];
 } CopyEntry;
+
+void initTextContextMenuWidth();
 
 int textViewer(char *file);
 
