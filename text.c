@@ -545,13 +545,18 @@ int textViewer(char *file) {
 							n_lines = 1;
 							buffer[0] = '\n';
 						} 
+
+						if (base_pos + rel_pos >= n_lines) {
+							rel_pos = n_lines - base_pos - 1;
+						}
+
+						if (rel_pos < 0) {
+							base_pos += rel_pos;
+							rel_pos = 0;
+						}
 						
 						// Update entries
 						updateTextEntries(buffer, base_pos, size, offset_list, list.head);
-
-						if (base_pos + rel_pos >= n_lines) {
-							rel_pos = n_lines - 1;
-						}
 
 						changed = 1;
 						copy_current_size++;
@@ -677,7 +682,7 @@ int textViewer(char *file) {
 					*search_highlight = '\0';
 				}
 
-				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? FOCUS_COLOR : GENERAL_COLOR, FONT_SIZE, line);
+				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR, FONT_SIZE, line);
 				line += strlen(line);
 
 
