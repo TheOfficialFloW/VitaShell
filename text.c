@@ -147,8 +147,8 @@ int text_thread(SceSize args, uint32_t *argp) {
 int textViewer(char *file) {
 	int hex_viewer = 0;
 
-	char *buffer = malloc(BIG_BUFFER_SIZE);
-	if (!buffer)
+	char *buffer_base = malloc(BIG_BUFFER_SIZE);
+	if (!buffer_base)
 		return -1;
 
 	CopyEntry *copy_buffer = malloc(MAX_COPY_BUFFER_SIZE * sizeof(CopyEntry));
@@ -163,16 +163,28 @@ int textViewer(char *file) {
 	int modify_allowed = 1;
 
 	if (isInArchive()) {
-		size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
+		size = ReadArchiveFile(file, buffer_base, BIG_BUFFER_SIZE);
 		modify_allowed = 0;
 	} else {
-		size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
+		size = ReadFile(file, buffer_base, BIG_BUFFER_SIZE);
 	}
 
 	if (size < 0) {
-		free(buffer);
+		free(buffer_base);
 		return size;
-	} else if (size == 0) {
+	}
+
+	char *buffer = buffer_base;
+
+	int has_utf8_bom = 0;
+	char utf8_bom[3] = {0xEF, 0xBB, 0xBF};
+	if (size >= 3 && memcmp(buffer_base, utf8_bom, 3) == 0) {
+		buffer += 3;
+		has_utf8_bom = 1;
+		size -= 3;
+	}
+
+	if (size == 0) {
 		size = 1;
 		buffer[0] = '\n';
 	}
@@ -439,7 +451,7 @@ int textViewer(char *file) {
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				SceUID fd = sceIoOpen(file, SCE_O_WRONLY|SCE_O_TRUNC, 0777);
 				if (fd >= 0) {
-					sceIoWrite(fd, buffer, size);
+					sceIoWrite(fd, buffer_base, has_utf8_bom ? size + sizeof(utf8_bom) : size);
 					sceIoClose(fd);
 				}
 
@@ -502,7 +514,7 @@ int textViewer(char *file) {
 	free(offset_list);
 	textListEmpty(&list);
 
-	free(buffer);
+	free(buffer_base);
 
 	if (hex_viewer)
 		hexViewer(file);
