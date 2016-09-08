@@ -545,13 +545,18 @@ int textViewer(char *file) {
 							n_lines = 1;
 							buffer[0] = '\n';
 						} 
+
+						if (base_pos + rel_pos >= n_lines) {
+							rel_pos = n_lines - base_pos - 1;
+						}
+
+						if (rel_pos < 0) {
+							base_pos += rel_pos;
+							rel_pos = 0;
+						}
 						
 						// Update entries
 						updateTextEntries(buffer, base_pos, size, offset_list, list.head);
-
-						if (base_pos + rel_pos >= n_lines) {
-							rel_pos = n_lines - 1;
-						}
 
 						changed = 1;
 						copy_current_size++;
