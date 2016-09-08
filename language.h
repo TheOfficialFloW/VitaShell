@@ -43,6 +43,7 @@ enum LanguageContainer {
 
 	// Text editor strings
 	EDIT_LINE,
+	ENTER_SEARCH_TERM,
 	CUT,
 
 	// File browser context menu strings
@@ -57,6 +58,7 @@ enum LanguageContainer {
 	NEW_FOLDER,
 	INSTALL_ALL,
 	CALCULATE_SHA1,
+	SEARCH,
 
 	// File browser strings
 	COPIED_FILE,

@@ -39,7 +39,77 @@ void loadScePaf() {
 	sceSysmoduleLoadModuleInternalWithArg(0x80000008, sizeof(scepaf_argp), scepaf_argp, ptr);
 }
 
-int promoteUpdate(char *path) {
+int patchRetailContents() {
+	int res;
+	
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	res = sceIoGetstat(PACKAGE_DIR "/sce_sys/retail/livearea", &stat);
+	if (res < 0)
+		return res;
+
+	res = sceIoRename(PACKAGE_DIR "/sce_sys/livearea", PACKAGE_DIR "/sce_sys/livearea_org");
+	if (res < 0)
+		return res;
+
+	res = sceIoRename(PACKAGE_DIR "/sce_sys/retail/livearea", PACKAGE_DIR "/sce_sys/livearea");
+	if (res < 0)
+		return res;
+
+	return 0;
+}
+
+int restoreRetailContents(char *titleid) {
+	int res;
+	char src_path[128], dst_path[128];
+
+	sprintf(src_path, "ux0:app/%s/sce_sys/livearea", titleid);
+	sprintf(dst_path, "ux0:app/%s/sce_sys/retail/livearea", titleid);
+	res = sceIoRename(src_path, dst_path);
+	if (res < 0)
+		return res;
+
+	sprintf(src_path, "ux0:app/%s/sce_sys/livearea_org", titleid);
+	sprintf(dst_path, "ux0:app/%s/sce_sys/livearea", titleid);
+	res = sceIoRename(src_path, dst_path);
+	if (res < 0)
+		return res;
+
+	return 0;
+}
+
+int promoteUpdate(char *path, char *titleid, char *category, void *sfo_buffer, int sfo_size) {
+	int res;
+
+	// Update installation
+	if (strcmp(category, "gp") == 0) {
+		// Change category to 'gd'
+		setSfoString(sfo_buffer, "CATEGORY", "gd");
+		WriteFile(PACKAGE_DIR "/sce_sys/param.sfo", sfo_buffer, sfo_size);
+
+		// App path
+		char app_path[MAX_PATH_LENGTH];
+		snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", titleid);
+
+		/*
+			Without the following trick, the livearea won't be updated and the game will even crash
+		*/
+
+		// Integrate patch to app
+		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL, 0, NULL, NULL);
+		if (res < 0)
+			return res;
+
+		// Move app to promotion directory
+		res = movePath(app_path, path, 0, NULL, 0, NULL, NULL);
+		if (res < 0)
+			return res;
+	}
+
+	return 0;
+}
+
+int promote(char *path) {
 	int res;
 
 	// Read param.sfo
@@ -56,40 +126,14 @@ int promoteUpdate(char *path) {
 	char category[4];
 	getSfoString(sfo_buffer, "CATEGORY", category, sizeof(category));
 
-	// Update installation
-	if (strcmp(category, "gp") == 0) {
-		// Change category to 'gd'
-		setSfoString(sfo_buffer, "CATEGORY", "gd");
-		WriteFile(PACKAGE_DIR "/sce_sys/param.sfo", sfo_buffer, sfo_size);
+	// Promote update
+	promoteUpdate(path, titleid, category, sfo_buffer, sfo_size);
 
-		// App path
-		char app_path[MAX_PATH_LENGTH];
-		snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", titleid);
-
-		// Integrate patch to app
-		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL, 0, NULL, NULL);
-		if (res < 0) {
-			free(sfo_buffer);
-			return res;
-		}
-
-		// Move app to promotion directory
-		res = movePath(app_path, path, 0, NULL, 0, NULL, NULL);
-		if (res < 0) {
-			free(sfo_buffer);
-			return res;
-		}
-	}
-
+	// Free sfo buffer
 	free(sfo_buffer);
 
-	return 0;
-}
-
-int promote(char *path) {
-	int res;
-
-	promoteUpdate(path);
+	// Patch to use retail contents so the game is not shown as test version
+	int patch_retail_contents = patchRetailContents();
 
 	loadScePaf();
 
@@ -127,7 +171,12 @@ int promote(char *path) {
 	if (res < 0)
 		return res;
 
-	return result;
+	// Restore
+	if (patch_retail_contents >= 0)
+		restoreRetailContents(titleid);
+
+	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
+	return result == 0x80870005 ? 0 : result;
 }
 
 void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
