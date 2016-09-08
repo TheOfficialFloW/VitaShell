@@ -431,7 +431,7 @@ void drawShellInfo(char *path) {
 }
 
 enum MenuEntrys {
-	MENU_ENTRY_MARK_UNMARK_ALL,	
+	MENU_ENTRY_MARK_UNMARK_ALL,
 	MENU_ENTRY_EMPTY_1,
 	MENU_ENTRY_MOVE,
 	MENU_ENTRY_COPY,
@@ -1545,6 +1545,7 @@ int main(int argc, const char *argv[]) {
 
 	// Init context menu width
 	initContextMenuWidth();
+	initTextContextMenuWidth();
 
 	// Automatic network update
 	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x40, 0x10000, 0, 0, NULL);

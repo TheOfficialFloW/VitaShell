@@ -20,14 +20,33 @@
 #define __LANGUAGE_H__
 
 enum LanguageContainer {
+	// General strings
 	ERROR,
 	OK,
 	YES,
 	NO,
 	CANCEL,
 	FOLDER,
+
+	// Progress strings
+	MOVING,
+	COPYING,
+	DELETING,
+	INSTALLING,
+	DOWNLOADING,
+	EXTRACTING,
+	HASHING,
+
+	// Hex editor strings
 	OFFSET,
+	OPEN_HEX_EDITOR,
+
+	// Text editor strings
 	EDIT_LINE,
+	CUT,
+
+	// File browser context menu strings
+	MORE,
 	MARK_ALL,
 	UNMARK_ALL,
 	MOVE,
@@ -36,19 +55,15 @@ enum LanguageContainer {
 	DELETE,
 	RENAME,
 	NEW_FOLDER,
-	MORE,
 	INSTALL_ALL,
 	CALCULATE_SHA1,
+
+	// File browser strings
 	COPIED_FILE,
 	COPIED_FOLDER,
 	COPIED_FILES_FOLDERS,
-	MOVING,
-	COPYING,
-	DELETING,
-	INSTALLING,
-	DOWNLOADING,
-	EXTRACTING,
-	HASHING,
+
+	// Dialog questions
 	DELETE_FILE_QUESTION,
 	DELETE_FOLDER_QUESTION,
 	DELETE_FILES_FOLDERS_QUESTION,
@@ -56,6 +71,8 @@ enum LanguageContainer {
 	INSTALL_QUESTION,
 	INSTALL_WARNING,
 	HASH_FILE_QUESTION,
+
+	// Others
 	SAVE_MODIFICATIONS,
 	WIFI_ERROR,
 	FTP_SERVER,
