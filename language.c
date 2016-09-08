@@ -103,6 +103,7 @@ void loadLanguage(int id) {
 		LANGUAGE_ENTRY(FTP_SERVER),
 		LANGUAGE_ENTRY(SYS_INFO),
 		LANGUAGE_ENTRY(UPDATE_QUESTION),
+		LANGUAGE_ENTRY(PARTITION_MOUNTED),
 	};
 
 	// Load default config file

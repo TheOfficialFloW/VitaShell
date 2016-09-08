@@ -867,6 +867,15 @@ int dialogSteps() {
 
 			break;
 			
+		case DIALOG_STEP_RW: //Fix this
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[PARTITION_MOUNTED]);
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
 		case DIALOG_STEP_PASTE:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				CopyArguments args;
@@ -1149,6 +1158,23 @@ void fileBrowserMenuCtrl() {
 			dialog_step = DIALOG_STEP_FTP;
 		}
 	}
+	
+	// Mount RW Partitions
+	if (pressed_buttons & SCE_CTRL_LTRIGGER) { // L trigger button
+		// Init Mount RW Partitions
+			int i;
+			void *buf = malloc(0x100);
+				for (i = 0; i < 15; i++) {
+				vshIoUmount(i * 0x100, 0, 0, 0); // id, unk1, unk2, unk3 (flags ?)
+				_vshIoMount(i * 0x100, 0, 2, buf); // id, unk, permission, work_buffer
+				
+			}
+			
+		// Dialog
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[PARTITION_MOUNTED]);
+			dialog_step = DIALOG_STEP_RW;
+	}
+
 
 	// Move
 	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {

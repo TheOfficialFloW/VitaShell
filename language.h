@@ -62,6 +62,7 @@ enum LanguageContainer {
 	SYS_INFO,
 	UPDATE_QUESTION,
 	LANGUAGE_CONTRAINER_SIZE,
+	PARTITION_MOUNTED
 };
 
 extern char *language_container[LANGUAGE_CONTRAINER_SIZE];
