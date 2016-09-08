@@ -151,6 +151,13 @@ int textViewer(char *file) {
 	if (!buffer)
 		return -1;
 
+	CopyEntry *copy_buffer = malloc(MAX_COPY_BUFFER_SIZE * sizeof(CopyEntry));
+	if (!copy_buffer)
+		return -1;
+
+	int copy_current_size = 0;
+	int copy_reset = 0;
+
 	int size = 0;
 
 	int modify_allowed = 1;
@@ -162,10 +169,14 @@ int textViewer(char *file) {
 		size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
 	}
 
-	if (size <= 0) {
+	if (size < 0) {
 		free(buffer);
 		return size;
+	} else if (size == 0) {
+		size = 1;
+		buffer[0] = '\n';
 	}
+
 
 	int base_pos = 0, rel_pos = 0;
 
@@ -228,6 +239,7 @@ int textViewer(char *file) {
 						textReadLine(buffer, offset_list[base_pos], size, list.head->line);
 					}
 				}
+				copy_reset = 1;
 			} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
 				if (offset_list[rel_pos + 1] < size) {
 					if ((rel_pos + 1) < MAX_POSITION) {
@@ -257,6 +269,7 @@ int textViewer(char *file) {
 						}
 					}
 				}
+				copy_reset = 1;
 			} else if(modify_allowed && !edit_line && hold_buttons & SCE_CTRL_ENTER) {
 				int line_start = offset_list[base_pos + rel_pos];
 				
@@ -303,6 +316,76 @@ int textViewer(char *file) {
 				} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
 					edit_line = 0;
 				}
+			}
+
+			// Cut line
+			if (modify_allowed && hold_buttons & SCE_CTRL_LEFT && copy_current_size < MAX_COPY_BUFFER_SIZE) {
+				if (copy_reset) {
+					copy_reset = 0;
+					copy_current_size = 0;
+				}
+
+				// Get current line
+				int line_start = offset_list[base_pos + rel_pos];
+				char line[MAX_LINE_CHARACTERS];
+				int length = textReadLine(buffer, line_start, size, line);
+
+				// Copy line into copy_buffer
+				memcpy(copy_buffer[copy_current_size].line, &buffer[line_start], length);
+				copy_buffer[copy_current_size].line[length] = '\0';
+					
+				// Remove line
+				memmove(&buffer[line_start], &buffer[line_start+length], size-line_start);	
+				size -= length;
+				n_lines -= 1;
+
+				// Add empty line if resulting buffer is empty
+				if (size == 0) {
+					size = 1;
+					n_lines = 1;
+					buffer[0] = '\n';
+				} 
+				
+				// Update entries
+				updateTextEntries(buffer, base_pos, size, offset_list, list.head);
+
+				if (base_pos + rel_pos >= n_lines) {
+					rel_pos = n_lines - 1;
+				}
+
+				changed = 1;
+				copy_current_size++;
+			} 
+
+			// Paste lines
+			if (modify_allowed && hold_buttons & SCE_CTRL_RIGHT && copy_current_size > 0) { 
+				int line_start = offset_list[base_pos + rel_pos];
+
+				// calculated size of pasted content
+				int length = 0, i;
+				for (i = 0; i < copy_current_size; i++) {
+					length += strlen(copy_buffer[i].line);
+				}
+
+				// Make space for pasted line
+				memmove(&buffer[line_start+length], &buffer[line_start], size-line_start);
+				size += length;
+
+				// Paste the lines
+				for (i = 0; i < copy_current_size; i++) {
+					int line_length = strlen(copy_buffer[i].line);
+
+					memcpy(&buffer[line_start], copy_buffer[i].line, line_length);
+					line_start += line_length;
+				}
+
+				n_lines += copy_current_size;
+
+				// Update entries
+				updateTextEntries(buffer, base_pos, size, offset_list, list.head);
+				
+				changed = 1;
+				copy_reset = 1;
 			}
 
 			// Page skip

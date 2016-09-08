@@ -21,6 +21,7 @@
 
 #define MAX_LINES 1 * 1024 * 1024
 #define MAX_LINE_CHARACTERS 1024
+#define MAX_COPY_BUFFER_SIZE 1024
 
 #define TEXT_START_X 97.0f
 
@@ -36,6 +37,10 @@ typedef struct {
 	TextListEntry *tail;
 	int length;
 } TextList;
+
+typedef struct CopyEntry {
+	char line[MAX_LINE_CHARACTERS];
+} CopyEntry;
 
 int textViewer(char *file);
 
