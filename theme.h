@@ -30,6 +30,8 @@ extern int DATE_TIME_COLOR;
 // File browser colors
 extern int FOCUS_COLOR;
 extern int FILE_COLOR;
+extern int SFO_COLOR;
+extern int TXT_COLOR;
 extern int FOLDER_COLOR;
 extern int IMAGE_COLOR;
 extern int ARCHIVE_COLOR;

@@ -168,7 +168,13 @@ EXIT:
 int network_update_thread(SceSize args, void *argp) {
 	sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
 
-	if (downloadFile(BASE_ADDRESS "/0.0/version.bin", "ux0:VitaShell/version.bin", NULL, 0, NULL, NULL) > 0) {
+	uint64_t size = 0;
+	if (getDownloadFileSize(BASE_ADDRESS "/0.1/version.bin", &size) > 0 && size == sizeof(uint32_t)) {
+		int res = downloadFile(BASE_ADDRESS "/0.1/version.bin", "ux0:VitaShell/version.bin", NULL, 0, NULL, NULL);
+		if (res <= 0)
+			goto EXIT;
+
+		// Read version
 		uint32_t version = 0;
 		ReadFile("ux0:VitaShell/version.bin", &version, sizeof(uint32_t));
 		sceIoRemove("ux0:VitaShell/version.bin");
@@ -177,8 +183,8 @@ int network_update_thread(SceSize args, void *argp) {
 		if (dialog_step == DIALOG_STEP_NONE) {
 			// New update available
 			if (version > VITASHELL_VERSION) {
-				int major = version >> 0x18;
-				int minor = version >> 0x10;
+				int major = (version >> 0x18) & 0xFF;
+				int minor = (version >> 0x10) & 0xFF;
 
 				char version_string[8];
 				sprintf(version_string, "%X.%X", major, minor);
@@ -196,7 +202,7 @@ int network_update_thread(SceSize args, void *argp) {
 
 				// No
 				if (dialog_step == DIALOG_STEP_NONE) {
-					return 0;
+					goto EXIT;
 				}
 
 				// Yes
@@ -205,6 +211,7 @@ int network_update_thread(SceSize args, void *argp) {
 		}
 	}
 
+EXIT:
 	return sceKernelExitDeleteThread(0);
 }
 

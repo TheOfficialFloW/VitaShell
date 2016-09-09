@@ -370,7 +370,8 @@ int textViewer(char *file) {
 				} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
 					if (offset_list[rel_pos + 1] < size) {
 						if ((rel_pos + 1) < MAX_POSITION) {
-							rel_pos++;
+							if (base_pos + rel_pos < n_lines - 1) 
+								rel_pos++;
 						} else {
 							if (offset_list[base_pos + rel_pos + 1] < size) {
 								base_pos++;
@@ -421,7 +422,7 @@ int textViewer(char *file) {
 
 				}
 
-				if (hold_buttons & SCE_CTRL_SELECT) {
+				if (pressed_buttons & SCE_CTRL_SELECT) {
 						initImeDialog(language_container[ENTER_SEARCH_TERM], "", MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, 0);
 
 						search_term_input = 1;
@@ -462,7 +463,7 @@ int textViewer(char *file) {
 			
 				// buffer modifying actions
 				if (modify_allowed && !search_running) {
-					if(!edit_line && hold_buttons & SCE_CTRL_ENTER) {
+					if(!edit_line && pressed_buttons & SCE_CTRL_ENTER) {
 						int line_start = offset_list[base_pos + rel_pos];
 						
 						char line[MAX_LINE_CHARACTERS];
@@ -519,7 +520,7 @@ int textViewer(char *file) {
 					}
 
 					// Cut line
-					if (hold_buttons & SCE_CTRL_LEFT && copy_current_size < MAX_COPY_BUFFER_SIZE) {
+					if (pressed_buttons & SCE_CTRL_LEFT && copy_current_size < MAX_COPY_BUFFER_SIZE) {
 						if (copy_reset) {
 							copy_reset = 0;
 							copy_current_size = 0;
@@ -530,8 +531,18 @@ int textViewer(char *file) {
 						char line[MAX_LINE_CHARACTERS];
 						int length = textReadLine(buffer, line_start, size, line);
 
+						CopyEntry *entry = &copy_buffer[copy_current_size];
+
 						// Copy line into copy_buffer
-						memcpy(copy_buffer[copy_current_size].line, &buffer[line_start], length);
+						memcpy(entry->line, &buffer[line_start], length);
+
+						// Make sure line end with a newline
+						if (entry->line[length - 1] != '\n') {
+							entry->line[length] = '\n';
+							length++;
+						}
+						
+						// Terminate line
 						copy_buffer[copy_current_size].line[length] = '\0';
 							
 						// Remove line
@@ -563,7 +574,7 @@ int textViewer(char *file) {
 					} 
 
 					// Paste lines
-					if (hold_buttons & SCE_CTRL_RIGHT && copy_current_size > 0) { 
+					if (pressed_buttons & SCE_CTRL_RIGHT && copy_current_size > 0) { 
 						int line_start = offset_list[base_pos + rel_pos];
 
 						// calculated size of pasted content
