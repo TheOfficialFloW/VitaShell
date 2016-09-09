@@ -74,7 +74,7 @@ https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
 
-### Changelog 1.00 ###
+### Changelog 0.95 ###
 - Added ability to install update files as .vpk (for Vitamin).
 - Added patch to make .vpk installation appearing as full version instead of test version.
 - Added text editor by BigBoot (WIP).
