@@ -177,8 +177,8 @@ int network_update_thread(SceSize args, void *argp) {
 		if (dialog_step == DIALOG_STEP_NONE) {
 			// New update available
 			if (version > VITASHELL_VERSION) {
-				int major = version >> 0x18;
-				int minor = version >> 0x10;
+				int major = (version >> 0x18) & 0xFF;
+				int minor = (version >> 0x10) & 0xFF;
 
 				char version_string[8];
 				sprintf(version_string, "%X.%X", major, minor);
