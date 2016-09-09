@@ -1,11 +1,33 @@
-﻿# VitaShell language file ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus
+# VitaShell language file ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus
 
+# General strings
 ERROR                                         = "Ошибка 0x%08X."
 OK                                            = "OK"
 YES                                           = "Да"
 NO                                            = "Нет"
 CANCEL                                        = "Отмена"
+FOLDER                                        = "<Папка>"
+
+# Progress strings
+MOVING                                        = "Перемещение..."
+COPYING                                       = "Копирование..."
+DELETING                                      = "Удаление..."
+INSTALLING                                    = "Установка..."
+DOWNLOADING                                   = "Загрузка..."
+EXTRACTING                                    = "Извлечение..."
+HASHING                                       = "Хеширование..."
+
+# Hex editor strings
 OFFSET                                        = "Смещение"
+OPEN_HEX_EDITOR                               = "Открыть в hex редакторе"
+
+# Text editor strings
+EDIT_LINE                                     = "Редактировать строку"
+ENTER_SEARCH_TERM                             = "Поиск..."
+CUT                                           = "Вырезать"
+
+# File browser context menu strings
+MORE                                          = "Свойства"
 MARK_ALL                                      = "Выделить всё"
 UNMARK_ALL                                    = "Снять выделение"
 MOVE                                          = "Переместить"
@@ -14,23 +36,27 @@ PASTE                                         = "Вставить"
 DELETE                                        = "Удалить"
 RENAME                                        = "Переименовать"
 NEW_FOLDER                                    = "Создать папку"
-FOLDER                                        = "<Папка>"
-COPIED_FILE                                   = "Скопировано файлов: %d."
-COPIED_FOLDER                                 = "Скопировано папок: %d."
-COPIED_FILES_FOLDERS                          = "Скопировано файлов/папок: %d."
-MOVING                                        = "Перемещение..."
-COPYING                                       = "Копирование..."
-DELETING                                      = "Удаление..."
-INSTALLING                                    = "Установка..."
-INSTALL_WARNING                               = "Внимание!\\Установка пакета требует доступа к системным разделам.\Это позволяет получить доступ к вашим личным данным.\Пакеты, скачанные из непроверенных источников, могут\содержать вредоносный код.\\Продолжить установку?"
-SAVE_MODIFICATIONS                            = "Сохранить внесённые изменения?"
-DELETE_FILE_QUESTION                          = "Вы действительно хотите удалить этот файл?"
-DELETE_FOLDER_QUESTION                        = "Вы действительно хотите удалить эту папку?"
-DELETE_FILES_FOLDERS_QUESTION                 = "Вы действительно хотите удалить эти данные?"
-INSTALL_QUESTION                              = "Установить данный пакет?"
-WIFI_ERROR                                    = "Для этого действия необходимо активное Wi-Fi подключение."
-FTP_SERVER                                    = "FTP-сервер доступен по адресу:\ftp://%s:%i\\'OK' - переход в фоновый режим\'Отмена' - остановка сервера."
-EDIT_LINE                                     = "Редактировать"
-SYS_INFO                                      = "Версия ПО: %s\Модель: 0x%08X\MAC адрес: %s\IP адрес: %s\Карта памяти: %s/%s"
 INSTALL_ALL                                   = "Установить все .vpk"
-UPDATE_QUESTION                               = "Доступна свежая версия VitaShell %s.\\Хотите выполнить обновление?"
+CALCULATE_SHA1                                = "Вычислить SHA1"
+SEARCH                                        = "Поиск"
+
+# File browser strings
+COPIED_FILE                                   = "Отчёт\\Скопировано файлов: %d."
+COPIED_FOLDER                                 = "Отчёт\\Скопировано папок: %d."
+COPIED_FILES_FOLDERS                          = "Отчёт\\Скопировано файлов/папок: %d."
+
+# Dialog questions
+DELETE_FILE_QUESTION                          = "Удаление файла\\Вы действительно хотите удалить этот файл?"
+DELETE_FOLDER_QUESTION                        = "Удаление папки\\Вы действительно хотите удалить эту папку?"
+DELETE_FILES_FOLDERS_QUESTION                 = "Удаление данных\\Вы действительно хотите удалить эти данные?"
+INSTALL_ALL_QUESTION                          = "Установка vpk\\Установить все .vpk из этой папки?"
+INSTALL_QUESTION                              = "Установка vpk\\Установить данный пакет?"
+INSTALL_WARNING                               = "Внимание!\\Установка пакета требует доступа к системным разделам.\Это позволяет получить доступ к вашим личным данным.\Пакеты, скачанные из непроверенных источников, могут\содержать вредоносный код.\\Продолжить установку?"
+HASH_FILE_QUESTION                            = "Внимание!\\Рассчёт хеша SHA1 может занять длительное время.\Продолжить?"
+
+# Others
+SAVE_MODIFICATIONS                            = "Сохранить внесённые изменения?"
+WIFI_ERROR                                    = "Ошибка Wi-Fi\\Для запуска FTP-сервера необходимо активное Wi-Fi подключение."
+FTP_SERVER                                    = "FTP сервер\\FTP-сервер доступен по адресу:\ftp://%s:%i\\'OK' - переход в фоновый режим\'Отмена' - остановка сервера."
+SYS_INFO                                      = "Сведения о системе\\Версия ПО: %s\Модель: 0x%08X\MAC адрес: %s\IP адрес: %s\Карта памяти: %s/%s"
+UPDATE_QUESTION                               = "Обновление\\Доступна новая версия программы VitaShell (%s).\\Хотите выполнить обновление?"
