@@ -51,7 +51,7 @@ eboot.bin: $(TARGET).velf
 	vita-make-fself $< $@
 
 %.velf: %.elf
-	vita-elf-create $< $@ libpromoter/promoterutil.json
+	vita-elf-create $< $@ libpromoter/promoterutil.json extra/RW.json
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@

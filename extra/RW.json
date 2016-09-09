@@ -1,0 +1,16 @@
+{
+  "SceVshBridge": {
+      "modules": {
+          "SceVshBridge": {
+              "functions": {
+                  "_vshIoMount": 1012018229,
+                  "vshIoUmount": 901523116
+                  },
+                "kernel": false,
+                "nid": 902147284,
+                "variables": {}
+            }
+        },
+        "nid": 0
+    }
+}

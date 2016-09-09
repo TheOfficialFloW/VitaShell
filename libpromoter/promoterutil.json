@@ -17,16 +17,6 @@
 				},
 				"variables": {
 				}
-			},
-			"SceVshBridge": {
-			   "nid": 902147284,
-			   "kernel": false,
-			   "functions": {
-                  "_vshIoMount": 1012018229,
-                  "vshIoUmount": 901523116
-                },
-                "variables": {
-				}
 			}
 			
 		}
