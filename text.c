@@ -370,7 +370,8 @@ int textViewer(char *file) {
 				} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
 					if (offset_list[rel_pos + 1] < size) {
 						if ((rel_pos + 1) < MAX_POSITION) {
-							rel_pos++;
+							if (base_pos + rel_pos < n_lines - 1) 
+								rel_pos++;
 						} else {
 							if (offset_list[base_pos + rel_pos + 1] < size) {
 								base_pos++;
