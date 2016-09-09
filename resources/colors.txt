@@ -9,6 +9,8 @@ DATE_TIME_COLOR              = 0xFFFFFFFF    # White
 # File browser colors
 FOCUS_COLOR                  = 0xFF00FF00    # Green
 FILE_COLOR                   = 0xFFFFFFFF    # White
+SFO_COLOR                    = 0xFFFFFFFF    # White
+TXT_COLOR                    = 0xFFFFFFFF    # White
 FOLDER_COLOR                 = 0xFFFFFF00    # Cyan
 IMAGE_COLOR                  = 0xFF7F00FF    # Rose
 ARCHIVE_COLOR                = 0xFF007FFF    # Orange

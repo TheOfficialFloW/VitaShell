@@ -422,7 +422,7 @@ int textViewer(char *file) {
 
 				}
 
-				if (hold_buttons & SCE_CTRL_SELECT) {
+				if (pressed_buttons & SCE_CTRL_SELECT) {
 						initImeDialog(language_container[ENTER_SEARCH_TERM], "", MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, 0);
 
 						search_term_input = 1;
@@ -463,7 +463,7 @@ int textViewer(char *file) {
 			
 				// buffer modifying actions
 				if (modify_allowed && !search_running) {
-					if(!edit_line && hold_buttons & SCE_CTRL_ENTER) {
+					if(!edit_line && pressed_buttons & SCE_CTRL_ENTER) {
 						int line_start = offset_list[base_pos + rel_pos];
 						
 						char line[MAX_LINE_CHARACTERS];
@@ -520,7 +520,7 @@ int textViewer(char *file) {
 					}
 
 					// Cut line
-					if (hold_buttons & SCE_CTRL_LEFT && copy_current_size < MAX_COPY_BUFFER_SIZE) {
+					if (pressed_buttons & SCE_CTRL_LEFT && copy_current_size < MAX_COPY_BUFFER_SIZE) {
 						if (copy_reset) {
 							copy_reset = 0;
 							copy_current_size = 0;
@@ -574,7 +574,7 @@ int textViewer(char *file) {
 					} 
 
 					// Paste lines
-					if (hold_buttons & SCE_CTRL_RIGHT && copy_current_size > 0) { 
+					if (pressed_buttons & SCE_CTRL_RIGHT && copy_current_size > 0) { 
 						int line_start = offset_list[base_pos + rel_pos];
 
 						// calculated size of pasted content

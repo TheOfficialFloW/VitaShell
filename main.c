@@ -1362,14 +1362,14 @@ int shellMain() {
 						break;
 						
 					case FILE_TYPE_SFO:
-						// color = SFO_COLOR;
+						color = SFO_COLOR;
 						icon = sfo_icon;
 						break;
 					
 					case FILE_TYPE_INI:
 					case FILE_TYPE_TXT:
 					case FILE_TYPE_XML:
-						// color = TXT_COLOR;
+						color = TXT_COLOR;
 						icon = text_icon;
 						break;
 						

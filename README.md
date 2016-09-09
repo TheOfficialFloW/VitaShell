@@ -74,6 +74,17 @@ https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
 
+### Changelog 1.00 ###
+- Added ability to install update files as .vpk (for Vitamin).
+- Added patch to make .vpk installation appearing as full version instead of test version.
+- Added text editor by BigBoot (WIP).
+- Added 'More' entry to the context menu.
+- Added 'Install all' feature to install all packages available in the folder (by ribbid987).
+- Added 'Calculate SHA1' feature by xerpia64.
+- Added support for ftp promoting for https://github.com/soywiz/vitaorganizer.
+- Fixed 'Move' operation. Now it does integrate into folders and replace files.
+- Dropped GENERAL_COLOR, now all colors are adjustable.
+
 ### Changelog 0.91 ###
 - Added automatic network update. VitaShell will now notify you when there's a new update.
   You'll then be able to download it within the VitaShell application and it will update both
