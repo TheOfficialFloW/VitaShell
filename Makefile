@@ -16,7 +16,7 @@ OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(RESOURCES_BIN:.bin=.
 LIBS = -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
 	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
-	   -lSceHttp_stub -lSceKernel_stub -lSceNet_stub -lSceNetCtl_stub \
+	   -lSceHttp_stub -lSceKernel_stub -lSceVshBridge_stub -lSceNet_stub -lSceNetCtl_stub \
 	   -lSceSsl_stub -lSceSysmodule_stub -lScePower_stub -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
 	   -lSceAudio_stub -lSceAudiodec_stub -lSceTouch_stub
 
@@ -51,7 +51,7 @@ eboot.bin: $(TARGET).velf
 	vita-make-fself $< $@
 
 %.velf: %.elf
-	vita-elf-create $< $@ libpromoter/promoterutil.json
+	vita-elf-create $< $@ libpromoter/promoterutil.json extra/RW.json
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@

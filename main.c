@@ -1159,7 +1159,7 @@ void fileBrowserMenuCtrl() {
 			dialog_step = DIALOG_STEP_FTP;
 		}
 	}
-
+	
 	// Move
 	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
 		if (rel_pos > 0) {
@@ -1261,6 +1261,45 @@ void fileBrowserMenuCtrl() {
 			}
 		}
 	}
+	
+	void *buf = malloc(0x100);
+	// Mount RW Partitions - Originaly writted for tomtomdu80
+	if (current_buttons & SCE_CTRL_LTRIGGER && current_buttons & SCE_CTRL_RTRIGGER && current_buttons & SCE_CTRL_SQUARE) { // L + R + Square
+		// Init Mount Unsafe Mode RW Partitions	
+		{
+			int i;
+			sceKernelDelayThread(0 * 1000 * 1000);
+			vshIoUmount(0x300, 0, 0, 0); // Dismount only vs0 partition
+			
+			sceKernelDelayThread(0 * 1000 * 1000);
+			_vshIoMount(0x300, 0, 2, buf); // Mount only vs0 partition in RW
+		}
+	}
+	if (current_buttons & SCE_CTRL_LTRIGGER && current_buttons & SCE_CTRL_RTRIGGER && current_buttons & SCE_CTRL_TRIANGLE) { // L + R + Triangle
+		// Init Mount Brick Mode RW Partitions
+		{
+			int i;
+			sceKernelDelayThread(0 * 1000 * 1000); // Dismount all system partitions
+			vshIoUmount(0x00, 0, 0, 0);
+			vshIoUmount(0x100, 0, 0, 0);
+			vshIoUmount(0x200, 0, 0, 0);
+			vshIoUmount(0x300, 0, 0, 0);
+			vshIoUmount(0x400, 0, 0, 0);
+			vshIoUmount(0x500, 0, 0, 0);
+			vshIoUmount(0x600, 0, 0, 0);
+			vshIoUmount(0x700, 0, 0, 0); 
+			
+			sceKernelDelayThread(0 * 1000 * 1000); // Mount all system partitions in RW
+			_vshIoMount(0x00, 0, 2, buf);
+			_vshIoMount(0x100, 0, 2, buf);
+			_vshIoMount(0x200, 0, 2, buf);
+			_vshIoMount(0x300, 0, 2, buf);
+			_vshIoMount(0x400, 0, 2, buf);
+			_vshIoMount(0x500, 0, 2, buf);
+			_vshIoMount(0x600, 0, 2, buf);
+			_vshIoMount(0x700, 0, 2, buf);
+		}
+	}		
 }
 
 int shellMain() {
