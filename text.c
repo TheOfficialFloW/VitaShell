@@ -442,6 +442,18 @@ static void setContextMenuVisibilities(TextEditorState *state) {
 
 	// Paste only visible when at least one line is in copy buffer
 	menu_entries[TEXT_MENU_ENTRY_PASTE].visibility = state->n_copied_lines == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+
+	// Go to first entry
+	int i;
+	for (i = 0; i < N_TEXT_MENU_ENTRIES; i++) {
+		if (menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			setContextMenuPos(i);
+			break;
+		}
+	}
+
+	if (i == N_TEXT_MENU_ENTRIES)
+		setContextMenuPos(-1);
 }
 
 static int count_lines_thread(SceSize args, CountParams *params) {
@@ -958,7 +970,7 @@ int textViewer(char *file) {
 			float x = TEXT_START_X;
 
 			if (entry->selected) {
-				vita2d_draw_rectangle(x, START_Y + (i * FONT_Y_SPACE), MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X, FONT_Y_SPACE, MARKED_COLOR);
+				vita2d_draw_rectangle(x, START_Y + (i * FONT_Y_SPACE) + 3.0f, MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X, FONT_Y_SPACE, MARKED_COLOR);
 			}
  
 			while (*line) {
