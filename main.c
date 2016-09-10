@@ -255,17 +255,6 @@ void refreshCopyList() {
 	}
 }
 
-void resetFileLists() {
-	memset(&file_list, 0, sizeof(FileList));
-	memset(&mark_list, 0, sizeof(FileList));
-	memset(&copy_list, 0, sizeof(FileList));
-
-	// Home
-	strcpy(file_list.path, HOME_PATH);
-
-	refreshFileList();
-}
-
 int handleFile(char *file, FileListEntry *entry) {
 	int res = 0;
 
@@ -488,7 +477,6 @@ void setContextMenuVisibilities() {
 		menu_entries[MENU_ENTRY_COPY].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = CTX_VISIBILITY_INVISIBLE;
-		//menu_entries[MENU_ENTRY_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Invisible 'Paste' if nothing is copied yet
@@ -496,20 +484,22 @@ void setContextMenuVisibilities() {
 		menu_entries[MENU_ENTRY_PASTE].visibility = CTX_VISIBILITY_INVISIBLE;
 
 	// Invisible 'Paste' if the files to move are not from the same partition
-	char *p = strchr(file_list.path, ':');
-	char *q = strchr(copy_list.path, ':');
-	if (p && q) {
-		*p = '\0';
-		*q = '\0';
+	if (copy_mode == COPY_MODE_MOVE) {
+		char *p = strchr(file_list.path, ':');
+		char *q = strchr(copy_list.path, ':');
+		if (p && q) {
+			*p = '\0';
+			*q = '\0';
 
-		if (strcasecmp(file_list.path, copy_list.path) != 0) {
+			if (strcasecmp(file_list.path, copy_list.path) != 0) {
+				menu_entries[MENU_ENTRY_PASTE].visibility = CTX_VISIBILITY_INVISIBLE;
+			}
+
+			*q = ':';
+			*p = ':';
+		} else {
 			menu_entries[MENU_ENTRY_PASTE].visibility = CTX_VISIBILITY_INVISIBLE;
 		}
-
-		*q = ':';
-		*p = ':';
-	} else {
-		menu_entries[MENU_ENTRY_PASTE].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Invisble write operations in archives
@@ -555,6 +545,11 @@ void setContextMenuMoreVisibilities() {
 	}
 
 	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+	// Invisble entries when on '..'
+	if (strcmp(file_entry->name, DIR_UP) == 0) {
+		menu_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
+	}
 
 	// Invisble write operations in archives
 	if (isInArchive()) {
@@ -1020,7 +1015,7 @@ int dialogSteps() {
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				InstallArguments args;
 
-				if(install_list.length > 0) {
+				if (install_list.length > 0) {
 					FileListEntry *entry = install_list.head;
 					snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
 					args.file = install_path;
@@ -1054,7 +1049,7 @@ int dialogSteps() {
 			
 		case DIALOG_STEP_INSTALLED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				if(install_list.length > 0) {
+				if (install_list.length > 0) {
 					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
 					dialog_step = DIALOG_STEP_INSTALL_CONFIRMED;
 					break;
@@ -1212,6 +1207,7 @@ void fileBrowserMenuCtrl() {
 		if (pressed_buttons & SCE_CTRL_CANCEL) {
 			fileListEmpty(&mark_list);
 			dirUp();
+			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
 			refreshFileList();
 		}
 	}
@@ -1236,6 +1232,9 @@ void fileBrowserMenuCtrl() {
 
 				dirLevelUp();
 			}
+
+			// Save last dir
+			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
 
 			// Open folder
 			int res = refreshFileList();
@@ -1271,8 +1270,54 @@ int shellMain() {
 	memset(cur_file, 0, sizeof(cur_file));
 	memset(archive_path, 0, sizeof(archive_path));
 
-	// Reset file lists
-	resetFileLists();
+	// File lists
+	memset(&file_list, 0, sizeof(FileList));
+	memset(&mark_list, 0, sizeof(FileList));
+	memset(&copy_list, 0, sizeof(FileList));
+	memset(&install_list, 0, sizeof(FileList));
+
+	// Current path is 'home'
+	strcpy(file_list.path, HOME_PATH);
+
+	// Last dir
+	char lastdir[MAX_PATH_LENGTH];
+	ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
+
+	// Calculate dir positions if the dir is valid
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	if (sceIoGetstat(lastdir, &stat) >= 0) {
+		int i;
+		for (i = 0; i < strlen(lastdir) + 1; i++) {
+			if (lastdir[i] == ':' || lastdir[i] == '/') {
+				char ch = lastdir[i + 1];
+				lastdir[i + 1] = '\0';
+
+				char ch2 = lastdir[i];
+				lastdir[i] = '\0';
+
+				char *p = strrchr(lastdir, '/');
+				if (!p)
+					p = strrchr(lastdir, ':');
+				if (!p)
+					p = lastdir - 1;
+
+				lastdir[i] = ch2;
+
+				refreshFileList();
+				focusOnFilename(p + 1);
+
+				strcpy(file_list.path, lastdir);
+
+				lastdir[i + 1] = ch;
+
+				dirLevelUp();
+			}
+		}
+	}
+
+	// Refresh file list
+	refreshFileList();
 
 	// Init context menu param
 	ContextMenu context_menu;

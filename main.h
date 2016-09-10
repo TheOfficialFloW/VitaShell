@@ -69,6 +69,8 @@
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 
+#define VITASHELL_LASTDIR "ux0:VitaShell/internal/lastdir.txt"
+
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))

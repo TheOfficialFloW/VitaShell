@@ -220,6 +220,7 @@ void initVitaShell() {
 
 	// Make VitaShell folders
 	sceIoMkdir("ux0:VitaShell", 0777);
+	sceIoMkdir("ux0:VitaShell/internal", 0777);
 	sceIoMkdir("ux0:VitaShell/language", 0777);
 	sceIoMkdir("ux0:VitaShell/theme", 0777);
 	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
