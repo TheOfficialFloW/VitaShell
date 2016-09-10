@@ -134,7 +134,7 @@ int getArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *
 	return 0;
 }
 
-int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 	if (!uf)
 		return -1;
 
@@ -151,15 +151,17 @@ int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void
 			return ret;
 		}
 
-		if (value)
-			(*value)++;
+		if (param) {
+			if (param->value)
+				(*param->value)++;
 
-		if (SetProgress)
-			SetProgress(value ? *value : 0, max);
-		
-		if (cancelHandler && cancelHandler()) {
-			fileListEmpty(&list);
-			return 0;
+			if (param->SetProgress)
+				SetProgress(param->value ? *param->value : 0, param->max);
+			
+			if (param->cancelHandler && param->cancelHandler()) {
+				fileListEmpty(&list);
+				return 0;
+			}
 		}
 
 		FileListEntry *entry = list.head->next; // Ignore ..
@@ -172,7 +174,7 @@ int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void
 			char *dst_path = malloc(strlen(dst) + strlen(entry->name) + 2);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", dst, entry->name);
 
-			int ret = extractArchivePath(src_path, dst_path, value, max, SetProgress, cancelHandler);
+			int ret = extractArchivePath(src_path, dst_path, param);
 
 			free(dst_path);
 			free(src_path);
@@ -211,19 +213,21 @@ int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void
 				return res;
 			}
 
-			if (value)
-				(*value) += read;
+			if (param) {
+				if (param->value)
+					(*param->value) += read;
 
-			if (SetProgress)
-				SetProgress(value ? *value : 0, max);
+				if (param->SetProgress)
+					param->SetProgress(param->value ? *param->value : 0, param->max);
 
-			if (cancelHandler && cancelHandler()) {
-				free(buf);
+				if (param->cancelHandler && param->cancelHandler()) {
+					free(buf);
 
-				sceIoClose(fddst);
-				archiveFileClose(fdsrc);
+					sceIoClose(fddst);
+					archiveFileClose(fdsrc);
 
-				return 0;
+					return 0;
+				}
 			}
 		}
 

@@ -219,7 +219,7 @@ EXIT:
 
 void installUpdater() {
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Make dirs
@@ -252,7 +252,7 @@ int update_extract_thread(SceSize args, void *argp) {
 	installUpdater();
 
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
@@ -276,7 +276,14 @@ int update_extract_thread(SceSize args, void *argp) {
 
 	// Extract process
 	uint64_t value = 0;
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+
+	FileProcessParam param;
+	param.value = &value;
+	param.max = size + folders;
+	param.SetProgress = SetProgress;
+	param.cancelHandler = cancelHandler;
+
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
 	if (res <= 0) {
 		closeWaitDialog();
 		dialog_step = DIALOG_STEP_CANCELLED;
