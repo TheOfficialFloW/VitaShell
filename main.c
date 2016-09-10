@@ -581,7 +581,7 @@ void setContextMenuMoreVisibilities() {
 		setContextMenuMorePos(-1);
 }
 
-int contextMenuEnterCallback(int pos) {
+int contextMenuEnterCallback(int pos, void* context) {
 	switch (pos) {
 		case MENU_ENTRY_MARK_UNMARK_ALL:
 		{
@@ -764,7 +764,7 @@ int contextMenuEnterCallback(int pos) {
 	return CONTEXT_MENU_CLOSING;
 }
 
-int contextMenuMoreEnterCallback(int pos) {
+int contextMenuMoreEnterCallback(int pos, void* context) {
 	switch (pos) {
 		case MENU_MORE_ENTRY_INSTALL_ALL:
 		{
