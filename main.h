@@ -186,7 +186,7 @@ extern vita2d_texture *headphone_image, *audio_previous_image, *audio_pause_imag
 
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
-extern int dialog_step;
+extern volatile int dialog_step;
 
 extern int use_custom_config;
 

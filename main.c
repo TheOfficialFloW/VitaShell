@@ -80,7 +80,7 @@ static unsigned short int vita_port;
 int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 
 // Dialog step
-int dialog_step = DIALOG_STEP_NONE;
+volatile int dialog_step = DIALOG_STEP_NONE;
 
 // Use custom config
 int use_custom_config = 1;
@@ -871,11 +871,11 @@ int dialogSteps() {
 				args.archive_path = archive_path;
 				args.copy_mode = copy_mode;
 
+				dialog_step = DIALOG_STEP_COPYING;
+
 				SceUID thid = sceKernelCreateThread("copy_thread", (SceKernelThreadEntry)copy_thread, 0x40, 0x10000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(CopyArguments), &args);
-
-				dialog_step = DIALOG_STEP_COPYING;
 			}
 
 			break;
@@ -897,11 +897,11 @@ int dialogSteps() {
 				args.mark_list = &mark_list;
 				args.index = base_pos + rel_pos;
 
+				dialog_step = DIALOG_STEP_DELETING;
+
 				SceUID thid = sceKernelCreateThread("delete_thread", (SceKernelThreadEntry)delete_thread, 0x40, 0x10000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(DeleteArguments), &args);
-
-				dialog_step = DIALOG_STEP_DELETING;
 			}
 
 			break;
@@ -988,12 +988,12 @@ int dialogSteps() {
 				HashArguments args;
 				args.file_path = cur_file;
 
+				dialog_step = DIALOG_STEP_HASHING;
+
 				// Create a thread to run out actual sum
 				SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x10000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(HashArguments), &args);
-			
-				dialog_step = DIALOG_STEP_HASHING;
 			}
 
 			break;
@@ -1034,11 +1034,11 @@ int dialogSteps() {
 					args.file = cur_file;
 				}
 
+				dialog_step = DIALOG_STEP_INSTALLING;
+
 				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(InstallArguments), &args);
-
-				dialog_step = DIALOG_STEP_INSTALLING;
 			}
 
 			break;
@@ -1077,11 +1077,11 @@ int dialogSteps() {
 			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
 
+				dialog_step = DIALOG_STEP_EXTRACTING;
+
 				SceUID thid = sceKernelCreateThread("update_extract_thread", (SceKernelThreadEntry)update_extract_thread, 0x40, 0x10000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, 0, NULL);
-
-				dialog_step = DIALOG_STEP_EXTRACTING;
 			}
 
 			break;
