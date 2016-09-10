@@ -1,0 +1,63 @@
+# VitaShell language file
+
+# General strings
+ERROR                                = "Erro 0x%08X."
+OK                                   = "OK"
+YES                                  = "Sim"
+NO                                   = "Não"
+CANCEL                               = "Cancelar"
+FOLDER                               = "Pasta"
+
+# Progress strings
+MOVING                               = "Movendo..."
+COPYING                              = "Copiando..."
+DELETING                             = "Deletando..."
+INSTALLING                           = "Instalando..."
+DOWNLOADING                          = "Baixando..."
+EXTRACTING                           = "Extraindo..."
+HASHING                              = "Hashing..."
+
+# Hex editor strings
+OFFSET                               = "Offset"
+OPEN_HEX_EDITOR                      = "Abrir editor hex"
+
+# Text editor strings
+EDIT_LINE                            = "Editar Linha"
+ENTER_SEARCH_TERM                    = "Entre com o termo de busca"
+CUT                                  = "Recortar"
+INSERT_EMPTY_LINE                    = "Inserir linha vazia"
+
+# File browser context menu strings
+MORE                                 = "Mais"
+MARK_ALL                             = "Marcar todos"
+UNMARK_ALL                           = "Desmarcar todos"
+MOVE                                 = "Mover"
+COPY                                 = "Copiar"
+PASTE                                = "Colar"
+DELETE                               = "Deletar"
+RENAME                               = "Renomear"
+NEW_FOLDER                           = "Nova pasta"
+INSTALL_ALL                          = "Intalar todos"
+CALCULATE_SHA1                       = "Calcular SHA1"
+SEARCH                               = "Procurar"
+
+# File browser strings
+COPIED_FILE                          = "Arquivo %d copiado."
+COPIED_FOLDER                        = "Pasta %d copiada."
+COPIED_FILES_FOLDERS                 = "Arquivos/pastas %d copiados."
+
+# Dialog questions
+DELETE_FILE_QUESTION                 = "Tem certeza de que deseja excluir este arquivo?"
+DELETE_FOLDER_QUESTION               = "Tem certeza de que deseja excluir esta pasta?"
+DELETE_FILES_FOLDERS_QUESTION        = "Tem certeza de que deseja excluir estes arquivos/pastas?"
+INSTALL_ALL_QUESTION                 = "Você deseja instalar todos os pacotes disponíveis nesta pasta?"
+INSTALL_QUESTION                     = "Você deseja instalar este pacote?"
+INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se você não o obteve de uma fonte confiável,\proceda com cuidado.\\Deseja continuar a instalação?"
+HASH_FILE_QUESTION                   = "O SHA1 hashing pode levar um longo tempo. Deseja continuar?"
+
+# Others
+SAVE_MODIFICATIONS                   = "Você deseja salvar as modificações?"
+WIFI_ERROR                           = "Você deve usar Wi-Fi para fazer isso."
+FTP_SERVER                           = "Servidor FTP está diponível em\ftp://%s:%i\\Pressione 'OK' para mantê-lo em segundo plano.\Pressione 'Cancelar' para desconectar."
+SYS_INFO                             = "Software de sistema: %s\Modelo: 0x%08X\Endereço MAC: %s\Endereço IP: %s\Cartão de memória: %s/%s"
+UPDATE_QUESTION                      = "VitaShell %s está disponível.\\Deseja atualizar o aplicativo?""
