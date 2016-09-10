@@ -356,15 +356,21 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 	// Close
 	closeWaitDialog();
 
-	char sha1msg[41];
-	int i;
+	char sha1msg[42];
+	memset(sha1msg, 0, sizeof(sha1msg));
 
 	// Construct SHA1 sum string
+	int i;
 	for (i = 0; i < 20; i++) {
-		sprintf(sha1msg + (2*i), "%02x ", sha1out[i]);
+		char string[4];
+		sprintf(string, "%02X", sha1out[i]);
+		strcat(sha1msg, string);
+
+		if (i == 9)
+			strcat(sha1msg, "\n");
 	}
 
-	sha1msg[40] = '\0';
+	sha1msg[41] = '\0';
 
 	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, sha1msg);
 	dialog_step = DIALOG_STEP_HASH_DISPLAY;
@@ -380,7 +386,7 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 EXIT:
 
 	// Ensure the update thread ends gracefully
-	if(thid>=0)
+	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
 
 	powerUnlock();
