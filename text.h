@@ -28,7 +28,7 @@
 #define TEXT_START_X 97.0f
 
 #define MAX_SEARCH_RESULTS 1024 * 1024
-#define MIN_SEARCH_TERM_LENGTH 3
+#define MIN_SEARCH_TERM_LENGTH 1
 
 typedef struct TextListEntry {
 	struct TextListEntry *next;
