@@ -88,6 +88,7 @@ void loadLanguage(int id) {
 		LANGUAGE_ENTRY(EDIT_LINE),
 		LANGUAGE_ENTRY(ENTER_SEARCH_TERM),
 		LANGUAGE_ENTRY(CUT),
+		LANGUAGE_ENTRY(INSERT_EMPTY_LINE),
 
 		// File browser context menu strings
 		LANGUAGE_ENTRY(MORE),

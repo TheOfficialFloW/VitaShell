@@ -36,6 +36,8 @@ enum TextMenuEntrys {
 	TEXT_MENU_ENTRY_CUT,
 	TEXT_MENU_ENTRY_COPY,
 	TEXT_MENU_ENTRY_PASTE,
+	TEXT_MENU_ENTRY_DELETE,
+	TEXT_MENU_ENTRY_INSERT_EMPTY_LINE,
 	TEXT_MENU_ENTRY_EMPTY_2,
 	TEXT_MENU_ENTRY_SEARCH,
 	TEXT_MENU_ENTRY_EMPTY_3,
@@ -47,6 +49,9 @@ MenuEntry text_menu_entries[] = {
 	{ -1, CTX_VISIBILITY_UNUSED },
 	{ CUT, CTX_VISIBILITY_INVISIBLE },
 	{ COPY, CTX_VISIBILITY_INVISIBLE },
+	{ PASTE, CTX_VISIBILITY_INVISIBLE },
+	{ DELETE, CTX_VISIBILITY_INVISIBLE },
+	{ INSERT_EMPTY_LINE, CTX_VISIBILITY_INVISIBLE }, 
 	{ PASTE, CTX_VISIBILITY_INVISIBLE },
 	{ -1, CTX_VISIBILITY_UNUSED },
 	{ SEARCH, CTX_VISIBILITY_VISIBLE },
@@ -409,6 +414,14 @@ static int contextMenuEnterCallback(int pos, void *context) {
 
 		case TEXT_MENU_ENTRY_PASTE:
 			paste_lines(state, state->base_pos + state->rel_pos + 1);
+			break;
+
+		case TEXT_MENU_ENTRY_DELETE:
+			delete_line(state, state->base_pos + state->rel_pos);
+			break;
+
+		case TEXT_MENU_ENTRY_INSERT_EMPTY_LINE:
+			insert_line(state, "\n", state->base_pos + state->rel_pos + 1);
 			break;
 
 		case TEXT_MENU_ENTRY_MARK_UNMARK_ALL:
