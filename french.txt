@@ -1,141 +1,71 @@
 ﻿# VitaShell french translation by xy2_ 
-
 # Updated by Dragoon1010 (For VitaShell 0.95)
-
-
 
 # General strings
 
-
-
 ERROR				= "Erreur 0x%08X."
-
 OK				= "OK"
-
 YES				= "Oui"
-
 NO				= "Non"
-
 CANCEL				= "Annuler"
-
 FOLDER				= "Dossier"
-
-
 
 # Progress strings
 
-
-
 MOVING				= "Déplacement en cours..."
-
 COPYING				= "Copie en cours..."
-
 DELETING			= "Suppression en cours..."
-
 INSTALLING			= "Installation en cours..."
-
 DOWNLOADING			= "Téléchargement en cours..."
-
 EXTRACTING			= "Extraction en cours..."
-
 HASHING				= "Hashage en cours..."
-
-
 
 # Hex editor strings
 
-
-
 OFFSET				= "Décalage"
-
 OPEN_HEX_EDITOR			= "Ouvrir l'éditeur héxadécimal"
-
-
 
 # Text editor strings
 
-
-
 EDIT_LINE			= "Editer la ligne"
-
 ENTER_SEARCH_TERM		= "Entrer un mot clé"
-
 CUT				= "Couper"
-
-
 
 # File browser context menu strings
 
-
 MORE				= "Plus..."
-
 MARK_ALL			= "Marquer tous"
-
 UNMARK_ALL			= "Dé-marquer tous"
-
 MOVE				= "Déplacer"
-
 COPY				= "Copier"
-
 PASTE				= "Coller"
-
 DELETE				= "Supprimer"
-
 RENAME				= "Renommer"
-
 NEW_FOLDER			= "Nouveau dossier"
-
 INSTALL_ALL			= "Installer tout"
-
 CALCULATE_SHA1			= "Vérifier le SHA1"
-
 SEARCH				= "Rechercher"
-
-
-
 
 # File browser strings
 
-
-
 COPIED_FILE			= "Copie de %d fichiers."
-
 COPIED_FOLDER			= "Copie de %d dossiers."
-
 COPIED_FILES_FOLDERS		= "Copie de %d fichiers/dossiers."
-
-
 
 # Dialog questions
 
-
-
 DELETE_FILE_QUESTION		= "Voulez-vous vraiment supprimer ce fichier ?"
-
 DELETE_FOLDER_QUESTION		= "Voulez-vous vraiment supprimer ce dossier ?"
-
 DELETE_FILES_FOLDERS_QUESTION	= "Voulez-vous vraiment supprimer ces fichiers/dossiers ?"
-
 INSTALL_ALL_QUESTION		= "Voulez-vous vraiment installer tout les packages disponible dans ce dossier ?"
-
 INSTALL_QUESTION		= "Voulez-vous vraiment installer cette archive ?"
-
 INSTALL_WARNING			= "Cette application requiert des autorisations supplémentaires.\Elle pourrais avoir accès à vos informations personnelles.\Si vous ne l'avez pas obtenu de source sûr,\procédez avec précautions.\\Voulez vous tout de même l'installer ?"
-
 HASH_FILE_QUESTION		= "Le hashage SHA1 peut prendre un certain temps. Voulez vous continuer ?"
-
-
 
 # Others
 
-
-
 SAVE_MODIFICATIONS		= "Voulez vous sauvegarder les modifications ?"
-
 WIFI_ERROR			= "Vous devez activer le Wi-Fi pour utiliser cette fonction."
-
 FTP_SERVER			= "Serveur FTP actif à l'adresse \ftp://%s:%i\\Appuyez sur 'OK' pour garder en tâche de fond.\Appuyez sur 'Annuler' pour l'arrêter."
-
 SYS_INFO			= "Logiciel système : %s\Modèle : 0x%08X\addresse MAC : %s\addresse IP : %s\Mémoire restante : %s/%s"
-
 UPDATE_QUESTION			= "Une nouvelle version de VitaShell est disponible.\\Voulez vous mettre à jour en version %s ?"
