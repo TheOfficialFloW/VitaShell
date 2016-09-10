@@ -490,7 +490,7 @@ static int search_thread(SceSize args, SearchParams *argp) {
 
 	char *r;
 	while (state->search_running && offset < state->size && state->n_search_results < MAX_SEARCH_RESULTS) {
-		r = strstr(state->buffer + offset, search_term);
+		r = strcasestr(state->buffer + offset, search_term);
 
 		if (r == NULL) {
 			state->search_running = 0;
@@ -981,10 +981,12 @@ int textViewer(char *file) {
 
 				char *search_highlight = NULL;
 				if (search_result_on_line) {
-					search_highlight = strstr(line, s->search_term);
+					search_highlight = strcasestr(line, s->search_term);
 				}
 
+				char tmp = '\0';
 				if (search_highlight) {
+					tmp = *search_highlight;
 					*search_highlight = '\0';
 				}
 
@@ -999,9 +1001,16 @@ int textViewer(char *file) {
 				}
 
 				if (search_highlight) {
-					*search_highlight = s->search_term[0];
+					*search_highlight = tmp;
+
+					int search_term_length = strlen(s->search_term);
+					tmp = search_highlight[search_term_length];
+					search_highlight[search_term_length] = '\0';
+
 					x += width;
-					x += pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, FONT_SIZE, s->search_term);
+					x += pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, FONT_SIZE, line);
+					
+					search_highlight[search_term_length] = tmp;
 					line += strlen(s->search_term); 
 				}
 			}
