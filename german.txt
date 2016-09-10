@@ -1,11 +1,33 @@
 # VitaShell German Translation by VegaRoXas and Tails32
 
+# Allgemeine Texte
 ERROR                                = "Fehler 0x%08X."
 OK                                   = "OK"
 YES                                  = "Ja"
 NO                                   = "Nein"
 CANCEL                               = "Abbrechen"
+FOLDER                               = "Ordner"
+
+# Prozess-Texte
+MOVING                               = "Verschiebe..."
+COPYING                              = "Kopiere..."
+DELETING                             = "Lösche..."
+INSTALLING                           = "Installiere..."
+DOWNLOADING                          = "Lade herunter..."
+EXTRACTING                           = "Entpacke..."
+HASHING                              = "Erstelle Hash..."
+
+# Hex-Editor Texte
 OFFSET                               = "Offset"
+OPEN_HEX_EDITOR                      = "Im Hex-Editor öffnen"
+
+# Text-Editor Texte
+EDIT_LINE                            = "Zeile bearbeiten"
+ENTER_SEARCH_TERM                    = "Suchbegriff eingeben"
+CUT                                  = "Ausschneiden"
+
+# Dateibrowser-Kontextmenü Texte
+MORE                                 = "Mehr"
 MARK_ALL                             = "Alles auswählen"
 UNMARK_ALL                           = "Auswahl aufheben"
 MOVE                                 = "Verschieben"
@@ -14,25 +36,27 @@ PASTE                                = "Einfügen"
 DELETE                               = "Löschen"
 RENAME                               = "Umbenennen"
 NEW_FOLDER                           = "Neuer Ordner"
-FOLDER                               = "Ordner"
+INSTALL_ALL                          = "Alle installieren"
+CALCULATE_SHA1                       = "SHA1 berechnen"
+SEARCH                               = "Suche"
+
+# Dateibrowser Texte
 COPIED_FILE                          = "%d Datei(en) kopiert."
 COPIED_FOLDER                        = "%d Ordner kopiert."
 COPIED_FILES_FOLDERS                 = "%d Elemente kopiert."
-MOVING                               = "Verschiebe..."
-COPYING                              = "Kopiere..."
-DELETING                             = "Lösche..."
-INSTALLING                           = "Installiere..."
-DOWNLOADING                          = "Lade herunter..."
-EXTRACTING                           = "Entpacke..."
+
+# Fragen der Dialogfenster
 DELETE_FILE_QUESTION                 = "Möchtest du die Datei wirklich löschen?"
 DELETE_FOLDER_QUESTION               = "Möchtest du den Ordner wirklich löschen?"
-DELETE_FILES_FOLDERS_QUESTION        = "Möchtest du diese Dateien/Ordner wirklich löschen?"
+DELETE_FILES_FOLDERS_QUESTION        = "Möchtest du die ausgewählten Elemente wirklich löschen?"
 INSTALL_ALL_QUESTION                 = "Möchtest du alle in diesem Ordner verfügbaren Pakete installieren?"
 INSTALL_QUESTION                     = "Möchtest du dieses Paket installieren?"
 INSTALL_WARNING                      = "Dieses Paket benötigt erweiterte Berechtigungen.\Es wird Zugriff auf deine persönlichen Informationen haben.\Bitte installiere es nur, falls es aus einer vertrauenswürdigen Quelle stammt,\oder fahre auf eigene Gefahr fort.\\Möchtest du die Installation fortsetzen?"
+HASH_FILE_QUESTION                   = "Einen SHA1-Hash zu erstellen kann einige Zeit\in Anspruch nehmen. Die benötigte Zeit\ist von der Dateigröße abhängig.\\Möchtest du fortfahren?"
+
+# Andere
 SAVE_MODIFICATIONS                   = "Möchtest du die Änderungen speichern?"
-WIFI_ERROR                           = "Eine aktive WLAN-Verbindung wird benötigt."
+WIFI_ERROR                           = "Es wird eine aktive WLAN-Verbindung benötigt."
 FTP_SERVER                           = "FTP-Server läuft unter\ftp://%s:%i\\Drücke 'OK', um den Server im Hintergrund laufen zu lassen.\Drücke 'Abbrechen', um die Verbindung zu trennen."
 SYS_INFO                             = "System-Software: %s\Model: 0x%08X\MAC-Addresse: %s\IP-Addresse: %s\Speicherkarte: %s/%s"
-INSTALL_ALL                          = "Alle installieren"
 UPDATE_QUESTION                      = "VitaShell %s ist jetzt verfügbar.\\Möchtest du die Anwendung aktualisieren?"
