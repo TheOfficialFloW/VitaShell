@@ -9,7 +9,7 @@ RESOURCES_PNG = resources/folder_icon.png resources/file_icon.png resources/arch
 				resources/ftp.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
 				resources/battery_bar_charge.png resources/headphone.png resources/audio_previous.png resources/audio_pause.png \
 				resources/audio_play.png resources/audio_next.png
-RESOURCES_TXT = resources/theme.txt resources/colors.txt resources/english_us.txt
+RESOURCES_TXT = resources/theme.txt resources/colors.txt resources/english_us.txt resources/changeinfo.txt
 RESOURCES_BIN = resources/updater_eboot.bin resources/updater_param.bin
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(RESOURCES_BIN:.bin=.o)
 

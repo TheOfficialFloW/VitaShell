@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeinfo>
+  <changes app_ver="00.10">
+    <![CDATA[
+- Initial release.<br>
+    ]]>
+  </changes>
+  <changes app_ver="00.20">
+    <![CDATA[
+- Added ability to sign PSP homebrews.<br>
+- Added sleep prevention when using FTP, deleting and copying files.<br>
+- Added a scrollbar.<br>
+- Added date and time to info bar.<br>
+- Added correct enter and cancel buttons assignment.<br>
+- Added some cosmetic changes.<br>
+- Fixed crash when deleting marked entries.<br>
+- Copied entries now still rest in clipboard after pasting them.<br>
+- The application now cleans itself before launching homebrews.<br>
+    ]]>
+  </changes>
+  <changes app_ver="00.30">
+    <![CDATA[
+- Added translation support. See translation_readme.txt for more details.<br>
+- Added move ability (only possible within same partition).<br>
+- Added tabulator support in text viewer.<br>
+- Removed 'Paste', 'Delete', 'Rename' and 'New folder' in read-only partitions.<br>
+- Fixed size string of files over 1GB.<br>
+- Fixed alphabetical sorting.<br>
+- Fixed battery percent bug being -1% on PSM Dev Assistant.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.40">
+    <![CDATA[
+- Added experimental feature: Holding START to force exit homebrews.<br>
+- Added battery symbol by Ruben_Wolf.<br>
+- Switched to official PGF font.<br>
+- Changed triangle-menu animation to ease-out.<br>
+- Improved mark all/unmark all feature.<br>
+- Fixed percentage precision in progress bar.<br>
+- Fixed small bug in move operation.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.50">
+    <![CDATA[
+- Increased homebrew force-exit compatbility and stability.<br>
+- Added network host mountpoint.<br>
+- Added ability to compile shader programs (use the _v.cg suffix for vertexes and _f.cg for fragments).<br>
+- Finished photo viewer. Use the right analog stick to zoom in/out. Left analog stick to move.<br>
+  L/R to rotate and X/O to change display mode.<br>
+- Updated to newest vita2dlib which fixed many bugs with images.<br>
+- Improved 'New folder' by extending to 'New folder (X)', where 'X' is an increasing number.<br>
+- Improved message dialog texts.<br>
+- Limited filenames so it doesn't overlap with the size/folder text. <br>
+- Fixed infinite loop when copying the src to its subfolder by an error result.<br>
+- Fixed FTP client crashes and added support for Turboclient Android.<br>
+- Fixed alphabetical sorting, finally.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.60">
+    <![CDATA[
+- Fixed size string of files, again.<br>
+- Optimized I/O operations regarding speed.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.70">
+    <![CDATA[
+- Ported to HENkaku (support for renaming/creating folders and for analog stick for fast movement).<br>
+- Added custom dialogs.<br>
+- Added graphics by Freakler.<br>
+- Added possibility to use FTP in background.<br>
+- I/O operations can now be cancelled.<br>
+- Removed misc stuff, shader compiler, homebrew loading, PBOOT.PBP signing, network host.<br>
+- Fixed various bugs.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.80">
+    <![CDATA[
+- Added support for >2GB zip archives (dropped support for 7zip and rar though).<br>
+- Added cache system for zipfs (faster file reading when browsing in zip archives).<br>
+- Added possibility to customize the application's UI.<br>
+- Added possibility to translate the application.<br>
+- Fixed 12h time conversion.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.85">
+    <![CDATA[
+- Added customization possibility for ftp icon, battery, dialog and context menu.<br>
+- Added random wallpaper feature.<br>
+- Changed location of themes to 'ux0:VitaShell/theme/YOUR_THEME_NAME'.<br>
+- Fixed russian and korean language support.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.86">
+    <![CDATA[
+- Added dialog box animation and aligned dialog box y to make it look better.<br>
+- Fixed wrong time string for files and folders. Thanks to persona5.<br>
+- Fixed INSTALL_WARNING text crash.<br>
+- Added default files creating.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.90">
+    <![CDATA[
+- Added possibility to use specific background for file browser, hex editor, text editor, photo viewer.<br>
+- Added files and folder icons by littlebalup.<br>
+- Added charging battery icon by ribbid987.<br>
+- Added sfo reader by theorywrong.<br>
+- Added translation support for turkish (english_gb uses the same id as turkish, fix it Sony!).<br>
+- Fixed bug where copied files and folders of archives didn't stay on clipboard.<br>
+- Allow auto screen-off.<br>
+- System information trigger combo changed to START instead of L+R+START. System information can now also be translated, thanks to littlebalup.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.91">
+    <![CDATA[
+- Added automatic network update. VitaShell will now notify you when there's a new update.<br>
+  You'll then be able to download it within the VitaShell application and it will update both<br>
+  molecularShell and VitaShell to the newest verison.<br>
+- Added text and audio file icon by littlebalup.<br>
+- Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.<br>
+    ]]>
+  </changes>
+   <changes app_ver="00.95">
+    <![CDATA[
+- Added ability to install update files as .vpk (for Vitamin).<br>
+- Added patch to make .vpk installation appearing as full version instead of test version.<br>
+- Added text editor by BigBoot (WIP).<br>
+- Added 'More' entry to the context menu.<br>
+- Added 'Install all' feature to install all packages available in the folder (by ribbid987).<br>
+- Added 'Calculate SHA1' feature by xerpia64.<br>
+- Added support for ftp promoting for https://github.com/soywiz/vitaorganizer.<br>
+- Fixed 'Move' operation. Now it does integrate into folders and replace files.<br>
+- Dropped GENERAL_COLOR, now all colors are adjustable.<br>
+    ]]>
+  </changes>
+</changeinfo>
