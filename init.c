@@ -21,6 +21,9 @@
 #include "file.h"
 #include "utils.h"
 
+extern unsigned char _binary_resources_changeinfo_txt_start;
+extern unsigned char _binary_resources_changeinfo_txt_size;
+
 extern unsigned char _binary_resources_folder_icon_png_start;
 extern unsigned char _binary_resources_folder_icon_png_size;
 extern unsigned char _binary_resources_file_icon_png_start;
@@ -217,6 +220,7 @@ void initVitaShell() {
 
 	// Make VitaShell folders
 	sceIoMkdir("ux0:VitaShell", 0777);
+	sceIoMkdir("ux0:VitaShell/internal", 0777);
 	sceIoMkdir("ux0:VitaShell/language", 0777);
 	sceIoMkdir("ux0:VitaShell/theme", 0777);
 	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
@@ -228,6 +232,17 @@ void initVitaShell() {
 		memset(&stat, 0, sizeof(stat));
 		if (sceIoGetstat(default_files[i].path, &stat) < 0)
 			WriteFile(default_files[i].path, default_files[i].buffer, default_files[i].size);
+	}
+
+	// Write changeinfo.xml file to patch
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(stat));
+	if (sceIoGetstat("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", &stat) < 0 && (int)stat.st_size != (int)&_binary_resources_changeinfo_txt_size) {
+		sceIoMkdir("ux0:patch", 0777);
+		sceIoMkdir("ux0:patch/VITASHELL", 0777);
+		sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);
+		sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0777);
+		WriteFile("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", (void *)&_binary_resources_changeinfo_txt_start, (int)&_binary_resources_changeinfo_txt_size);
 	}
 }
 

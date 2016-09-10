@@ -140,7 +140,12 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 		removeEndSlash(path);
 
-		int res = removePath(path, &value, folders + files, SetProgress, cancelHandler);
+		FileProcessParam param;
+		param.value = &value;
+		param.max = folders + files;
+		param.SetProgress = SetProgress;
+		param.cancelHandler = cancelHandler;
+		int res = removePath(path, &param);
 		if (res <= 0) {
 			closeWaitDialog();
 			dialog_step = DIALOG_STEP_CANCELLED;
@@ -199,7 +204,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			removeEndSlash(src_path);
 			removeEndSlash(dst_path);
 
-			int res = movePath(src_path, dst_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL, 0, NULL, NULL);
+			int res = movePath(src_path, dst_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
 			if (res < 0) {
 				closeWaitDialog();
 				errorDialog(res);
@@ -270,8 +275,14 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			removeEndSlash(src_path);
 			removeEndSlash(dst_path);
 
+			FileProcessParam param;
+			param.value = &value;
+			param.max = size + folders;
+			param.SetProgress = SetProgress;
+			param.cancelHandler = cancelHandler;
+
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
-				int res = extractArchivePath(src_path, dst_path, &value, size + folders, SetProgress, cancelHandler);
+				int res = extractArchivePath(src_path, dst_path, &param);
 				if (res <= 0) {
 					closeWaitDialog();
 					dialog_step = DIALOG_STEP_CANCELLED;
@@ -279,7 +290,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 					goto EXIT;
 				}
 			} else {
-				int res = copyPath(src_path, dst_path, &value, size + folders, SetProgress, cancelHandler);
+				int res = copyPath(src_path, dst_path, &param);
 				if (res <= 0) {
 					closeWaitDialog();
 					dialog_step = DIALOG_STEP_CANCELLED;
@@ -339,8 +350,14 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 	// Spin off a thread to update the progress dialog 
 	thid = createStartUpdateThread(max);
 
+	FileProcessParam param;
+	param.value = &value;
+	param.max = max;
+	param.SetProgress = SetProgress;
+	param.cancelHandler = cancelHandler;
+
 	uint8_t sha1out[20];
-	int res = getFileSha1(args->file_path, sha1out, &value, max, SetProgress, cancelHandler);
+	int res = getFileSha1(args->file_path, sha1out, &param);
 	if (res <= 0) {
 		// SHA1 Didn't complete successfully, or was cancelled
 		closeWaitDialog();
@@ -356,15 +373,21 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 	// Close
 	closeWaitDialog();
 
-	char sha1msg[41];
-	int i;
+	char sha1msg[42];
+	memset(sha1msg, 0, sizeof(sha1msg));
 
 	// Construct SHA1 sum string
+	int i;
 	for (i = 0; i < 20; i++) {
-		sprintf(sha1msg + (2*i), "%02x ", sha1out[i]);
+		char string[4];
+		sprintf(string, "%02X", sha1out[i]);
+		strcat(sha1msg, string);
+
+		if (i == 9)
+			strcat(sha1msg, "\n");
 	}
 
-	sha1msg[40] = '\0';
+	sha1msg[41] = '\0';
 
 	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, sha1msg);
 	dialog_step = DIALOG_STEP_HASH_DISPLAY;
@@ -380,7 +403,7 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 EXIT:
 
 	// Ensure the update thread ends gracefully
-	if(thid>=0)
+	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
 
 	powerUnlock();

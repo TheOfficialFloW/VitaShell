@@ -41,8 +41,9 @@ typedef struct {
 	float menu_max_width;
 	float menu_more_max_width;
 	int more_pos;
-	int (* menuEnterCallback)(int pos);
-	int (* menuMoreEnterCallback)(int pos);
+	int (* menuEnterCallback)(int pos, void* context);
+	int (* menuMoreEnterCallback)(int pos, void* context);
+	void *context;
 } ContextMenu;
 
 enum ContextMenuModes {

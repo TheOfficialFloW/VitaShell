@@ -45,6 +45,7 @@ enum LanguageContainer {
 	EDIT_LINE,
 	ENTER_SEARCH_TERM,
 	CUT,
+	INSERT_EMPTY_LINE,
 
 	// File browser context menu strings
 	MORE,

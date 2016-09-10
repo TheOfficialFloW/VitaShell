@@ -15,6 +15,7 @@ You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X (X is a value from 2-10)
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/context.png'**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/context_more.png'**: Context menu more image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery.png'**: Battery border icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_green.png'**: Green battery bar
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_red.png'**: Red battery bar

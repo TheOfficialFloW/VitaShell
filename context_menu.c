@@ -226,10 +226,10 @@ void contextMenuCtrl(ContextMenu *ctx) {
 	if (pressed_buttons & SCE_CTRL_ENTER || pressed_buttons & SCE_CTRL_RIGHT) {
 		if (ctx_menu_mode == CONTEXT_MENU_OPENED) {
 			if (ctx->menuEnterCallback)
-				ctx_menu_mode = ctx->menuEnterCallback(ctx_menu_pos);
+				ctx_menu_mode = ctx->menuEnterCallback(ctx_menu_pos, ctx->context);
 		} else if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
 			if (ctx->menuMoreEnterCallback)
-				ctx_menu_mode = ctx->menuMoreEnterCallback(ctx_menu_more_pos);
+				ctx_menu_mode = ctx->menuMoreEnterCallback(ctx_menu_more_pos, ctx->context);
 		}
 	}
 }

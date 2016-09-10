@@ -95,9 +95,8 @@ int getFileSize(char *pInputFileName)
 	return fileSize;
 }
 
-int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
-
-	// Set up SHA1 context	
+int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param) {
+	// Set up SHA1 context
 	SHA1_CTX ctx;
 	sha1_init(&ctx);
 
@@ -112,29 +111,30 @@ int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, uint64_t *value, uint64
 	int read;
 
 	// Actually take the SHA1 sum
-	while ((read = sceIoRead(fd, buf, TRANSFER_SIZE)) > 0)
-	{
+	while ((read = sceIoRead(fd, buf, TRANSFER_SIZE)) > 0) {
 		sha1_update(&ctx, buf, read);
 
-		// Defined in io_process.c, check to make sure pointer isn't null before incrementing
-		if(value)
-			(*value)++; // Note: Max value is filesize/TRANSFER_SIZE
+		if (param) {
+			// Defined in io_process.c, check to make sure pointer isn't null before incrementing
+			if (param->value)
+				(*param->value)++; // Note: Max value is filesize/TRANSFER_SIZE
 
-		if(SetProgress)
-			SetProgress(value ? *value : 0, max);
+			if (param->SetProgress)
+				param->SetProgress(param->value ? *param->value : 0, param->max);
 
-		// Check to see if cancelHandler exists, if so call it and free memory if cancelled
-		if(cancelHandler && cancelHandler()) {
-			free(buf);
-			sceIoClose(fd);
-			return 0;
+			// Check to see if param->cancelHandler exists, if so call it and free memory if cancelled
+			if (param->cancelHandler && param->cancelHandler()) {
+				free(buf);
+				sceIoClose(fd);
+				return 0;
+			}
+
+			// This is CPU intensive so the progress bar won't refresh unless we sleep
+			// DIALOG_WAIT seemed too long for this application
+			// so I set it to 1/2 of a second every 8192 TRANSFER_SIZE blocks
+			if ((*param->value) % 8192 == 0)
+				sceKernelDelayThread(500000);
 		}
-
-		// This is CPU intensive so the progress bar won't refresh unless we sleep
-		// DIALOG_WAIT seemed too long for this application
-		// so I set it to 1/2 of a second every 8192 TRANSFER_SIZE blocks
-		if((*value)%8192 == 0)
-			sceKernelDelayThread(500000);
 	}
 
 	// Final iteration of SHA1 sum, dump final value into pSha1Out buffer
@@ -207,7 +207,7 @@ int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) 
 	return 1;
 }
 
-int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+int removePath(char *path, FileProcessParam *param) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
@@ -225,7 +225,7 @@ int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(u
 				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
 				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-					int ret = removePath(new_path, value, max, SetProgress, cancelHandler);
+					int ret = removePath(new_path, param);
 					if (ret <= 0) {
 						free(new_path);
 						sceIoDclose(dfd);
@@ -239,16 +239,18 @@ int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(u
 						return ret;
 					}
 
-					if (value)
-						(*value)++;
+					if (param) {
+						if (param->value)
+							(*param->value)++;
 
-					if (SetProgress)
-						SetProgress(value ? *value : 0, max);
+						if (param->SetProgress)
+							param->SetProgress(param->value ? *param->value : 0, param->max);
 
-					if (cancelHandler && cancelHandler()) {
-						free(new_path);
-						sceIoDclose(dfd);
-						return 0;
+						if (param->cancelHandler && param->cancelHandler()) {
+							free(new_path);
+							sceIoDclose(dfd);
+							return 0;
+						}
 					}
 				}
 
@@ -262,35 +264,39 @@ int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(u
 		if (ret < 0)
 			return ret;
 
-		if (value)
-			(*value)++;
+		if (param) {
+			if (param->value)
+				(*param->value)++;
 
-		if (SetProgress)
-			SetProgress(value ? *value : 0, max);
+			if (param->SetProgress)
+				param->SetProgress(param->value ? *param->value : 0, param->max);
 
-		if (cancelHandler && cancelHandler()) {
-			return 0;
+			if (param->cancelHandler && param->cancelHandler()) {
+				return 0;
+			}
 		}
 	} else {
 		int ret = sceIoRemove(path);
 		if (ret < 0)
 			return ret;
 
-		if (value)
-			(*value)++;
+		if (param) {
+			if (param->value)
+				(*param->value)++;
 
-		if (SetProgress)
-			SetProgress(value ? *value : 0, max);
+			if (param->SetProgress)
+				param->SetProgress(param->value ? *param->value : 0, param->max);
 
-		if (cancelHandler && cancelHandler()) {
-			return 0;
+			if (param->cancelHandler && param->cancelHandler()) {
+				return 0;
+			}
 		}
 	}
 
 	return 1;
 }
 
-int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+int copyFile(char *src_path, char *dst_path, FileProcessParam *param) {
 	// The source and destination paths are identical
 	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
@@ -326,19 +332,21 @@ int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 			return res;
 		}
 
-		if (value)
-			(*value) += read;
+		if (param) {
+			if (param->value)
+				(*param->value) += read;
 
-		if (SetProgress)
-			SetProgress(value ? *value : 0, max);
+			if (param->SetProgress)
+				param->SetProgress(param->value ? *param->value : 0, param->max);
 
-		if (cancelHandler && cancelHandler()) {
-			free(buf);
+			if (param->cancelHandler && param->cancelHandler()) {
+				free(buf);
 
-			sceIoClose(fddst);
-			sceIoClose(fdsrc);
+				sceIoClose(fddst);
+				sceIoClose(fdsrc);
 
-			return 0;
+				return 0;
+			}
 		}
 	}
 
@@ -350,7 +358,7 @@ int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 	return 1;
 }
 
-int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+int copyPath(char *src_path, char *dst_path, FileProcessParam *param) {
 	// The source and destination paths are identical
 	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
@@ -370,15 +378,17 @@ int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 			return ret;
 		}
 
-		if (value)
-			(*value)++;
+		if (param) {
+			if (param->value)
+				(*param->value)++;
 
-		if (SetProgress)
-			SetProgress(value ? *value : 0, max);
+			if (param->SetProgress)
+				param->SetProgress(param->value ? *param->value : 0, param->max);
 
-		if (cancelHandler && cancelHandler()) {
-			sceIoDclose(dfd);
-			return 0;
+			if (param->cancelHandler && param->cancelHandler()) {
+				sceIoDclose(dfd);
+				return 0;
+			}
 		}
 
 		int res = 0;
@@ -401,9 +411,9 @@ int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 				int ret = 0;
 
 				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-					ret = copyPath(new_src_path, new_dst_path, value, max, SetProgress, cancelHandler);
+					ret = copyPath(new_src_path, new_dst_path, param);
 				} else {
-					ret = copyFile(new_src_path, new_dst_path, value, max, SetProgress, cancelHandler);
+					ret = copyFile(new_src_path, new_dst_path, param);
 				}
 
 				free(new_dst_path);
@@ -418,13 +428,13 @@ int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void
 
 		sceIoDclose(dfd);
 	} else {
-		return copyFile(src_path, dst_path, value, max, SetProgress, cancelHandler);
+		return copyFile(src_path, dst_path, param);
 	}
 
 	return 1;
 }
 
-int movePath(char *src_path, char *dst_path, int flags, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param) {
 	// The source and destination paths are identical
 	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
@@ -495,7 +505,7 @@ int movePath(char *src_path, char *dst_path, int flags, uint64_t *value, uint64_
 					snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
 					// Recursive move
-					int ret = movePath(new_src_path, new_dst_path, flags, value, max, SetProgress, cancelHandler);
+					int ret = movePath(new_src_path, new_dst_path, flags, param);
 
 					free(new_dst_path);
 					free(new_src_path);

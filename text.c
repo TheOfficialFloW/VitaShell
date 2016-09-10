@@ -16,7 +16,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "main.h"
+#include "main.h" 
 #include "context_menu.h"
 #include "archive.h"
 #include "file.h"
@@ -36,23 +36,66 @@ enum TextMenuEntrys {
 	TEXT_MENU_ENTRY_CUT,
 	TEXT_MENU_ENTRY_COPY,
 	TEXT_MENU_ENTRY_PASTE,
+	TEXT_MENU_ENTRY_DELETE,
+	TEXT_MENU_ENTRY_INSERT_EMPTY_LINE,
 	TEXT_MENU_ENTRY_EMPTY_2,
 	TEXT_MENU_ENTRY_SEARCH,
 	TEXT_MENU_ENTRY_EMPTY_3,
-	TEXT_MENU_ENTRY_DELETE,
+	TEXT_MENU_ENTRY_HEX_EDITOR,
 };
 
 MenuEntry text_menu_entries[] = {
-	{ MARK_ALL, CTX_VISIBILITY_INVISIBLE },
+	{ UNMARK_ALL, CTX_VISIBILITY_INVISIBLE },
 	{ -1, CTX_VISIBILITY_UNUSED },
 	{ CUT, CTX_VISIBILITY_INVISIBLE },
 	{ COPY, CTX_VISIBILITY_INVISIBLE },
 	{ PASTE, CTX_VISIBILITY_INVISIBLE },
+	{ DELETE, CTX_VISIBILITY_INVISIBLE },
+	{ INSERT_EMPTY_LINE, CTX_VISIBILITY_INVISIBLE },
 	{ -1, CTX_VISIBILITY_UNUSED },
-	{ SEARCH, CTX_VISIBILITY_INVISIBLE },
+	{ SEARCH, CTX_VISIBILITY_VISIBLE },
 	{ -1, CTX_VISIBILITY_UNUSED },
-	{ OPEN_HEX_EDITOR, CTX_VISIBILITY_INVISIBLE },
+	{ OPEN_HEX_EDITOR, CTX_VISIBILITY_VISIBLE },
 };
+
+typedef struct TextEditorState {
+	int running;
+	char *buffer;
+	int size;
+	int base_pos;
+	int rel_pos;
+	int offset_list[MAX_LINES];
+	int selection_list[MAX_SELECTION];
+	int n_selections;
+	int n_copied_lines;
+	int copy_reset;
+	int modify_allowed;
+	ContextMenu context_menu;
+	CopyEntry copy_buffer[MAX_COPY_BUFFER_SIZE];
+	TextList list;
+	int changed;
+	int save_question;
+	int edit_line;
+	char search_term[MAX_LINE_CHARACTERS];
+	int search_result_offsets[MAX_SEARCH_RESULTS];
+	int search_term_input;
+	int n_search_results;
+	int search_thid;
+	int count_lines_thid;
+	int hex_viewer;
+	int count_lines_running;
+	int n_lines;
+	int search_running;
+} TextEditorState;
+
+typedef struct SearchParams {
+	TextEditorState *state;
+	char search_term[MAX_LINE_CHARACTERS];
+} SearchParams;
+
+typedef struct CountParams {
+	TextEditorState *state;
+} CountParams;
 
 #define N_TEXT_MENU_ENTRIES (sizeof(text_menu_entries) / sizeof(MenuEntry))
 
@@ -61,18 +104,13 @@ void initTextContextMenuWidth() {
 	for (i = 0; i < N_TEXT_MENU_ENTRIES; i++) {
 		if (text_menu_entries[i].visibility != CTX_VISIBILITY_UNUSED)
 			text_ctx_menu_max_width = MAX(text_ctx_menu_max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[text_menu_entries[i].name]));
-
-		if (text_menu_entries[i].name == MARK_ALL) {
-			text_menu_entries[i].name = UNMARK_ALL;
-			i--;
-		}
 	}
 
 	text_ctx_menu_max_width += 2.0f * CONTEXT_MENU_MARGIN;
 	text_ctx_menu_max_width = MAX(text_ctx_menu_max_width, CONTEXT_MENU_MIN_WIDTH);
 }
 
-void textListAddEntry(TextList *list, TextListEntry *entry) {
+static void textListAddEntry(TextList *list, TextListEntry *entry) {
 	entry->next = NULL;
 	entry->previous = NULL;
 
@@ -89,7 +127,7 @@ void textListAddEntry(TextList *list, TextListEntry *entry) {
 	list->length++;
 }
 
-void textListEmpty(TextList *list) {
+static void textListEmpty(TextList *list) {
 	TextListEntry *entry = list->head;
 
 	while (entry) {
@@ -105,7 +143,7 @@ void textListEmpty(TextList *list) {
 
 #define TAB_SIZE 4
 
-int textReadLine(char *buffer, int offset, int size, char *line) {
+static int textReadLine(char *buffer, int offset, int size, char *line) {
 	// Get line
 	int line_width = 0;
 	int count = 0;
@@ -151,37 +189,284 @@ int textReadLine(char *buffer, int offset, int size, char *line) {
 	return i;
 }
 
-void updateTextEntries(char *buffer, int base_pos, int size, int *offset_list, TextListEntry *entry) {
+static void updateTextEntry(TextEditorState *state, TextListEntry* entry, int rel_pos) {
+	entry->line_number = state->base_pos + rel_pos;
+
+	// Mark entry as selected
+	entry->selected = 0;
+	int j = 0;
+	for (j = 0; j < state->n_selections; j++) {
+		if (entry->line_number == state->selection_list[j]) {
+			entry->selected = 1;
+			break;
+		}
+	}
+
+	int length = textReadLine(state->buffer, state->offset_list[state->base_pos + rel_pos], state->size, entry->line);
+	state->offset_list[state->base_pos + rel_pos + 1] = state->offset_list[state->base_pos + rel_pos] + length;
+}
+
+static void updateTextEntries(TextEditorState *state) {
+	TextListEntry *entry = state->list.head;
 	int i;
 	for (i = 0; i < MAX_ENTRIES; i++) {
 		if (!entry) {
 			break;
 		}
 		
-		entry->line_number = base_pos + i;
-
-		int length = textReadLine(buffer, offset_list[base_pos + i], size, entry->line);
-		offset_list[base_pos + i + 1] = offset_list[base_pos + i] + length;
+		updateTextEntry(state, entry, i);
 
 		entry = entry->next;
 	}
 }
 
-static int running = 0;
-static int n_lines = 0;
 
-int text_thread(SceSize args, uint32_t *argp) {
-	char *buffer = (char *)argp[0];
-	int size = (int)argp[1];
+static CopyEntry *copy_line(TextEditorState *state, int line_number) {
+	if (state->copy_reset) {
+		state->copy_reset = 0;
+		state->n_copied_lines = 0;
+	}
 
-	running = 1;
-	n_lines = 0;
+	// Get current line
+	int line_start = state->offset_list[line_number];
+	char line[MAX_LINE_CHARACTERS];
+	int length = textReadLine(state->buffer, line_start, state->size, line);
+
+	CopyEntry *entry = &state->copy_buffer[state->n_copied_lines];
+
+	// Copy line into copy_buffer
+	memcpy(entry->line, &state->buffer[line_start], length);
+
+	// Make sure line end with a newline
+	if (entry->line[length - 1] != '\n') {
+		entry->line[length] = '\n';
+		length++;
+	}
+	
+	// Terminate line
+	state->copy_buffer[state->n_copied_lines].line[length] = '\0';
+	
+	state->n_copied_lines++;
+
+	return entry;
+}
+
+
+static void delete_line(TextEditorState *state, int line_number) {
+	// Get current line
+	int line_start = state->offset_list[line_number];
+	char line[MAX_LINE_CHARACTERS];
+	int length = textReadLine(state->buffer, line_start, state->size, line);
+
+	// Remove line
+	memmove(&state->buffer[line_start], &state->buffer[line_start+length], state->size-line_start);	
+	state->size -= length;
+	state->n_lines -= 1;
+
+	// Add empty line if resulting buffer is empty
+	if (state->size == 0) {
+		state->size = 1;
+		state->n_lines = 1;
+		state->buffer[0] = '\n';
+	} 
+
+	if (state->base_pos + state->rel_pos >= state->n_lines) {
+		state->rel_pos = state->n_lines - state->base_pos - 1;
+	}
+
+	if (state->rel_pos < 0) {
+		state->base_pos += state->rel_pos;
+		state->rel_pos = 0;
+	}
+
+	state->changed = 1;
+	state->n_selections = 0;
+	
+	// Update entries
+	updateTextEntries(state);
+}
+
+static void insert_line(TextEditorState *state, char *line, int pos) {
+	int offset = state->offset_list[pos];
+
+	// calculated size of inserted line
+	int length = strlen(line);
+
+	// Make space for inserted line
+	memmove(&state->buffer[offset+length], &state->buffer[offset], state->size-offset);
+	state->size += length;
+
+	// Insert the lines
+	memcpy(&state->buffer[offset], line, length);
+
+	int i;
+	for (i = 0; i < length; i++) {
+		if (line[i] == '\n') {
+			state->n_lines++;
+		}
+	}
+	
+	state->n_selections = 0;
+	state->changed = 1;
+	state->copy_reset = 1;
+
+	// Update entries
+	updateTextEntries(state);
+}
+
+static void cut_line(TextEditorState *state, int line_number) {
+	copy_line(state, line_number);
+	delete_line(state, line_number);
+}
+
+static void paste_lines(TextEditorState *state, int pos) {
+	int line_start = state->offset_list[pos];
+
+	// calculated size of pasted content
+	int length = 0, i;
+	for (i = 0; i < state->n_copied_lines; i++) {
+		length += strlen(state->copy_buffer[i].line);
+	}
+
+	// Make space for pasted lines
+	memmove(&state->buffer[line_start+length], &state->buffer[line_start], state->size-line_start);
+	state->size += length;
+
+	// Paste the lines
+	for (i = 0; i < state->n_copied_lines; i++) {
+		int line_length = strlen(state->copy_buffer[i].line);
+
+		memcpy(&state->buffer[line_start], state->copy_buffer[i].line, line_length);
+		line_start += line_length;
+	}
+
+	state->n_lines += state->n_copied_lines;
+	
+	state->changed = 1;
+	state->copy_reset = 1;
+	state->n_selections = 0;
+
+	// Update entries
+	updateTextEntries(state);
+}
+
+static int cmp (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
+
+static int contextMenuEnterCallback(int pos, void *context) {
+	TextEditorState *state = (TextEditorState*) context;
+
+	debugPrintf("ContextMenu Callback: %i\n", pos);
+
+	switch (pos) {
+		case TEXT_MENU_ENTRY_SEARCH:
+			initImeDialog(language_container[ENTER_SEARCH_TERM], "", MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, 0);
+			state->search_term_input = 1;
+			break;
+
+		case TEXT_MENU_ENTRY_HEX_EDITOR:
+			state->hex_viewer = 1;
+			if (state->changed) {
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SAVE_MODIFICATIONS]);
+				state->save_question = 1;
+			} else {
+				state->running = 0;
+			}
+			return CONTEXT_MENU_CLOSED;
+
+		case TEXT_MENU_ENTRY_COPY:
+			state->n_copied_lines = 0;
+
+			// Sort the selection list
+			qsort(state->selection_list, state->n_selections, sizeof(int), cmp);
+		
+			int i;
+			for (i = 0; i < state->n_selections; i++) {
+				copy_line(state, state->selection_list[i]);
+			}
+
+			state->n_selections = 0;
+			break;
+
+		case TEXT_MENU_ENTRY_CUT:
+			state->n_copied_lines = 0;
+
+			// Sort the selection list
+			qsort(state->selection_list, state->n_selections, sizeof(int), cmp);
+
+			// Cut the lines in reversed order to not break the offsets
+			for (i = state->n_selections - 1; i >= 0; i--) {
+				cut_line(state, state->selection_list[i]);
+			}
+
+			// Reverse the order of the copied lines
+			int j;
+			for (i = 0, j = state->n_selections - 1; i < j; i++, j--) {
+				CopyEntry tmp = state->copy_buffer[i];
+				state->copy_buffer[j] = state->copy_buffer[i];
+				state->copy_buffer[i] = tmp;
+			}
+
+			state->n_selections = 0;
+			break;
+
+		case TEXT_MENU_ENTRY_PASTE:
+			paste_lines(state, state->base_pos + state->rel_pos + 1);
+			break;
+
+		case TEXT_MENU_ENTRY_DELETE:
+			delete_line(state, state->base_pos + state->rel_pos);
+			break;
+
+		case TEXT_MENU_ENTRY_INSERT_EMPTY_LINE:
+			insert_line(state, "\n", state->base_pos + state->rel_pos + 1);
+			break;
+
+		case TEXT_MENU_ENTRY_MARK_UNMARK_ALL:
+			state->n_selections = 0;
+			updateTextEntries(state);
+			break;
+	}
+
+	return CONTEXT_MENU_CLOSING;
+}
+
+static void setContextMenuVisibilities(TextEditorState *state) {
+	MenuEntry *menu_entries = state->context_menu.menu_entries;
+
+	// Cut & Copy & Unmark only visible when at least one line is selected
+	menu_entries[TEXT_MENU_ENTRY_MARK_UNMARK_ALL].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	menu_entries[TEXT_MENU_ENTRY_CUT].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	menu_entries[TEXT_MENU_ENTRY_COPY].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+
+	// Paste only visible when at least one line is in copy buffer
+	menu_entries[TEXT_MENU_ENTRY_PASTE].visibility = state->n_copied_lines == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+
+	// Go to first entry
+	int i;
+	for (i = 0; i < N_TEXT_MENU_ENTRIES; i++) {
+		if (menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			setContextMenuPos(i);
+			break;
+		}
+	}
+
+	if (i == N_TEXT_MENU_ENTRIES)
+		setContextMenuPos(-1);
+}
+
+static int count_lines_thread(SceSize args, CountParams *params) {
+	TextEditorState *state = params->state;
+
+	state->count_lines_running = 1;
+	state->n_lines = 0;
 
 	int offset = 0;
 
-	while (running && offset < size && n_lines < MAX_LINES) {
-		offset += textReadLine(buffer, offset, size, NULL);
-		n_lines++;
+	while (state->count_lines_running && offset < state->size && state->n_lines < MAX_LINES) {
+		offset += textReadLine(state->buffer, offset, state->size, NULL);
+		state->n_lines++;
 
 		sceKernelDelayThread(1000);
 	}
@@ -189,246 +474,298 @@ int text_thread(SceSize args, uint32_t *argp) {
 	return sceKernelExitDeleteThread(0);
 }
 
-static int search_running = 0;
-static int n_search_results = 0;
-
-int search_thread(SceSize args, SearchParams *argp) {
-	char *buffer = argp->buffer; 
-	int size = argp->size;
+static int search_thread(SceSize args, SearchParams *argp) {
+	TextEditorState *state = argp->state;
 	char *search_term = argp->search_term;
 	int search_term_length = strlen(search_term);
-	int *search_result_offsets = argp->search_result_offsets; 
+	int *search_result_offsets = state->search_result_offsets; 
 
-	search_running = 1;
-	n_search_results = 0;
+	state->search_running = 1;
+	state->n_search_results = 0;
 
 	int offset = 0;
 
 	// make sure buffer is null-terminated
-	buffer[size] = '\0';
+	state->buffer[state->size] = '\0';
 
 	char *r;
-	while (search_running && offset < size && n_search_results < MAX_SEARCH_RESULTS) {
-		r = strstr(buffer + offset, search_term);
+	while (state->search_running && offset < state->size && state->n_search_results < MAX_SEARCH_RESULTS) {
+		r = strcasestr(state->buffer + offset, search_term);
 
 		if (r == NULL) {
-			search_running = 0;
+			state->search_running = 0;
 			continue;
 		}
 
-		int index = r - buffer;
+		int index = r - state->buffer;
 
-		search_result_offsets[n_search_results++] = index;
+		search_result_offsets[state->n_search_results++] = index;
 		offset = index + 1;
 
 		sceKernelDelayThread(1000);
 	}
 
-	search_running = 0;
+	state->search_running = 0;
 
 	return sceKernelExitDeleteThread(0);
 }
 
 int textViewer(char *file) {
-	int hex_viewer = 0;
+	TextEditorState *s = malloc(sizeof(TextEditorState));
+	if (!s) 
+		return -1;
 
 	char *buffer_base = malloc(BIG_BUFFER_SIZE);
 	if (!buffer_base)
 		return -1;
 
-	CopyEntry *copy_buffer = malloc(MAX_COPY_BUFFER_SIZE * sizeof(CopyEntry));
-	if (!copy_buffer)
-		return -1;
-
-	int *search_result_offsets = malloc(MAX_SEARCH_RESULTS * sizeof(int));
-	if (!search_result_offsets)
-			return -1;
-
-	int copy_current_size = 0;
-	int copy_reset = 0;
-
-	int size = 0;
-
-	int modify_allowed = 1;
+    s->running = 1;
+	s->hex_viewer = 0; 
+	s->n_copied_lines = 0;
+	s->copy_reset = 0;
+	s->modify_allowed = 1;
+	s->offset_list[0] = 0;
+	s->count_lines_running = 0;
+	s->n_lines = 0;
+	s->search_running = 0;
+	s->edit_line = -1;
 
 	if (isInArchive()) {
-		size = ReadArchiveFile(file, buffer_base, BIG_BUFFER_SIZE);
-		modify_allowed = 0;
+		s->size = ReadArchiveFile(file, buffer_base, BIG_BUFFER_SIZE);
+		s->modify_allowed = 0;
 	} else {
-		size = ReadFile(file, buffer_base, BIG_BUFFER_SIZE);
+		s->size = ReadFile(file, buffer_base, BIG_BUFFER_SIZE);
 	}
 
-	if (size < 0) {
+	if (s->size < 0) {
 		free(buffer_base);
-		return size;
+		return s->size;
 	}
 
-	char *buffer = buffer_base;
+	s->buffer = buffer_base;
 
 	int has_utf8_bom = 0;
 	char utf8_bom[3] = {0xEF, 0xBB, 0xBF};
-	if (size >= 3 && memcmp(buffer_base, utf8_bom, 3) == 0) {
-		buffer += 3;
+	if (s->size >= 3 && memcmp(buffer_base, utf8_bom, 3) == 0) {
+		s->buffer += 3;
 		has_utf8_bom = 1;
-		size -= 3;
+		s->size -= 3;
 	}
 
-	if (size == 0) {
-		size = 1;
-		buffer[0] = '\n';
+	if (s->size == 0) {
+		s->size = 1;
+		s->buffer[0] = '\n';
 	}
- 
 
-	int base_pos = 0, rel_pos = 0;
+	if (s->buffer[s->size-1] != '\n') {
+		s->buffer[s->size++] = '\n';
+	}
 
-	int *offset_list = (int *)malloc(MAX_LINES * sizeof(int));
-	memset(offset_list, 0, MAX_LINES * sizeof(int));
+	s->base_pos = 0;
+	s->rel_pos = 0;
+	s->n_selections = 0;
+	memset(&s->list, 0, sizeof(TextList));
 
-	TextList list;
-	memset(&list, 0, sizeof(TextList));
 
 	// Init context menu param
-	ContextMenu context_menu;
-	context_menu.menu_entries = text_menu_entries;
-	context_menu.n_menu_entries = N_TEXT_MENU_ENTRIES;
-	context_menu.menu_max_width = text_ctx_menu_max_width;
-	//context_menu.menuEnterCallback = contextMenuEnterCallback;
+	s->context_menu.menu_entries = text_menu_entries;
+	s->context_menu.n_menu_entries = N_TEXT_MENU_ENTRIES;
+	s->context_menu.menu_max_width = text_ctx_menu_max_width;
+	s->context_menu.context = s;
+	s->context_menu.menuEnterCallback = contextMenuEnterCallback;
+	s->context_menu.more_pos = -1;
 	//context_menu.menuMoreEnterCallback = contextMenuMoreEnterCallback;
-
 
 	int i;
 	for (i = 0; i < MAX_ENTRIES; i++) {
 		TextListEntry *entry = malloc(sizeof(TextListEntry));
 		entry->line_number = i;
+		entry->selected = 0;
 
-		int length = textReadLine(buffer, offset_list[i], size, entry->line);
-		offset_list[i + 1] = offset_list[i] + length;
+		int length = textReadLine(s->buffer, s->offset_list[i], s->size, entry->line);
+		s->offset_list[i + 1] = s->offset_list[i] + length;
 		
-		textListAddEntry(&list, entry);
+		textListAddEntry(&s->list, entry);
 	}
 
-	uint32_t argp[2];
-	argp[0] = (uint32_t)buffer;
-	argp[1] = (uint32_t)size;
+	CountParams count_params;
+	count_params.state = s;
 
-	SceUID thid = sceKernelCreateThread("text_thread", (SceKernelThreadEntry)text_thread, 0x10000100, 0x10000, 0, 0x70000, NULL);
-	if (thid >= 0)
-		sceKernelStartThread(thid, sizeof(argp), &argp);
+	s->count_lines_thid = sceKernelCreateThread("count_lines_thread", (SceKernelThreadEntry)count_lines_thread, 0x10000100, 0x10000, 0, 0x70000, NULL);
+	if (s->count_lines_thid >= 0)
+		sceKernelStartThread(s->count_lines_thid, sizeof(CountParams), &count_params);
 
-	int edit_line = 0;
-	int changed = 0;
-	int save_question = 0;
+	s->edit_line = -1;
+	s->changed = 0;
+	s->save_question = 0;
 
 
-	SearchParams search_params;
-	int search_term_input = 0;
-	int search_thid = 0;
-	n_search_results = 0;
+	s->search_term_input = 0;
+	s->search_thid = 0;
+	s->n_search_results = 0;
 
-	while (1) {
+	while (s->running) {
 		readPad();
 
-		if (!save_question) {
+		if (!s->save_question) {
 			if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
-				contextMenuCtrl(&context_menu);
+				contextMenuCtrl(&s->context_menu);
 			} else {
 				// Context menu trigger
 				if (pressed_buttons & SCE_CTRL_TRIANGLE) {
 					if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
-						//setContextMenuVisibilities();
+						setContextMenuVisibilities(s);
 						setContextMenuMode(CONTEXT_MENU_OPENING);
 					}
 				}
 
 				if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
-					if (rel_pos > 0) {
-						rel_pos--;
+					if (s->rel_pos > 0) {
+						s->rel_pos--;
 					} else {
-						if (base_pos > 0) {
-							base_pos--;
+						if (s->base_pos > 0) {
+							s->base_pos--;
 
 							// Tail to head
-							list.tail->next = list.head;
-							list.head->previous = list.tail;
-							list.head = list.tail;
+							s->list.tail->next = s->list.head;
+							s->list.head->previous = s->list.tail;
+							s->list.head = s->list.tail;
 
 							// Second last to tail
-							list.tail = list.tail->previous;
-							list.tail->next = NULL;
+							s->list.tail = s->list.tail->previous;
+							s->list.tail->next = NULL;
 
 							// No previous
-							list.head->previous = NULL;
+							s->list.head->previous = NULL;
 
 							// Update line_number
-							list.head->line_number = base_pos;
+							s->list.head->line_number = s->base_pos;
 
 							// Read
-							textReadLine(buffer, offset_list[base_pos], size, list.head->line);
+							textReadLine(s->buffer, s->offset_list[s->base_pos], s->size, s->list.head->line);
+
+							// Update the entry
+							updateTextEntry(s, s->list.head, 0);
 						}
 					}
-					copy_reset = 1;
+					s->copy_reset = 1;
 				} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-					if (offset_list[rel_pos + 1] < size) {
-						if ((rel_pos + 1) < MAX_POSITION) {
-							if (base_pos + rel_pos < n_lines - 1) 
-								rel_pos++;
+					if (s->offset_list[s->rel_pos + 1] < s->size) {
+						if ((s->rel_pos + 1) < MAX_POSITION) {
+							if (s->base_pos + s->rel_pos < s->n_lines - 1) 
+								s->rel_pos++;
 						} else {
-							if (offset_list[base_pos + rel_pos + 1] < size) {
-								base_pos++;
+							if (s->offset_list[s->base_pos + s->rel_pos + 1] < s->size) {
+								s->base_pos++;
 
 								// Head to tail
-								list.head->previous = list.tail;
-								list.tail->next = list.head;
-								list.tail = list.head;
+								s->list.head->previous = s->list.tail;
+								s->list.tail->next = s->list.head;
+								s->list.tail = s->list.head;
 
 								// Second first to head
-								list.head = list.head->next;
-								list.head->previous = NULL;
+								s->list.head = s->list.head->next;
+								s->list.head->previous = NULL;
 
 								// No next
-								list.tail->next = NULL;
+								s->list.tail->next = NULL;
 
 								// Update line_number
-								list.tail->line_number = base_pos + MAX_ENTRIES - 1;
+								s->list.tail->line_number = s->base_pos + MAX_ENTRIES - 1;
 
 								// Read
-								int length = textReadLine(buffer, offset_list[base_pos + MAX_ENTRIES - 1], size, list.tail->line);
-								offset_list[base_pos + MAX_ENTRIES] = offset_list[base_pos + MAX_ENTRIES - 1] + length;
+								int length = textReadLine(s->buffer, s->offset_list[s->base_pos + MAX_ENTRIES - 1], s->size, s->list.tail->line);
+								s->offset_list[s->base_pos + MAX_ENTRIES] = s->offset_list[s->base_pos + MAX_ENTRIES - 1] + length;
+
+								// Update the entry
+								updateTextEntry(s, s->list.tail, MAX_ENTRIES - 1);
 							}
 						}
 					}
-					copy_reset = 1;
+					s->copy_reset = 1;
 				}
 
-				// Page skip
-				if (hold_buttons & SCE_CTRL_LTRIGGER || hold_buttons & SCE_CTRL_RTRIGGER) {
+				if (s->n_search_results > 0) {
 
-					if (hold_buttons & SCE_CTRL_LTRIGGER) {  // Skip page up
-						base_pos = base_pos - MAX_ENTRIES;
-						if (base_pos < 0) {
-							base_pos = 0;
-							rel_pos = 0;
+					TextListEntry *entry = s->list.head;
+					
+					int i;
+					for (i = 0; i < s->rel_pos; i++)
+						entry = entry->next;
+
+					int entry_start_offset = s->offset_list[entry->line_number];
+					int entry_end_offset = s->offset_list[entry->line_number + 1]; 
+
+					int target_offset = 0;
+
+					// Skip to next search result
+					if (pressed_buttons & SCE_CTRL_RTRIGGER) {
+						for (i = 0; i < s->n_search_results; i++) {
+							if (s->search_result_offsets[i] > entry_end_offset) {
+								target_offset = s->search_result_offsets[i] - entry_start_offset;
+								break;
+							}
 						}
-					} else {  // Skip page down
-						base_pos = base_pos + MAX_ENTRIES;
-						if (base_pos >=  n_lines - MAX_POSITION) {
-							base_pos = MAX(n_lines - MAX_POSITION, 0);
-							rel_pos = MIN(MAX_POSITION - 1, n_lines-1);
+					} // Skip to next last result
+					else if (pressed_buttons & SCE_CTRL_LTRIGGER) {
+						for (i = s->n_search_results - 1; i >= 0; i--) {
+							if (s->search_result_offsets[i] < entry_start_offset) {
+								target_offset = s->search_result_offsets[i] - entry_start_offset;
+								break;
+							}
 						}
 					}
 
-					// Update entries
-					updateTextEntries(buffer, base_pos, size, offset_list, list.head);
+					if (target_offset != 0) {
+						int dir = target_offset > 0 ? 1 : -1;
+						int line = s->base_pos + s->rel_pos;
+						int offset = s->offset_list[line];
 
+						while (offset < s->size && offset >= 0 && target_offset != 0) {
+							offset += dir;
+							target_offset -= dir;
+
+							if (s->buffer[offset] == '\n') {
+								line += dir;
+								if (dir > 0) {
+									s->offset_list[line] = offset + 1;
+								} else {
+									s->offset_list[line+1] = offset + 1;
+								}
+							}
+						}
+
+						if (target_offset == 0) {
+							s->base_pos = line;
+							s->rel_pos = 0;
+
+							updateTextEntries(s);
+						}
+					}
+				} else {
+					// Page skip
+					if (hold_buttons & SCE_CTRL_LTRIGGER || hold_buttons & SCE_CTRL_RTRIGGER) {
+
+						if (hold_buttons & SCE_CTRL_LTRIGGER) {  // Skip page up
+							s->base_pos = s->base_pos - MAX_ENTRIES;
+							if (s->base_pos < 0) {
+								s->base_pos = 0;
+								s->rel_pos = 0;
+							}
+						} else {  // Skip page down
+							s->base_pos = s->base_pos + MAX_ENTRIES;
+							if (s->base_pos >=  s->n_lines - MAX_POSITION) {
+								s->base_pos = MAX(s->n_lines - MAX_POSITION, 0);
+								s->rel_pos = MIN(MAX_POSITION - 1, s->n_lines-1);
+							}
+						}
+
+						// Update entries
+						updateTextEntries(s);
+					}
 				}
 
-				if (pressed_buttons & SCE_CTRL_SELECT) {
-						initImeDialog(language_container[ENTER_SEARCH_TERM], "", MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, 0);
-
-						search_term_input = 1;
-				}
-
-				if (search_term_input) {
+				if (s->search_term_input) {
 					int ime_result = updateImeDialog();
 
 					if (ime_result == IME_DIALOG_RESULT_FINISHED) {
@@ -439,52 +776,53 @@ int textViewer(char *file) {
 						if (length >= MIN_SEARCH_TERM_LENGTH) {
 
 							// kill old search if it is already running
-							if (search_running) {
-								search_running = 0;
-								sceKernelWaitThreadEnd(search_thid, NULL, NULL);
+							if (s->search_running) {
+								s->search_running = 0;
+								sceKernelWaitThreadEnd(s->search_thid, NULL, NULL);
 							}
 							
+							SearchParams search_params;
+							search_params.state = s;
 							strcpy(search_params.search_term, search_term);
-							search_params.buffer = buffer;
-							search_params.size = size;
-							search_params.search_result_offsets = search_result_offsets;
 
-							search_thid = sceKernelCreateThread("search_thread", (SceKernelThreadEntry)search_thread, 0x10000100, 0x10000, 0, 0x70000, NULL);
-							if (search_thid >= 0)
-								sceKernelStartThread(search_thid, sizeof(SearchParams), &search_params);
+							strcpy(s->search_term, search_term);
+
+							s->search_thid = sceKernelCreateThread("search_thread", (SceKernelThreadEntry)search_thread, 0x10000100, 0x10000, 0, 0x70000, NULL);
+							if (s->search_thid >= 0)
+								sceKernelStartThread(s->search_thid, sizeof(SearchParams), &search_params);
 						}
 
-						search_term_input = 0;
+						s->search_term_input = 0;
 
 					} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-						search_term_input = 0;
+						s->search_term_input = 0;
 					}
 				}
 			
 				// buffer modifying actions
-				if (modify_allowed && !search_running) {
-					if(!edit_line && pressed_buttons & SCE_CTRL_ENTER) {
-						int line_start = offset_list[base_pos + rel_pos];
+				if (s->modify_allowed && !s->search_running) {
+					if(s->edit_line <= 0 && pressed_buttons & SCE_CTRL_ENTER) {
+						int line_start = s->offset_list[s->base_pos + s->rel_pos];
 						
 						char line[MAX_LINE_CHARACTERS];
-						textReadLine(buffer, line_start, size, line);
+						textReadLine(s->buffer, line_start, s->size, line);
 
 						initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, SCE_IME_OPTION_MULTILINE);
 
-						edit_line = 1;
+						s->edit_line = s->base_pos + s->rel_pos;
 					}
 
-					if (edit_line) {
+					if (s->edit_line >= 0) {
 						int ime_result = updateImeDialog();
 
 						if (ime_result == IME_DIALOG_RESULT_FINISHED) {
-							int line_start = offset_list[base_pos + rel_pos];
+							int line_start = s->offset_list[s->edit_line];
 							
 							char line[MAX_LINE_CHARACTERS];
-							int length = textReadLine(buffer, line_start, size, line);
+							int length = textReadLine(s->buffer, line_start, s->size, line);
 
 							// Don't count newline 
-							if (buffer[line_start + length - 1] == '\n') {
+							if (s->buffer[line_start + length - 1] == '\n') {
 								length--;
 							}
 
@@ -493,133 +831,85 @@ int textViewer(char *file) {
 
 							// Move data if size has changed
 							if (new_length != length) {
-								memmove(&buffer[line_start+new_length], &buffer[line_start+length], size-line_start-length);
-								size = size + (new_length - length);
+								memmove(&s->buffer[line_start+new_length], &s->buffer[line_start+length], s->size-line_start-length);
+								s->size += (new_length - length);
 							}
 
 							// Copy new line into buffer
-							memcpy(&buffer[line_start], new_line, new_length);
+							memcpy(&s->buffer[line_start], new_line, new_length);
 
 							// Add new lines to n_lines
 							int i;
 							for (i = 0; i < new_length; i++) {
 								if (new_line[i] == '\n') {
-									n_lines++;
+									s->n_lines++;
 								}
 							}
 							
 							// Update entries
-							updateTextEntries(buffer, base_pos, size, offset_list, list.head);
+							updateTextEntries(s);
 
-							edit_line = 0;
-							changed = 1;
+							s->edit_line = -1;
+							s->changed = 1;
 
 						} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-							edit_line = 0;
+							s->edit_line = -1;
 						}
 					}
 
-					// Cut line
-					if (pressed_buttons & SCE_CTRL_LEFT && copy_current_size < MAX_COPY_BUFFER_SIZE) {
-						if (copy_reset) {
-							copy_reset = 0;
-							copy_current_size = 0;
-						}
-
-						// Get current line
-						int line_start = offset_list[base_pos + rel_pos];
-						char line[MAX_LINE_CHARACTERS];
-						int length = textReadLine(buffer, line_start, size, line);
-
-						CopyEntry *entry = &copy_buffer[copy_current_size];
-
-						// Copy line into copy_buffer
-						memcpy(entry->line, &buffer[line_start], length);
-
-						// Make sure line end with a newline
-						if (entry->line[length - 1] != '\n') {
-							entry->line[length] = '\n';
-							length++;
-						}
-						
-						// Terminate line
-						copy_buffer[copy_current_size].line[length] = '\0';
-							
-						// Remove line
-						memmove(&buffer[line_start], &buffer[line_start+length], size-line_start);	
-						size -= length;
-						n_lines -= 1;
-
-						// Add empty line if resulting buffer is empty
-						if (size == 0) {
-							size = 1;
-							n_lines = 1;
-							buffer[0] = '\n';
-						} 
-
-						if (base_pos + rel_pos >= n_lines) {
-							rel_pos = n_lines - base_pos - 1;
-						}
-
-						if (rel_pos < 0) {
-							base_pos += rel_pos;
-							rel_pos = 0;
-						}
-						
-						// Update entries
-						updateTextEntries(buffer, base_pos, size, offset_list, list.head);
-
-						changed = 1;
-						copy_current_size++;
+					// Delete line
+					if (pressed_buttons & SCE_CTRL_LEFT && s->n_copied_lines < MAX_COPY_BUFFER_SIZE) {
+						delete_line(s, s->base_pos + s->rel_pos);
 					} 
 
-					// Paste lines
-					if (pressed_buttons & SCE_CTRL_RIGHT && copy_current_size > 0) { 
-						int line_start = offset_list[base_pos + rel_pos];
-
-						// calculated size of pasted content
-						int length = 0, i;
-						for (i = 0; i < copy_current_size; i++) {
-							length += strlen(copy_buffer[i].line);
-						}
-
-						// Make space for pasted line
-						memmove(&buffer[line_start+length], &buffer[line_start], size-line_start);
-						size += length;
-
-						// Paste the lines
-						for (i = 0; i < copy_current_size; i++) {
-							int line_length = strlen(copy_buffer[i].line);
-
-							memcpy(&buffer[line_start], copy_buffer[i].line, line_length);
-							line_start += line_length;
-						}
-
-						n_lines += copy_current_size;
-
-						// Update entries
-						updateTextEntries(buffer, base_pos, size, offset_list, list.head);
-						
-						changed = 1;
-						copy_reset = 1;
+					// Insert new line
+					if (pressed_buttons & SCE_CTRL_RIGHT) {
+						insert_line(s, "\n", s->base_pos + s->rel_pos + 1);
 					}
 				}
 
 				// Cancel
 				if (pressed_buttons & SCE_CTRL_CANCEL) {
-					if (changed) {
-						initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SAVE_MODIFICATIONS]);
-						save_question = 1;
+					if (s->n_search_results) {
+						s->n_search_results = 0;
 					} else {
-						hex_viewer = 0;
-						break;
+						if (s->changed) {
+							initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SAVE_MODIFICATIONS]);
+							s->save_question = 1;
+						} else {
+							s->hex_viewer = 0;
+							break;
+						}
 					}
 				}
 
-				// Switch to hex viewer
+				// (De-)select current line
 				if (pressed_buttons & SCE_CTRL_SQUARE) {
-					hex_viewer = 1;
-					break;
+					int cur_line = s->base_pos + s->rel_pos;
+					int line_selected = 1;
+
+					int i;
+					for (i = 0; i < s->n_selections; i++) {
+						if (s->selection_list[i] == cur_line) {
+							line_selected = 0;
+
+							// Remove current line from selections
+							s->selection_list[i] = s->selection_list[--s->n_selections];
+
+							break;
+						}
+					}
+
+					if (line_selected) {
+						// Add current line to selections
+						s->selection_list[s->n_selections++] = cur_line;
+					}
+
+					TextListEntry *entry = s->list.head;
+					for (i = 0; i < s->rel_pos; i++) 
+						entry = entry->next;
+
+					entry->selected = line_selected;
 				}
 			}
 		} else {
@@ -627,7 +917,7 @@ int textViewer(char *file) {
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				SceUID fd = sceIoOpen(file, SCE_O_WRONLY|SCE_O_TRUNC, 0777);
 				if (fd >= 0) {
-					sceIoWrite(fd, buffer_base, has_utf8_bom ? size + sizeof(utf8_bom) : size);
+					sceIoWrite(fd, buffer_base, has_utf8_bom ? s->size + sizeof(utf8_bom) : s->size);
 					sceIoClose(fd);
 				}
 
@@ -644,56 +934,63 @@ int textViewer(char *file) {
 		drawShellInfo(file);
 
 		// Draw scroll bar
-		drawScrollBar(base_pos, n_lines);
+		drawScrollBar(s->base_pos, s->n_lines);
 
 		// Text
-		TextListEntry *entry = list.head;
+		TextListEntry *entry = s->list.head;
 
 		int i;
-		for (i = 0; i < list.length; i++) {
+		for (i = 0; i < s->list.length; i++) {
 			char *line = entry->line;
 			int line_lenght = strlen(line);
 
 			int search_result_on_line = 0;
 
-			int entry_start_offset = offset_list[entry->line_number];
-			int entry_end_offset = entry_start_offset + line_lenght;
+			int entry_start_offset = s->offset_list[entry->line_number];
+			int entry_end_offset = entry_start_offset + line_lenght; 
 
-			if (n_search_results > 0) {
+			if (s->n_search_results > 0) {
 				int j; 
-				for (j = 0; j < n_search_results; j++) {
-					int search_offset = search_result_offsets[j];
+				for (j = 0; j < s->n_search_results; j++) {
+					int search_offset = s->search_result_offsets[j];
 					if (entry_start_offset <= search_offset && entry_end_offset >= search_offset) {
 						search_result_on_line = 1;
 					}
 				}
 			}
 
-			if (entry->line_number < n_lines) {
+			if (entry->line_number < s->n_lines) {
 				char line_str[5];
 				snprintf(line_str, 5, "%04i", entry->line_number);
 
-				int color = (rel_pos == i) ? TEXT_LINE_NUMBER_COLOR_FOCUS : TEXT_LINE_NUMBER_COLOR;
+				int color = (s->rel_pos == i) ? TEXT_LINE_NUMBER_COLOR_FOCUS : TEXT_LINE_NUMBER_COLOR;
 				pgf_draw_text(SHELL_MARGIN_X, START_Y + (i * FONT_Y_SPACE), color, FONT_SIZE, line_str);
 			}
 
 			float x = TEXT_START_X;
 
+			if (entry->selected) {
+				vita2d_draw_rectangle(x, START_Y + (i * FONT_Y_SPACE) + 3.0f, MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X, FONT_Y_SPACE, MARKED_COLOR);
+			}
+ 
 			while (*line) {
+
 				char *p = strchr(line, '\t');
 				if (p)
 					*p = '\0';
 
 				char *search_highlight = NULL;
 				if (search_result_on_line) {
-					search_highlight = strstr(line, search_params.search_term);
+					search_highlight = strcasestr(line, s->search_term);
 				}
 
+				char tmp = '\0';
 				if (search_highlight) {
+					tmp = *search_highlight;
 					*search_highlight = '\0';
 				}
 
-				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR, FONT_SIZE, line);
+				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (s->rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR, FONT_SIZE, line);
 				line += strlen(line);
 
 
@@ -704,37 +1001,46 @@ int textViewer(char *file) {
 				}
 
 				if (search_highlight) {
-					*search_highlight = search_params.search_term[0];
+					*search_highlight = tmp;
+
+					int search_term_length = strlen(s->search_term);
+					tmp = search_highlight[search_term_length];
+					search_highlight[search_term_length] = '\0';
+
 					x += width;
-					x += pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, FONT_SIZE, search_params.search_term);
-					line += strlen(search_params.search_term);
+					x += pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, FONT_SIZE, line);
+					
+					search_highlight[search_term_length] = tmp;
+					line += strlen(s->search_term); 
 				}
 			}
 
+
 			entry = entry->next;
-		}
+		} 
 
 		// Draw context menu
-		drawContextMenu(&context_menu);
+		drawContextMenu(&s->context_menu);
 
 		// End drawing
 		endDrawing();
 	}
 
-	running = 0;
-	sceKernelWaitThreadEnd(thid, NULL, NULL);
+	s->count_lines_running = 0;
+	sceKernelWaitThreadEnd(s->count_lines_thid, NULL, NULL);
 
-	if (search_running) {
-		search_running = 0;
-		sceKernelWaitThreadEnd(search_thid, NULL, NULL);
+	if (s->search_running) {
+		s->search_running = 0;
+		sceKernelWaitThreadEnd(s->search_thid, NULL, NULL);
 	}
 
-	free(offset_list);
-	textListEmpty(&list);
+	textListEmpty(&s->list);
 
-	free(search_result_offsets);
+	int hex_viewer = s->hex_viewer;
 
-	free(buffer_base);
+	free(s);
+
+	free(buffer_base); 
 
 	if (hex_viewer)
 		hexViewer(file);

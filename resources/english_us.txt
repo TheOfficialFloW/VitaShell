@@ -25,6 +25,7 @@ OPEN_HEX_EDITOR                      = "Open hex editor"
 EDIT_LINE                            = "Edit line"
 ENTER_SEARCH_TERM                    = "Enter search term"
 CUT                                  = "Cut"
+INSERT_EMPTY_LINE                    = "Insert empty line"
 
 # File browser context menu strings
 MORE                                 = "More"

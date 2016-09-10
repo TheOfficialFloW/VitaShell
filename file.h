@@ -43,15 +43,22 @@ enum FileTypes {
 	FILE_TYPE_ZIP,
 };
 
-enum SortFlags {
+enum FileSortFlags {
 	SORT_NONE,
 	SORT_BY_NAME_AND_FOLDER,
 };
 
-enum MoveFlags {
+enum FileMoveFlags {
 	MOVE_INTEGRATE	= 0x1, // Integrate directories
 	MOVE_REPLACE	= 0x2, // Replace files
 };
+
+typedef struct {
+	uint64_t *value;
+	uint64_t max;
+	void (* SetProgress)(uint64_t value, uint64_t max);
+	int (* cancelHandler)();
+} FileProcessParam;
 
 typedef struct FileListEntry {
 	struct FileListEntry *next;
@@ -79,12 +86,12 @@ int ReadFile(char *file, void *buf, int size);
 int WriteFile(char *file, void *buf, int size);
 
 int getFileSize(char *pInputFileName);
-int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, uint64_t *value, uint64_t max, void (*SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
+int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param);
 int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files);
-int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
-int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
-int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
-int movePath(char *src_path, char *dst_path, int flags, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
+int removePath(char *path, FileProcessParam *param);
+int copyFile(char *src_path, char *dst_path, FileProcessParam *param);
+int copyPath(char *src_path, char *dst_path, FileProcessParam *param);
+int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param);
 
 int getFileType(char *file);
 

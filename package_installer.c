@@ -96,12 +96,12 @@ int promoteUpdate(char *path, char *titleid, char *category, void *sfo_buffer, i
 		*/
 
 		// Integrate patch to app
-		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL, 0, NULL, NULL);
+		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
 		if (res < 0)
 			return res;
 
 		// Move app to promotion directory
-		res = movePath(app_path, path, 0, NULL, 0, NULL, NULL);
+		res = movePath(app_path, path, 0, NULL);
 		if (res < 0)
 			return res;
 	}
@@ -280,7 +280,7 @@ int installPackage(char *file) {
 	int res;
 
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
@@ -294,7 +294,7 @@ int installPackage(char *file) {
 	addEndSlash(src_path);
 
 	// Extract process
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL, 0, NULL, NULL);
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL);
 	if (res < 0)
 		return res;
 
@@ -329,7 +329,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
@@ -396,7 +396,14 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
 	// Extract process
 	uint64_t value = 0;
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+
+	FileProcessParam param;
+	param.value = &value;
+	param.max = size + folders;
+	param.SetProgress = SetProgress;
+	param.cancelHandler = cancelHandler;
+
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
 	if (res <= 0) {
 		closeWaitDialog();
 		dialog_step = DIALOG_STEP_CANCELLED;

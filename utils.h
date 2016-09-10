@@ -74,4 +74,6 @@ int debugPrintf(char *text, ...);
 
 int launchAppByUriExit(char *titleid);
 
+char *strcasestr(const char *haystack, const char *needle);
+
 #endif
