@@ -1,11 +1,34 @@
-﻿# VitaShell spanish translation by Shadyck and fixed by Darkmet98 and Keizel
+﻿# VitaShell spanish translation by Shadyck, Darkmet98 and Keizel
 
+# General strings - Carácteres generales
 ERROR                                = "Error 0x%08X."
 OK                                   = "Aceptar"
 YES                                  = "Sí"
 NO                                   = "No"
 CANCEL                               = "Cancelar"
+FOLDER                               = "Carpeta"
+
+# Progress strings - Carácteres de progresos
+MOVING                               = "Moviendo..."
+COPYING                              = "Copiando..."
+DELETING                             = "Eliminando..."
+INSTALLING                           = "Instalando..."
+DOWNLOADING                          = "Descargando..."
+EXTRACTING                           = "Extrayendo..."
+HASHING                              = "Hashing..."
+
+# Hex editor strings - Carácteres del editor hexadecimal
 OFFSET                               = "Offset"
+OPEN_HEX_EDITOR                      = "Abrir editor hexadecimal"
+
+# Text editor strings - Carácteres del editor de texto
+EDIT_LINE                            = "Editar línea"
+ENTER_SEARCH_TERM                    = "Introduzca el término de búsqueda"
+CUT                                  = "Cortar"
+INSERT_EMPTY_LINE                    = "Insertar una línea"
+
+# File browser context menu strings - Carácteres del menú contextual del explorador de archivos
+MORE                                 = "Más"
 MARK_ALL                             = "Marcar todo"
 UNMARK_ALL                           = "Desmarcar todo"
 MOVE                                 = "Mover"
@@ -14,29 +37,27 @@ PASTE                                = "Pegar"
 DELETE                               = "Eliminar"
 RENAME                               = "Renombrar"
 NEW_FOLDER                           = "Nueva carpeta"
-FOLDER                               = "Carpeta"
-SHA1				     = "SHA1 checksum"
-HASHING				     = "Hashing..."
-HASH_FILE_QUESTION		     = "Realizar SHA1 hashing puede llegar a tardar un tiempo. ¿Quieres continuar?"
+INSTALL_ALL                          = "Instalar todo"
+CALCULATE_SHA1                       = "Calcular SHA1"
+SEARCH                               = "Buscar"
+
+# File browser strings - Carácteres del explorador de archivos
 COPIED_FILE                          = "Seleccionado %d archivo/os."
 COPIED_FOLDER                        = "Seleccionado %d carpeta/as."
 COPIED_FILES_FOLDERS                 = "Seleccionado %d archivos y/o carpetas."
-MOVING                               = "Moviendo..."
-COPYING                              = "Copiando..."
-DELETING                             = "Eliminando..."
-INSTALLING                           = "Instalando..."
-DOWNLOADING                          = "Descargando..."
-EXTRACTING                           = "Extrayendo..."
+
+# Dialog questions - Preguntas del diálogo
 DELETE_FILE_QUESTION                 = "¿Estás seguro de que quieres eliminar este/os archivo/os?"
 DELETE_FOLDER_QUESTION               = "¿Estás seguro de que quieres eliminar esta/as carpeta/as?"
 DELETE_FILES_FOLDERS_QUESTION        = "¿Estás seguro de que quieres eliminar estas carpetas y/o archivos?"
 INSTALL_ALL_QUESTION                 = "¿Quieres instalar todos los ficheros que hay de esta carpeta?"
 INSTALL_QUESTION                     = "¿Quieres instalar este fichero?"
 INSTALL_WARNING                      = "Este fichero requiere de permisos especiales.\Puede tener acceso a tu información personal.\Si no lo has obtenido en un sitio seguro,\por favor, procede con cuidado.\\¿Quieres continuar con la instalación?"
+HASH_FILE_QUESTION				     = "Realizar la operación para el hashing SHA1 puede llegar a tardar un tiempo. ¿Quieres continuar?"
+
+# Others - Otros
 SAVE_MODIFICATIONS                   = "¿Quieres guardar estas modificaciones?"
 WIFI_ERROR                           = "Tienes que activar la conexión Wi-Fi para usar esta función."
 FTP_SERVER                           = "El servidor FTP está activo en\ftp://%s:%i\\Pulsa 'Aceptar' para mantenerlo en segundo plano.\Pulsa 'Cancelar' para desconectarte."
 SYS_INFO                             = "Versión del sistema: %s\Modelo: 0x%08X\Dirección MAC: %s\Dirección IP: %s\Tarjeta de memoria: %s/%s"
-INSTALL_ALL                          = "Instalar todo"
-EDIT_LINE                            = "Editar línea"
 UPDATE_QUESTION                      = "VitaShell %s está disponible.\\¿Quieres actualizar la aplicación?"
