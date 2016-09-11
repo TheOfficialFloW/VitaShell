@@ -35,6 +35,7 @@
 #include "context_menu.h"
 #include "archive.h"
 #include "photo.h"
+#include "audioplayer.h"
 #include "file.h"
 #include "text.h"
 #include "hex.h"
@@ -43,7 +44,6 @@
 #include "theme.h"
 #include "language.h"
 #include "utils.h"
-#include "audioplayer.h"
 #include "sfo.h"
 
 int _newlib_heap_size_user = 64 * 1024 * 1024;
@@ -283,7 +283,7 @@ int handleFile(char *file, FileListEntry *entry) {
 			break;
 
 		case FILE_TYPE_MP3:
-			res = audioPlayer(file, &file_list, entry, &base_pos, &rel_pos, SCE_AUDIODEC_TYPE_MP3, 1);
+			res = audioPlayer(file, type, &file_list, entry, &base_pos, &rel_pos);
 			break;
 
 		case FILE_TYPE_VPK:
@@ -1547,6 +1547,8 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 }
 
 int main(int argc, const char *argv[]) {
+	vitaAudioInit(0x40);
+
 	// Init VitaShell
 	initVitaShell();
 

@@ -58,12 +58,6 @@ extern unsigned char _binary_resources_colors_txt_size;
 extern unsigned char _binary_resources_english_us_txt_start;
 extern unsigned char _binary_resources_english_us_txt_size;
 
-extern unsigned char _binary_resources_headphone_png_start;
-extern unsigned char _binary_resources_audio_previous_png_start;
-extern unsigned char _binary_resources_audio_pause_png_start;
-extern unsigned char _binary_resources_audio_play_png_start;
-extern unsigned char _binary_resources_audio_next_png_start;
-
 static DefaultFile default_files[] = {
 	{ "ux0:VitaShell/language/english_us.txt", (void *)&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size },
 	{ "ux0:VitaShell/theme/theme.txt", (void *)&_binary_resources_theme_txt_start, (int)&_binary_resources_theme_txt_size },
@@ -84,8 +78,6 @@ static DefaultFile default_files[] = {
 
 vita2d_pgf *font = NULL;
 char font_size_cache[256];
-
-vita2d_texture *headphone_image = NULL, *audio_previous_image = NULL, *audio_pause_image = NULL, *audio_play_image = NULL, *audio_next_image = NULL;
 
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
@@ -143,29 +135,13 @@ void initVita2dLib() {
 
 		font_size_cache[i] = vita2d_pgf_text_width(font, FONT_SIZE, character);
 	}
-
-	headphone_image = vita2d_load_PNG_buffer(&_binary_resources_headphone_png_start);
-	audio_previous_image = vita2d_load_PNG_buffer(&_binary_resources_audio_previous_png_start);
-	audio_pause_image = vita2d_load_PNG_buffer(&_binary_resources_audio_pause_png_start);
-	audio_play_image = vita2d_load_PNG_buffer(&_binary_resources_audio_play_png_start);
-	audio_next_image = vita2d_load_PNG_buffer(&_binary_resources_audio_next_png_start);
 }
 
 void finishVita2dLib() {
-	vita2d_free_texture(headphone_image);
-	vita2d_free_texture(audio_previous_image);
-	vita2d_free_texture(audio_pause_image);
-	vita2d_free_texture(audio_play_image);
-	vita2d_free_texture(audio_next_image);
 	vita2d_free_pgf(font);
 	vita2d_fini();
 
 	font = NULL;
-	headphone_image = NULL;
-	audio_previous_image = NULL;
-	audio_pause_image = NULL;
-	audio_play_image = NULL;
-	audio_next_image = NULL;
 }
 
 void initNet() {

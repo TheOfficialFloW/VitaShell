@@ -156,7 +156,7 @@ int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 				(*param->value)++;
 
 			if (param->SetProgress)
-				SetProgress(param->value ? *param->value : 0, param->max);
+				param->SetProgress(param->value ? *param->value : 0, param->max);
 			
 			if (param->cancelHandler && param->cancelHandler()) {
 				fileListEmpty(&list);

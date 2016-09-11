@@ -184,8 +184,6 @@ enum DialogSteps {
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
-extern vita2d_texture *headphone_image, *audio_previous_image, *audio_pause_image, *audio_play_image, *audio_next_image;
-
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
 extern volatile int dialog_step;
