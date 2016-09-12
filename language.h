@@ -84,6 +84,7 @@ enum LanguageContainer {
 
 	// Others
 	SAVE_MODIFICATIONS,
+	NO_SPACE_ERROR,
 	WIFI_ERROR,
 	FTP_SERVER,
 	SYS_INFO,

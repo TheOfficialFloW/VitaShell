@@ -50,8 +50,12 @@ extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hol
 void startDrawing(vita2d_texture *bg);
 void endDrawing();
 
+void closeWaitDialog();
+
 void errorDialog(int error);
 void infoDialog(char *msg, ...);
+
+int checkMemoryCardFreeSpace(uint64_t size);
 
 void initPowerTickThread();
 void powerLock();

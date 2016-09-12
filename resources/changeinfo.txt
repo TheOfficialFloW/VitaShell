@@ -132,4 +132,14 @@
 - Dropped GENERAL_COLOR, now all colors are adjustable.<br>
     ]]>
   </changes>
+   <changes app_ver="01.00">
+    <![CDATA[
+- Added audio player with .MP3 and .OGG support (Press /\ to turn off the display while listening to music. Graphics by Valle).<br>
+- Added changelog to the VitaShell bubble (press /\ or hold the bubble of VitaShell in the livearea).<br>
+- Added ability to resume to the directory you've last visted before exiting VitaShell).<br>
+- Leaving to livearea or suspending the device does now no longer corrupt an IO process anymore (while copying things you can leave now VitaShell and resume).<br>
+- Improved text editor and added search feature to context menu (press /\).<br>
+- Fixed bug where copying to different partitions didn't work.<br>
+    ]]>
+  </changes>
 </changeinfo>

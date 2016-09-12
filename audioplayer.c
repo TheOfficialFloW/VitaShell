@@ -26,13 +26,32 @@
 
 #include "audio/player.h"
 
-struct fileInfo *fileinfo = NULL;
-vita2d_texture *tex = NULL;
+static char title[128], album[128], artist[128], genre[128], year[12];
+static struct fileInfo *fileinfo = NULL;
+static vita2d_texture *tex = NULL;
+
+void shortenString(char *out, char *in, int width) {
+	strcpy(out, in);
+
+	int i;
+	for (i = strlen(out) - 1; i > 0; i--) {
+		if (vita2d_pgf_text_width(font, FONT_SIZE, out) < width)
+			break;
+
+		out[i] = '\0';
+	}
+}
 
 void getAudioInfo(char *file) {
 	char *buffer = NULL;
 
 	fileinfo = getInfoFunct();
+
+	shortenString(title, fileinfo->title[0] == '\0' ? "-" : fileinfo->title, 390);
+	shortenString(album, fileinfo->album[0] == '\0' ? "-" : fileinfo->album, 390);
+	shortenString(artist, fileinfo->artist[0] == '\0' ? "-" : fileinfo->artist, 390);
+	shortenString(genre, fileinfo->genre[0] == '\0' ? "-" : fileinfo->genre, 390);
+	shortenString(year, fileinfo->year[0] == '\0' ? "-" : fileinfo->year, 390);
 
 	if (tex) {
 		vita2d_free_texture(tex);
@@ -222,7 +241,8 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		} else {
 			vita2d_draw_texture(cover_image, SHELL_MARGIN_X, START_Y);
 		}
-		
+
+		// Info
 		float x = 2.0f * SHELL_MARGIN_X + cover_size;
 
 		pgf_draw_text(x, START_Y + (0 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[TITLE]);
@@ -231,11 +251,15 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		pgf_draw_text(x, START_Y + (3 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[GENRE]);
 		pgf_draw_text(x, START_Y + (4 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[YEAR]);
 
-		pgf_draw_text(x + 120.0f, START_Y + (0 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->title[0] == '\0' ? "-" : fileinfo->title);
-		pgf_draw_text(x + 120.0f, START_Y + (1 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->album[0] == '\0' ? "-" : fileinfo->album);
-		pgf_draw_text(x + 120.0f, START_Y + (2 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->artist[0] == '\0' ? "-" : fileinfo->artist);
-		pgf_draw_text(x + 120.0f, START_Y + (3 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->genre[0] == '\0' ? "-" : fileinfo->genre);
-		pgf_draw_text(x + 120.0f, START_Y + (4 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->year[0] == '\0' ? "-" : fileinfo->year);
+		x += 120.0f;
+
+		pgf_draw_text(x, START_Y + (0 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, title);
+		pgf_draw_text(x, START_Y + (1 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, album);
+		pgf_draw_text(x, START_Y + (2 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, artist);
+		pgf_draw_text(x, START_Y + (3 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, genre);
+		pgf_draw_text(x, START_Y + (4 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, year);
+
+		x -= 120.0f;
 
 		float y = SCREEN_HEIGHT - 6.0f * SHELL_MARGIN_Y;
 

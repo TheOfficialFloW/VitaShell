@@ -391,6 +391,10 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	uint32_t folders = 0, files = 0;
 	getArchivePathInfo(src_path, &size, &folders, &files);
 
+	// Check memory card free space
+	if (checkMemoryCardFreeSpace(size))
+		goto EXIT;
+
 	// Update thread
 	thid = createStartUpdateThread(size + folders);
 
@@ -447,6 +451,10 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 EXIT:
 	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	// Recursively clean up package_temp directory
+	removePath(PACKAGE_PARENT, NULL);
+	sceIoMkdir(PACKAGE_PARENT, 0777);	
 
 	// Unlock power timers
 	powerUnlock();

@@ -81,6 +81,26 @@ https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
 
+### In order to compile VitaShell you'll need ###
+* vitasdk: https://github.com/vitasdk
+* vita2dlib: https://github.com/xerpi/vita2dlib
+* ftpvitalib https://github.com/xerpi/ftpvitalib
+* EasyRPG libraries: https://ci.easyrpg.org/view/Toolchains/job/toolchain-vita/
+
+### Credits ###
+* Team Molecule for HENkaku
+* xerpi for ftpvitalib and vita2dlib
+* wololo for the Revitalize contest
+* Everybody who contributed on vitasdk
+
+### Changelog 1.00 ###
+- Added audio player with .MP3 and .OGG support (Press /\ to turn off the display while listening to music. Graphics by Valle).
+- Added changelog to the VitaShell bubble (press /\ or hold the bubble of VitaShell in the livearea).
+- Added ability to resume to the directory you've last visted before exiting VitaShell).
+- Leaving to livearea or suspending the device does now no longer corrupt an IO process anymore (while copying things you can leave now VitaShell and resume).
+- Improved text editor and added search feature to context menu (press /\).
+- Fixed bug where copying to different partitions didn't work.
+
 ### Changelog 0.95 ###
 - Added ability to install update files as .vpk (for Vitamin).
 - Added patch to make .vpk installation appearing as full version instead of test version.
@@ -185,15 +205,3 @@ Be sure you pull request your customized design or language file there.
 - Fixed crash when deleting marked entries.
 - Copied entries now still rest in clipboard after pasting them.
 - The application now cleans itself before launching homebrews.
-
-### In order to compile VitaShell you'll need ###
-* vitasdk: https://github.com/vitasdk
-* vita2dlib: https://github.com/xerpi/vita2dlib
-* ftpvitalib https://github.com/xerpi/ftpvitalib
-* EasyRPG libraries: https://ci.easyrpg.org/view/Toolchains/job/toolchain-vita/
-
-### Credits ###
-* Team Molecule for HENkaku
-* xerpi for ftpvitalib and vita2dlib
-* wololo for the Revitalize contest
-* Everybody who contributed on vitasdk

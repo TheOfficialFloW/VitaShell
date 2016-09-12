@@ -24,7 +24,6 @@
 	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
 	- Shortcuts
 	- CPU changement
-	- Media player
 */
 
 #include "main.h"

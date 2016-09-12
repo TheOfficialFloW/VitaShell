@@ -210,7 +210,7 @@ void initVitaShell() {
 	// Write changeinfo.xml file to patch
 	SceIoStat stat;
 	memset(&stat, 0, sizeof(stat));
-	if (sceIoGetstat("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", &stat) < 0 && (int)stat.st_size != (int)&_binary_resources_changeinfo_txt_size) {
+	if (sceIoGetstat("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", &stat) < 0 || (int)stat.st_size != (int)&_binary_resources_changeinfo_txt_size) {
 		sceIoMkdir("ux0:patch", 0777);
 		sceIoMkdir("ux0:patch/VITASHELL", 0777);
 		sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);

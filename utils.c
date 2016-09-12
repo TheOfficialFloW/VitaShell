@@ -89,6 +89,14 @@ void endDrawing() {
 	sceDisplayWaitVblankStart();
 }
 
+void closeWaitDialog() {
+	sceMsgDialogClose();
+
+	while (updateMessageDialog() != MESSAGE_DIALOG_RESULT_NONE) {
+		sceKernelDelayThread(1000);
+	}
+}
+
 void errorDialog(int error) {
 	if (error < 0) {
 		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[ERROR], error);
@@ -106,6 +114,23 @@ void infoDialog(char *msg, ...) {
 
 	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, string);
 	dialog_step = DIALOG_STEP_INFO;
+}
+
+int checkMemoryCardFreeSpace(uint64_t size) {
+	uint64_t free_size = 0, max_size = 0;
+	sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
+
+	if (size >= (free_size + (40 * 1024 * 1024))) {
+		closeWaitDialog();
+
+		char size_string[16];
+		getSizeString(size_string, size - (free_size + (40 * 1024 * 1024)));
+		infoDialog(language_container[NO_SPACE_ERROR], size_string);
+
+		return 1;
+	}
+
+	return 0;
 }
 
 int power_tick_thread(SceSize args, void *argp) {
