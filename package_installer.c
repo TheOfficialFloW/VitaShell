@@ -173,69 +173,108 @@ int makeHeadBin() {
 	return 0;
 }
 
-int install_thread(SceSize args_size, InstallArguments *args) {
-	SceUID thid = -1;
-	int assisted = args->assisted;
-	int exit_result = 0;
-
-	// Lock power timers
-	powerLock();
-
-	if (assisted) {
-		// Set progress to 0%
-		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
-		sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
-	}
+int installPackage(char *file) {
+	int res;
 
 	// Recursively clean up package_temp directory
 	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
-	int res = archiveOpen(args->file);
+	res = archiveOpen(file);
+	if (res < 0)
+		return res;
+
+	// Src path
+	char src_path[MAX_PATH_LENGTH];
+	strcpy(src_path, file);
+	addEndSlash(src_path);
+
+	// Extract process
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL, 0, NULL, NULL);
+	if (res < 0)
+		return res;
+
+	// Close archive
+	res = archiveClose();
+	if (res < 0)
+		return res;
+
+	// Make head.bin
+	res = makeHeadBin();
+	if (res < 0)
+		return res;
+
+	// Promote
+	res = promote(PACKAGE_DIR);
+	if (res < 0)
+		return res;
+
+	return 0;
+}
+
+int install_thread(SceSize args_size, InstallArguments *args) {
+	int res;
+	SceUID thid = -1;
+	char path[MAX_PATH_LENGTH];
+
+	// Lock power timers
+	powerLock();
+
+	// Set progress to 0%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+
+	// Recursively clean up package_temp directory
+	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	sceIoMkdir(PACKAGE_PARENT, 0777);
+
+	// Open archive
+	res = archiveOpen(args->file);
 	if (res < 0) {
-		if (assisted) {
-			closeWaitDialog();
-			errorDialog(res);
-		}
-		exit_result = -1;
+		closeWaitDialog();
+		errorDialog(res);
+		goto EXIT;
+	}
+
+	// Check for param.sfo
+	snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+	if (archiveFileGetstat(path, NULL) < 0) {
+		closeWaitDialog();
+		errorDialog(-2);
 		goto EXIT;
 	}
 
 	// Check permissions
-	if (assisted) {
-		char path[MAX_PATH_LENGTH];
-		snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
-		SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
-		if (fd >= 0) {
-			char buffer[0x88];
-			archiveFileRead(fd, buffer, sizeof(buffer));
-			archiveFileClose(fd);
+	snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
+	SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
+	if (fd >= 0) {
+		char buffer[0x88];
+		archiveFileRead(fd, buffer, sizeof(buffer));
+		archiveFileClose(fd);
 
-			// Team molecule's request: Full permission access warning
-			uint64_t authid = *(uint64_t *)(buffer + 0x80);
-			if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
-				closeWaitDialog();
+		// Team molecule's request: Full permission access warning
+		uint64_t authid = *(uint64_t *)(buffer + 0x80);
+		if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
+			closeWaitDialog();
 
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
-				dialog_step = DIALOG_STEP_INSTALL_WARNING;
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
+			dialog_step = DIALOG_STEP_INSTALL_WARNING;
 
-				// Wait for response
-				while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
-					sceKernelDelayThread(1000);
-				}
-
-				// Cancelled
-				if (dialog_step == DIALOG_STEP_CANCELLED) {
-					closeWaitDialog();
-					exit_result = -2;
-					goto EXIT;
-				}
-
-				// Init again
-				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
-				dialog_step = DIALOG_STEP_INSTALLING;
+			// Wait for response
+			while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
+				sceKernelDelayThread(1000);
 			}
+
+			// Cancelled
+			if (dialog_step == DIALOG_STEP_CANCELLED) {
+				closeWaitDialog();
+				goto EXIT;
+			}
+
+			// Init again
+			initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+			dialog_step = DIALOG_STEP_INSTALLING;
 		}
 	}
 
@@ -244,75 +283,56 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	strcpy(src_path, args->file);
 	addEndSlash(src_path);
 
+	// Get archive path info
+	uint64_t size = 0;
+	uint32_t folders = 0, files = 0;
+	getArchivePathInfo(src_path, &size, &folders, &files);
+
+	// Update thread
+	thid = createStartUpdateThread(size + folders);
+
 	// Extract process
-	if (assisted) {
-		// Get archive path info
-		uint64_t size = 0;
-		uint32_t folders = 0, files = 0;
-		getArchivePathInfo(src_path, &size, &folders, &files);
-
-		// Update thread
-		thid = createStartUpdateThread(size + folders);
-
-		uint64_t value = 0;
-		res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
-	} else {
-		res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL, 0, NULL, NULL);
-	}
-
+	uint64_t value = 0;
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
 	if (res <= 0) {
-		if (assisted) {
-			closeWaitDialog();
-			dialog_step = DIALOG_STEP_CANCELLED;
-			errorDialog(res);
-		}
-		exit_result = -3;
+		closeWaitDialog();
+		dialog_step = DIALOG_STEP_CANCELLED;
+		errorDialog(res);
 		goto EXIT;
 	}
 
 	// Close archive
 	res = archiveClose();
 	if (res < 0) {
-		if (assisted) {
-			closeWaitDialog();
-			errorDialog(res);
-		}
-		exit_result = -4;
+		closeWaitDialog();
+		errorDialog(res);
 		goto EXIT;
 	}
 
 	// Make head.bin
 	res = makeHeadBin();
 	if (res < 0) {
-		if (assisted) {
-			closeWaitDialog();
-			errorDialog(res);
-		}
-		exit_result = -5;
+		closeWaitDialog();
+		errorDialog(res);
 		goto EXIT;
 	}
 
 	// Promote
 	res = promote(PACKAGE_DIR);
 	if (res < 0) {
-		if (assisted) {
-			closeWaitDialog();
-			errorDialog(res);
-		}
-		exit_result = -6;
+		closeWaitDialog();
+		errorDialog(res);
 		goto EXIT;
 	}
 
-	if (assisted) {
-		// Set progress to 100%
-		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
-		sceKernelDelayThread(COUNTUP_WAIT);
+	// Set progress to 100%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+	sceKernelDelayThread(COUNTUP_WAIT);
 
-		// Close
-		sceMsgDialogClose();
+	// Close
+	sceMsgDialogClose();
 
-		dialog_step = DIALOG_STEP_INSTALLED;
-	}
+	dialog_step = DIALOG_STEP_INSTALLED;
 
 EXIT:
 	if (thid >= 0)
@@ -321,5 +341,5 @@ EXIT:
 	// Unlock power timers
 	powerUnlock();
 
-	return sceKernelExitDeleteThread(exit_result);
+	return sceKernelExitDeleteThread(0);
 }

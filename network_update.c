@@ -213,10 +213,12 @@ void installUpdater() {
 	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
+	// Make dirs
 	sceIoMkdir("ux0:ptmp", 0777);
 	sceIoMkdir("ux0:ptmp/pkg", 0777);
 	sceIoMkdir("ux0:ptmp/pkg/sce_sys", 0777);
 
+	// Write VitaShell updater files
 	WriteFile("ux0:ptmp/pkg/eboot.bin", (void *)&_binary_resources_updater_eboot_bin_start, (int)&_binary_resources_updater_eboot_bin_size);
 	WriteFile("ux0:ptmp/pkg/sce_sys/param.sfo", (void *)&_binary_resources_updater_param_bin_start, (int)&_binary_resources_updater_param_bin_size);
 
@@ -265,7 +267,6 @@ int update_extract_thread(SceSize args, void *argp) {
 
 	// Extract process
 	uint64_t value = 0;
-
 	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
 	if (res <= 0) {
 		closeWaitDialog();

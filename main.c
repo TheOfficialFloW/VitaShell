@@ -708,9 +708,27 @@ void contextMenuCtrl() {
 			}
 
 			case MENU_ENTRY_PASTE:
-				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[copy_mode == COPY_MODE_MOVE ? MOVING : COPYING]);
+			{
+				int copy_text = 0;
+
+				switch (copy_mode) {
+					case COPY_MODE_NORMAL:
+						copy_text = COPYING;
+						break;
+						
+					case COPY_MODE_MOVE:
+						copy_text = MOVING;
+						break;
+						
+					case COPY_MODE_EXTRACT:
+						copy_text = EXTRACTING;
+						break;
+				}
+
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[copy_text]);
 				dialog_step = DIALOG_STEP_PASTE;
 				break;
+			}
 
 			case MENU_ENTRY_DELETE:
 			{
@@ -852,6 +870,7 @@ int dialogSteps() {
 			
 		case DIALOG_STEP_FTP:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				powerUnlock();
@@ -976,8 +995,8 @@ int dialogSteps() {
 			
 		case DIALOG_STEP_INSTALL_CONFIRMED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
-				InstallArguments args = {0};
-				args.assisted = 1;
+				InstallArguments args;
+
 				if(install_list.length > 0) {
 					FileListEntry *entry = install_list.head;
 					snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
@@ -1264,30 +1283,53 @@ int shellMain() {
 			uint32_t color = GENERAL_COLOR;
 			float y = START_Y + (i * FONT_Y_SPACE);
 
+			vita2d_texture *icon = NULL;
+
 			// Folder
 			if (file_entry->is_folder) {
 				color = FOLDER_COLOR;
-				vita2d_draw_texture(folder_icon, SHELL_MARGIN_X, y + 3.0f);
+				icon = folder_icon;
 			} else {
-				if (file_entry->type == FILE_TYPE_BMP || file_entry->type == FILE_TYPE_PNG || file_entry->type == FILE_TYPE_JPEG) { // Images
-					color = IMAGE_COLOR;
-					vita2d_draw_texture(image_icon, SHELL_MARGIN_X, y + 3.0f);
-				} else if (file_entry->type == FILE_TYPE_VPK || file_entry->type == FILE_TYPE_ZIP) { // Archive
-					color = ARCHIVE_COLOR;
-					vita2d_draw_texture(archive_icon, SHELL_MARGIN_X, y + 3.0f);
-				} else if (file_entry->type == FILE_TYPE_MP3) { // Audio
-					color = IMAGE_COLOR;
-					vita2d_draw_texture(audio_icon, SHELL_MARGIN_X, y + 3.0f);
-				} else if (file_entry->type == FILE_TYPE_SFO) { // SFO
-					// note: specific color to be determined
-					vita2d_draw_texture(sfo_icon, SHELL_MARGIN_X, y + 3.0f);
-				} else if (file_entry->type == FILE_TYPE_INI || file_entry->type == FILE_TYPE_TXT || file_entry->type == FILE_TYPE_XML) { // TXT
-					// note: specific color to be determined
-					vita2d_draw_texture(text_icon, SHELL_MARGIN_X, y + 3.0f);
-				} else { // Other files
-					vita2d_draw_texture(file_icon, SHELL_MARGIN_X, y + 3.0f);
+				switch (file_entry->type) {
+					case FILE_TYPE_BMP:
+					case FILE_TYPE_PNG:
+					case FILE_TYPE_JPEG:
+						color = IMAGE_COLOR;
+						icon = image_icon;
+						break;
+						
+					case FILE_TYPE_VPK:
+					case FILE_TYPE_ZIP:
+						color = ARCHIVE_COLOR;
+						icon = archive_icon;
+						break;
+						
+					case FILE_TYPE_MP3:
+						color = IMAGE_COLOR;
+						icon = audio_icon;
+						break;
+						
+					case FILE_TYPE_SFO:
+						// color = SFO_COLOR;
+						icon = sfo_icon;
+						break;
+					
+					case FILE_TYPE_INI:
+					case FILE_TYPE_TXT:
+					case FILE_TYPE_XML:
+						// color = TXT_COLOR;
+						icon = text_icon;
+						break;
+						
+					default:
+						icon = file_icon;
+						break;
 				}
 			}
+
+			// Draw icon
+			if (icon)
+				vita2d_draw_texture(icon, SHELL_MARGIN_X, y + 3.0f);
 
 			// Current position
 			if (i == rel_pos)
@@ -1402,21 +1444,10 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 	char path[MAX_PATH_LENGTH];
 	sscanf(client->recv_buffer, "%s %s", cmd, path);
 
-	InstallArguments args = {0};
-	args.file = path;
-	args.assisted = 0;
-
-	SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
-	if (thid >= 0) {
-		int exitStatus = 0;
-		sceKernelStartThread(thid, sizeof(InstallArguments), &args);
-		sceKernelWaitThreadEnd(thid, &exitStatus, NULL);
-
-		if (exitStatus == 0) {
-			ftpvita_ext_client_send_ctrl_msg(client, "200 OK PROMOTING\r\n");
-		} else {
-			ftpvita_ext_client_send_ctrl_msg(client, "500 ERROR PROMOTING\r\n");
-		}
+	if (installPackage(path) == 0) {
+		ftpvita_ext_client_send_ctrl_msg(client, "200 OK PROMOTING\r\n");
+	} else {
+		ftpvita_ext_client_send_ctrl_msg(client, "500 ERROR PROMOTING\r\n");
 	}
 }
 

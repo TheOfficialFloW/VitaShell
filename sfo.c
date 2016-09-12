@@ -31,6 +31,9 @@ int getSfoValue(void *buffer, char *name, uint32_t *value) {
 	SfoHeader *header = (SfoHeader *)buffer;
 	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
+	if (header->magic != SFO_MAGIC)
+    	return -1;
+
 	int i;
 	for (i = 0; i < header->count; i++) {
 		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
@@ -39,12 +42,15 @@ int getSfoValue(void *buffer, char *name, uint32_t *value) {
 		}
 	}
 
-	return -1;
+	return -2;
 }
 
 int getSfoString(void *buffer, char *name, char *string, int length) {
 	SfoHeader *header = (SfoHeader *)buffer;
 	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
+
+	if (header->magic != SFO_MAGIC)
+    	return -1;
 
 	int i;
 	for (i = 0; i < header->count; i++) {
@@ -56,7 +62,7 @@ int getSfoString(void *buffer, char *name, char *string, int length) {
 		}
 	}
 
-	return -1;
+	return -2;
 }
 
 int SFOReader(char *file) {
