@@ -91,15 +91,17 @@ Be sure you pull request your customized design or language file there.
 * Team Molecule for HENkaku
 * xerpi for ftpvitalib and vita2dlib
 * wololo for the Revitalize contest
+* sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
 ### Changelog 1.00 ###
 - Added audio player with .MP3 and .OGG support (Press /\ to turn off the display while listening to music. Graphics by Valle).
 - Added changelog to the VitaShell bubble (press /\ or hold the bubble of VitaShell in the livearea).
 - Added ability to resume to the directory you've last visted before exiting VitaShell).
-- Leaving to livearea or suspending the device does now no longer corrupt an IO process anymore (while copying things you can leave now VitaShell and resume).
+- Leaving to livearea or suspending the device does no longer corrupt an IO process anymore (while copying things you can now leave VitaShell and resume).
 - Improved text editor and added search feature to context menu (press /\).
 - Fixed bug where copying to different partitions didn't work.
+- Fixed network update bug.
 
 ### Changelog 0.95 ###
 - Added ability to install update files as .vpk (for Vitamin).
