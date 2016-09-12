@@ -108,11 +108,31 @@ int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param
 	// Open up the buffer for copying data into
 	void *buf = malloc(TRANSFER_SIZE);
 
-	int read;
+	uint64_t seek = 0;
 
 	// Actually take the SHA1 sum
-	while ((read = sceIoRead(fd, buf, TRANSFER_SIZE)) > 0) {
+	while (1) {
+		int read = sceIoRead(fd, buf, TRANSFER_SIZE);
+		if (read == SCE_ERROR_ERRNO_ENODEV) {
+			fd = sceIoOpen(pInputFileName, SCE_O_RDONLY, 0);
+			if (fd >= 0) {
+				sceIoLseek(fd, seek, SCE_SEEK_SET);
+				read = sceIoRead(fd, buf, TRANSFER_SIZE);
+			}
+		}
+
+		if (read < 0) {
+			free(buf);
+			sceIoClose(fd);
+			return read;
+		}
+
+		if (read == 0)
+			break;
+
 		sha1_update(&ctx, buf, read);
+
+		seek += read;
 
 		if (param) {
 			// Defined in io_process.c, check to make sure pointer isn't null before incrementing
@@ -320,17 +340,49 @@ int copyFile(char *src_path, char *dst_path, FileProcessParam *param) {
 
 	void *buf = malloc(TRANSFER_SIZE);
 
-	int read;
-	while ((read = sceIoRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-		int res = sceIoWrite(fddst, buf, read);
-		if (res < 0) {
+	uint64_t seek = 0;
+
+	while (1) {
+		int read = sceIoRead(fdsrc, buf, TRANSFER_SIZE);
+		if (read == SCE_ERROR_ERRNO_ENODEV) {
+			fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
+			if (fdsrc >= 0) {
+				sceIoLseek(fdsrc, seek, SCE_SEEK_SET);
+				read = sceIoRead(fdsrc, buf, TRANSFER_SIZE);
+			}
+		}
+
+		if (read < 0) {
 			free(buf);
 
 			sceIoClose(fddst);
 			sceIoClose(fdsrc);
 
-			return res;
+			return read;
 		}
+
+		if (read == 0)
+			break;
+
+		int written = sceIoWrite(fddst, buf, read);
+		if (written == SCE_ERROR_ERRNO_ENODEV) {
+			fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT, 0777);
+			if (fddst >= 0) {
+				sceIoLseek(fddst, seek, SCE_SEEK_SET);
+				written = sceIoWrite(fddst, buf, read);
+			}
+		}
+
+		if (written != read) {
+			free(buf);
+
+			sceIoClose(fddst);
+			sceIoClose(fdsrc);
+
+			return (written < 0) ? written : -1;
+		}
+
+		seek += written;
 
 		if (param) {
 			if (param->value)
@@ -518,7 +570,7 @@ int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param)
 			} while (res > 0);
 
 			sceIoDclose(dfd);
-			
+
 			// Integrated, now remove this directory
 			sceIoRmdir(src_path);
 		}
