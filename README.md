@@ -11,6 +11,7 @@ You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_hexeditor.png'**: Background for hex editor
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_texteditor.png'**: Background for text editor
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_photoviewer.png'**: Background for photo viewer
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_audioplayer.png'**: Background for audio player
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaper.png'**: Wallpaper #1
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X (X is a value from 2-10)
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
@@ -28,6 +29,11 @@ You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/image_icon.png'**: Image icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/sfo_icon.png'**: SFO icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/text_icon.png'**: Text icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/cover.png'**: Default album cover
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/play.png'**: Play icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/pause.png'**: Pause icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/fastforward.png'**: Fastforward icon
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/fastrewind.png'**: Fastrewind icon
 
 
 **Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")

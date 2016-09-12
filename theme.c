@@ -102,8 +102,8 @@ int AUDIO_TIME_BAR_BG;
 
 vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
 			   *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
-			   *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL,
-			   *bg_text_image = NULL, *bg_photo_image = NULL, *cover_image = NULL, *play_image = NULL, *pause_image = NULL, *fastforward_image = NULL, *fastrewind_image = NULL;
+			   *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
+			   *bg_photo_image = NULL, *bg_audio_image = NULL, *cover_image = NULL, *play_image = NULL, *pause_image = NULL, *fastforward_image = NULL, *fastrewind_image = NULL;
 
 vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
 
@@ -248,6 +248,9 @@ void loadTheme() {
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_photoviewer.png", theme_name);
  			bg_photo_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_audioplayer.png", theme_name);
+ 			bg_audio_image = vita2d_load_PNG_file(path);
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/cover.png", theme_name);
  			cover_image = vita2d_load_PNG_file(path);

@@ -46,7 +46,7 @@ INCLUDE_EXTERN_RESOURCE(theme_txt);
 INCLUDE_EXTERN_RESOURCE(colors_txt);
 INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
-#define DEFAULT_FILE(pah, name) { "ux0:VitaShell/language/english_us.txt", (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size }
+#define DEFAULT_FILE(path, name) { path, (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size }
 
 static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/language/english_us.txt", english_us_txt),
@@ -65,7 +65,7 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_green.png", battery_bar_green_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_charge.png", battery_bar_charge_png),
-	
+
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/cover.png", cover_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/play.png", play_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", pause_png),

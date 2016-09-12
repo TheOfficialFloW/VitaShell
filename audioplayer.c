@@ -134,6 +134,8 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 			}
 
 			setPlayingSpeedFunct(speed);
+
+			playFunct();
 		}
 
 		// Previous/next song.
@@ -207,7 +209,7 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		}
 
 		// Start drawing
-		startDrawing(NULL);
+		startDrawing(bg_audio_image);
 
 		// Draw shell info
 		drawShellInfo(file);
