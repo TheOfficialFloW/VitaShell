@@ -20,6 +20,14 @@ DOWNLOADING			= "Téléchargement en cours..."
 EXTRACTING			= "Extraction en cours..."
 HASHING				= "Hashage en cours..."
 
+# Audio player strings
+
+TITLE				= "Titre"
+ALBUM				= "Album"
+ARTIS				= "Artiste"
+GENRE				= "Genre"
+YEAR				= "Année"
+
 # Hex editor strings
 
 OFFSET				= "Décalage"
@@ -30,6 +38,7 @@ OPEN_HEX_EDITOR			= "Ouvrir l'éditeur héxadécimal"
 EDIT_LINE			= "Editer la ligne"
 ENTER_SEARCH_TERM		= "Entrer un mot clé"
 CUT				= "Couper"
+INSERT_EMPTY_LINE		= "Insérer une ligne vide"
 
 # File browser context menu strings
 
@@ -65,6 +74,7 @@ HASH_FILE_QUESTION		= "Le hashage SHA1 peut prendre un certain temps. Voulez vou
 # Others
 
 SAVE_MODIFICATIONS		= "Voulez vous sauvegarder les modifications ?"
+NO_SPACE_ERROR			= "Il n'y a plus d'espace libre sur la carte mémoire\mémoire interne.\%s supplémentaires sont nécessaires."
 WIFI_ERROR			= "Vous devez activer le Wi-Fi pour utiliser cette fonction."
 FTP_SERVER			= "Serveur FTP actif à l'adresse \ftp://%s:%i\\Appuyez sur 'OK' pour garder en tâche de fond.\Appuyez sur 'Annuler' pour l'arrêter."
 SYS_INFO			= "Logiciel système : %s\Modèle : 0x%08X\addresse MAC : %s\addresse IP : %s\Mémoire restante : %s/%s"
