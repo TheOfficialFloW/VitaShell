@@ -322,10 +322,10 @@ void ParseID3v2_2(const char *mp3path, struct ID3Tag *id3tag)
             sceIoLseek(fp, 1, SCE_SEEK_CUR);
             sceIoLseek(fp, 5, SCE_SEEK_CUR);
             id3tag->ID3EncapsulatedPictureType = JPEG_IMAGE;
-            id3tag->ID3EncapsulatedPictureOffset = searchJPGstart(fp, 20);
+            id3tag->ID3EncapsulatedPictureOffset = searchJPGstart(fp, 0x100);
             if (id3tag->ID3EncapsulatedPictureOffset < 0){
                 id3tag->ID3EncapsulatedPictureType = PNG_IMAGE;
-                id3tag->ID3EncapsulatedPictureOffset = searchPNGstart(fp, 20);
+                id3tag->ID3EncapsulatedPictureOffset = searchPNGstart(fp, 0x100);
             }
             tag_length = tag_length - (id3tag->ID3EncapsulatedPictureOffset - sceIoLseek(fp, 0, SCE_SEEK_CUR));
             id3tag->ID3EncapsulatedPictureLength = tag_length-6;
@@ -432,10 +432,10 @@ void ParseID3v2_3(const char *mp3path, struct ID3Tag *id3tag)
             sceIoLseek(fp, 1, SCE_SEEK_CUR);
             sceIoLseek(fp, 12, SCE_SEEK_CUR);
             id3tag->ID3EncapsulatedPictureType = JPEG_IMAGE;
-            id3tag->ID3EncapsulatedPictureOffset = searchJPGstart(fp, 20);
+            id3tag->ID3EncapsulatedPictureOffset = searchJPGstart(fp, 0x100);
             if (id3tag->ID3EncapsulatedPictureOffset < 0){
                 id3tag->ID3EncapsulatedPictureType = PNG_IMAGE;
-                id3tag->ID3EncapsulatedPictureOffset = searchPNGstart(fp, 20);
+                id3tag->ID3EncapsulatedPictureOffset = searchPNGstart(fp, 0x100);
             }
             tag_length = tag_length - (id3tag->ID3EncapsulatedPictureOffset - sceIoLseek(fp, 0, SCE_SEEK_CUR));
             id3tag->ID3EncapsulatedPictureLength = tag_length-13;
@@ -535,10 +535,10 @@ void ParseID3v2_4(const char *mp3path, struct ID3Tag *id3tag)
             sceIoLseek(fp, 1, SCE_SEEK_CUR);
             sceIoLseek(fp, 12, SCE_SEEK_CUR);
             id3tag->ID3EncapsulatedPictureType = JPEG_IMAGE;
-            id3tag->ID3EncapsulatedPictureOffset = searchJPGstart(fp, 20);
+            id3tag->ID3EncapsulatedPictureOffset = searchJPGstart(fp, 0x100);
             if (id3tag->ID3EncapsulatedPictureOffset < 0){
                 id3tag->ID3EncapsulatedPictureType = PNG_IMAGE;
-                id3tag->ID3EncapsulatedPictureOffset = searchPNGstart(fp, 20);
+                id3tag->ID3EncapsulatedPictureOffset = searchPNGstart(fp, 0x100);
             }
             tag_length = tag_length - (id3tag->ID3EncapsulatedPictureOffset - sceIoLseek(fp, 0, SCE_SEEK_CUR));
             id3tag->ID3EncapsulatedPictureLength = tag_length-13;

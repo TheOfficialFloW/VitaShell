@@ -42,6 +42,10 @@ static vitaAudioChannelInfo vitaAudioStatus[VITA_NUM_AUDIO_CHANNELS];
 
 static volatile int vitaAudioTerminate = 0;
 
+int vitaAudioSetFrequency(int channel, unsigned short freq) {
+	return 0;
+}
+
 void vitaAudioSetChannelCallback(int channel, vitaAudioCallback callback, void *data)
 {
 	volatile vitaAudioChannelInfo *pci = &vitaAudioStatus[channel];

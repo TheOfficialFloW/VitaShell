@@ -2,7 +2,7 @@ TITLE_ID = VITASHELL
 TARGET   = VitaShell
 OBJS     = main.o init.o io_process.o package_installer.o network_update.o context_menu.o archive.o photo.o audioplayer.o file.o text.o hex.o sfo.o \
 		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o \
-		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/id3.o audio/mp3player.o \
+		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o audio/mp3player.o audio/mp3xing.o \
 		   libmad/bit.o libmad/decoder.o libmad/fixed.o libmad/frame.o \
 		   libmad/huffman.o libmad/layer12.o libmad/layer3.o  \
 		   libmad/stream.o libmad/synth.o libmad/timer.o

@@ -1,56 +1,70 @@
-// mp3player.c: MP3 Player Implementation in C for Sony PSP
+//    LightMP3
+//    Copyright (C) 2007 Sakya
+//    sakya_tg@yahoo.it
 //
-////////////////////////////////////////////////////////////////////////////
-
+//    This program is free software; you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation; either version 2 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program; if not, write to the Free Software
+//    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <psp2/io/fcntl.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include "mp3player.h"
+#include <limits.h>
+#include <errno.h>
+#include <math.h>
+
+#include "id3.h"
+#include "mp3xing.h"
+#include "player.h"
 #include "vita_audio.h"
+#include "mp3player.h"
 
 #define FALSE 0
 #define TRUE !FALSE
-#define min(a,b) (((a)<(b))?(a):(b))
-#define max(a,b) (((a)>(b))?(a):(b))
-#define MadErrorString(x) mad_stream_errorstr(x)
-#define INPUT_BUFFER_SIZE	(5*8192)
-#define OUTPUT_BUFFER_SIZE	2048	/* Must be an integer multiple of 4. */
-
-int isPlaying;		// Set to true when a mod is being played
 
 /* This table represents the subband-domain filter characteristics. It
 * is initialized by the ParseArgs() function and is used as
 * coefficients against each subband samples when DoFilter is non-nul.
 */
-mad_fixed_t Filter[32];
+static mad_fixed_t Filter[32];
+static double filterDouble[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 /* DoFilter is non-nul when the Filter table defines a filter bank to
 * be applied to the decoded audio subbands.
 */
-int DoFilter = 0;
-
-#define NUMCHANNELS 2
-uint8_t *ptr;
-long size;
-unsigned int samplesInOutput = 0;
+static int DoFilter = 0;
 
 //////////////////////////////////////////////////////////////////////
 // Global local variables
 //////////////////////////////////////////////////////////////////////
+static struct mad_stream Stream;
+static struct mad_header Header;
+static struct mad_frame Frame;
+static struct mad_synth Synth;
+static mad_timer_t Timer;
+static int MP3_outputInProgress = 0;
+static int MP3_channels = 0;
+static int MP3_tagRead = 0;
 
-//libmad lowlevel stuff
+// The following variables are maintained and updated by the tracker during playback
+static int MP3_isPlaying;		// Set to true when a mod is being played
+static long MP3_suspendPosition = -1;
+static long MP3_suspendIsPlaying = 0;
 
-// The following variables contain the music data, ie they don't change value until you load a new file
-struct mad_stream Stream;
-struct mad_frame Frame;
-struct mad_synth Synth;
-mad_timer_t Timer;
-signed short OutputBuffer[OUTPUT_BUFFER_SIZE];
-unsigned char InputBuffer[INPUT_BUFFER_SIZE + MAD_BUFFER_GUARD],
-    *OutputPtr = (unsigned char *) OutputBuffer, *GuardPtr = NULL;
-const unsigned char *OutputBufferEnd = (unsigned char *) OutputBuffer + OUTPUT_BUFFER_SIZE * 2;
-int Status = 0, i;
-unsigned long FrameCount = 0;
+typedef struct  {
+	short left;
+	short right;
+} Sample;
 
 //////////////////////////////////////////////////////////////////////
 // These are the public functions
@@ -58,94 +72,34 @@ unsigned long FrameCount = 0;
 static int myChannel;
 static int eos;
 
-/*void MP3setStubs(codecStubs * stubs)
-{
-    stubs->init = MP3_Init;
-    stubs->load = MP3_Load;
-    stubs->play = MP3_Play;
-    stubs->pause = MP3_Pause;
-    stubs->stop = MP3_Stop;
-    stubs->end = MP3_End;
-    stubs->time = MP3_GetTimeString;
-    stubs->tick = NULL;
-    stubs->eos = MP3_EndOfStream;
-    memcpy(stubs->extension, "mp3\0" "\0\0\0\0", 2 * 4);
-}*/
+struct fileInfo MP3_info;
 
-static int PrintFrameInfo(struct mad_header *Header)
-{
-    const char *Layer, *Mode, *Emphasis;
+#define BOOST_OLD 0
+#define BOOST_NEW 1
 
-    /* Convert the layer number to it's printed representation. */
-    switch (Header->layer) {
-    case MAD_LAYER_I:
-	Layer = "I";
-	break;
-    case MAD_LAYER_II:
-	Layer = "II";
-	break;
-    case MAD_LAYER_III:
-	Layer = "III";
-	break;
-    default:
-	Layer = "(unexpected layer value)";
-	break;
-    }
+static char MP3_fileName[264];
+static int MP3_volume_boost_type = BOOST_NEW;
+static double MP3_volume_boost = 0.0;
+static unsigned int MP3_volume_boost_old = 0;
+static double DB_forBoost = 1.0;
+static int MP3_playingSpeed = 0; // 0 = normal
+int MP3_defaultCPUClock = 70;
+static int MP3_fd = -1;
 
-    /* Convert the audio mode to it's printed representation. */
-    switch (Header->mode) {
-    case MAD_MODE_SINGLE_CHANNEL:
-	Mode = "single channel";
-	break;
-    case MAD_MODE_DUAL_CHANNEL:
-	Mode = "dual channel";
-	break;
-    case MAD_MODE_JOINT_STEREO:
-	Mode = "joint (MS/intensity) stereo";
-	break;
-    case MAD_MODE_STEREO:
-	Mode = "normal LR stereo";
-	break;
-    default:
-	Mode = "(unexpected mode value)";
-	break;
-    }
+#define INPUT_BUFFER_SIZE 2048
+static unsigned char fileBuffer[INPUT_BUFFER_SIZE];
+static unsigned int samplesRead;
+static unsigned int MP3_filePos;
+static double MP3_newFilePos = -1;
+static double fileSize = 0;
+static double tagsize = 0;
 
-    /* Convert the emphasis to it's printed representation. Note that
-     * the MAD_EMPHASIS_RESERVED enumeration value appeared in libmad
-     * version 0.15.0b.
-     */
-    switch (Header->emphasis) {
-    case MAD_EMPHASIS_NONE:
-	Emphasis = "no";
-	break;
-    case MAD_EMPHASIS_50_15_US:
-	Emphasis = "50/15 us";
-	break;
-    case MAD_EMPHASIS_CCITT_J_17:
-	Emphasis = "CCITT J.17";
-	break;
-#if (MAD_VERSION_MAJOR>=1) || \
-  ((MAD_VERSION_MAJOR==0) && (MAD_VERSION_MINOR>=15))
-    case MAD_EMPHASIS_RESERVED:
-	Emphasis = "reserved(!)";
-	break;
-#endif
-    default:
-	Emphasis = "(unexpected emphasis value)";
-	break;
-    }
-    sceDisplayWaitVblankStart();
-    return (0);
-}
 
-/****************************************************************************
-* Applies a frequency-domain filter to audio data in the subband-domain.	*
-****************************************************************************/
-static void ApplyFilter(struct mad_frame *Frame)
-{
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Applies a frequency-domain filter to audio data in the subband-domain.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void ApplyFilter(struct mad_frame *Frame){
     int Channel, Sample, Samples, SubBand;
-
     /* There is two application loops, each optimized for the number
      * of audio channels to process. The first alternative is for
      * two-channel frames, the second is for mono-audio.
@@ -155,458 +109,756 @@ static void ApplyFilter(struct mad_frame *Frame)
 	for (Channel = 0; Channel < 2; Channel++)
 	    for (Sample = 0; Sample < Samples; Sample++)
 		for (SubBand = 0; SubBand < 32; SubBand++)
-		    Frame->sbsample[Channel][Sample][SubBand] =
+			Frame->sbsample[Channel][Sample][SubBand] =
 			mad_f_mul(Frame->sbsample[Channel][Sample][SubBand], Filter[SubBand]);
     else
 	for (Sample = 0; Sample < Samples; Sample++)
 	    for (SubBand = 0; SubBand < 32; SubBand++)
-		Frame->sbsample[0][Sample][SubBand] = mad_f_mul(Frame->sbsample[0][Sample][SubBand], Filter[SubBand]);
+			Frame->sbsample[0][Sample][SubBand] = mad_f_mul(Frame->sbsample[0][Sample][SubBand], Filter[SubBand]);
 }
 
-/****************************************************************************
-* Converts a sample from libmad's fixed point number format to a signed	*
-* short (16 bits).															*
-****************************************************************************/
-static signed short MadFixedToSshort(mad_fixed_t Fixed)
-{
-    /* A fixed point number is formed of the following bit pattern:
-     *
-     * SWWWFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-     * MSB                          LSB
-     * S ==> Sign (0 is positive, 1 is negative)
-     * W ==> Whole part bits
-     * F ==> Fractional part bits
-     *
-     * This pattern contains MAD_F_FRACBITS fractional bits, one
-     * should alway use this macro when working on the bits of a fixed
-     * point number. It is not guaranteed to be constant over the
-     * different platforms supported by libmad.
-     *
-     * The signed short value is formed, after clipping, by the least
-     * significant whole part bit, followed by the 15 most significant
-     * fractional part bits. Warning: this is a quick and dirty way to
-     * compute the 16-bit number, madplay includes much better
-     * algorithms.
-     */
 
-    /* Clipping */
-    if (Fixed >= MAD_F_ONE)
-	return (32767);
-    if (Fixed <= -MAD_F_ONE)
-	return (-32767);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Converts a sample from libmad's fixed point number format to a signed
+// short (16 bits).
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+short convertSample(mad_fixed_t sample) {
+	// round
+	sample += (1L << (MAD_F_FRACBITS - 16));
 
-    /* Conversion. */
-    Fixed = Fixed >> (MAD_F_FRACBITS - 15);
-    return ((signed short) Fixed);
+	// clip
+	if (sample >= MAD_F_ONE)
+    	sample = MAD_F_ONE - 1;
+	else if (sample < -MAD_F_ONE)
+	    sample = -MAD_F_ONE;
+
+	// quantize
+	return sample >> (MAD_F_FRACBITS + 1 - 16);
 }
 
-static void MP3Callback(void *_buf2, unsigned int numSamples, void *pdata)
-{
-  short *_buf = (short *)_buf2;
-    unsigned long samplesOut = 0;
-    //      u8 justStarted = 1;
 
-    if (isPlaying == TRUE) {	//  Playing , so mix up a buffer
-	if (samplesInOutput > 0) {
-	    //printf("%d samples in buffer\n", samplesInOutput);
-	    if (samplesInOutput > numSamples) {
-		memcpy((char *) _buf, (char *) OutputBuffer, numSamples * 2 * 2);
-		samplesOut = numSamples;
-		samplesInOutput -= numSamples;
-	    } else {
-		memcpy((char *) _buf, (char *) OutputBuffer, samplesInOutput * 2 * 2);
-		samplesOut = samplesInOutput;
-		samplesInOutput = 0;
-	    }
-	}
-	while (samplesOut < numSamples) {
-	    if (Stream.buffer == NULL || Stream.error == MAD_ERROR_BUFLEN) {
-		//size_t ReadSize, Remaining;
-		//unsigned char *ReadStart;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Streaming functions (adapted from Ghoti's MusiceEngine.c):
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int fillFileBuffer() {
+	// Find out how much to keep and how much to fill.
+	const unsigned int   bytesToKeep   = Stream.bufend - Stream.next_frame;
+	unsigned int         bytesToFill   = sizeof(fileBuffer) - bytesToKeep;
 
-		/* {2} libmad may not consume all bytes of the input
-		 * buffer. If the last frame in the buffer is not wholly
-		 * contained by it, then that frame's start is pointed by
-		 * the next_frame member of the Stream structure. This
-		 * common situation occurs when mad_frame_decode() fails,
-		 * sets the stream error code to MAD_ERROR_BUFLEN, and
-		 * sets the next_frame pointer to a non NULL value. (See
-		 * also the comment marked {4} bellow.)
-		 *
-		 * When this occurs, the remaining unused bytes must be
-		 * put back at the beginning of the buffer and taken in
-		 * account before refilling the buffer. This means that
-		 * the input buffer must be large enough to hold a whole
-		 * frame at the highest observable bit-rate (currently 448
-		 * kb/s). XXX=XXX Is 2016 bytes the size of the largest
-		 * frame? (448000*(1152/32000))/8
-		 */
-		/*if(Stream.next_frame!=NULL)
-		   {
-		   Remaining=Stream.bufend-Stream.next_frame;
-		   memmove(InputBuffer,Stream.next_frame,Remaining);
-		   ReadStart=InputBuffer+Remaining;
-		   ReadSize=INPUT_BUFFER_SIZE-Remaining;
-		   }
-		   else
-		   ReadSize=INPUT_BUFFER_SIZE,
-		   ReadStart=InputBuffer,
-		   Remaining=0;
-		 */
-		/* Fill-in the buffer. If an error occurs print a message
-		 * and leave the decoding loop. If the end of stream is
-		 * reached we also leave the loop but the return status is
-		 * left untouched.
-		 */
-		//ReadSize=BstdRead(ReadStart,1,ReadSize,BstdFile);
-		//printf("readsize: %d\n", ReadSize);
-		//sceDisplayWaitVblankStart();
-		/*if(ReadSize<=0)
-		   {
-		   //printf("read error on bit-stream (%s - %d)\n", error_to_string(errno), errno);
-		   //   Status=1;
+	// Want to keep any bytes?
+	if (bytesToKeep)
+		memmove(fileBuffer, fileBuffer + sizeof(fileBuffer) - bytesToKeep, bytesToKeep);
 
-		   if(BstdFile->eof) {
-		   printf("end of input stream\n");
-		   sceDisplayWaitVblankStart();
-		   }
-		   //break;
-		   printf("Readsize was <=0 in player callback\n");
-		   sceDisplayWaitVblankStart();
-		   } */
+	// Read into the rest of the file buffer.
+	unsigned char* bufferPos = fileBuffer + bytesToKeep;
+	while (bytesToFill > 0){
+		unsigned int bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
 
-		/* {3} When decoding the last frame of a file, it must be
-		 * followed by MAD_BUFFER_GUARD zero bytes if one wants to
-		 * decode that last frame. When the end of file is
-		 * detected we append that quantity of bytes at the end of
-		 * the available data. Note that the buffer can't overflow
-		 * as the guard size was allocated but not used the the
-		 * buffer management code. (See also the comment marked
-		 * {1}.)
-		 *
-		 * In a message to the mad-dev mailing list on May 29th,
-		 * 2001, Rob Leslie explains the guard zone as follows:
-		 *
-		 *    "The reason for MAD_BUFFER_GUARD has to do with the
-		 *    way decoding is performed. In Layer III, Huffman
-		 *    decoding may inadvertently read a few bytes beyond
-		 *    the end of the buffer in the case of certain invalid
-		 *    input. This is not detected until after the fact. To
-		 *    prevent this from causing problems, and also to
-		 *    ensure the next frame's main_data_begin pointer is
-		 *    always accessible, MAD requires MAD_BUFFER_GUARD
-		 *    (currently 8) bytes to be present in the buffer past
-		 *    the end of the current frame in order to decode the
-		 *    frame."
-		 */
-		/*if(BstdFileEofP(BstdFile))
-		   {
-		   GuardPtr=ReadStart+ReadSize;
-		   memset(GuardPtr,0,MAD_BUFFER_GUARD);
-		   ReadSize+=MAD_BUFFER_GUARD;
-		   } */
-
-		/* Pipe the new buffer content to libmad's stream decoder
-		 * facility.
-		 */
-		mad_stream_buffer(&Stream, ptr, size);
-		Stream.error = MAD_ERROR_NONE;
-	    }
-
-	    /* Decode the next MPEG frame. The streams is read from the
-	     * buffer, its constituents are break down and stored the the
-	     * Frame structure, ready for examination/alteration or PCM
-	     * synthesis. Decoding options are carried in the Frame
-	     * structure from the Stream structure.
-	     *
-	     * Error handling: mad_frame_decode() returns a non zero value
-	     * when an error occurs. The error condition can be checked in
-	     * the error member of the Stream structure. A mad error is
-	     * recoverable or fatal, the error status is checked with the
-	     * MAD_RECOVERABLE macro.
-	     *
-	     * {4} When a fatal error is encountered all decoding
-	     * activities shall be stopped, except when a MAD_ERROR_BUFLEN
-	     * is signaled. This condition means that the
-	     * mad_frame_decode() function needs more input to complete
-	     * its work. One shall refill the buffer and repeat the
-	     * mad_frame_decode() call. Some bytes may be left unused at
-	     * the end of the buffer if those bytes forms an incomplete
-	     * frame. Before refilling, the remaining bytes must be moved
-	     * to the beginning of the buffer and used for input for the
-	     * next mad_frame_decode() invocation. (See the comments
-	     * marked {2} earlier for more details.)
-	     *
-	     * Recoverable errors are caused by malformed bit-streams, in
-	     * this case one can call again mad_frame_decode() in order to
-	     * skip the faulty part and re-sync to the next frame.
-	     */
-	    if (mad_frame_decode(&Frame, &Stream)) {
-		if (MAD_RECOVERABLE(Stream.error)) {
-		    /* Do not print a message if the error is a loss of
-		     * synchronization and this loss is due to the end of
-		     * stream guard bytes. (See the comments marked {3}
-		     * supra for more informations about guard bytes.)
-		     */
-		    if (Stream.error != MAD_ERROR_LOSTSYNC || Stream.this_frame != GuardPtr) {
-			sceDisplayWaitVblankStart();
-		    }
-		    return;	//continue;
-		} else if (Stream.error == MAD_ERROR_BUFLEN) {
-		    eos = 1;
-		    return;	//continue;
-		} else {
-		    sceDisplayWaitVblankStart();
-		    Status = 1;
-		    MP3_Stop();	//break;
-		}
-	    }
-
-	    /* The characteristics of the stream's first frame is printed
-	     * on stderr. The first frame is representative of the entire
-	     * stream.
-	     */
-	    if (FrameCount == 0)
-		if (PrintFrameInfo(&Frame.header)) {
-		    Status = 1;
-		    //break;
+		if (bytesRead == 0x80010013) {
+			MP3_suspend();
+			MP3_resume();
+			bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
 		}
 
-	    /* Accounting. The computed frame duration is in the frame
-	     * header structure. It is expressed as a fixed point number
-	     * whole data type is mad_timer_t. It is different from the
-	     * samples fixed point format and unlike it, it can't directly
-	     * be added or subtracted. The timer module provides several
-	     * functions to operate on such numbers. Be careful there, as
-	     * some functions of libmad's timer module receive some of
-	     * their mad_timer_t arguments by value!
-	     */
-	    FrameCount++;
-	    mad_timer_add(&Timer, Frame.header.duration);
+		// EOF?
+		if (bytesRead <= 0)
+			return 2;
 
-	    /* Between the frame decoding and samples synthesis we can
-	     * perform some operations on the audio data. We do this only
-	     * if some processing was required. Detailed explanations are
-	     * given in the ApplyFilter() function.
-	     */
-	    if (DoFilter)
-		ApplyFilter(&Frame);
-
-	    /* Once decoded the frame is synthesized to PCM samples. No errors
-	     * are reported by mad_synth_frame();
-	     */
-	    mad_synth_frame(&Synth, &Frame);
-
-	    /* Synthesized samples must be converted from libmad's fixed
-	     * point number to the consumer format. Here we use unsigned
-	     * 16 bit big endian integers on two channels. Integer samples
-	     * are temporarily stored in a buffer that is flushed when
-	     * full.
-	     */
-
-	    for (i = 0; i < Synth.pcm.length; i++) {
-		signed short Sample;
-		//printf("%d < %d\n", samplesOut, numSamples);
-		if (samplesOut < numSamples) {
-		    //printf("I really get here\n");
-		    /* Left channel */
-		    Sample = MadFixedToSshort(Synth.pcm.samples[0][i]);
-		    // *(OutputPtr++)=Sample>>8;
-		    // *(OutputPtr++)=Sample&0xff;
-		    _buf[samplesOut * 2] = Sample;
-
-		    /* Right channel. If the decoded stream is monophonic then
-		     * the right output channel is the same as the left one.
-		     */
-		    if (MAD_NCHANNELS(&Frame.header) == 2)
-			Sample = MadFixedToSshort(Synth.pcm.samples[1][i]);
-		    // *(OutputPtr++)=Sample>>8;
-		    // *(OutputPtr++)=Sample&0xff;
-		    //_buf[samplesOut*2]=0;//Sample;
-		    _buf[samplesOut * 2 + 1] = Sample;
-		    samplesOut++;
-		} else {
-		    //printf("%d < %d of %d\n", samplesOut, numSamples, Synth.pcm.length);
-		    Sample = MadFixedToSshort(Synth.pcm.samples[0][i]);
-		    OutputBuffer[samplesInOutput * 2] = Sample;
-		    //OutputBuffer[samplesInOutput*4+1]=0;//Sample>>8;
-		    //OutputBuffer[samplesInOutput*4+2]=0;//Sample&0xff;
-		    if (MAD_NCHANNELS(&Frame.header) == 2)
-			Sample = MadFixedToSshort(Synth.pcm.samples[1][i]);
-		    OutputBuffer[samplesInOutput * 2 + 1] = Sample;
-		    //OutputBuffer[samplesInOutput*4+3]=0;//Sample>>8;
-		    //OutputBuffer[samplesInOutput*4+4]=0;//Sample&0xff;
-		    samplesInOutput++;
-		}
-
-	    }
+		// Adjust where we're writing to.
+		bytesToFill -= bytesRead;
+		bufferPos += bytesRead;
+		MP3_filePos += bytesRead;
 	}
-    } else {			//  Not Playing , so clear buffer
-	{
-	    unsigned int count;
-	    for (count = 0; count < numSamples * 2; count++)
-		*(_buf + count) = 0;
+	return 0;
+}
+
+void decode() {
+	while ((mad_frame_decode(&Frame, &Stream) == -1) && ((Stream.error == MAD_ERROR_BUFLEN) || (Stream.error == MAD_ERROR_BUFPTR))){
+		int tmp;
+		tmp = fillFileBuffer();
+		if (tmp==2)
+            eos = 1;
+		mad_stream_buffer(&Stream, fileBuffer, sizeof(fileBuffer));
 	}
+    //Equalizers and volume boost (NEW METHOD):
+    if (DoFilter || MP3_volume_boost)
+        ApplyFilter(&Frame);
+
+    mad_timer_add(&Timer, Frame.header.duration);
+	mad_synth_frame(&Synth, &Frame);
+}
+
+void convertLeftSamples(Sample* first, Sample* last, const mad_fixed_t* src) {
+	Sample* dst;
+	for (dst = first; dst != last; ++dst){
+		dst->left = convertSample(*src++);
+        //Volume Boost (OLD METHOD):
+        if (MP3_volume_boost_old)
+            dst->left = volume_boost(&dst->left, &MP3_volume_boost_old);
     }
 }
 
-void MP3_Init(int channel)
-{
-    myChannel = channel;
-    isPlaying = FALSE;
-    vitaAudioSetChannelCallback(myChannel, MP3Callback,0);
-    /* First the structures used by libmad must be initialized. */
-    mad_stream_init(&Stream);
-    mad_frame_init(&Frame);
-    mad_synth_init(&Synth);
-    mad_timer_reset(&Timer);
-    //ModPlay_Load("",data);
+void convertRightSamples(Sample* first, Sample* last, const mad_fixed_t* src) {
+	Sample* dst;
+	for (dst = first; dst != last; ++dst){
+		dst->right = convertSample(*src++);
+        //Volume Boost (OLD METHOD):
+        if (MP3_volume_boost_old)
+            dst->right = volume_boost(&dst->right, &MP3_volume_boost_old);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//MP3 Callback for audio:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
+    Sample *destination = (Sample*)buffer;
+
+    if (MP3_isPlaying == TRUE) {	//  Playing , so mix up a buffer
+        MP3_outputInProgress = 1;
+    	while (samplesToWrite > 0) 	{
+            const unsigned int samplesAvailable = Synth.pcm.length - samplesRead;
+            if (samplesAvailable > samplesToWrite) {
+                convertLeftSamples(destination, destination + samplesToWrite, &Synth.pcm.samples[0][samplesRead]);
+				if (MP3_channels == 2)
+	                convertRightSamples(destination, destination + samplesToWrite, &Synth.pcm.samples[1][samplesRead]);
+				else
+	                convertRightSamples(destination, destination + samplesToWrite, &Synth.pcm.samples[0][samplesRead]);
+
+                samplesRead += samplesToWrite;
+                samplesToWrite = 0;
+
+                if (MP3_newFilePos >= 0)
+                {
+                    if (!MP3_newFilePos)
+                        MP3_newFilePos = ID3v2TagSize(MP3_fileName);
+
+                    if (sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET) != MP3_filePos){
+                        MP3_filePos = MP3_newFilePos;
+                        mad_timer_set(&Timer, (int)((float)MP3_info.length / 100.0 * MP3_GetPercentage()), 1, 1);
+                    }
+                    MP3_newFilePos = -1;
+                }
+
+		        //Check for playing speed:
+                if (MP3_playingSpeed){
+                    if (sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR) != MP3_filePos){
+                        MP3_filePos += 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed;
+                        mad_timer_set(&Timer, (int)((float)MP3_info.length / 100.0 * MP3_GetPercentage()), 1, 1);
+                    }else
+                        MP3_setPlayingSpeed(0);
+                }
+            }else{
+                convertLeftSamples(destination, destination + samplesAvailable, &Synth.pcm.samples[0][samplesRead]);
+				if 	(MP3_channels == 2)
+	                convertRightSamples(destination, destination + samplesAvailable, &Synth.pcm.samples[1][samplesRead]);
+				else
+	                convertRightSamples(destination, destination + samplesAvailable, &Synth.pcm.samples[0][samplesRead]);
+
+                samplesRead = 0;
+                decode();
+
+                destination += samplesAvailable;
+                samplesToWrite -= samplesAvailable;
+            }
+        }
+        MP3_outputInProgress = 0;
+    } else {			//  Not Playing , so clear buffer
+		int count;
+		for (count = 0; count < samplesToWrite; count++){
+			destination[count].left	= 0;
+			destination[count].right = 0;
+        }
+    }
 }
 
 
-void MP3_FreeTune()
-{
-    /* The input file was completely read; the memory allocated by our
-     * reading module must be reclaimed.
-     */
-    if (ptr)
-	free(ptr);
-    //sceIoClose(BstdFile->fd);
-    //BstdFileDestroy(BstdFile);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Init:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_Init(int channel){
+    initAudioLib();
+    myChannel = channel;
+    MP3_isPlaying = FALSE;
+	MP3_playingSpeed = 0;
+	MP3_volume_boost = 0;
+    MP3_volume_boost_old = 0;
 
+    initFileInfo(&MP3_info);
+    MP3_tagRead = 0;
+
+    vitaAudioSetChannelCallback(myChannel, MP3Callback,0);
+
+    MIN_PLAYING_SPEED=-119;
+    MAX_PLAYING_SPEED=119;
+
+    /* First the structures used by libmad must be initialized. */
+    mad_stream_init(&Stream);
+	mad_header_init(&Header);
+    mad_frame_init(&Frame);
+    mad_synth_init(&Synth);
+    mad_timer_reset(&Timer);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Free tune
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_FreeTune(){
+    sceIoClose(MP3_fd);
+    MP3_fd = -1;
     /* Mad is no longer used, the structures that were initialized must
      * now be cleared.
      */
     mad_synth_finish(&Synth);
+    mad_header_finish(&Header);
     mad_frame_finish(&Frame);
     mad_stream_finish(&Stream);
-
-    /* If the output buffer is not empty and no error occurred during
-     * the last write, then flush it.
-     */
-    /*if(OutputPtr!=OutputBuffer && Status!=2)
-       {
-       size_t       BufferSize=OutputPtr-OutputBuffer;
-
-       if(fwrite(OutputBuffer,1,BufferSize,OutputFp)!=BufferSize)
-       {
-       fprintf(stderr,"%s: PCM write error (%s).\n",
-       ProgName,strerror(errno));
-       Status=2;
-       }
-       } */
-
-    /* Accounting report if no error occurred. */
-    if (!Status) {
-	char Buffer[80];
-
-	/* The duration timer is converted to a human readable string
-	 * with the versatile, but still constrained mad_timer_string()
-	 * function, in a fashion not unlike strftime(). The main
-	 * difference is that the timer is broken into several
-	 * values according some of it's arguments. The units and
-	 * fracunits arguments specify the intended conversion to be
-	 * executed.
-	 *
-	 * The conversion unit (MAD_UNIT_MINUTES in our example) also
-	 * specify the order and kind of conversion specifications
-	 * that can be used in the format string.
-	 *
-	 * It is best to examine libmad's timer.c source-code for details
-	 * of the available units, fraction of units, their meanings,
-	 * the format arguments, etc.
-	 */
-	mad_timer_string(Timer, Buffer, "%lu:%02lu.%03u", MAD_UNITS_MINUTES, MAD_UNITS_MILLISECONDS, 0);
-	sceDisplayWaitVblankStart();
-	sceKernelDelayThread(500000);
-    }
 }
 
-void MP3_End()
-{
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Recupero le informazioni sul file:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void getMP3TagInfo(char *filename, struct fileInfo *targetInfo){
+    //ID3:
+    struct ID3Tag ID3;
+    strcpy(MP3_fileName, filename);
+    ParseID3(filename, &ID3);
+    strcpy(targetInfo->title, ID3.ID3Title);
+    strcpy(targetInfo->artist, ID3.ID3Artist);
+    strcpy(targetInfo->album, ID3.ID3Album);
+    strcpy(targetInfo->year, ID3.ID3Year);
+    strcpy(targetInfo->genre, ID3.ID3GenreText);
+    strcpy(targetInfo->trackNumber, ID3.ID3TrackText);
+	targetInfo->length = ID3.ID3Length;
+    targetInfo->encapsulatedPictureType = ID3.ID3EncapsulatedPictureType;
+    targetInfo->encapsulatedPictureOffset = ID3.ID3EncapsulatedPictureOffset;
+    targetInfo->encapsulatedPictureLength = ID3.ID3EncapsulatedPictureLength;
+
+    MP3_info = *targetInfo;
+    MP3_tagRead = 1;
+
+}
+
+int MP3getInfo(){
+	unsigned long FrameCount = 0;
+    int fd;
+    int bufferSize = 1024*496;
+    uint8_t *localBuffer;
+
+    int has_xing = 0;
+    struct xing xing;
+	memset(&xing, 0, sizeof xing);
+
+    long singleDataRed = 0;
+	struct mad_stream stream;
+	struct mad_header header;
+    int timeFromID3 = 0;
+    float mediumBitrate = 0.0f;
+
+    if (!MP3_tagRead)
+        getMP3TagInfo(MP3_fileName, &MP3_info);
+
+	mad_stream_init (&stream);
+	mad_header_init (&header);
+
+    fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+    if (fd < 0)
+        return -1;
+
+	long size = sceIoLseek(fd, 0, SCE_SEEK_END);
+    sceIoLseek(fd, 0, SCE_SEEK_SET);
+
+	double startPos = ID3v2TagSize(MP3_fileName);
+    //Check for xing frame:
+	unsigned char *xing_buffer;
+	xing_buffer = (unsigned char *)malloc(XING_BUFFER_SIZE);
+	if (xing_buffer != NULL)
+	{
+        sceIoRead(fd, xing_buffer, XING_BUFFER_SIZE);
+        if(parse_xing(xing_buffer, 0, &xing))
+        {
+            if (xing.flags & XING_FRAMES && xing.frames){
+                has_xing = 1;
+                bufferSize = 50 * 1024;
+            }
+        }
+        free(xing_buffer);
+    }
+
+	sceIoLseek32(fd, startPos, SCE_SEEK_SET);
+    startPos = SeekNextFrameMP3(fd);
+    size -= startPos;
+
+    if (size < bufferSize * 3)
+        bufferSize = size;
+    localBuffer = (unsigned char *) malloc(sizeof(unsigned char) * bufferSize);
+    unsigned char *buff = localBuffer;
+
+	MP3_channels = 2;
+	MP3_info.fileType = MP3_TYPE;
+    MP3_info.defaultCPUClock = MP3_defaultCPUClock;
+    MP3_info.needsME = 0;
+	MP3_info.fileSize = size;
+    MP3_info.framesDecoded = 0;
+
+    double totalBitrate = 0;
+    int i = 0;
+
+	for (i=0; i<3; i++){
+        memset(localBuffer, 0, bufferSize);
+        singleDataRed = sceIoRead(fd, localBuffer, bufferSize);
+    	mad_stream_buffer (&stream, localBuffer, singleDataRed);
+
+        while (1){
+    		if (mad_header_decode (&header, &stream) == -1){
+                if (stream.buffer == NULL || stream.error == MAD_ERROR_BUFLEN)
+                    break;
+    			else if (MAD_RECOVERABLE(stream.error)){
+    				continue;
+    			}else{
+    				break;
+    			}
+    		}
+    		//Informazioni solo dal primo frame:
+    	    if (FrameCount++ == 0){
+    			switch (header.layer) {
+    			case MAD_LAYER_I:
+    				strcpy(MP3_info.layer,"I");
+    				break;
+    			case MAD_LAYER_II:
+    				strcpy(MP3_info.layer,"II");
+    				break;
+    			case MAD_LAYER_III:
+    				strcpy(MP3_info.layer,"III");
+    				break;
+    			default:
+    				strcpy(MP3_info.layer,"unknown");
+    				break;
+    			}
+
+    			MP3_info.kbit = header.bitrate / 1000;
+    			MP3_info.instantBitrate = header.bitrate;
+    			MP3_info.hz = header.samplerate;
+    			switch (header.mode) {
+    			case MAD_MODE_SINGLE_CHANNEL:
+    				strcpy(MP3_info.mode, "single channel");
+					MP3_channels = 1;
+    				break;
+    			case MAD_MODE_DUAL_CHANNEL:
+    				strcpy(MP3_info.mode, "dual channel");
+					MP3_channels = 2;
+					break;
+    			case MAD_MODE_JOINT_STEREO:
+    				strcpy(MP3_info.mode, "joint (MS/intensity) stereo");
+					MP3_channels = 2;
+    				break;
+    			case MAD_MODE_STEREO:
+    				strcpy(MP3_info.mode, "normal LR stereo");
+					MP3_channels = 2;
+    				break;
+    			default:
+    				strcpy(MP3_info.mode, "unknown");
+					MP3_channels = 2;
+    				break;
+    			}
+
+    			switch (header.emphasis) {
+    			case MAD_EMPHASIS_NONE:
+    				strcpy(MP3_info.emphasis,"no");
+    				break;
+    			case MAD_EMPHASIS_50_15_US:
+    				strcpy(MP3_info.emphasis,"50/15 us");
+    				break;
+    			case MAD_EMPHASIS_CCITT_J_17:
+    				strcpy(MP3_info.emphasis,"CCITT J.17");
+    				break;
+    			case MAD_EMPHASIS_RESERVED:
+    				strcpy(MP3_info.emphasis,"reserved(!)");
+    				break;
+    			default:
+    				strcpy(MP3_info.emphasis,"unknown");
+    				break;
+    			}
+
+                //Check if lenght found in tag info:
+                if (MP3_info.length > 0){
+                    timeFromID3 = 1;
+                    break;
+                }
+                if (has_xing)
+                    break;
+            }
+
+            totalBitrate += header.bitrate;
+		}
+        if (size == bufferSize)
+            break;
+        else if (i==0)
+            sceIoLseek(fd, startPos + size/3, SCE_SEEK_SET);
+        else if (i==1)
+            sceIoLseek(fd, startPos + 2 * size/3, SCE_SEEK_SET);
+
+        if (timeFromID3 || has_xing)
+            break;
+	}
+	mad_header_finish (&header);
+	mad_stream_finish (&stream);
+    if (buff)
+    	free(buff);
+    sceIoClose(fd);
+
+    int secs = 0;
+    if (has_xing)
+    {
+        /* modify header.duration since we don't need it anymore */
+        mad_timer_multiply(&header.duration, xing.frames);
+        secs = mad_timer_count(header.duration, MAD_UNITS_SECONDS);
+		MP3_info.length = secs;
+	}
+    else if (!MP3_info.length){
+		mediumBitrate = totalBitrate / (float)FrameCount;
+		secs = size * 8 / mediumBitrate;
+        MP3_info.length = secs;
+    }else{
+        secs = MP3_info.length;
+    }
+
+	//Formatto in stringa la durata totale:
+	int h = secs / 3600;
+	int m = (secs - h * 3600) / 60;
+	int s = secs - h * 3600 - m * 60;
+	snprintf(MP3_info.strLength, sizeof(MP3_info.strLength), "%2.2i:%2.2i:%2.2i", h, m, s);
+
+    return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//MP3_End
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_End(){
     MP3_Stop();
     vitaAudioSetChannelCallback(myChannel, 0,0);
     MP3_FreeTune();
+    endAudioLib();
 }
 
-//////////////////////////////////////////////////////////////////////
-// Functions - Local and not public
-//////////////////////////////////////////////////////////////////////
 
-//  This is the initialiser and module loader
-//  This is a general call, which loads the module from the 
-//  given address into the modplayer
-//
-//  It basically loads into an internal format, so once this function
-//  has returned the buffer at 'data' will not be needed again.
-int MP3_Load(char *filename)
-{
-    int fd;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Load mp3 into memory:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_Load(char *filename){
     eos = 0;
-    //psp_stats pstat;
-    //sceIoGetstat(filename, &pstat);
-    if ((fd = sceIoOpen(filename, SCE_O_RDONLY, 0777)) > 0) {
-		//  opened file, so get size now
-		size = sceIoLseek(fd, 0, SCE_SEEK_END);
-		sceIoLseek(fd, 0, SCE_SEEK_SET);
-		ptr = (unsigned char *) malloc(size + 8);
-		memset(ptr, 0, size + 8);
-		if (ptr != 0) {		// Read file in
-			sceIoRead(fd, ptr, size);
-		} else {
-			sceIoClose(fd);
-			return 0;
-		}
-		// Close file
-		sceIoClose(fd);
-    } else {
-		return 0;
+	MP3_outputInProgress = 0;
+    MP3_filePos = 0;
+    fileSize = 0;
+    samplesRead = 0;
+    MP3_fd = sceIoOpen(filename, SCE_O_RDONLY, 0777);
+    if (MP3_fd < 0)
+        return ERROR_OPENING;
+    fileSize = sceIoLseek32(MP3_fd, 0, SCE_SEEK_END);
+	sceIoLseek32(MP3_fd, 0, SCE_SEEK_SET);
+	tagsize = ID3v2TagSize(filename);
+	sceIoLseek32(MP3_fd, tagsize, SCE_SEEK_SET);
+    SeekNextFrameMP3(MP3_fd);
+
+    MP3_isPlaying = FALSE;
+
+    strcpy(MP3_fileName, filename);
+    if (MP3getInfo() != 0){
+        strcpy(MP3_fileName, "");
+        sceIoClose(MP3_fd);
+        MP3_fd = -1;
+        return ERROR_OPENING;
     }
-    //  Set volume to full ready to play
-    //SetMasterVolume(64);
-    isPlaying = FALSE;
-    return 1;
+
+    //Controllo il sample rate:
+    if (vitaAudioSetFrequency(myChannel, MP3_info.hz) < 0)
+        return ERROR_INVALID_SAMPLE_RATE;
+    return OPENING_OK;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This function initialises for playing, and starts
-int MP3_Play()
-{
-    // See if I'm already playing
-    if (isPlaying)
-	return FALSE;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_Play(){
+	//Azzero il timer:
+    if (eos == 1){
+		mad_timer_reset(&Timer);
+	}
 
-    isPlaying = TRUE;
-    return TRUE;
+	// See if I'm already playing
+    if (MP3_isPlaying)
+		return FALSE;
+
+    MP3_isPlaying = TRUE;
+
+	return TRUE;
 }
 
-void MP3_Pause()
-{
-    isPlaying = !isPlaying;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Pause:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_Pause(){
+    MP3_isPlaying = !MP3_isPlaying;
 }
 
-int MP3_Stop()
-{
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Stop:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_Stop(){
     //stop playing
-    isPlaying = FALSE;
-
-    //clear buffer
-    memset(OutputBuffer, 0, OUTPUT_BUFFER_SIZE);
-    OutputPtr = (unsigned char *) OutputBuffer;
-
-    //seek to beginning of file
-    //sceIoLseek(BstdFile->fd, 0, SEEK_SET);
+    MP3_isPlaying = FALSE;
+    while (MP3_outputInProgress == 1)
+        sceKernelDelayThread(100000);
 
     return TRUE;
 }
 
-void MP3_GetTimeString(char *dest)
-{
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Get time string
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_GetTimeString(char *dest){
     mad_timer_string(Timer, dest, "%02lu:%02u:%02u", MAD_UNITS_HOURS, MAD_UNITS_MILLISECONDS, 0);
 }
 
-int MP3_EndOfStream()
-{
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Get Percentage
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float MP3_GetPercentage(){
+	//Calcolo posizione in %:
+	float perc = 0.0f;
+
+    if (fileSize > 0){
+        perc = ((float)MP3_filePos - (float)tagsize) / ((float)fileSize - (float)tagsize) * 100.0;
+        if (perc > 100)
+            perc = 100;
+    }
+    return(perc);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Check EOS
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_EndOfStream(){
     if (eos == 1)
-	return 1;
+		return 1;
     return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Get info on file:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct fileInfo *MP3_GetInfo(){
+	return &MP3_info;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Get only tag info from a file:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct fileInfo MP3_GetTagInfoOnly(char *filename){
+    struct fileInfo tempInfo;
+    initFileInfo(&tempInfo);
+    getMP3TagInfo(filename, &tempInfo);
+	return tempInfo;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Set volume boost type:
+//NOTE: to be launched only once BEFORE setting boost volume or filter
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_setVolumeBoostType(char *boostType){
+    if (strcmp(boostType, "OLD") == 0){
+        MP3_volume_boost_type = BOOST_OLD;
+        MAX_VOLUME_BOOST = 4;
+        MIN_VOLUME_BOOST = 0;
+    }else{
+        MAX_VOLUME_BOOST = 15;
+        MIN_VOLUME_BOOST = -MAX_VOLUME_BOOST;
+        MP3_volume_boost_type = BOOST_NEW;
+    }
+    MP3_volume_boost_old = 0;
+    MP3_volume_boost = 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Set volume boost:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_setVolumeBoost(int boost){
+    if (MP3_volume_boost_type == BOOST_NEW){
+        MP3_volume_boost_old = 0;
+        MP3_volume_boost = boost;
+    }else{
+        MP3_volume_boost_old = boost;
+        MP3_volume_boost = 0;
+    }
+    //Reapply the filter:
+    MP3_setFilter(filterDouble, 0);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Get actual volume boost:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_getVolumeBoost(){
+    if (MP3_volume_boost_type == BOOST_NEW){
+    	return(MP3_volume_boost);
+    }else{
+        return(MP3_volume_boost_old);
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Set Filter:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_setFilter(double tFilter[32], int copyFilter){
+	//Converto i db:
+	double AmpFactor;
+	int i;
+
+	for (i = 0; i < 32; i++){
+		//Check for volume boost:
+		if (MP3_volume_boost){
+			AmpFactor=pow(10.,(tFilter[i] + MP3_volume_boost * DB_forBoost)/20);
+		}else{
+			AmpFactor=pow(10.,tFilter[i]/20);
+		}
+		if(AmpFactor>mad_f_todouble(MAD_F_MAX))
+		{
+			DoFilter = 0;
+			return(0);
+		}else{
+			Filter[i]=mad_f_tofixed(AmpFactor);
+		}
+		if (copyFilter){
+			filterDouble[i] = tFilter[i];
+		}
+	}
+	return(1);
+}
+
+
+int MP3_isFilterSupported(){
+	return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Check if filter is enabled:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_isFilterEnabled(){
+	return DoFilter;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Enable filter:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_enableFilter(){
+	DoFilter = 1;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Disable filter:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_disableFilter(){
+	DoFilter = 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Get playing speed:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_getPlayingSpeed(){
+	return MP3_playingSpeed;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Set playing speed:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_setPlayingSpeed(int playingSpeed){
+	if (playingSpeed >= MIN_PLAYING_SPEED && playingSpeed <= MAX_PLAYING_SPEED){
+		MP3_playingSpeed = playingSpeed;
+		if (playingSpeed == 0)
+            setVolume(myChannel, 0x8000);
+		else
+    		setVolume(myChannel, FASTFORWARD_VOLUME);
+		return 0;
+	}else{
+		return -1;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Set mute:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_setMute(int onOff){
+    return setMute(myChannel, onOff);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Fade out:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MP3_fadeOut(float seconds){
+    fadeOut(myChannel, seconds);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Manage suspend:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int MP3_suspend(){
+    MP3_suspendPosition = MP3_filePos;
+    MP3_suspendIsPlaying = MP3_isPlaying;
+	/*MP3_Stop();
+    MP3_FreeTune();*/
+
+	MP3_isPlaying = FALSE;
+    mad_synth_finish(&Synth);
+    mad_header_finish(&Header);
+    mad_frame_finish(&Frame);
+    mad_stream_finish(&Stream);
+
+    sceIoClose(MP3_fd);
+	MP3_fd = -1;
+    return 0;
+}
+
+int MP3_resume(){
+	if (MP3_suspendPosition >= 0){
+		mad_stream_init(&Stream);
+		mad_header_init(&Header);
+		mad_frame_init(&Frame);
+		mad_synth_init(&Synth);
+		mad_timer_reset(&Timer);
+		MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+		if (MP3_fd >= 0){
+			MP3_filePos = MP3_suspendPosition;
+			sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+			mad_timer_set(&Timer, (int)((float)MP3_info.length / 100.0 * MP3_GetPercentage()), 1, 1);
+			MP3_isPlaying = MP3_suspendIsPlaying;
+		}
+	}
+	MP3_suspendPosition = -1;
+    return 0;
+}
+
+double MP3_getFilePosition()
+{
+    return MP3_filePos;
+}
+
+void MP3_setFilePosition(double position)
+{
+    MP3_newFilePos = position;
 }
