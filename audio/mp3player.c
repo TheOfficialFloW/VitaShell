@@ -155,8 +155,11 @@ int fillFileBuffer() {
 		int bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
 
 		if (bytesRead == 0x80010013) {
-			MP3_suspend();
-			MP3_resume();
+			MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+			if (MP3_fd >= 0) {
+				sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+			}
+
 			bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
 		}
 
@@ -233,7 +236,17 @@ static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
                     if (!MP3_newFilePos)
                         MP3_newFilePos = ID3v2TagSize(MP3_fileName);
 
-                    if (sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET) != MP3_filePos){
+					int res = sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET);
+					if (res == 0x80010013) {
+						MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+						if (MP3_fd >= 0) {
+							sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+						}
+
+						res = sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET);
+					}
+
+                    if (res != MP3_filePos){
                         MP3_filePos = MP3_newFilePos;
                         mad_timer_set(&Timer, (int)((float)MP3_info.length / 100.0 * MP3_GetPercentage()), 1, 1);
                     }
@@ -244,8 +257,11 @@ static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
                 if (MP3_playingSpeed){
 					int res = sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR);
 					if (res == 0x80010013) {
-						MP3_suspend();
-						MP3_resume();
+						MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+						if (MP3_fd >= 0) {
+							sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+						}
+
 						res = sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR);
 					}
 

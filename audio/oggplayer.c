@@ -136,8 +136,11 @@ size_t ogg_callback_read(void *ptr, size_t size, size_t nmemb, void *datasource)
 {
     int res = sceIoRead(*(int *) datasource, ptr, size * nmemb);
 	if (res == 0x80010013) {
-		OGG_suspend();
-		OGG_resume();
+		OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
+		if (OGG_file >= 0) {
+			sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
+		}
+
 		res = sceIoRead(*(int *) datasource, ptr, size * nmemb);
 	}
 	return res;
@@ -146,8 +149,11 @@ int ogg_callback_seek(void *datasource, ogg_int64_t offset, int whence)
 {
     int res = sceIoLseek32(*(int *) datasource, (unsigned int) offset, whence);
 	if (res == 0x80010013) {
-		OGG_suspend();
-		OGG_resume();
+		OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
+		if (OGG_file >= 0) {
+			sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
+		}
+
 	    res = sceIoLseek32(*(int *) datasource, (unsigned int) offset, whence);
 	}
 	return res;
@@ -156,8 +162,11 @@ long ogg_callback_tell(void *datasource)
 {
     int res = sceIoLseek32(*(int *) datasource, 0, SEEK_CUR);
 	if (res == 0x80010013) {
-		OGG_suspend();
-		OGG_resume();
+		OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
+		if (OGG_file >= 0) {
+			sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
+		}
+
 	    res = sceIoLseek32(*(int *) datasource, 0, SEEK_CUR);
 	}
 	return (long)res;
@@ -166,8 +175,11 @@ int ogg_callback_close(void *datasource)
 {
     int res = sceIoClose(*(int *) datasource);
 	if (res == 0x80010013) {
-		OGG_suspend();
-		OGG_resume();
+		OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
+		if (OGG_file >= 0) {
+			sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
+		}
+
 		res = sceIoClose(*(int *) datasource);
 	}
 	return res;
