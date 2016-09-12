@@ -219,7 +219,7 @@ int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 
 			int written = sceIoWrite(fddst, buf, read);
 			if (written == SCE_ERROR_ERRNO_ENODEV) {
-				fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT, 0777);
+				fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT, 0777);
 				if (fddst >= 0) {
 					sceIoLseek(fddst, seek, SCE_SEEK_SET);
 					written = sceIoWrite(fddst, buf, read);
