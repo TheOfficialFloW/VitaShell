@@ -21,59 +21,56 @@
 #include "file.h"
 #include "utils.h"
 
-extern unsigned char _binary_resources_changeinfo_txt_start;
-extern unsigned char _binary_resources_changeinfo_txt_size;
+INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
 
-extern unsigned char _binary_resources_folder_icon_png_start;
-extern unsigned char _binary_resources_folder_icon_png_size;
-extern unsigned char _binary_resources_file_icon_png_start;
-extern unsigned char _binary_resources_file_icon_png_size;
-extern unsigned char _binary_resources_archive_icon_png_start;
-extern unsigned char _binary_resources_archive_icon_png_size;
-extern unsigned char _binary_resources_image_icon_png_start;
-extern unsigned char _binary_resources_image_icon_png_size;
-extern unsigned char _binary_resources_audio_icon_png_start;
-extern unsigned char _binary_resources_audio_icon_png_size;
-extern unsigned char _binary_resources_sfo_icon_png_start;
-extern unsigned char _binary_resources_sfo_icon_png_size;
-extern unsigned char _binary_resources_text_icon_png_start;
-extern unsigned char _binary_resources_text_icon_png_size;
-extern unsigned char _binary_resources_ftp_png_start;
-extern unsigned char _binary_resources_ftp_png_size;
-extern unsigned char _binary_resources_battery_png_start;
-extern unsigned char _binary_resources_battery_png_size;
-extern unsigned char _binary_resources_battery_bar_red_png_start;
-extern unsigned char _binary_resources_battery_bar_red_png_size;
-extern unsigned char _binary_resources_battery_bar_green_png_start;
-extern unsigned char _binary_resources_battery_bar_green_png_size;
-extern unsigned char _binary_resources_battery_bar_charge_png_start;
-extern unsigned char _binary_resources_battery_bar_charge_png_size;
- 
-extern unsigned char _binary_resources_theme_txt_start;
-extern unsigned char _binary_resources_theme_txt_size;
+INCLUDE_EXTERN_RESOURCE(folder_icon_png);
+INCLUDE_EXTERN_RESOURCE(file_icon_png);
+INCLUDE_EXTERN_RESOURCE(archive_icon_png);
+INCLUDE_EXTERN_RESOURCE(image_icon_png);
+INCLUDE_EXTERN_RESOURCE(audio_icon_png);
+INCLUDE_EXTERN_RESOURCE(sfo_icon_png);
+INCLUDE_EXTERN_RESOURCE(text_icon_png);
+INCLUDE_EXTERN_RESOURCE(ftp_png);
+INCLUDE_EXTERN_RESOURCE(battery_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_red_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_green_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_charge_png);
 
-extern unsigned char _binary_resources_colors_txt_start;
-extern unsigned char _binary_resources_colors_txt_size;
+INCLUDE_EXTERN_RESOURCE(cover_png);
+INCLUDE_EXTERN_RESOURCE(play_png);
+INCLUDE_EXTERN_RESOURCE(pause_png);
+INCLUDE_EXTERN_RESOURCE(fastforward_png);
+INCLUDE_EXTERN_RESOURCE(fastrewind_png);
 
-extern unsigned char _binary_resources_english_us_txt_start;
-extern unsigned char _binary_resources_english_us_txt_size;
+INCLUDE_EXTERN_RESOURCE(theme_txt);
+INCLUDE_EXTERN_RESOURCE(colors_txt);
+INCLUDE_EXTERN_RESOURCE(english_us_txt);
+
+#define DEFAULT_FILE(pah, name) { "ux0:VitaShell/language/english_us.txt", (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size }
 
 static DefaultFile default_files[] = {
-	{ "ux0:VitaShell/language/english_us.txt", (void *)&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size },
-	{ "ux0:VitaShell/theme/theme.txt", (void *)&_binary_resources_theme_txt_start, (int)&_binary_resources_theme_txt_size },
-	{ "ux0:VitaShell/theme/Default/colors.txt", (void *)&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size },
-	{ "ux0:VitaShell/theme/Default/folder_icon.png", (void *)&_binary_resources_folder_icon_png_start, (int)&_binary_resources_folder_icon_png_size },
-	{ "ux0:VitaShell/theme/Default/file_icon.png", (void *)&_binary_resources_file_icon_png_start, (int)&_binary_resources_file_icon_png_size },
-	{ "ux0:VitaShell/theme/Default/archive_icon.png", (void *)&_binary_resources_archive_icon_png_start, (int)&_binary_resources_archive_icon_png_size },
-	{ "ux0:VitaShell/theme/Default/image_icon.png", (void *)&_binary_resources_image_icon_png_start, (int)&_binary_resources_image_icon_png_size },
-	{ "ux0:VitaShell/theme/Default/audio_icon.png", (void *)&_binary_resources_audio_icon_png_start, (int)&_binary_resources_audio_icon_png_size },
-	{ "ux0:VitaShell/theme/Default/sfo_icon.png", (void *)&_binary_resources_sfo_icon_png_start, (int)&_binary_resources_sfo_icon_png_size },
-	{ "ux0:VitaShell/theme/Default/text_icon.png", (void *)&_binary_resources_text_icon_png_start, (int)&_binary_resources_text_icon_png_size },
-	{ "ux0:VitaShell/theme/Default/ftp.png", (void *)&_binary_resources_ftp_png_start, (int)&_binary_resources_ftp_png_size },
-	{ "ux0:VitaShell/theme/Default/battery.png", (void *)&_binary_resources_battery_png_start, (int)&_binary_resources_battery_png_size },
-	{ "ux0:VitaShell/theme/Default/battery_bar_red.png", (void *)&_binary_resources_battery_bar_red_png_start, (int)&_binary_resources_battery_bar_red_png_size },
-	{ "ux0:VitaShell/theme/Default/battery_bar_green.png", (void *)&_binary_resources_battery_bar_green_png_start, (int)&_binary_resources_battery_bar_green_png_size },
-	{ "ux0:VitaShell/theme/Default/battery_bar_charge.png", (void *)&_binary_resources_battery_bar_charge_png_start, (int)&_binary_resources_battery_bar_charge_png_size },
+	DEFAULT_FILE("ux0:VitaShell/language/english_us.txt", english_us_txt),
+
+	DEFAULT_FILE("ux0:VitaShell/theme/theme.txt", theme_txt),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/colors.txt", colors_txt),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", folder_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/file_icon.png", file_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/archive_icon.png", archive_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/image_icon.png", image_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/audio_icon.png", audio_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/sfo_icon.png", sfo_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/text_icon.png", text_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", ftp_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery.png", battery_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_green.png", battery_bar_green_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_charge.png", battery_bar_charge_png),
+	
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/cover.png", cover_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/play.png", play_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", pause_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", fastforward_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png),
 };
 
 vita2d_pgf *font = NULL;

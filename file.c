@@ -538,6 +538,7 @@ static ExtensionType extension_types[] = {
 	{ ".JPG",  FILE_TYPE_JPEG },
 	{ ".JPEG", FILE_TYPE_JPEG },
 	{ ".MP3",  FILE_TYPE_MP3 },
+	{ ".OGG",  FILE_TYPE_OGG },
 	{ ".PNG",  FILE_TYPE_PNG },
 	{ ".SFO",  FILE_TYPE_SFO },
 	{ ".TXT",  FILE_TYPE_TXT },

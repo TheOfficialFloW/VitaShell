@@ -366,7 +366,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
 			// Wait for response
 			while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
-				sceKernelDelayThread(1000);
+				sceKernelDelayThread(10 * 1000);
 			}
 
 			// Cancelled

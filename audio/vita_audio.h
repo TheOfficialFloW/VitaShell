@@ -14,6 +14,14 @@
 extern "C" {
 #endif
 
+#define VITA_WAV_MAX_SLOTS 128
+
+#define VITA_NUM_AUDIO_CHANNELS	1 // 4
+#define VITA_NUM_AUDIO_SAMPLES	1024
+#define VITA_VOLUME_MAX			0x8000
+
+typedef void (* vitaAudioCallback)(void *buf, unsigned int reqn, void *pdata);
+
 /** @defgroup vitaWav WAV Library
  *  @{
  */
@@ -108,6 +116,11 @@ void vitaWavStopAll(void);
 void vitaWavLoop(vitaWav *wav, unsigned int loop);
 
 /** @} */
+
+void vitaAudioSetVolume(int channel, int left, int right);
+int vitaAudioSetFrequency(int channel, unsigned short freq);
+void vitaAudioSetChannelCallback(int channel, vitaAudioCallback callback, void *data);
+int vitaAudioInit(int priority);
 
 #ifdef __cplusplus
 }

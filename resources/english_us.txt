@@ -17,6 +17,13 @@ DOWNLOADING                          = "Downloading..."
 EXTRACTING                           = "Extracting..."
 HASHING                              = "Hashing..."
 
+# Audio player strings
+TITLE                                = "Title"
+ALBUM                                = "Album"
+ARTIST                               = "Artist"
+GENRE                                = "Genre"
+YEAR                                 = "Year"
+
 # Hex editor strings
 OFFSET                               = "Offset"
 OPEN_HEX_EDITOR                      = "Open hex editor"

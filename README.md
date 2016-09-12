@@ -184,6 +184,7 @@ Be sure you pull request your customized design or language file there.
 * vitasdk: https://github.com/vitasdk
 * vita2dlib: https://github.com/xerpi/vita2dlib
 * ftpvitalib https://github.com/xerpi/ftpvitalib
+* EasyRPG libraries: https://ci.easyrpg.org/view/Toolchains/job/toolchain-vita/
 
 ### Credits ###
 * Team Molecule for HENkaku

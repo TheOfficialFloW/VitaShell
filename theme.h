@@ -67,9 +67,20 @@ extern int TEXT_HIGHLIGHT_COLOR;
 // Photo viewer colors
 extern int PHOTO_ZOOM_COLOR;
 
+// Audio player colors
+extern int AUDIO_INFO_ASSIGN;
+extern int AUDIO_INFO;
+extern int AUDIO_SPEED;
+extern int AUDIO_TIME_CURRENT;
+extern int AUDIO_TIME_SLASH;
+extern int AUDIO_TIME_TOTAL;
+extern int AUDIO_TIME_BAR;
+extern int AUDIO_TIME_BAR_BG;
+
 extern vita2d_texture *folder_icon, *file_icon, *archive_icon, *image_icon, *audio_icon, *sfo_icon, *text_icon,
-					  *ftp_image, *dialog_image, *context_image, *context_more_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image,
-					  *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image, *bg_photo_image;
+					  *ftp_image, *dialog_image, *context_image, *context_more_image, *battery_image, *battery_bar_red_image,
+					  *battery_bar_green_image, *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image,
+					  *bg_photo_image, *cover_image, *play_image, *pause_image, *fastforward_image, *fastrewind_image;
 
 extern vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
 extern vita2d_texture *previous_wallpaper_image, *current_wallpaper_image;

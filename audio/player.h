@@ -19,7 +19,9 @@
 #ifndef __PLAYER_H__
 #define __PLAYER_H__
 
+#include "id3.h"
 #include "info.h"
+#include "vita_audio.h"
 
 #define OPENING_OK 0
 #define ERROR_OPENING -1
@@ -29,15 +31,9 @@
 
 #define MP3_TYPE 0
 #define OGG_TYPE 1
-#define AT3_TYPE 2
-#define FLAC_TYPE 3
-#define AAC_TYPE 4
-#define WMA_TYPE 5
 #define UNK_TYPE -1
 
-#define FASTFORWARD_VOLUME 0x2200
-#define MAX_IMAGE_DIMENSION 300*1024
-#define DEFAULT_THREAD_STACK_SIZE 256*1024
+#define FASTFORWARD_VOLUME 0 // 0x2200
 
 extern int MAX_VOLUME_BOOST;
 extern int MIN_VOLUME_BOOST;
@@ -55,5 +51,37 @@ int initAudioLib();
 int endAudioLib();
 
 void initFileInfo(struct fileInfo *info);
+
+extern void (* initFunct)(int);
+extern int (* loadFunct)(char *);
+extern int (* isPlayingFunct)();
+extern int (* playFunct)();
+extern void (* pauseFunct)();
+extern void (* endFunct)();
+extern void (* setVolumeBoostTypeFunct)(char*);
+extern void (* setVolumeBoostFunct)(int);
+extern struct fileInfo *(* getInfoFunct)();
+extern struct fileInfo (* getTagInfoFunct)();
+extern void (* getTimeStringFunct)();
+extern float (* getPercentageFunct)();
+extern int (* getPlayingSpeedFunct)();
+extern int (* setPlayingSpeedFunct)(int);
+extern int (* endOfStreamFunct)();
+
+extern int (* setMuteFunct)(int);
+extern int (* setFilterFunct)(double[32], int copyFilter);
+extern void (* enableFilterFunct)();
+extern void (* disableFilterFunct)();
+extern int (* isFilterEnabledFunct)();
+extern int (* isFilterSupportedFunct)();
+extern int (* suspendFunct)();
+extern int (* resumeFunct)();
+extern void (* fadeOutFunct)(float seconds);
+
+extern double (* getFilePositionFunct)();                     //Gets current file position in bytes
+extern void (* setFilePositionFunct)(double position);          //Set current file position in butes
+
+extern int setAudioFunctions(int type);
+extern void unsetAudioFunctions();
 
 #endif

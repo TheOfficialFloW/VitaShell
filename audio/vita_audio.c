@@ -6,8 +6,6 @@
 #include <malloc.h>
 #include "vita_audio.h"
 
-#define VITA_WAV_MAX_SLOTS 128
-
 static vitaWav vitaWavInfo[VITA_WAV_MAX_SLOTS];
 static int vitaWavPlaying[VITA_WAV_MAX_SLOTS];
 static int vitaWavId[VITA_WAV_MAX_SLOTS];
@@ -17,12 +15,6 @@ static unsigned long vitaWavReq;
 static int vitaWavIdFlag = 0;
 
 static int vitaWavInitFlag = 0;
-
-#define VITA_NUM_AUDIO_CHANNELS	1 // 4
-#define VITA_NUM_AUDIO_SAMPLES	1024
-#define VITA_VOLUME_MAX			0x8000
-
-typedef void (* vitaAudioCallback)(void *buf, unsigned int reqn, void *pdata);
 
 typedef struct
 {
@@ -42,8 +34,13 @@ static vitaAudioChannelInfo vitaAudioStatus[VITA_NUM_AUDIO_CHANNELS];
 
 static volatile int vitaAudioTerminate = 0;
 
+void vitaAudioSetVolume(int channel, int left, int right) {
+	vitaAudioStatus[channel].volumeLeft = left;
+	vitaAudioStatus[channel].volumeRight = right;
+}
+
 int vitaAudioSetFrequency(int channel, unsigned short freq) {
-	return 0;
+	return sceAudioOutSetConfig(vitaAudioStatus[channel].handle, VITA_NUM_AUDIO_SAMPLES, freq, SCE_AUDIO_OUT_MODE_STEREO);
 }
 
 void vitaAudioSetChannelCallback(int channel, vitaAudioCallback callback, void *data)

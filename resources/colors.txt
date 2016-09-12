@@ -45,3 +45,13 @@ TEXT_HIGHLIGHT_COLOR         = 0xFF80F5FF    # Yellow
 
 # Photo viewer colors
 PHOTO_ZOOM_COLOR             = 0xFFFFFFFF    # White
+
+# Audio player colors
+AUDIO_INFO_ASSIGN            = 0xFFFFFF00    # Cyan
+AUDIO_INFO                   = 0xFFFFFFFF    # White
+AUDIO_SPEED                  = 0xFFFFFFFF    # White
+AUDIO_TIME_CURRENT           = 0xFF00FF00    # Green
+AUDIO_TIME_SLASH             = 0xFFFFFFFF    # White
+AUDIO_TIME_TOTAL             = 0xFFFFFFFF    # White
+AUDIO_TIME_BAR               = 0xFFFF7F00    # Azure
+AUDIO_TIME_BAR_BG            = 0xFF7F7F7F    # Gray
