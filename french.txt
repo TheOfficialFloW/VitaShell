@@ -36,7 +36,7 @@ OPEN_HEX_EDITOR			= "Ouvrir l'éditeur héxadécimal"
 # Text editor strings
 
 EDIT_LINE			= "Editer la ligne"
-ENTER_SEARCH_TERM		= "Entrer un mot clé"
+ENTER_SEARCH_TERM		= "Entrer un mot cle"
 CUT				= "Couper"
 INSERT_EMPTY_LINE		= "Insérer une ligne vide"
 
