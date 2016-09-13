@@ -171,7 +171,7 @@ int network_update_thread(SceSize args, void *argp) {
 	sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
 
 	uint64_t size = 0;
-	if (getDownloadFileSize(BASE_ADDRESS VERSION_URL, &size) > 0 && size == sizeof(uint32_t)) {
+	if (getDownloadFileSize(BASE_ADDRESS VERSION_URL, &size) == 0 && size == sizeof(uint32_t)) {
 		int res = downloadFile(BASE_ADDRESS VERSION_URL, VITASHELL_VERSION_FILE, NULL, 0, NULL, NULL);
 		if (res <= 0)
 			goto EXIT;
@@ -189,7 +189,7 @@ int network_update_thread(SceSize args, void *argp) {
 				int minor = (version >> 0x10) & 0xFF;
 
 				char version_string[8];
-				sprintf(version_string, "%X.%X", major, minor);
+				sprintf(version_string, "%X.%02X", major, minor);
 				if (version_string[3] == '0')
 					version_string[3] = '\0';
 

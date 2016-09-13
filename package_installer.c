@@ -340,6 +340,15 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		goto EXIT;
 	}
 
+	// If you cancelled at the time archiveOpen was working,
+	// it would still open the full permission dialog instead of termiating.
+	// So terminate now
+	if (cancelHandler()) {
+		closeWaitDialog();
+		dialog_step = DIALOG_STEP_CANCELLED;
+		goto EXIT;
+	}
+
 	// Check for param.sfo
 	snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
 	if (archiveFileGetstat(path, NULL) < 0) {

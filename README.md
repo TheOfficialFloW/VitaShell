@@ -94,12 +94,20 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
-### Changelog 1.00 ###
+### Changelog 1.1 ###
+- Added cover.jpg and folder.jpg as alternative cover image.
+- Fixed ID3 tag parsing.
+- Play and pause icons where swapped, fixed.
+- FTP does now show 'Please wait...' until it has been connected to Wi-Fi.
+
+### Changelog 1.0 ###
 - Added audio player with .MP3 and .OGG support (Press /\ to turn off the display while listening to music. Graphics by Valle).
 - Added changelog to the VitaShell bubble (press /\ or hold the bubble of VitaShell in the livearea).
 - Added ability to resume to the directory you've last visted before exiting VitaShell).
+- Added memory card free space check. A message will pop up if you don't have enough free space for copying or installing.
 - Leaving to livearea or suspending the device does no longer corrupt an IO process anymore (while copying things you can now leave VitaShell and resume).
 - Improved text editor and added search feature to context menu (press /\).
+- The temporary folder 'ptmp/pkg' is now cleared after cancelling or unsuccesful installation.
 - Fixed bug where copying to different partitions didn't work.
 - Fixed network update bug.
 
