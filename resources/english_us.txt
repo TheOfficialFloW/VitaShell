@@ -63,6 +63,7 @@ INSTALL_WARNING                      = "This package requests extended permissio
 HASH_FILE_QUESTION                   = "SHA1 hashing may take a long time. Continue?"
 
 # Others
+PLEASE_WAIT                          = "Please wait..."
 SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"
 NO_SPACE_ERROR                       = "There is not enough free space on the memory\card.\At least %s more space is needed."
 WIFI_ERROR                           = "You must use Wi-Fi to do this."

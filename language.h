@@ -83,6 +83,7 @@ enum LanguageContainer {
 	HASH_FILE_QUESTION,
 
 	// Others
+	PLEASE_WAIT,
 	SAVE_MODIFICATIONS,
 	NO_SPACE_ERROR,
 	WIFI_ERROR,

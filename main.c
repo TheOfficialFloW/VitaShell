@@ -330,7 +330,7 @@ void drawScrollBar(int pos, int n) {
 void drawShellInfo(char *path) {
 	// Title
 	char version[8];
-	sprintf(version, "%X.%X", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
+	sprintf(version, "%X.%02X", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
 	if (version[3] == '0')
 		version[3] = '\0';
 
@@ -810,6 +810,19 @@ int contextMenuMoreEnterCallback(int pos, void* context) {
 	return CONTEXT_MENU_CLOSING;
 }
 
+void initFtp() {
+	// Add all the current mountpoints to ftpvita
+	int i;
+	for (i = 0; i < getNumberMountPoints(); i++) {
+		char **mount_points = getMountPoints();
+		if (mount_points[i]) {
+			ftpvita_add_device(mount_points[i]);
+		}
+	}
+
+	ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);	
+}
+
 int dialogSteps() {
 	int refresh = 0;
 
@@ -849,6 +862,31 @@ int dialogSteps() {
 				dialog_step = DIALOG_STEP_NONE;
 			}
 
+			break;
+			
+		case DIALOG_STEP_FTP_WAIT:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				int state = 0;
+				sceNetCtlInetGetState(&state);
+				if (state == 3) {
+					int res = ftpvita_init(vita_ip, &vita_port);
+					if (res >= 0) {
+						initFtp();
+						sceMsgDialogClose();
+					}
+				}
+			} else {
+				if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+					dialog_step = DIALOG_STEP_NONE;
+
+					// Dialog
+					if (ftpvita_is_initialized()) {
+						initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
+						dialog_step = DIALOG_STEP_FTP;
+					}
+				}
+			}
+			
 			break;
 			
 		case DIALOG_STEP_FTP:
@@ -1140,17 +1178,10 @@ void fileBrowserMenuCtrl() {
 		if (!ftpvita_is_initialized()) {
 			int res = ftpvita_init(vita_ip, &vita_port);
 			if (res < 0) {
-				infoDialog(language_container[WIFI_ERROR]);
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
+				dialog_step = DIALOG_STEP_FTP_WAIT;
 			} else {
-				// Add all the current mountpoints to ftpvita
-				int i;
-				for (i = 0; i < getNumberMountPoints(); i++) {
-					char **mount_points = getMountPoints();
-					if (mount_points[i]) {
-						ftpvita_add_device(mount_points[i]);
-					}
-				}
-				ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);
+				initFtp();
 			}
 
 			// Lock power timers
