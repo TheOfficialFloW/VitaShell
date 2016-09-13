@@ -1,11 +1,41 @@
 # VitaShell language file
 
+# General strings
 ERROR                                = "Fel 0x%08X."
 OK                                   = "OK"
 YES                                  = "Ja"
 NO                                   = "Nej"
 CANCEL                               = "Avbryt"
+FOLDER                               = "Mapp"
+
+# Progress strings
+MOVING                               = "Flyttar..."
+COPYING                              = "Kopierar..."
+DELETING                             = "Tar bort..."
+INSTALLING                           = "Installerar..."
+DOWNLOADING                          = "Laddar ner..."
+EXTRACTING                           = "Extraherar..."
+HASHING                              = "Hashar..."
+
+# Audio player strings
+TITLE                                = "Titel"
+ALBUM                                = "Album"
+ARTIST                               = "Artist"
+GENRE                                = "Genre"
+YEAR                                 = "År"
+
+# Hex editor strings
 OFFSET                               = "Offset"
+OPEN_HEX_EDITOR                      = "Öppna HEX-redigerare"
+
+# Text editor strings
+EDIT_LINE                            = "Redigera rad"
+ENTER_SEARCH_TERM                    = "Ange sökord"
+CUT                                  = "Klipp ut"
+INSERT_EMPTY_LINE                    = "Infoga tom rad"
+
+# File browser context menu strings
+MORE                                 = "Mer"
 MARK_ALL                             = "Markera alla"
 UNMARK_ALL                           = "Avmarkera alla"
 MOVE                                 = "Flytta"
@@ -14,20 +44,28 @@ PASTE                                = "Klistra in"
 DELETE                               = "Ta bort"
 RENAME                               = "Byt namn"
 NEW_FOLDER                           = "Ny mapp"
-FOLDER                               = "Mapp"
+INSTALL_ALL                          = "Installera alla"
+CALCULATE_SHA1                       = "Beräkna SHA1"
+SEARCH                               = "Sök"
+
+# File browser strings
 COPIED_FILE                          = "Kopierade %d fil."
 COPIED_FOLDER                        = "Kopierade %d mapp."
 COPIED_FILES_FOLDERS                 = "Kopierade %d filer/mappar."
-MOVING                               = "Flyttar..."
-COPYING                              = "Kopierar..."
-DELETING                             = "Tar bort..."
-INSTALLING                           = "Installerar..."
+
+# Dialog questions
 DELETE_FILE_QUESTION                 = "Är du säker på att du vill ta bort den här filen?"
 DELETE_FOLDER_QUESTION               = "Är du säker på att du vill ta bort den här mappen?"
 DELETE_FILES_FOLDERS_QUESTION        = "Är du säker på att du vill ta bort de här filerna/mapparna?"
+INSTALL_ALL_QUESTION                 = "Vill du installera alla paket tillgängliga i den här mappen?"
 INSTALL_QUESTION                     = "Vill du installera det här paketet?"
 INSTALL_WARNING                      = "Det här paketet begär ytterligare tillstånd.\Det kommer ha tillgång till din personliga information.\Om du inte fick det från en betrodd källa,\fortsätt på egen risk.\\Vill du fortsätta installationen?"
+HASH_FILE_QUESTION                   = "SHA1-hashning kan ta lång tid. Fortsätt?"
+
+# Others
 SAVE_MODIFICATIONS                   = "Vill du spara dina ändringar?"
+NO_SPACE_ERROR                       = "Det finns inte tillräckligt med utrymme på minneskortet.\Minst %s mer utrymme behövs."
 WIFI_ERROR                           = "Du måste använda Wi-Fi för att göra det här."
 FTP_SERVER                           = "FTP-server körs nu på\ftp://%s:%i\\Tryck 'OK' för att fortsätta köra i bakgrunden.\Tryck 'Avbryt' för att koppla från."
 SYS_INFO                             = "Systemprogramvara: %s\Modell: 0x%08X\MAC-adress: %s\IP-adress: %s\Minneskort: %s/%s"
+UPDATE_QUESTION                      = "VitaShell %s är nu tillgänglig.\\Vill du uppdatera applikationen?"
