@@ -63,6 +63,7 @@ INSTALL_WARNING                      = "Este fichero requiere de permisos especi
 HASH_FILE_QUESTION				     = "Realizar la operación para el hashing SHA1 puede llegar a tardar un tiempo. ¿Quieres continuar?"
 
 # Others - Otros
+PLEASE_WAIT                          = "Por favor, espere..."
 SAVE_MODIFICATIONS                   = "¿Quieres guardar estas modificaciones?"
 NO_SPACE_ERROR                       = "No hay mas espacio libre en la tarjeta de memoria.\Se necesita %s de espacio."
 WIFI_ERROR                           = "Tienes que activar la conexión Wi-Fi para usar esta función."
