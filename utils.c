@@ -23,6 +23,7 @@
 #include "theme.h"
 #include "language.h"
 #include "utils.h"
+#include "bm.h"
 
 SceCtrlData pad;
 uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
@@ -206,6 +207,10 @@ int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time) {
 	return 0;
 }
 
+int hasEndSlash(char *path) {
+	return path[strlen(path) - 1] == '/';
+}
+
 int removeEndSlash(char *path) {
 	int len = strlen(path);
 
@@ -315,4 +320,9 @@ int launchAppByUriExit(char *titleid) {
 	sceKernelExitProcess(0);
 
 	return 0;
+}
+
+
+char *strcasestr(const char *haystack, const char *needle) {
+	return boyer_moore(haystack, needle); 
 }

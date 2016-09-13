@@ -27,7 +27,9 @@
 #include "utils.h"
 
 #define BASE_ADDRESS "https://github.com/TheOfficialFloW/VitaShell/releases/download"
-#define VITASHELL_UPDATE_FILE "ux0:VitaShell/VitaShell.vpk"
+#define VERSION_URL "/0.1/version.bin"
+#define VITASHELL_UPDATE_FILE "ux0:VitaShell/internal/VitaShell.vpk"
+#define VITASHELL_VERSION_FILE "ux0:VitaShell/internal/version.bin"
 
 extern unsigned char _binary_resources_updater_eboot_bin_start;
 extern unsigned char _binary_resources_updater_eboot_bin_size;
@@ -168,17 +170,23 @@ EXIT:
 int network_update_thread(SceSize args, void *argp) {
 	sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
 
-	if (downloadFile(BASE_ADDRESS "/0.0/version.bin", "ux0:VitaShell/version.bin", NULL, 0, NULL, NULL) > 0) {
+	uint64_t size = 0;
+	if (getDownloadFileSize(BASE_ADDRESS VERSION_URL, &size) > 0 && size == sizeof(uint32_t)) {
+		int res = downloadFile(BASE_ADDRESS VERSION_URL, VITASHELL_VERSION_FILE, NULL, 0, NULL, NULL);
+		if (res <= 0)
+			goto EXIT;
+
+		// Read version
 		uint32_t version = 0;
-		ReadFile("ux0:VitaShell/version.bin", &version, sizeof(uint32_t));
-		sceIoRemove("ux0:VitaShell/version.bin");
+		ReadFile(VITASHELL_VERSION_FILE, &version, sizeof(uint32_t));
+		sceIoRemove(VITASHELL_VERSION_FILE);
 
 		// Only show update question if no dialog is running
 		if (dialog_step == DIALOG_STEP_NONE) {
 			// New update available
 			if (version > VITASHELL_VERSION) {
-				int major = version >> 0x18;
-				int minor = version >> 0x10;
+				int major = (version >> 0x18) & 0xFF;
+				int minor = (version >> 0x10) & 0xFF;
 
 				char version_string[8];
 				sprintf(version_string, "%X.%X", major, minor);
@@ -196,7 +204,7 @@ int network_update_thread(SceSize args, void *argp) {
 
 				// No
 				if (dialog_step == DIALOG_STEP_NONE) {
-					return 0;
+					goto EXIT;
 				}
 
 				// Yes
@@ -205,12 +213,13 @@ int network_update_thread(SceSize args, void *argp) {
 		}
 	}
 
+EXIT:
 	return sceKernelExitDeleteThread(0);
 }
 
 void installUpdater() {
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Make dirs
@@ -243,7 +252,7 @@ int update_extract_thread(SceSize args, void *argp) {
 	installUpdater();
 
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
@@ -267,7 +276,14 @@ int update_extract_thread(SceSize args, void *argp) {
 
 	// Extract process
 	uint64_t value = 0;
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+
+	FileProcessParam param;
+	param.value = &value;
+	param.max = size + folders;
+	param.SetProgress = SetProgress;
+	param.cancelHandler = cancelHandler;
+
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
 	if (res <= 0) {
 		closeWaitDialog();
 		dialog_step = DIALOG_STEP_CANCELLED;

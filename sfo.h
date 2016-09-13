@@ -20,8 +20,6 @@
 #ifndef __SFO_H__
 #define __SFO_H__
 
-// Struct from : http://www.vitadevwiki.com/index.php?title=System_File_Object_(SFO)_(PSF)
-
 #define SFO_MAGIC 0x46535000
 
 #define PSF_TYPE_BIN 0
@@ -47,6 +45,8 @@ typedef struct SfoEntry {
 
 int getSfoValue(void *buffer, char *name, uint32_t *value);
 int getSfoString(void *buffer, char *name, char *string, int length);
+int setSfoValue(void *buffer, char *name, uint32_t value);
+int setSfoString(void *buffer, char *name, char *string);
 
 int SFOReader(char *file);
 

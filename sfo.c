@@ -65,6 +65,42 @@ int getSfoString(void *buffer, char *name, char *string, int length) {
 	return -2;
 }
 
+int setSfoValue(void *buffer, char *name, uint32_t value) {
+	SfoHeader *header = (SfoHeader *)buffer;
+	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
+
+	if (header->magic != SFO_MAGIC)
+    	return -1;
+
+	int i;
+	for (i = 0; i < header->count; i++) {
+		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
+			*(uint32_t *)(buffer + header->valofs + entries[i].dataofs) = value;
+			return 0;
+		}
+	}
+
+	return -2;
+}
+
+int setSfoString(void *buffer, char *name, char *string) {
+	SfoHeader *header = (SfoHeader *)buffer;
+	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
+
+	if (header->magic != SFO_MAGIC)
+    	return -1;
+
+	int i;
+	for (i = 0; i < header->count; i++) {
+		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
+			strcpy(buffer + header->valofs + entries[i].dataofs, string);
+			return 0;
+		}
+	}
+
+	return -2;
+}
+
 int SFOReader(char *file) {
 	uint8_t *buffer = malloc(BIG_BUFFER_SIZE);
 	if (!buffer)
@@ -129,7 +165,7 @@ int SFOReader(char *file) {
 		for (i = 0; i < MAX_ENTRIES && (base_pos + i) < sfo_header->count; i++) {
 			SfoEntry *entries = (SfoEntry *)(buffer + sizeof(SfoHeader) + (sizeof(SfoEntry) * (i + base_pos)));
 
-			uint32_t color = (rel_pos == i) ? FOCUS_COLOR : GENERAL_COLOR;
+			uint32_t color = (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR;
 
 	    	char *name = (char *)buffer + sfo_header->keyofs + entries->nameofs;
 			pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, "%s", name);

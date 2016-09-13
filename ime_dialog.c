@@ -21,6 +21,7 @@
 #include "utils.h"
 
 static int ime_dialog_running = 0;
+static int ime_dialog_option = 0;
 
 static uint16_t ime_title_utf16[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
 static uint16_t ime_initial_text_utf16[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
@@ -69,7 +70,7 @@ void utf8_to_utf16(uint8_t *src, uint16_t *dst) {
 	*dst = '\0';
 }
 
-int initImeDialog(char *title, char *initial_text, int max_text_length) {
+int initImeDialog(char *title, char *initial_text, int max_text_length, int type, int option) {
 	if (ime_dialog_running)
 		return -1;
 
@@ -82,15 +83,20 @@ int initImeDialog(char *title, char *initial_text, int max_text_length) {
 
 	param.supportedLanguages = 0x0001FFFF;
 	param.languagesForced = SCE_TRUE;
-	param.type = SCE_IME_TYPE_BASIC_LATIN;
+	param.type = type;
+	param.option = option;
+	if (option == SCE_IME_OPTION_MULTILINE)
+		param.dialogMode = SCE_IME_DIALOG_DIALOG_MODE_WITH_CANCEL;
 	param.title = ime_title_utf16;
 	param.maxTextLength = max_text_length;
 	param.initialText = ime_initial_text_utf16;
 	param.inputTextBuffer = ime_input_text_utf16;
 
 	int res = sceImeDialogInit(&param);
-	if (res >= 0)
+	if (res >= 0) {
 		ime_dialog_running = 1;
+		ime_dialog_option = option;
+	}
 
 	return res;
 }
@@ -117,11 +123,12 @@ int updateImeDialog() {
 		memset(&result, 0, sizeof(SceImeDialogResult));
 		sceImeDialogGetResult(&result);
 
-		if (result.button == SCE_IME_DIALOG_BUTTON_CLOSE) {
-			status = IME_DIALOG_RESULT_CANCELED;
-		} else {
+		if ((ime_dialog_option == SCE_IME_OPTION_MULTILINE && result.button == SCE_IME_DIALOG_BUTTON_CLOSE) ||
+			(ime_dialog_option != SCE_IME_OPTION_MULTILINE && result.button == SCE_IME_DIALOG_BUTTON_ENTER)) {
 			// Convert UTF16 to UTF8
 			utf16_to_utf8(ime_input_text_utf16, ime_input_text_utf8);
+		} else {
+			status = IME_DIALOG_RESULT_CANCELED;
 		}
 
 		sceImeDialogTerm();

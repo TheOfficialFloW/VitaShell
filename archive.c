@@ -47,7 +47,7 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 
 	int i;
 	for (i = 0; i < archive_list.length; i++) {
-		if (archive_entry->name_length >= name_length && strncmp(archive_entry->name, archive_path, name_length) == 0) { // Needs a / at end
+		if (archive_entry->name_length >= name_length && strncasecmp(archive_entry->name, archive_path, name_length) == 0) { // Needs a / at end
 			char *p = strchr(archive_entry->name + name_length, '/'); // it's a sub-directory if it has got a slash
 
 			if (p)
@@ -134,7 +134,7 @@ int getArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *
 	return 0;
 }
 
-int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 	if (!uf)
 		return -1;
 
@@ -151,15 +151,17 @@ int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void
 			return ret;
 		}
 
-		if (value)
-			(*value)++;
+		if (param) {
+			if (param->value)
+				(*param->value)++;
 
-		if (SetProgress)
-			SetProgress(value ? *value : 0, max);
-		
-		if (cancelHandler && cancelHandler()) {
-			fileListEmpty(&list);
-			return 0;
+			if (param->SetProgress)
+				param->SetProgress(param->value ? *param->value : 0, param->max);
+			
+			if (param->cancelHandler && param->cancelHandler()) {
+				fileListEmpty(&list);
+				return 0;
+			}
 		}
 
 		FileListEntry *entry = list.head->next; // Ignore ..
@@ -172,7 +174,7 @@ int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void
 			char *dst_path = malloc(strlen(dst) + strlen(entry->name) + 2);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", dst, entry->name);
 
-			int ret = extractArchivePath(src_path, dst_path, value, max, SetProgress, cancelHandler);
+			int ret = extractArchivePath(src_path, dst_path, param);
 
 			free(dst_path);
 			free(src_path);
@@ -211,19 +213,21 @@ int extractArchivePath(char *src, char *dst, uint64_t *value, uint64_t max, void
 				return res;
 			}
 
-			if (value)
-				(*value) += read;
+			if (param) {
+				if (param->value)
+					(*param->value) += read;
 
-			if (SetProgress)
-				SetProgress(value ? *value : 0, max);
+				if (param->SetProgress)
+					param->SetProgress(param->value ? *param->value : 0, param->max);
 
-			if (cancelHandler && cancelHandler()) {
-				free(buf);
+				if (param->cancelHandler && param->cancelHandler()) {
+					free(buf);
 
-				sceIoClose(fddst);
-				archiveFileClose(fdsrc);
+					sceIoClose(fddst);
+					archiveFileClose(fdsrc);
 
-				return 0;
+					return 0;
+				}
 			}
 		}
 
@@ -251,7 +255,7 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
 
 	int i;
 	for (i = 0; i < archive_list.length; i++) {
-		if (archive_entry->name_length == name_length && strcmp(archive_entry->name, archive_path) == 0) {
+		if (archive_entry->name_length == name_length && strcasecmp(archive_entry->name, archive_path) == 0) {
 			if (stat) {
 				//stat->st_mode = 
 				//stat->st_attr = 
@@ -284,7 +288,7 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
 
 	int i;
 	for (i = 0; i < archive_list.length; i++) {
-		if (archive_entry->name_length == name_length && strcmp(archive_entry->name, archive_path) == 0) {
+		if (archive_entry->name_length == name_length && strcasecmp(archive_entry->name, archive_path) == 0) {
 			// Set pos
 			unzGoToFilePos64(uf, (unz64_file_pos *)&archive_entry->reserved);
 

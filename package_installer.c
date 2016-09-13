@@ -39,8 +39,101 @@ void loadScePaf() {
 	sceSysmoduleLoadModuleInternalWithArg(0x80000008, sizeof(scepaf_argp), scepaf_argp, ptr);
 }
 
+int patchRetailContents() {
+	int res;
+	
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	res = sceIoGetstat(PACKAGE_DIR "/sce_sys/retail/livearea", &stat);
+	if (res < 0)
+		return res;
+
+	res = sceIoRename(PACKAGE_DIR "/sce_sys/livearea", PACKAGE_DIR "/sce_sys/livearea_org");
+	if (res < 0)
+		return res;
+
+	res = sceIoRename(PACKAGE_DIR "/sce_sys/retail/livearea", PACKAGE_DIR "/sce_sys/livearea");
+	if (res < 0)
+		return res;
+
+	return 0;
+}
+
+int restoreRetailContents(char *titleid) {
+	int res;
+	char src_path[128], dst_path[128];
+
+	sprintf(src_path, "ux0:app/%s/sce_sys/livearea", titleid);
+	sprintf(dst_path, "ux0:app/%s/sce_sys/retail/livearea", titleid);
+	res = sceIoRename(src_path, dst_path);
+	if (res < 0)
+		return res;
+
+	sprintf(src_path, "ux0:app/%s/sce_sys/livearea_org", titleid);
+	sprintf(dst_path, "ux0:app/%s/sce_sys/livearea", titleid);
+	res = sceIoRename(src_path, dst_path);
+	if (res < 0)
+		return res;
+
+	return 0;
+}
+
+int promoteUpdate(char *path, char *titleid, char *category, void *sfo_buffer, int sfo_size) {
+	int res;
+
+	// Update installation
+	if (strcmp(category, "gp") == 0) {
+		// Change category to 'gd'
+		setSfoString(sfo_buffer, "CATEGORY", "gd");
+		WriteFile(PACKAGE_DIR "/sce_sys/param.sfo", sfo_buffer, sfo_size);
+
+		// App path
+		char app_path[MAX_PATH_LENGTH];
+		snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", titleid);
+
+		/*
+			Without the following trick, the livearea won't be updated and the game will even crash
+		*/
+
+		// Integrate patch to app
+		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
+		if (res < 0)
+			return res;
+
+		// Move app to promotion directory
+		res = movePath(app_path, path, 0, NULL);
+		if (res < 0)
+			return res;
+	}
+
+	return 0;
+}
+
 int promote(char *path) {
 	int res;
+
+	// Read param.sfo
+	void *sfo_buffer = NULL;
+	int sfo_size = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
+	if (sfo_size < 0)
+		return sfo_size;
+
+	// Get titleid
+	char titleid[12];
+	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+
+	// Get category
+	char category[4];
+	getSfoString(sfo_buffer, "CATEGORY", category, sizeof(category));
+
+	// Promote update
+	promoteUpdate(path, titleid, category, sfo_buffer, sfo_size);
+
+	// Free sfo buffer
+	free(sfo_buffer);
+
+	// Patch to use retail contents so the game is not shown as test version
+	int patch_retail_contents = patchRetailContents();
 
 	loadScePaf();
 
@@ -78,7 +171,12 @@ int promote(char *path) {
 	if (res < 0)
 		return res;
 
-	return result;
+	// Restore
+	if (patch_retail_contents >= 0)
+		restoreRetailContents(titleid);
+
+	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
+	return result == 0x80870005 ? 0 : result;
 }
 
 void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
@@ -126,24 +224,29 @@ int makeHeadBin() {
 
 	// Get title id
 	char titleid[12];
+	memset(titleid, 0, sizeof(titleid));
 	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
-	if (strlen(titleid) != 9) // Enforce TITLE_ID format
+
+	// Enforce TITLE_ID format
+	if (strlen(titleid) != 9)
 		return -2;
+
+	// Get content id
+	char contentid[48];
+	memset(contentid, 0, sizeof(contentid));
+	getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
 
 	// Free sfo buffer
 	free(sfo_buffer);
-
-	// TODO: check category for update installation
-	// TODO: use real content_id
 
 	// Allocate head.bin buffer
 	uint8_t *head_bin = malloc(sizeof(base_head_bin));
 	memcpy(head_bin, base_head_bin, sizeof(base_head_bin));
 
-	// Write full titleid
-	char full_title_id[128];
+	// Write full title id
+	char full_title_id[48];
 	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", titleid);
-	strncpy((char *)&head_bin[0x30], full_title_id, 48);
+	strncpy((char *)&head_bin[0x30], strlen(contentid) > 0 ? contentid : full_title_id, 48);
 
 	// hmac of pkg header
 	len = ntohl(*(uint32_t *)&head_bin[0xD0]);
@@ -177,7 +280,7 @@ int installPackage(char *file) {
 	int res;
 
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
@@ -191,7 +294,7 @@ int installPackage(char *file) {
 	addEndSlash(src_path);
 
 	// Extract process
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL, 0, NULL, NULL);
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL);
 	if (res < 0)
 		return res;
 
@@ -226,7 +329,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
@@ -293,7 +396,14 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
 	// Extract process
 	uint64_t value = 0;
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+
+	FileProcessParam param;
+	param.value = &value;
+	param.max = size + folders;
+	param.SetProgress = SetProgress;
+	param.cancelHandler = cancelHandler;
+
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
 	if (res <= 0) {
 		closeWaitDialog();
 		dialog_step = DIALOG_STEP_CANCELLED;

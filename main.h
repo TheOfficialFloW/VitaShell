@@ -64,10 +64,12 @@
 #define ENABLE_FILE_LOGGING 1
 
 // VitaShell version major.minor
-#define VITASHELL_VERSION_MAJOR 0x0
-#define VITASHELL_VERSION_MINOR 0x91
+#define VITASHELL_VERSION_MAJOR 0x00
+#define VITASHELL_VERSION_MINOR 0x95
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
+
+#define VITASHELL_LASTDIR "ux0:VitaShell/internal/lastdir.txt"
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
@@ -116,6 +118,7 @@
 #define SCROLL_BAR_MIN_HEIGHT 4.0f
 
 // Context menu
+#define CONTEXT_MENU_MORE_MIN_WIDTH 200.0f
 #define CONTEXT_MENU_MIN_WIDTH 180.0f
 #define CONTEXT_MENU_MARGIN 20.0f
 #define CONTEXT_MENU_VELOCITY 10.0f
@@ -135,13 +138,6 @@
 
 #define BIG_BUFFER_SIZE 16 * 1024 * 1024
 
-enum ContextMenuModes {
-	CONTEXT_MENU_CLOSED,
-	CONTEXT_MENU_CLOSING,
-	CONTEXT_MENU_OPENED,
-	CONTEXT_MENU_OPENING,
-};
-
 enum DialogSteps {
 	DIALOG_STEP_NONE,
 
@@ -153,6 +149,7 @@ enum DialogSteps {
 
 	DIALOG_STEP_FTP,
 
+	DIALOG_STEP_RENAME,
 	DIALOG_STEP_NEW_FOLDER,
 
 	DIALOG_STEP_COPYING,
@@ -172,23 +169,24 @@ enum DialogSteps {
 	DIALOG_STEP_INSTALLING,
 	DIALOG_STEP_INSTALLED,
 
-	DIALOG_STEP_RENAME,
-
 	DIALOG_STEP_UPDATE_QUESTION,
 	DIALOG_STEP_DOWNLOADING,
 	DIALOG_STEP_DOWNLOADED,
 	DIALOG_STEP_EXTRACTING,
 	DIALOG_STEP_EXTRACTED,
+
+	DIALOG_STEP_HASH_QUESTION,
+	DIALOG_STEP_HASH_CONFIRMED,
+	DIALOG_STEP_HASHING,
+	DIALOG_STEP_HASH_DISPLAY,
 };
 
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
-extern vita2d_texture *headphone_image, *audio_previous_image, *audio_pause_image, *audio_play_image, *audio_next_image;
-
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
-extern int dialog_step;
+extern volatile int dialog_step;
 
 extern int use_custom_config;
 

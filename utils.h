@@ -60,6 +60,7 @@ void powerUnlock();
 void readPad();
 int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time);
 
+int hasEndSlash(char *path);
 int removeEndSlash(char *path);
 int addEndSlash(char *path);
 
@@ -72,5 +73,7 @@ int randomNumber(int low, int high);
 int debugPrintf(char *text, ...);
 
 int launchAppByUriExit(char *titleid);
+
+char *strcasestr(const char *haystack, const char *needle);
 
 #endif

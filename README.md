@@ -15,6 +15,7 @@ You can customize those files:
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaperX.png'**: Wallpaper #X (X is a value from 2-10)
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/context.png'**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
+- **'ux0:VitaShell/theme/YOUR_THEME_NAME/context_more.png'**: Context menu more image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery.png'**: Battery border icon
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_green.png'**: Green battery bar
 - **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_red.png'**: Red battery bar
@@ -73,6 +74,17 @@ This is an unofficial VitaShell themes and translations collection:
 https://github.com/xy2iii/vitashell-themes
 
 Be sure you pull request your customized design or language file there.
+
+### Changelog 0.95 ###
+- Added ability to install update files as .vpk (for Vitamin).
+- Added patch to make .vpk installation appearing as full version instead of test version.
+- Added text editor by BigBoot (WIP).
+- Added 'More' entry to the context menu.
+- Added 'Install all' feature to install all packages available in the folder (by ribbid987).
+- Added 'Calculate SHA1' feature by xerpia64.
+- Added support for ftp promoting for https://github.com/soywiz/vitaorganizer.
+- Fixed 'Move' operation. Now it does integrate into folders and replace files.
+- Dropped GENERAL_COLOR, now all colors are adjustable.
 
 ### Changelog 0.91 ###
 - Added automatic network update. VitaShell will now notify you when there's a new update.
