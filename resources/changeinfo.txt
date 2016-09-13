@@ -137,9 +137,20 @@
 - Added audio player with .MP3 and .OGG support (Press /\ to turn off the display while listening to music. Graphics by Valle).<br>
 - Added changelog to the VitaShell bubble (press /\ or hold the bubble of VitaShell in the livearea).<br>
 - Added ability to resume to the directory you've last visted before exiting VitaShell).<br>
+- Added memory card free space check. A message will pop up if you don't have enough free space for copying or installing.<br>
 - Leaving to livearea or suspending the device does now no longer corrupt an IO process anymore (while copying things you can leave now VitaShell and resume).<br>
 - Improved text editor and added search feature to context menu (press /\).<br>
+- The temporary folder 'ptmp/pkg' is now cleared after cancelling or unsuccesful installation.<br>
 - Fixed bug where copying to different partitions didn't work.<br>
+- Fixed network update bug.<br>
+    ]]>
+  </changes>
+   <changes app_ver="01.10">
+    <![CDATA[
+- Added cover.jpg and folder.jpg as alternative cover image.<br>
+- Fixed ID3 tag parsing.<br>
+- Play and pause icons where swapped, fixed.<br>
+- FTP does now show 'Please wait...' until it has been connected to Wi-Fi.<br>
     ]]>
   </changes>
 </changeinfo>

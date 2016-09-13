@@ -42,6 +42,34 @@ void shortenString(char *out, char *in, int width) {
 	}
 }
 
+vita2d_texture *getAlternativeCoverImage(char *file) {
+	SceIoStat stat;
+	char path[128];
+
+	char *p = strrchr(file, '/');
+	if (p) {
+		*p = '\0';
+
+		sprintf(path, "%s/cover.jpg", file);
+		memset(&stat, 0, sizeof(SceIoStat));
+		if (sceIoGetstat(path, &stat) >= 0) {
+			*p = '/';
+			return vita2d_load_JPEG_file(path);
+		}
+
+		sprintf(path, "%s/folder.jpg", file);
+		memset(&stat, 0, sizeof(SceIoStat));
+		if (sceIoGetstat(path, &stat) >= 0) {
+			*p = '/';
+			return vita2d_load_JPEG_file(path);
+		}
+
+		*p = '/';
+	}
+
+	return NULL;
+}
+
 void getAudioInfo(char *file) {
 	char *buffer = NULL;
 
@@ -86,6 +114,9 @@ void getAudioInfo(char *file) {
 			}
 		}
 	}
+
+	if (!tex)
+		tex = getAlternativeCoverImage(file);
 }
 
 int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
@@ -276,9 +307,9 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 			pgf_draw_textf(x + 45.0f, y, AUDIO_SPEED, FONT_SIZE, "%dx", abs(getPlayingSpeedFunct() + (getPlayingSpeedFunct() < 0 ? -1 : 1)));
 		} else {
 			if (isPlayingFunct()) {
-				icon = play_image;
-			} else {
 				icon = pause_image;
+			} else {
+				icon = play_image;
 			}
 		}
 
