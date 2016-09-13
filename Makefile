@@ -2,20 +2,19 @@ TITLE_ID = VITASHELL
 TARGET   = VitaShell
 OBJS     = main.o init.o io_process.o package_installer.o network_update.o context_menu.o archive.o photo.o audioplayer.o file.o text.o hex.o sfo.o \
 		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o \
-		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o audio/mp3player.o audio/mp3xing.o \
+		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o audio/oggplayer.o audio/mp3player.o audio/mp3xing.o \
 		   libmad/bit.o libmad/decoder.o libmad/fixed.o libmad/frame.o \
 		   libmad/huffman.o libmad/layer12.o libmad/layer3.o  \
 		   libmad/stream.o libmad/synth.o libmad/timer.o
 
-RESOURCES_PNG = resources/folder_icon.png resources/file_icon.png resources/archive_icon.png resources/image_icon.png \
-				resources/audio_icon.png resources/sfo_icon.png resources/text_icon.png\
-				resources/ftp.png resources/battery.png resources/battery_bar_green.png resources/battery_bar_red.png \
-				resources/battery_bar_charge.png
-RESOURCES_TXT = resources/theme.txt resources/colors.txt resources/english_us.txt resources/changeinfo.txt
-RESOURCES_BIN = resources/updater_eboot.bin resources/updater_param.bin
+RESOURCES = resources
+RESOURCES_PNG := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.png))
+RESOURCES_TXT := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.txt))
+RESOURCES_BIN := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.bin))
+
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(RESOURCES_BIN:.bin=.o)
 
-LIBS = -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
+LIBS = -lvorbisfile -logg -lvorbis -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
 	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
 	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	   -lSceHttp_stub -lSceKernel_stub -lSceNet_stub -lSceNetCtl_stub \
@@ -41,7 +40,7 @@ ASFLAGS  = $(CFLAGS)
 all: $(TARGET).vpk
 
 %.vpk: eboot.bin
-	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=00.95 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
+	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=01.00 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin \
 		--add pkg/sce_sys/icon0.png=sce_sys/icon0.png \
 		--add pkg/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \

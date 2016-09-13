@@ -199,7 +199,7 @@ int network_update_thread(SceSize args, void *argp) {
 
 				// Wait for response
 				while (dialog_step == DIALOG_STEP_UPDATE_QUESTION) {
-					sceKernelDelayThread(1000);
+					sceKernelDelayThread(10 * 1000);
 				}
 
 				// No

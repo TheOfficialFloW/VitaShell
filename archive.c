@@ -201,17 +201,41 @@ int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 
 		void *buf = malloc(TRANSFER_SIZE);
 
-		int read;
-		while ((read = archiveFileRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-			int res = sceIoWrite(fddst, buf, read);
-			if (res < 0) {
+		uint64_t seek = 0;
+
+		while (1) {
+			int read = archiveFileRead(fdsrc, buf, TRANSFER_SIZE);
+			if (read < 0) {
 				free(buf);
 
 				sceIoClose(fddst);
 				archiveFileClose(fdsrc);
 
-				return res;
+				return read;
 			}
+
+			if (read == 0)
+				break;
+
+			int written = sceIoWrite(fddst, buf, read);
+			if (written == SCE_ERROR_ERRNO_ENODEV) {
+				fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT, 0777);
+				if (fddst >= 0) {
+					sceIoLseek(fddst, seek, SCE_SEEK_SET);
+					written = sceIoWrite(fddst, buf, read);
+				}
+			}
+
+			if (written != read) {
+				free(buf);
+
+				sceIoClose(fddst);
+				archiveFileClose(fdsrc);
+
+				return (written < 0) ? written : -1;
+			}
+
+			seek += written;
 
 			if (param) {
 				if (param->value)

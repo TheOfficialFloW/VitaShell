@@ -18,7 +18,7 @@
 #ifndef __mp3xing_h
 #define __mp3xing_h (1)
 
-#include <mad.h>
+#include "../libmad/mad.h"
 
 #define XING_BUFFER_SIZE 300
 #define XING_GUID	(unsigned char [4]) \

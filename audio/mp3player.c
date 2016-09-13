@@ -16,6 +16,7 @@
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <psp2/io/fcntl.h>
+#include <psp2/kernel/threadmgr.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,7 +27,6 @@
 #include "id3.h"
 #include "mp3xing.h"
 #include "player.h"
-#include "vita_audio.h"
 #include "mp3player.h"
 
 #define FALSE 0
@@ -152,11 +152,14 @@ int fillFileBuffer() {
 	// Read into the rest of the file buffer.
 	unsigned char* bufferPos = fileBuffer + bytesToKeep;
 	while (bytesToFill > 0){
-		unsigned int bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
+		int bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
 
 		if (bytesRead == 0x80010013) {
-			MP3_suspend();
-			MP3_resume();
+			MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+			if (MP3_fd >= 0) {
+				sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+			}
+
 			bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
 		}
 
@@ -233,7 +236,17 @@ static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
                     if (!MP3_newFilePos)
                         MP3_newFilePos = ID3v2TagSize(MP3_fileName);
 
-                    if (sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET) != MP3_filePos){
+					int res = sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET);
+					if (res == 0x80010013) {
+						MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+						if (MP3_fd >= 0) {
+							sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+						}
+
+						res = sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET);
+					}
+
+                    if (res != MP3_filePos){
                         MP3_filePos = MP3_newFilePos;
                         mad_timer_set(&Timer, (int)((float)MP3_info.length / 100.0 * MP3_GetPercentage()), 1, 1);
                     }
@@ -242,7 +255,17 @@ static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
 
 		        //Check for playing speed:
                 if (MP3_playingSpeed){
-                    if (sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR) != MP3_filePos){
+					int res = sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR);
+					if (res == 0x80010013) {
+						MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+						if (MP3_fd >= 0) {
+							sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+						}
+
+						res = sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR);
+					}
+
+                    if (res != MP3_filePos){
                         MP3_filePos += 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed;
                         mad_timer_set(&Timer, (int)((float)MP3_info.length / 100.0 * MP3_GetPercentage()), 1, 1);
                     }else
@@ -580,6 +603,9 @@ int MP3_Load(char *filename){
     return OPENING_OK;
 }
 
+int MP3_IsPlaying() {
+	return MP3_isPlaying;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This function initialises for playing, and starts
@@ -637,7 +663,7 @@ float MP3_GetPercentage(){
 	float perc = 0.0f;
 
     if (fileSize > 0){
-        perc = ((float)MP3_filePos - (float)tagsize) / ((float)fileSize - (float)tagsize) * 100.0;
+        perc = ((float)MP3_filePos) / ((float)fileSize - (float)tagsize) * 100.0;
         if (perc > 100)
             perc = 100;
     }

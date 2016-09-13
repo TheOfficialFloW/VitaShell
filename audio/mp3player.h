@@ -15,12 +15,13 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-#include <mad.h>
+#include "../libmad/mad.h"
 
 extern int MP3_defaultCPUClock;
 
 //private functions
 void MP3_Init(int channel);
+int MP3_IsPlaying();
 int MP3_Play();
 void MP3_Pause();
 int MP3_Stop();

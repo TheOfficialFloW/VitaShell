@@ -25,14 +25,6 @@
 
 static uint64_t current_value = 0;
 
-void closeWaitDialog() {
-	sceMsgDialogClose();
-
-	while (updateMessageDialog() != MESSAGE_DIALOG_RESULT_NONE) {
-		sceKernelDelayThread(1000);
-	}
-}
-
 int cancelHandler() {
 	return (updateMessageDialog() != MESSAGE_DIALOG_RESULT_RUNNING);
 }
@@ -260,6 +252,10 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 			copy_entry = copy_entry->next;
 		}
+
+		// Check memory card free space
+		if (checkMemoryCardFreeSpace(size))
+			goto EXIT;
 
 		// Update thread
 		thid = createStartUpdateThread(size + folders);

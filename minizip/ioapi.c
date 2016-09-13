@@ -18,6 +18,8 @@
 
 #include "ioapi.h"
 
+#define SCE_ERROR_ERRNO_ENODEV 0x80010013
+
 voidpf call_zopen64 (const zlib_filefunc64_32_def* pfilefunc,const void*filename,int mode)
 {
     if (pfilefunc->zfile_func64.zopen64_file != NULL)
@@ -83,18 +85,22 @@ static int     ZCALLBACK ferror_file_func OF((voidpf opaque, voidpf stream));
 typedef struct
 {
 	SceUID fd;
+	int mode_fopen;
+	SceOff offset;
 	int error;
     int filenameLength;
     void *filename;
 } FILE_IOPOSIX;
 
-static voidpf file_build_ioposix(SceUID fd, const char *filename)
+static voidpf file_build_ioposix(SceUID fd, const char *filename, int mode_fopen)
 {
     FILE_IOPOSIX *ioposix = NULL;
     if (fd < 0)
         return NULL;
     ioposix = (FILE_IOPOSIX*)malloc(sizeof(FILE_IOPOSIX));
     ioposix->fd = fd;
+	ioposix->mode_fopen = mode_fopen;
+	ioposix->offset = 0;
 	ioposix->error = 0;
     ioposix->filenameLength = strlen(filename) + 1;
     ioposix->filename = (char*)malloc(ioposix->filenameLength * sizeof(char));
@@ -118,7 +124,7 @@ static voidpf ZCALLBACK fopen_file_func (voidpf opaque, const char* filename, in
     if ((filename != NULL) && (mode_fopen != 0))
     {
         fd = sceIoOpen(filename, mode_fopen, 0777);
-        return file_build_ioposix(fd, filename);
+        return file_build_ioposix(fd, filename, mode_fopen);
     }
 
 	return NULL;
@@ -158,6 +164,16 @@ static uLong ZCALLBACK fread_file_func (voidpf opaque, voidpf stream, void* buf,
     ioposix = (FILE_IOPOSIX*)stream;
     ret = (uLong)sceIoRead(ioposix->fd, buf, (size_t)size);
 	ioposix->error = (int)ret;
+	if (ioposix->error == SCE_ERROR_ERRNO_ENODEV) {
+		ioposix->fd = sceIoOpen(ioposix->filename, ioposix->mode_fopen, 0777);
+		if (ioposix->fd >= 0) {
+			sceIoLseek(ioposix->fd, ioposix->offset, SCE_SEEK_SET);
+		    ret = (uLong)sceIoRead(ioposix->fd, buf, (size_t)size);
+			ioposix->error = (int)ret;
+		}
+	}
+	if (ioposix->error == 0)
+		ioposix->offset += ret;
     return ret;
 }
 
@@ -170,6 +186,16 @@ static uLong ZCALLBACK fwrite_file_func (voidpf opaque, voidpf stream, const voi
     ioposix = (FILE_IOPOSIX*)stream;
     ret = (uLong)sceIoWrite(ioposix->fd, buf, (size_t)size);
 	ioposix->error = (int)ret;
+	if (ioposix->error == SCE_ERROR_ERRNO_ENODEV) {
+		ioposix->fd = sceIoOpen(ioposix->filename, ioposix->mode_fopen, 0777);
+		if (ioposix->fd >= 0) {
+			sceIoLseek(ioposix->fd, ioposix->offset, SCE_SEEK_SET);
+		    ret = (uLong)sceIoWrite(ioposix->fd, buf, (size_t)size);
+			ioposix->error = (int)ret;
+		}
+	}
+	if (ioposix->error == 0)
+		ioposix->offset += ret;
     return ret;
 }
 
@@ -182,6 +208,14 @@ static long ZCALLBACK ftell_file_func (voidpf opaque, voidpf stream)
     ioposix = (FILE_IOPOSIX*)stream;
     ret = (long)sceIoLseek32(ioposix->fd, 0, SCE_SEEK_CUR);
 	ioposix->error = (int)ret;
+	if (ioposix->error == SCE_ERROR_ERRNO_ENODEV) {
+		ioposix->fd = sceIoOpen(ioposix->filename, ioposix->mode_fopen, 0777);
+		if (ioposix->fd >= 0) {
+			sceIoLseek32(ioposix->fd, ioposix->offset, SCE_SEEK_SET);
+			ret = (long)sceIoLseek32(ioposix->fd, 0, SCE_SEEK_CUR);
+			ioposix->error = (int)ret;
+		}
+	}
     return ret;
 }
 
@@ -194,6 +228,14 @@ static ZPOS64_T ZCALLBACK ftell64_file_func (voidpf opaque, voidpf stream)
     ioposix = (FILE_IOPOSIX*)stream;
     ret = (ZPOS64_T)sceIoLseek(ioposix->fd, 0, SCE_SEEK_CUR);
 	ioposix->error = (int)ret;
+	if (ioposix->error == SCE_ERROR_ERRNO_ENODEV) {
+		ioposix->fd = sceIoOpen(ioposix->filename, ioposix->mode_fopen, 0777);
+		if (ioposix->fd >= 0) {
+			sceIoLseek(ioposix->fd, ioposix->offset, SCE_SEEK_SET);
+			ret = (long)sceIoLseek(ioposix->fd, 0, SCE_SEEK_CUR);
+			ioposix->error = (int)ret;
+		}
+	}
     return ret;
 }
 
@@ -221,8 +263,19 @@ static long ZCALLBACK fseek_file_func (voidpf opaque, voidpf stream, uLong offse
         default:
             return -1;
     }
-    if (sceIoLseek32(ioposix->fd, offset, fseek_origin) < 0)
+	int res = sceIoLseek32(ioposix->fd, offset, fseek_origin);
+	if (res == SCE_ERROR_ERRNO_ENODEV) {
+		ioposix->fd = sceIoOpen(ioposix->filename, ioposix->mode_fopen, 0777);
+		if (ioposix->fd >= 0) {
+			sceIoLseek(ioposix->fd, ioposix->offset, SCE_SEEK_SET);
+			res = sceIoLseek32(ioposix->fd, offset, fseek_origin);
+		}
+	}
+    if (res < 0) {
         ret = -1;
+	} else {
+		ioposix->offset = (SceOff)res;
+	}
     return ret;
 }
 
@@ -250,8 +303,19 @@ static long ZCALLBACK fseek64_file_func (voidpf opaque, voidpf stream, ZPOS64_T 
         default:
             return -1;
     }
-    if (sceIoLseek(ioposix->fd, offset, fseek_origin) < 0)
+	SceOff res = sceIoLseek(ioposix->fd, offset, fseek_origin);
+	if ((int)res == SCE_ERROR_ERRNO_ENODEV) {
+		ioposix->fd = sceIoOpen(ioposix->filename, ioposix->mode_fopen, 0777);
+		if (ioposix->fd >= 0) {
+			sceIoLseek(ioposix->fd, ioposix->offset, SCE_SEEK_SET);
+			res = sceIoLseek(ioposix->fd, offset, fseek_origin);
+		}
+	}
+    if (res < 0) {
         ret = -1;
+	} else {
+		ioposix->offset = res;
+	}
     return ret;
 }
 
@@ -266,6 +330,14 @@ static int ZCALLBACK fclose_file_func (voidpf opaque, voidpf stream)
         free(ioposix->filename);
     ret = sceIoClose(ioposix->fd);
 	ioposix->error = ret;
+	if (ioposix->error == SCE_ERROR_ERRNO_ENODEV) {
+		ioposix->fd = sceIoOpen(ioposix->filename, ioposix->mode_fopen, 0777);
+		if (ioposix->fd >= 0) {
+			sceIoLseek(ioposix->fd, ioposix->offset, SCE_SEEK_SET);
+			ret = sceIoClose(ioposix->fd);
+			ioposix->error = ret;
+		}
+	}
     free(ioposix);
     return ret;
 }

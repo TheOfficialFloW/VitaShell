@@ -20,8 +20,7 @@
 #include "config.h"
 #include "language.h"
 
-extern unsigned char _binary_resources_english_us_txt_start;
-extern unsigned char _binary_resources_english_us_txt_size;
+INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
 static char *lang[] ={
 	"japanese",
@@ -80,6 +79,13 @@ void loadLanguage(int id) {
 		LANGUAGE_ENTRY(EXTRACTING),
 		LANGUAGE_ENTRY(HASHING),
 
+		// Audio player strings
+		LANGUAGE_ENTRY(TITLE),
+		LANGUAGE_ENTRY(ALBUM),
+		LANGUAGE_ENTRY(ARTIST),
+		LANGUAGE_ENTRY(GENRE),
+		LANGUAGE_ENTRY(YEAR),
+
 		// Hex editor strings
 		LANGUAGE_ENTRY(CUT),
 		LANGUAGE_ENTRY(OPEN_HEX_EDITOR),
@@ -120,6 +126,7 @@ void loadLanguage(int id) {
 
 		// Others
 		LANGUAGE_ENTRY(SAVE_MODIFICATIONS),
+		LANGUAGE_ENTRY(NO_SPACE_ERROR),
 		LANGUAGE_ENTRY(WIFI_ERROR),
 		LANGUAGE_ENTRY(FTP_SERVER),
 		LANGUAGE_ENTRY(SYS_INFO),

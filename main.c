@@ -24,7 +24,6 @@
 	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
 	- Shortcuts
 	- CPU changement
-	- Media player
 */
 
 #include "main.h"
@@ -45,6 +44,8 @@
 #include "language.h"
 #include "utils.h"
 #include "sfo.h"
+
+#include "audio/vita_audio.h"
 
 int _newlib_heap_size_user = 64 * 1024 * 1024;
 
@@ -260,6 +261,8 @@ int handleFile(char *file, FileListEntry *entry) {
 
 	int type = getFileType(file);
 	switch (type) {
+		case FILE_TYPE_MP3:
+		case FILE_TYPE_OGG:
 		case FILE_TYPE_VPK:
 		case FILE_TYPE_ZIP:
 			if (isInArchive())
@@ -283,6 +286,7 @@ int handleFile(char *file, FileListEntry *entry) {
 			break;
 
 		case FILE_TYPE_MP3:
+		case FILE_TYPE_OGG:
 			res = audioPlayer(file, type, &file_list, entry, &base_pos, &rel_pos);
 			break;
 
@@ -1404,6 +1408,7 @@ int shellMain() {
 						break;
 						
 					case FILE_TYPE_MP3:
+					case FILE_TYPE_OGG:
 						color = IMAGE_COLOR;
 						icon = audio_icon;
 						break;
@@ -1568,7 +1573,7 @@ int main(int argc, const char *argv[]) {
 	initTextContextMenuWidth();
 
 	// Automatic network update
-	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x40, 0x10000, 0, 0, NULL);
+	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x10000100, 0x10000, 0, 0, NULL);
 	if (thid >= 0)
 		sceKernelStartThread(thid, 0, NULL);
 

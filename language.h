@@ -37,6 +37,13 @@ enum LanguageContainer {
 	EXTRACTING,
 	HASHING,
 
+	// Audio player strings
+	TITLE,
+	ALBUM,
+	ARTIST,
+	GENRE,
+	YEAR,
+
 	// Hex editor strings
 	OFFSET,
 	OPEN_HEX_EDITOR,
@@ -77,6 +84,7 @@ enum LanguageContainer {
 
 	// Others
 	SAVE_MODIFICATIONS,
+	NO_SPACE_ERROR,
 	WIFI_ERROR,
 	FTP_SERVER,
 	SYS_INFO,

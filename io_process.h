@@ -49,7 +49,6 @@ typedef struct {
 	char *file_path;
 } HashArguments;
 
-void closeWaitDialog();
 int cancelHandler();
 void SetProgress(uint64_t value, uint64_t max);
 SceUID createStartUpdateThread(uint64_t max);

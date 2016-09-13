@@ -17,6 +17,13 @@ DOWNLOADING                          = "Downloading..."
 EXTRACTING                           = "Extracting..."
 HASHING                              = "Hashing..."
 
+# Audio player strings
+TITLE                                = "Title"
+ALBUM                                = "Album"
+ARTIST                               = "Artist"
+GENRE                                = "Genre"
+YEAR                                 = "Year"
+
 # Hex editor strings
 OFFSET                               = "Offset"
 OPEN_HEX_EDITOR                      = "Open hex editor"
@@ -57,6 +64,7 @@ HASH_FILE_QUESTION                   = "SHA1 hashing may take a long time. Conti
 
 # Others
 SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"
+NO_SPACE_ERROR                       = "There is not enough free space on the memory\card.\At least %s more space is needed."
 WIFI_ERROR                           = "You must use Wi-Fi to do this."
 FTP_SERVER                           = "FTP server is now running at\ftp://%s:%i\\Press 'OK' to keep it in background.\Press 'Cancel' to disconnect."
 SYS_INFO                             = "System software: %s\Model: 0x%08X\MAC address: %s\IP address: %s\Memory card: %s/%s"

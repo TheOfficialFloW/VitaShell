@@ -61,11 +61,13 @@
 
 #include "functions.h"
 
+#define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
+
 #define ENABLE_FILE_LOGGING 1
 
 // VitaShell version major.minor
-#define VITASHELL_VERSION_MAJOR 0x00
-#define VITASHELL_VERSION_MINOR 0x95
+#define VITASHELL_VERSION_MAJOR 0x01
+#define VITASHELL_VERSION_MINOR 0x00
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 

@@ -22,21 +22,27 @@
 #include "theme.h"
 #include "utils.h"
 
-extern unsigned char _binary_resources_folder_icon_png_start;
-extern unsigned char _binary_resources_file_icon_png_start;
-extern unsigned char _binary_resources_archive_icon_png_start;
-extern unsigned char _binary_resources_image_icon_png_start;
-extern unsigned char _binary_resources_audio_icon_png_start;
-extern unsigned char _binary_resources_sfo_icon_png_start;
-extern unsigned char _binary_resources_text_icon_png_start;
-extern unsigned char _binary_resources_ftp_png_start;
-extern unsigned char _binary_resources_battery_png_start;
-extern unsigned char _binary_resources_battery_bar_red_png_start;
-extern unsigned char _binary_resources_battery_bar_green_png_start;
-extern unsigned char _binary_resources_battery_bar_charge_png_start;
+INCLUDE_EXTERN_RESOURCE(colors_txt);
+INCLUDE_EXTERN_RESOURCE(colors_txt_size);
 
-extern unsigned char _binary_resources_colors_txt_start;
-extern unsigned char _binary_resources_colors_txt_size;
+INCLUDE_EXTERN_RESOURCE(folder_icon_png);
+INCLUDE_EXTERN_RESOURCE(file_icon_png);
+INCLUDE_EXTERN_RESOURCE(archive_icon_png);
+INCLUDE_EXTERN_RESOURCE(image_icon_png);
+INCLUDE_EXTERN_RESOURCE(audio_icon_png);
+INCLUDE_EXTERN_RESOURCE(sfo_icon_png);
+INCLUDE_EXTERN_RESOURCE(text_icon_png);
+INCLUDE_EXTERN_RESOURCE(ftp_png);
+INCLUDE_EXTERN_RESOURCE(battery_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_red_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_green_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_charge_png);
+
+INCLUDE_EXTERN_RESOURCE(cover_png);
+INCLUDE_EXTERN_RESOURCE(play_png);
+INCLUDE_EXTERN_RESOURCE(pause_png);
+INCLUDE_EXTERN_RESOURCE(fastforward_png);
+INCLUDE_EXTERN_RESOURCE(fastrewind_png);
 
 // Shell colors
 int BACKGROUND_COLOR;
@@ -84,10 +90,20 @@ int TEXT_HIGHLIGHT_COLOR;
 // Photo viewer colors
 int PHOTO_ZOOM_COLOR;
 
+// Audio player colors
+int AUDIO_INFO_ASSIGN;
+int AUDIO_INFO;
+int AUDIO_SPEED;
+int AUDIO_TIME_CURRENT;
+int AUDIO_TIME_SLASH;
+int AUDIO_TIME_TOTAL;
+int AUDIO_TIME_BAR;
+int AUDIO_TIME_BAR_BG;
+
 vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
 			   *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
-			   *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL,
-			   *bg_text_image = NULL, *bg_photo_image = NULL;
+			   *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
+			   *bg_photo_image = NULL, *bg_audio_image = NULL, *cover_image = NULL, *play_image = NULL, *pause_image = NULL, *fastforward_image = NULL, *fastrewind_image = NULL;
 
 vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
 
@@ -143,6 +159,16 @@ void loadTheme() {
 
 		// Photo viewer colors
 		COLOR_ENTRY(PHOTO_ZOOM_COLOR),
+
+		// Audio player colors
+		COLOR_ENTRY(AUDIO_INFO_ASSIGN),
+		COLOR_ENTRY(AUDIO_INFO),
+		COLOR_ENTRY(AUDIO_SPEED),
+		COLOR_ENTRY(AUDIO_TIME_CURRENT),
+		COLOR_ENTRY(AUDIO_TIME_SLASH),
+		COLOR_ENTRY(AUDIO_TIME_TOTAL),
+		COLOR_ENTRY(AUDIO_TIME_BAR),
+		COLOR_ENTRY(AUDIO_TIME_BAR_BG),
 	};
 
 	// Load default config file
@@ -222,6 +248,24 @@ void loadTheme() {
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_photoviewer.png", theme_name);
  			bg_photo_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_audioplayer.png", theme_name);
+ 			bg_audio_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/cover.png", theme_name);
+ 			cover_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/play.png", theme_name);
+ 			play_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/pause.png", theme_name);
+ 			pause_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/fastforward.png", theme_name);
+ 			fastforward_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/fastrewind.png", theme_name);
+ 			fastrewind_image = vita2d_load_PNG_file(path);
 
 			// Wallpapers
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wallpaper.png", theme_name);
@@ -320,4 +364,19 @@ void loadTheme() {
 	
 	if (!battery_bar_charge_image)
 		battery_bar_charge_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_charge_png_start);
+
+	if (!cover_image)
+		cover_image = vita2d_load_PNG_buffer(&_binary_resources_cover_png_start);
+
+	if (!play_image)
+		play_image = vita2d_load_PNG_buffer(&_binary_resources_play_png_start);
+
+	if (!pause_image)
+		pause_image = vita2d_load_PNG_buffer(&_binary_resources_pause_png_start);
+	
+	if (!fastforward_image)
+		fastforward_image = vita2d_load_PNG_buffer(&_binary_resources_fastforward_png_start);
+	
+	if (!fastrewind_image)
+		fastrewind_image = vita2d_load_PNG_buffer(&_binary_resources_fastrewind_png_start);
 }
