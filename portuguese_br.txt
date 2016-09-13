@@ -1,4 +1,4 @@
-# VitaShell language file - (Português - Brasil)
+# VitaShell v1.1 language file - (Português - Brasil)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -63,6 +63,7 @@ INSTALL_WARNING                      = "Este pacote solicita permissões estendi
 HASH_FILE_QUESTION                   = "O SHA1 hashing pode levar um longo tempo. Deseja continuar?"
 
 # Others
+PLEASE_WAIT                          = "Por favor, aguarde..."
 SAVE_MODIFICATIONS                   = "Você deseja salvar as modificações?"
 NO_SPACE_ERROR                       = "Não há espaço livre suficiente na memória\cartão.\É necessário pelo menos mais %s de espaço livre."
 WIFI_ERROR                           = "Você deve usar o Wi-Fi para fazer isso."
