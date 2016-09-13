@@ -17,6 +17,13 @@ DOWNLOADING                          = "Scaricamento..."
 EXTRACTING                           = "Estrazione..."
 HASHING                              = "Hash in corso..."
 
+# Audio player strings
+TITLE                                = "Titolo"
+ALBUM                                = "Album"
+ARTIST                               = "Artista"
+GENRE                                = "Genere"
+YEAR                                 = "Anno"
+
 # Hex editor strings
 OFFSET				     = "Offset"
 OPEN_HEX_EDITOR                      = "Apri hex editor"
@@ -25,6 +32,7 @@ OPEN_HEX_EDITOR                      = "Apri hex editor"
 EDIT_LINE                            = "Modifica riga"
 ENTER_SEARCH_TERM                    = "Inserisci termine di ricerca"
 CUT                                  = "Taglia"
+INSERT_EMPTY_LINE                    = "Inserisci riga vuota"
 
 # File browser context menu strings
 MORE                                 = "Altro"
@@ -56,6 +64,7 @@ HASH_FILE_QUESTION                   = "L'hashing SHA1 può richiedere molto tem
 
 # Others
 SAVE_MODIFICATIONS                   = "Vuoi salvare le tue modifiche?"
+NO_SPACE_ERROR                       = "Non c'è abbastanza spazio libero nella\scheda di memoria.\Serve almeno %s di spazio in più."
 WIFI_ERROR			     = "Devi abilitare il Wi-Fi per fare questo."
 FTP_SERVER			     = "Il server FTP è ora attivo all'indirizzo \ftp://%s:%i\\Premi 'OK' per mantenerlo attivo in sottofondo.\Premi 'Annulla' per disabilitarlo."
 SYS_INFO                             = "Software di sistema: %s\Modello: 0x%08X\Indirizzo MAC: %s\Indirizzo IP: %s\Scheda di memoria: %s/%s"
