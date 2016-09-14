@@ -344,9 +344,7 @@ void drawShellInfo(char *path) {
 
 	vita2d_texture *battery_bar_image = battery_bar_green_image;
 
-	if (scePowerIsBatteryCharging()) {
-		battery_bar_image = battery_bar_charge_image;
-	} else if (scePowerIsLowBattery()) {
+	if (scePowerIsLowBattery() && !scePowerIsBatteryCharging()) {
 		battery_bar_image = battery_bar_red_image;
 	} 
 
@@ -354,6 +352,10 @@ void drawShellInfo(char *path) {
 
 	float width = vita2d_texture_get_width(battery_bar_image);
 	vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
+
+	if (scePowerIsBatteryCharging()) {
+		vita2d_draw_texture(battery_bar_charge_image, battery_x + 3.0f, SHELL_MARGIN_Y + 5.0f);
+	}
 
 	// Date & time
 	SceDateTime time;
