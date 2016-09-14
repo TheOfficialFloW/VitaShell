@@ -45,9 +45,8 @@ int allocateReadFile(char *file, void **buffer) {
 	if (fd < 0)
 		return fd;
 
-	int off = sceIoLseek32(fd, 0, SCE_SEEK_CUR);
 	int size = sceIoLseek32(fd, 0, SCE_SEEK_END);
-	sceIoLseek(fd, off, SCE_SEEK_SET);
+	sceIoLseek32(fd, 0, SCE_SEEK_SET);
 
 	*buffer = malloc(size);
 	if (!*buffer) {
@@ -168,7 +167,7 @@ int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param
 	return 1;
 }
 
-int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
+int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(char *path)) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
@@ -185,8 +184,13 @@ int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) 
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
 				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
+				if (handler && handler(new_path)) {
+					free(new_path);
+					continue;
+				}
+
 				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-					int ret = getPathInfo(new_path, size, folders, files);
+					int ret = getPathInfo(new_path, size, folders, files, handler);
 					if (ret <= 0) {
 						free(new_path);
 						sceIoDclose(dfd);
@@ -209,6 +213,9 @@ int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) 
 		if (folders)
 			(*folders)++;
 	} else {
+		if (handler && handler(path))
+			return 1;
+
 		if (size) {
 			SceIoStat stat;
 			memset(&stat, 0, sizeof(SceIoStat));
@@ -751,6 +758,11 @@ int fileListRemoveEntry(FileList *list, FileListEntry *entry) {
 		list->length--;
 		free(entry);
 
+		if (list->length == 0) {
+			list->head = NULL;
+			list->tail = NULL;
+		}
+
 		return 1;
 	}
 
@@ -776,8 +788,12 @@ int fileListRemoveEntryByName(FileList *list, char *name) {
 			}
 
 			list->length--;
-
 			free(entry);
+
+			if (list->length == 0) {
+				list->head = NULL;
+				list->tail = NULL;
+			}
 
 			return 1;
 		}

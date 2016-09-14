@@ -224,6 +224,7 @@ void refreshMarkList() {
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
+		memset(&stat, 0, sizeof(SceIoStat));
 		if (sceIoGetstat(path, &stat) < 0)
 			fileListRemoveEntry(&mark_list, entry);
 
@@ -247,6 +248,7 @@ void refreshCopyList() {
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
+		memset(&stat, 0, sizeof(SceIoStat));
 		int res = sceIoGetstat(path, &stat);
 		if (res < 0 && res != 0x80010014)
 			fileListRemoveEntry(&copy_list, entry);
@@ -342,9 +344,7 @@ void drawShellInfo(char *path) {
 
 	vita2d_texture *battery_bar_image = battery_bar_green_image;
 
-	if (scePowerIsBatteryCharging()) {
-		battery_bar_image = battery_bar_charge_image;
-	} else if (scePowerIsLowBattery()) {
+	if (scePowerIsLowBattery() && !scePowerIsBatteryCharging()) {
 		battery_bar_image = battery_bar_red_image;
 	} 
 
@@ -352,6 +352,10 @@ void drawShellInfo(char *path) {
 
 	float width = vita2d_texture_get_width(battery_bar_image);
 	vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
+
+	if (scePowerIsBatteryCharging()) {
+		vita2d_draw_texture(battery_bar_charge_image, battery_x + 3.0f, SHELL_MARGIN_Y + 5.0f);
+	}
 
 	// Date & time
 	SceDateTime time;
@@ -453,11 +457,13 @@ MenuEntry menu_entries[] = {
 
 enum MenuMoreEntrys {
 	MENU_MORE_ENTRY_INSTALL_ALL,
+	MENU_MORE_ENTRY_EXPORT_MEDIA,
 	MENU_MORE_ENTRY_CALCULATE_SHA1,
 };
 
 MenuEntry menu_more_entries[] = {
 	{ INSTALL_ALL, CTX_VISIBILITY_INVISIBLE },
+	{ EXPORT_MEDIA, CTX_VISIBILITY_INVISIBLE },
 	{ CALCULATE_SHA1, CTX_VISIBILITY_INVISIBLE },
 };
 
@@ -553,21 +559,28 @@ void setContextMenuMoreVisibilities() {
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Invisble operations in archives
 	if (isInArchive()) {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
-	if(file_entry->is_folder) {
+	if (file_entry->is_folder) {
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	if(file_entry->type != FILE_TYPE_VPK) {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
+	}
+
+	// Invisible export for non-media files
+	if (!file_entry->is_folder && file_entry->type != FILE_TYPE_BMP && file_entry->type != FILE_TYPE_JPEG && file_entry->type != FILE_TYPE_PNG && file_entry->type != FILE_TYPE_MP3) {
+		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Go to first entry
@@ -798,6 +811,28 @@ int contextMenuMoreEnterCallback(int pos, void* context) {
 			break;
 		}
 		
+		case MENU_MORE_ENTRY_EXPORT_MEDIA:
+		{
+			char *message;
+
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+			// On marked entry
+			if (fileListFindEntry(&mark_list, file_entry->name)) {
+				if (mark_list.length == 1) {
+					message = language_container[file_entry->is_folder ? EXPORT_FOLDER_QUESTION : EXPORT_FILE_QUESTION];
+				} else {
+					message = language_container[EXPORT_FILES_FOLDERS_QUESTION];
+				}
+			} else {
+				message = language_container[file_entry->is_folder ? EXPORT_FOLDER_QUESTION : EXPORT_FILE_QUESTION];
+			}
+
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
+			dialog_step = DIALOG_STEP_EXPORT_QUESTION;
+			break;
+		}
+		
 		case MENU_MORE_ENTRY_CALCULATE_SHA1:
 		{
 			// Ensure user wants to actually take the hash
@@ -843,6 +878,7 @@ int dialogSteps() {
 		// With refresh
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
+		case DIALOG_STEP_EXPORTED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -945,6 +981,32 @@ int dialogSteps() {
 
 			break;
 			
+		case DIALOG_STEP_EXPORT_QUESTION:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[EXPORTING]);
+				dialog_step = DIALOG_STEP_EXPORT_CONFIRMED;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
+		case DIALOG_STEP_EXPORT_CONFIRMED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				ExportArguments args;
+				args.file_list = &file_list;
+				args.mark_list = &mark_list;
+				args.index = base_pos + rel_pos;
+
+				dialog_step = DIALOG_STEP_EXPORTING;
+
+				SceUID thid = sceKernelCreateThread("export_thread", (SceKernelThreadEntry)export_thread, 0x40, 0x10000, 0, 0, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, sizeof(ExportArguments), &args);
+			}
+
+			break;
+			
 		case DIALOG_STEP_RENAME:
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
@@ -1036,15 +1098,7 @@ int dialogSteps() {
 			}
 
 			break;
-
-		case DIALOG_STEP_HASH_DISPLAY:
-			// Reset dialog state when user selects yes/no
-			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				dialog_step = DIALOG_STEP_NONE;
-			}
-
-			break;
-
+			
 		case DIALOG_STEP_INSTALL_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);

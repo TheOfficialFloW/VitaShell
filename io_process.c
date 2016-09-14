@@ -21,6 +21,7 @@
 #include "archive.h"
 #include "file.h"
 #include "message_dialog.h"
+#include "language.h"
 #include "utils.h"
 
 static uint64_t current_value = 0;
@@ -113,9 +114,8 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 	int i;
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-		removeEndSlash(path);
 
-		getPathInfo(path, NULL, &folders, &files);
+		getPathInfo(path, NULL, &folders, &files, NULL);
 
 		mark_entry = mark_entry->next;
 	}
@@ -130,7 +130,6 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-		removeEndSlash(path);
 
 		FileProcessParam param;
 		param.value = &value;
@@ -193,8 +192,6 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
-			removeEndSlash(src_path);
-			removeEndSlash(dst_path);
 
 			int res = movePath(src_path, dst_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
 			if (res < 0) {
@@ -242,12 +239,11 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		int i;
 		for (i = 0; i < args->copy_list->length; i++) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
-			removeEndSlash(src_path);
 
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
 				getArchivePathInfo(src_path, &size, &folders, &files);
 			} else {
-				getPathInfo(src_path, &size, &folders, &files);
+				getPathInfo(src_path, &size, &folders, &files, NULL);
 			}
 
 			copy_entry = copy_entry->next;
@@ -268,8 +264,6 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
-			removeEndSlash(src_path);
-			removeEndSlash(dst_path);
 
 			FileProcessParam param;
 			param.value = &value;
@@ -319,6 +313,268 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 	}
 
 EXIT:
+	if (thid >= 0)
+		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	// Unlock power timers
+	powerUnlock();
+
+	return sceKernelExitDeleteThread(0);
+}
+
+int mediaPathHandler(char *path) {
+	// Avoid export-ception
+	if (strncasecmp(path, "ux0:music/", 10) == 0 || strncasecmp(path, "ux0:picture/", 12) == 0) {
+		return 1;
+	}
+
+	// The files allowed
+	int type = getFileType(path);
+	switch (type) {
+		case FILE_TYPE_BMP:
+		case FILE_TYPE_JPEG:
+		case FILE_TYPE_PNG:
+		case FILE_TYPE_MP3:
+			return 0;
+	}
+
+	// Folders are allowed too
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	if (sceIoGetstat(path, &stat) >= 0 && SCE_S_ISDIR(stat.st_mode)) {
+		return 0;
+	}
+
+	// Ignore the rest
+	return 1;
+}
+
+void musicExportProgress(void *data, int progress) {
+	uint32_t *args = (uint32_t *)data;
+
+	uint32_t *value = (uint32_t *)args[1];
+	uint32_t old_value = *value;
+	*value = (uint32_t)(((float)progress / 100.0f) * (float)args[0]);
+
+	FileProcessParam *param = (FileProcessParam *)args[2];
+	if (param) {
+		if (param->value)
+			(*param->value) += (*value - old_value);
+
+		if (param->SetProgress)
+			param->SetProgress(param->value ? *param->value : 0, param->max);
+	}
+}
+
+int exportMedia(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam *process_param) {
+	static char buf[64 * 1024];
+	char out[MAX_PATH_LENGTH];
+
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+
+	int res = sceIoGetstat(path, &stat);
+	if (res < 0)
+		return res;
+
+	int type = getFileType(path);
+	if (type == FILE_TYPE_BMP || type == FILE_TYPE_JPEG || type == FILE_TYPE_PNG) {
+		PhotoExportParam param;
+		memset(&param, 0, sizeof(PhotoExportParam));
+		param.version = 0x03150021;
+		res = scePhotoExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL, NULL, out, MAX_PATH_LENGTH);
+		if (res < 0)
+			return (res == 0x80101A0B) ? 0 : res;
+
+		if (process_param) {
+			if (process_param->value)
+				(*process_param->value) += stat.st_size;
+
+			if (process_param->SetProgress)
+				process_param->SetProgress(process_param->value ? *process_param->value : 0, process_param->max);
+		}
+
+		(*pictures)++;
+	} else if (type == FILE_TYPE_MP3) {
+		uint32_t value = 0;
+
+		uint32_t args[3];
+		args[0] = (uint32_t)stat.st_size;
+		args[1] = (uint32_t)&value;
+		args[2] = (uint32_t)process_param;
+
+		MusicExportParam param;
+		memset(&param, 0, sizeof(MusicExportParam));
+		res = sceMusicExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL, musicExportProgress, &args, out, MAX_PATH_LENGTH);
+		if (res < 0)
+			return (res == 0x8010530A) ? 0 : res;
+
+		(*songs)++;
+	}
+
+	return 1;
+}
+
+int exportPath(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam *param) {
+	SceUID dfd = sceIoDopen(path);
+	if (dfd >= 0) {
+		int res = 0;
+
+		do {
+			SceIoDirent dir;
+			memset(&dir, 0, sizeof(SceIoDirent));
+
+			res = sceIoDread(dfd, &dir);
+			if (res > 0) {
+				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
+					continue;
+
+				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
+				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+
+				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
+					int ret = exportPath(new_path, songs, pictures, param);
+					if (ret <= 0) {
+						free(new_path);
+						sceIoDclose(dfd);
+						return ret;
+					}
+				} else {
+					if (mediaPathHandler(new_path)) {
+						free(new_path);
+						continue;
+					}
+
+					int ret = exportMedia(new_path, songs, pictures, param);
+					if (ret <= 0) {
+						free(new_path);
+						sceIoDclose(dfd);
+						return ret;
+					}
+				}
+
+				free(new_path);
+			}
+		} while (res > 0);
+
+		sceIoDclose(dfd);
+	} else {
+		if (mediaPathHandler(path))
+			return 1;
+
+		int ret = exportMedia(path, songs, pictures, param);
+		if (ret <= 0)
+			return ret;
+	}
+
+	return 1;
+}
+
+int export_thread(SceSize args_size, ExportArguments *args) {
+	SceUID thid = -1;
+
+	// Lock power timers
+	powerLock();
+
+	// Set progress to 0%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+
+	FileListEntry *file_entry = fileListGetNthEntry(args->file_list, args->index);
+
+	int count = 0;
+	FileListEntry *head = NULL;
+	FileListEntry *mark_entry_one = NULL;
+
+	if (fileListFindEntry(args->mark_list, file_entry->name)) { // On marked entry
+		count = args->mark_list->length;
+		head = args->mark_list->head;
+	} else {
+		count = 1;
+		mark_entry_one = malloc(sizeof(FileListEntry));
+		strcpy(mark_entry_one->name, file_entry->name);
+		mark_entry_one->type = file_entry->type;
+		head = mark_entry_one;
+	}
+
+	char path[MAX_PATH_LENGTH];
+	FileListEntry *mark_entry = NULL;
+
+	// Get paths info
+	uint64_t size = 0;
+	uint32_t files = 0;
+
+	mark_entry = head;
+
+	int i;
+	for (i = 0; i < count; i++) {
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+
+		getPathInfo(path, &size, NULL, &files, mediaPathHandler);
+
+		mark_entry = mark_entry->next;
+	}
+
+	// No media files
+	if (size == 0) {
+		closeWaitDialog();
+		infoDialog(language_container[EXPORT_NO_MEDIA]);
+		goto EXIT;
+	}
+
+	// Check memory card free space
+	if (checkMemoryCardFreeSpace(size))
+		goto EXIT;
+
+	// Update thread
+	thid = createStartUpdateThread(size);
+
+	// Remove process
+	uint64_t value = 0;
+	uint32_t songs = 0, pictures = 0;
+
+	mark_entry = head;
+
+	for (i = 0; i < count; i++) {
+		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+
+		FileProcessParam param;
+		param.value = &value;
+		param.max = size;
+		param.SetProgress = SetProgress;
+		param.cancelHandler = cancelHandler;
+
+		int res = exportPath(path, &songs, &pictures, &param);
+		if (res <= 0) {
+			closeWaitDialog();
+			dialog_step = DIALOG_STEP_CANCELLED;
+			errorDialog(res);
+			goto EXIT;
+		}
+
+		mark_entry = mark_entry->next;
+	}
+
+	// Set progress to 100%
+	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+	sceKernelDelayThread(COUNTUP_WAIT);
+
+	// Close
+	closeWaitDialog();
+
+	// Info
+	if (songs > 0 && pictures > 0) {
+		infoDialog(language_container[EXPORT_SONGS_PICTURES_INFO], songs, pictures);
+	} else if (songs > 0) {
+		infoDialog(language_container[EXPORT_SONGS_INFO], songs);
+	} else if (pictures > 0) {
+		infoDialog(language_container[EXPORT_PICTURES_INFO], pictures);
+	}
+
+EXIT:
+	if (mark_entry_one)
+		free(mark_entry_one);
+
 	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
 
@@ -385,16 +641,7 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 
 	sha1msg[41] = '\0';
 
-	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, sha1msg);
-	dialog_step = DIALOG_STEP_HASH_DISPLAY;
-
-	// Wait for response
-	while (dialog_step == DIALOG_STEP_HASH_DISPLAY) {
-		sceKernelDelayThread(1000);
-	}
-
-	closeWaitDialog();
-	sceMsgDialogClose();
+	infoDialog(sha1msg);
 
 EXIT:
 
