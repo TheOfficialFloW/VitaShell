@@ -128,8 +128,11 @@ int readEntry(char *line, ConfigEntry *entries, int n_entries) {
 
 	// Name of entry
 	char name[MAX_CONFIG_NAME_LENGTH];
-	strncpy(name, line, p - line);
-	name[p - line] = '\0';
+	int len = p - line;
+	if (len > MAX_CONFIG_NAME_LENGTH - 1)
+		len = MAX_CONFIG_NAME_LENGTH - 1;
+	strncpy(name, line, len);
+	name[len] = '\0';
 
 	trim(name);
 
@@ -167,9 +170,15 @@ int readEntry(char *line, ConfigEntry *entries, int n_entries) {
 					break;
 					
 				case CONFIG_TYPE_STRING:
-					*(uint32_t *)entries[i].value = (uint32_t)getString(string);
-					// debugPrintf("VALUE STRING: %s\n", *(uint32_t *)entries[i].value);
+				{
+					char *value = getString(string);
+					if (value) {
+						*(uint32_t *)entries[i].value = (uint32_t)value;
+						// debugPrintf("VALUE STRING: %s\n", *(uint32_t *)entries[i].value);
+					}
+
 					break;
+				}
 			}
 
 			break;
@@ -206,16 +215,10 @@ int readConfigBuffer(void *buffer, int size, ConfigEntry *entries, int n_entries
 }
 
 int readConfig(char *path, ConfigEntry *entries, int n_entries) {
-	SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
-	if (fd < 0)
-		return fd;
-
-	int size = sceIoLseek32(fd, 0, SCE_SEEK_END);
-	sceIoLseek32(fd, 0, SCE_SEEK_SET);
-
-	void *buffer = malloc(size);
-	sceIoRead(fd, buffer, size);
-	sceIoClose(fd);
+	void *buffer = NULL;
+	int size = allocateReadFile(path, &buffer);
+	if (size < 0)
+		return size;
 
 	readConfigBuffer(buffer, size, entries, n_entries);
 
