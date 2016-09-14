@@ -177,6 +177,12 @@ void initVitaShell() {
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
 
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PHOTO_EXPORT) != SCE_SYSMODULE_LOADED)
+		sceSysmoduleLoadModule(SCE_SYSMODULE_PHOTO_EXPORT);
+
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_MUSIC_EXPORT) != SCE_SYSMODULE_LOADED)
+		sceSysmoduleLoadModule(SCE_SYSMODULE_MUSIC_EXPORT);
+
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
 
@@ -231,6 +237,12 @@ void finishVitaShell() {
 
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) == SCE_SYSMODULE_LOADED)
 		sceSysmoduleUnloadModule(SCE_SYSMODULE_NET);
+
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PHOTO_EXPORT) == SCE_SYSMODULE_LOADED)
+		sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
+
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_MUSIC_EXPORT) == SCE_SYSMODULE_LOADED)
+		sceSysmoduleUnloadModule(SCE_SYSMODULE_MUSIC_EXPORT);
 
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF) == SCE_SYSMODULE_LOADED)
 		sceSysmoduleUnloadModule(SCE_SYSMODULE_PGF);
