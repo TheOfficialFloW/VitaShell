@@ -758,6 +758,11 @@ int fileListRemoveEntry(FileList *list, FileListEntry *entry) {
 		list->length--;
 		free(entry);
 
+		if (list->length == 0) {
+			list->head = NULL;
+			list->tail = NULL;
+		}
+
 		return 1;
 	}
 
@@ -783,8 +788,12 @@ int fileListRemoveEntryByName(FileList *list, char *name) {
 			}
 
 			list->length--;
-
 			free(entry);
+
+			if (list->length == 0) {
+				list->head = NULL;
+				list->tail = NULL;
+			}
 
 			return 1;
 		}

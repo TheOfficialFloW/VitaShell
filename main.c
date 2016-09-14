@@ -224,6 +224,7 @@ void refreshMarkList() {
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
+		memset(&stat, 0, sizeof(SceIoStat));
 		if (sceIoGetstat(path, &stat) < 0)
 			fileListRemoveEntry(&mark_list, entry);
 
@@ -247,6 +248,7 @@ void refreshCopyList() {
 
 		// Check if the entry still exits. If not, remove it from list
 		SceIoStat stat;
+		memset(&stat, 0, sizeof(SceIoStat));
 		int res = sceIoGetstat(path, &stat);
 		if (res < 0 && res != 0x80010014)
 			fileListRemoveEntry(&copy_list, entry);
