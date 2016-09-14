@@ -114,7 +114,6 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 	int i;
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-		removeEndSlash(path);
 
 		getPathInfo(path, NULL, &folders, &files, NULL);
 
@@ -131,7 +130,6 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-		removeEndSlash(path);
 
 		FileProcessParam param;
 		param.value = &value;
@@ -194,8 +192,6 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
-			removeEndSlash(src_path);
-			removeEndSlash(dst_path);
 
 			int res = movePath(src_path, dst_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
 			if (res < 0) {
@@ -243,7 +239,6 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		int i;
 		for (i = 0; i < args->copy_list->length; i++) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
-			removeEndSlash(src_path);
 
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
 				getArchivePathInfo(src_path, &size, &folders, &files);
@@ -269,8 +264,6 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		for (i = 0; i < args->copy_list->length; i++) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 			snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
-			removeEndSlash(src_path);
-			removeEndSlash(dst_path);
 
 			FileProcessParam param;
 			param.value = &value;
@@ -331,7 +324,7 @@ EXIT:
 
 int mediaPathHandler(char *path) {
 	// Avoid export-ception
-	if (strncasecmp(path, "ux0:music") == 0 || strncasecmp(path, "ux0:picture") == 0) {
+	if (strncasecmp(path, "ux0:music/", 10) == 0 || strncasecmp(path, "ux0:picture/", 12) == 0) {
 		return 1;
 	}
 
@@ -516,7 +509,6 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 	int i;
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-		removeEndSlash(path);
 
 		getPathInfo(path, &size, NULL, &files, mediaPathHandler);
 
@@ -545,7 +537,6 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-		removeEndSlash(path);
 
 		FileProcessParam param;
 		param.value = &value;
