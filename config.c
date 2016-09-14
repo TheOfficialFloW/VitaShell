@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "file.h"
 #include "config.h"
 
 void trim(char *str) {

@@ -88,7 +88,7 @@ int WriteFile(char *file, void *buf, int size);
 
 int getFileSize(char *pInputFileName);
 int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param);
-int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files);
+int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(char *path));
 int removePath(char *path, FileProcessParam *param);
 int copyFile(char *src_path, char *dst_path, FileProcessParam *param);
 int copyPath(char *src_path, char *dst_path, FileProcessParam *param);

@@ -25,17 +25,12 @@
 #include <psp2/audiodec.h>
 #include <psp2/ctrl.h>
 #include <psp2/display.h>
-#include <psp2/kernel/modulemgr.h>
-#include <psp2/kernel/processmgr.h>
 #include <psp2/libssl.h>
-#include <psp2/io/dirent.h>
-#include <psp2/io/fcntl.h>
 #include <psp2/ime_dialog.h>
-#include <psp2/net/http.h>
-#include <psp2/net/net.h>
-#include <psp2/net/netctl.h>
 #include <psp2/message_dialog.h>
 #include <psp2/moduleinfo.h>
+#include <psp2/musicexport.h>
+#include <psp2/photoexport.h>
 #include <psp2/pgf.h>
 #include <psp2/power.h>
 #include <psp2/rtc.h>
@@ -43,6 +38,13 @@
 #include <psp2/system_param.h>
 #include <psp2/touch.h>
 #include <psp2/types.h>
+#include <psp2/kernel/modulemgr.h>
+#include <psp2/kernel/processmgr.h>
+#include <psp2/io/dirent.h>
+#include <psp2/io/fcntl.h>
+#include <psp2/net/http.h>
+#include <psp2/net/net.h>
+#include <psp2/net/netctl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -164,6 +166,11 @@ enum DialogSteps {
 	DIALOG_STEP_DELETE_CONFIRMED,
 	DIALOG_STEP_DELETING,
 	DIALOG_STEP_DELETED,
+
+	DIALOG_STEP_EXPORT_QUESTION,
+	DIALOG_STEP_EXPORT_CONFIRMED,
+	DIALOG_STEP_EXPORTING,
+	DIALOG_STEP_EXPORTED,
 
 	DIALOG_STEP_INSTALL_QUESTION,
 	DIALOG_STEP_INSTALL_CONFIRMED,
