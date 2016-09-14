@@ -512,6 +512,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 
 	// No media files
 	if (size == 0) {
+		closeWaitDialog();
 		infoDialog(language_container[EXPORT_NO_MEDIA]);
 		goto EXIT;
 	}
@@ -636,16 +637,7 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 
 	sha1msg[41] = '\0';
 
-	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, sha1msg);
-	dialog_step = DIALOG_STEP_HASH_DISPLAY;
-
-	// Wait for response
-	while (dialog_step == DIALOG_STEP_HASH_DISPLAY) {
-		sceKernelDelayThread(1000);
-	}
-
-	closeWaitDialog();
-	sceMsgDialogClose();
+	infoDialog(sha1msg);
 
 EXIT:
 

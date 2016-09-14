@@ -1094,15 +1094,7 @@ int dialogSteps() {
 			}
 
 			break;
-
-		case DIALOG_STEP_HASH_DISPLAY:
-			// Reset dialog state when user selects yes/no
-			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				dialog_step = DIALOG_STEP_NONE;
-			}
-
-			break;
-
+			
 		case DIALOG_STEP_INSTALL_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
