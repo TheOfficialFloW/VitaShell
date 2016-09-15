@@ -75,6 +75,7 @@ INSTALL_WARNING                      = "這個應用需要額外的權限。\這
 HASH_FILE_QUESTION                   = "SHA1哈希直效驗可能要花費較長時間。繼續效驗嘛?"
 
 # Others
+PLEASE_WAIT                          = "請稍等..."
 SAVE_MODIFICATIONS                   = "你要保存這些更改嘛？"
 NO_SPACE_ERROR                       = "存儲卡上沒有充足的可用空間。\至少需要 %s 可用空間"
 WIFI_ERROR                           = "你必須啓用無線網絡以使用該功能。"
