@@ -21,27 +21,66 @@
 
 #define MAX_WALLPAPERS 10
 
+// Shell colors
 extern int BACKGROUND_COLOR;
-extern int GENERAL_COLOR;
 extern int TITLE_COLOR;
 extern int PATH_COLOR;
 extern int DATE_TIME_COLOR;
+
+// File browser colors
 extern int FOCUS_COLOR;
+extern int FILE_COLOR;
+extern int SFO_COLOR;
+extern int TXT_COLOR;
 extern int FOLDER_COLOR;
 extern int IMAGE_COLOR;
 extern int ARCHIVE_COLOR;
 extern int SCROLL_BAR_COLOR;
 extern int SCROLL_BAR_BG_COLOR;
 extern int MARKED_COLOR;
-extern int INVISIBLE_COLOR;
-extern int DIALOG_BG_COLOR;
+
+// Context menu colors
+extern int CONTEXT_MENU_TEXT_COLOR;
+extern int CONTEXT_MENU_FOCUS_COLOR;
 extern int CONTEXT_MENU_COLOR;
+extern int CONTEXT_MENU_MORE_COLOR;
+extern int INVISIBLE_COLOR;
+
+// Dialog colors
+extern int DIALOG_COLOR;
+extern int DIALOG_BG_COLOR;
 extern int PROGRESS_BAR_COLOR;
 extern int PROGRESS_BAR_BG_COLOR;
+
+// Hex editor colors
+extern int HEX_COLOR;
 extern int HEX_OFFSET_COLOR;
 extern int HEX_NIBBLE_COLOR;
 
-extern vita2d_texture *ftp_image, *dialog_image, *context_image, *battery_image, *battery_bar_red_image, *battery_bar_green_image;
+// Text editor colors
+extern int TEXT_COLOR;
+extern int TEXT_FOCUS_COLOR;
+extern int TEXT_LINE_NUMBER_COLOR;
+extern int TEXT_LINE_NUMBER_COLOR_FOCUS;
+extern int TEXT_HIGHLIGHT_COLOR;
+
+// Photo viewer colors
+extern int PHOTO_ZOOM_COLOR;
+
+// Audio player colors
+extern int AUDIO_INFO_ASSIGN;
+extern int AUDIO_INFO;
+extern int AUDIO_SPEED;
+extern int AUDIO_TIME_CURRENT;
+extern int AUDIO_TIME_SLASH;
+extern int AUDIO_TIME_TOTAL;
+extern int AUDIO_TIME_BAR;
+extern int AUDIO_TIME_BAR_BG;
+
+extern vita2d_texture *folder_icon, *file_icon, *archive_icon, *image_icon, *audio_icon, *sfo_icon, *text_icon,
+					  *ftp_image, *dialog_image, *context_image, *context_more_image, *battery_image, *battery_bar_red_image,
+					  *battery_bar_green_image, *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image,
+					  *bg_photo_image, *bg_audio_image, *cover_image, *play_image, *pause_image, *fastforward_image, *fastrewind_image;
 
 extern vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
 extern vita2d_texture *previous_wallpaper_image, *current_wallpaper_image;

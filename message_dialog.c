@@ -58,10 +58,11 @@ int initMessageDialog(int type, char *msg, ...) {
 		param.mode = SCE_MSG_DIALOG_MODE_USER_MSG;
 	}
 
-	sceMsgDialogInit(&param);
-
-	message_dialog_running = 1;
-	message_dialog_type = type;
+	int res = sceMsgDialogInit(&param);
+	if (res >= 0) {
+		message_dialog_running = 1;
+		message_dialog_type = type;
+	}
 
 	return 0;
 }

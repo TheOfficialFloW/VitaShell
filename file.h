@@ -32,18 +32,34 @@
 enum FileTypes {
 	FILE_TYPE_UNKNOWN,
 	FILE_TYPE_BMP,
+	FILE_TYPE_INI,
 	FILE_TYPE_JPEG,
-	FILE_TYPE_PNG,
 	FILE_TYPE_MP3,
-	FILE_TYPE_VPK,
-	FILE_TYPE_ZIP,
+	FILE_TYPE_OGG,
+	FILE_TYPE_PNG,
 	FILE_TYPE_SFO,
+	FILE_TYPE_TXT,
+	FILE_TYPE_VPK,
+	FILE_TYPE_XML,
+	FILE_TYPE_ZIP,
 };
 
-enum SortFlags {
+enum FileSortFlags {
 	SORT_NONE,
 	SORT_BY_NAME_AND_FOLDER,
 };
+
+enum FileMoveFlags {
+	MOVE_INTEGRATE	= 0x1, // Integrate directories
+	MOVE_REPLACE	= 0x2, // Replace files
+};
+
+typedef struct {
+	uint64_t *value;
+	uint64_t max;
+	void (* SetProgress)(uint64_t value, uint64_t max);
+	int (* cancelHandler)();
+} FileProcessParam;
 
 typedef struct FileListEntry {
 	struct FileListEntry *next;
@@ -66,14 +82,17 @@ typedef struct {
 	int folders;
 } FileList;
 
+int allocateReadFile(char *file, void **buffer);
 int ReadFile(char *file, void *buf, int size);
 int WriteFile(char *file, void *buf, int size);
 
 int getFileSize(char *pInputFileName);
-int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files);
-int removePath(char *path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
-int copyFile(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
-int copyPath(char *src_path, char *dst_path, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)());
+int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param);
+int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(char *path));
+int removePath(char *path, FileProcessParam *param);
+int copyFile(char *src_path, char *dst_path, FileProcessParam *param);
+int copyPath(char *src_path, char *dst_path, FileProcessParam *param);
+int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param);
 
 int getFileType(char *file);
 
@@ -82,10 +101,14 @@ char **getMountPoints();
 
 FileListEntry *fileListFindEntry(FileList *list, char *name);
 FileListEntry *fileListGetNthEntry(FileList *list, int n);
+int fileListGetNumberByName(FileList *list, char *name);
+
 void fileListAddEntry(FileList *list, FileListEntry *entry, int sort);
 int fileListRemoveEntry(FileList *list, FileListEntry *entry);
 int fileListRemoveEntryByName(FileList *list, char *name);
+
 void fileListEmpty(FileList *list);
+
 int fileListGetEntries(FileList *list, char *path);
 
 #endif

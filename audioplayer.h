@@ -1,6 +1,6 @@
-﻿/*
+/*
 	VitaShell
-	Copyright (C) 2015-2016
+	Copyright (C) 2015-2016, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,28 +19,6 @@
 #ifndef __AUDIOPLAYER_H__
 #define __AUDIOPLAYER_H__
 
-#include <stdbool.h>
-
-typedef struct AudioFileStream {
-	char *pNameFile;
-	int sizeFile;
-
-	uint8_t *pBuffer;
-	int offsetRead;
-	int offsetWrite;
-	int sizeBuffer;
-} AudioFileStream;
-
-typedef struct AudioOutConfig {
-	int portId;
-	int portType;
-	int ch;
-	int volume[2];
-	int samplingRate;
-	int param;
-	int grain;
-} AudioOutConfig;
-
-extern int audioPlayer(char *file, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos, unsigned int codec_type, int showInterface);
+int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos);
 
 #endif

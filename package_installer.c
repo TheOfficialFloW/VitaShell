@@ -24,17 +24,12 @@
 #include "message_dialog.h"
 #include "language.h"
 #include "utils.h"
+#include "sfo.h"
 #include "sha1.h"
 #include "sysmodule_internal.h"
 #include "libpromoter/promoterutil.h"
 
 #include "resources/base_head_bin.h"
-
-#define ntohl __builtin_bswap32
-
-#define PACKAGE_PARENT "ux0:ptmp"
-#define PACKAGE_DIR PACKAGE_PARENT "/pkg"
-#define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
 
 void loadScePaf() {
 	uint32_t ptr[0x100] = { 0 };
@@ -44,8 +39,101 @@ void loadScePaf() {
 	sceSysmoduleLoadModuleInternalWithArg(0x80000008, sizeof(scepaf_argp), scepaf_argp, ptr);
 }
 
+int patchRetailContents() {
+	int res;
+	
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	res = sceIoGetstat(PACKAGE_DIR "/sce_sys/retail/livearea", &stat);
+	if (res < 0)
+		return res;
+
+	res = sceIoRename(PACKAGE_DIR "/sce_sys/livearea", PACKAGE_DIR "/sce_sys/livearea_org");
+	if (res < 0)
+		return res;
+
+	res = sceIoRename(PACKAGE_DIR "/sce_sys/retail/livearea", PACKAGE_DIR "/sce_sys/livearea");
+	if (res < 0)
+		return res;
+
+	return 0;
+}
+
+int restoreRetailContents(char *titleid) {
+	int res;
+	char src_path[128], dst_path[128];
+
+	sprintf(src_path, "ux0:app/%s/sce_sys/livearea", titleid);
+	sprintf(dst_path, "ux0:app/%s/sce_sys/retail/livearea", titleid);
+	res = sceIoRename(src_path, dst_path);
+	if (res < 0)
+		return res;
+
+	sprintf(src_path, "ux0:app/%s/sce_sys/livearea_org", titleid);
+	sprintf(dst_path, "ux0:app/%s/sce_sys/livearea", titleid);
+	res = sceIoRename(src_path, dst_path);
+	if (res < 0)
+		return res;
+
+	return 0;
+}
+
+int promoteUpdate(char *path, char *titleid, char *category, void *sfo_buffer, int sfo_size) {
+	int res;
+
+	// Update installation
+	if (strcmp(category, "gp") == 0) {
+		// Change category to 'gd'
+		setSfoString(sfo_buffer, "CATEGORY", "gd");
+		WriteFile(PACKAGE_DIR "/sce_sys/param.sfo", sfo_buffer, sfo_size);
+
+		// App path
+		char app_path[MAX_PATH_LENGTH];
+		snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", titleid);
+
+		/*
+			Without the following trick, the livearea won't be updated and the game will even crash
+		*/
+
+		// Integrate patch to app
+		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
+		if (res < 0)
+			return res;
+
+		// Move app to promotion directory
+		res = movePath(app_path, path, 0, NULL);
+		if (res < 0)
+			return res;
+	}
+
+	return 0;
+}
+
 int promote(char *path) {
 	int res;
+
+	// Read param.sfo
+	void *sfo_buffer = NULL;
+	int sfo_size = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
+	if (sfo_size < 0)
+		return sfo_size;
+
+	// Get titleid
+	char titleid[12];
+	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+
+	// Get category
+	char category[4];
+	getSfoString(sfo_buffer, "CATEGORY", category, sizeof(category));
+
+	// Promote update
+	promoteUpdate(path, titleid, category, sfo_buffer, sfo_size);
+
+	// Free sfo buffer
+	free(sfo_buffer);
+
+	// Patch to use retail contents so the game is not shown as test version
+	int patch_retail_contents = patchRetailContents();
 
 	loadScePaf();
 
@@ -67,7 +155,7 @@ int promote(char *path) {
 		if (res < 0)
 			return res;
 
-		sceKernelDelayThread(300 * 1000);
+		sceKernelDelayThread(100 * 1000);
 	} while (state);
 
 	int result = 0;
@@ -83,52 +171,12 @@ int promote(char *path) {
 	if (res < 0)
 		return res;
 
-	return result;
-}
+	// Restore
+	if (patch_retail_contents >= 0)
+		restoreRetailContents(titleid);
 
-char *get_title_id(const char *filename) {
-	char *res = NULL;
-	long size = 0;
-	FILE *fin = NULL;
-	char *buf = NULL;
-	int i;
-
-	SfoHeader *header;
-	SfoEntry *entry;
-	
-	fin = fopen(filename, "rb");
-	if (!fin)
-		goto cleanup;
-	if (fseek(fin, 0, SEEK_END) != 0)
-		goto cleanup;
-	if ((size = ftell(fin)) == -1)
-		goto cleanup;
-	if (fseek(fin, 0, SEEK_SET) != 0)
-		goto cleanup;
-	buf = calloc(1, size + 1);
-	if (!buf)
-		goto cleanup;
-	if (fread(buf, size, 1, fin) != 1)
-		goto cleanup;
-
-	header = (SfoHeader*)buf;
-	entry = (SfoEntry*)(buf + sizeof(SfoHeader));
-	for (i = 0; i < header->count; ++i, ++entry) {
-		const char *name = buf + header->keyofs + entry->nameofs;
-		const char *value = buf + header->valofs + entry->dataofs;
-		if (name >= buf + size || value >= buf + size)
-			break;
-		if (strcmp(name, "TITLE_ID") == 0)
-			res = strdup(value);
-	}
-
-cleanup:
-	if (buf)
-		free(buf);
-	if (fin)
-		fclose(fin);
-
-	return res;
+	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
+	return result == 0x80870005 ? 0 : result;
 }
 
 void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
@@ -168,19 +216,37 @@ int makeHeadBin() {
 	if (sceIoGetstat(HEAD_BIN, &stat) >= 0)
 		return -1;
 
+	// Read param.sfo
+	void *sfo_buffer = NULL;
+	int res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
+	if (res < 0)
+		return res;
+
 	// Get title id
-	char *title_id = get_title_id(PACKAGE_DIR "/sce_sys/param.sfo");
-	if (!title_id)// || strlen(title_id) != 9) // Enforce TITLEID format?
+	char titleid[12];
+	memset(titleid, 0, sizeof(titleid));
+	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+
+	// Enforce TITLE_ID format
+	if (strlen(titleid) != 9)
 		return -2;
+
+	// Get content id
+	char contentid[48];
+	memset(contentid, 0, sizeof(contentid));
+	getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
+
+	// Free sfo buffer
+	free(sfo_buffer);
 
 	// Allocate head.bin buffer
 	uint8_t *head_bin = malloc(sizeof(base_head_bin));
 	memcpy(head_bin, base_head_bin, sizeof(base_head_bin));
 
-	// Write full titleid
-	char full_title_id[128];
-	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", title_id);
-	strncpy((char *)&head_bin[0x30], full_title_id, 48);
+	// Write full title id
+	char full_title_id[48];
+	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", titleid);
+	strncpy((char *)&head_bin[0x30], strlen(contentid) > 0 ? contentid : full_title_id, 48);
 
 	// hmac of pkg header
 	len = ntohl(*(uint32_t *)&head_bin[0xD0]);
@@ -206,13 +272,54 @@ int makeHeadBin() {
 	WriteFile(HEAD_BIN, head_bin, sizeof(base_head_bin));
 
 	free(head_bin);
-	free(title_id);
+
+	return 0;
+}
+
+int installPackage(char *file) {
+	int res;
+
+	// Recursively clean up package_temp directory
+	removePath(PACKAGE_PARENT, NULL);
+	sceIoMkdir(PACKAGE_PARENT, 0777);
+
+	// Open archive
+	res = archiveOpen(file);
+	if (res < 0)
+		return res;
+
+	// Src path
+	char src_path[MAX_PATH_LENGTH];
+	strcpy(src_path, file);
+	addEndSlash(src_path);
+
+	// Extract process
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", NULL);
+	if (res < 0)
+		return res;
+
+	// Close archive
+	res = archiveClose();
+	if (res < 0)
+		return res;
+
+	// Make head.bin
+	res = makeHeadBin();
+	if (res < 0)
+		return res;
+
+	// Promote
+	res = promote(PACKAGE_DIR);
+	if (res < 0)
+		return res;
 
 	return 0;
 }
 
 int install_thread(SceSize args_size, InstallArguments *args) {
+	int res;
 	SceUID thid = -1;
+	char path[MAX_PATH_LENGTH];
 
 	// Lock power timers
 	powerLock();
@@ -222,19 +329,35 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL, 0, NULL, NULL);
+	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
 	// Open archive
-	int res = archiveOpen(args->file);
+	res = archiveOpen(args->file);
 	if (res < 0) {
 		closeWaitDialog();
 		errorDialog(res);
 		goto EXIT;
 	}
 
+	// If you cancelled at the time archiveOpen was working,
+	// it would still open the full permission dialog instead of termiating.
+	// So terminate now
+	if (cancelHandler()) {
+		closeWaitDialog();
+		dialog_step = DIALOG_STEP_CANCELLED;
+		goto EXIT;
+	}
+
+	// Check for param.sfo
+	snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+	if (archiveFileGetstat(path, NULL) < 0) {
+		closeWaitDialog();
+		errorDialog(-2);
+		goto EXIT;
+	}
+
 	// Check permissions
-	char path[MAX_PATH_LENGTH];
 	snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
 	SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
 	if (fd >= 0) {
@@ -252,7 +375,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
 			// Wait for response
 			while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
-				sceKernelDelayThread(1000);
+				sceKernelDelayThread(10 * 1000);
 			}
 
 			// Cancelled
@@ -277,16 +400,34 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	uint32_t folders = 0, files = 0;
 	getArchivePathInfo(src_path, &size, &folders, &files);
 
+	// Check memory card free space
+	if (checkMemoryCardFreeSpace(size))
+		goto EXIT;
+
 	// Update thread
 	thid = createStartUpdateThread(size + folders);
 
 	// Extract process
 	uint64_t value = 0;
 
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", &value, size + folders, SetProgress, cancelHandler);
+	FileProcessParam param;
+	param.value = &value;
+	param.max = size + folders;
+	param.SetProgress = SetProgress;
+	param.cancelHandler = cancelHandler;
+
+	res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
 	if (res <= 0) {
 		closeWaitDialog();
 		dialog_step = DIALOG_STEP_CANCELLED;
+		errorDialog(res);
+		goto EXIT;
+	}
+
+	// Close archive
+	res = archiveClose();
+	if (res < 0) {
+		closeWaitDialog();
 		errorDialog(res);
 		goto EXIT;
 	}
@@ -319,6 +460,10 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 EXIT:
 	if (thid >= 0)
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+	// Recursively clean up package_temp directory
+	removePath(PACKAGE_PARENT, NULL);
+	sceIoMkdir(PACKAGE_PARENT, 0777);	
 
 	// Unlock power timers
 	powerUnlock();

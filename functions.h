@@ -20,6 +20,7 @@
 #define __FUNCTIONS_H__
 
 #define SCE_ERROR_ERRNO_EEXIST 0x80010011
+#define SCE_ERROR_ERRNO_ENODEV 0x80010013
 
 typedef struct {
 	SceUInt size;

@@ -21,50 +21,60 @@
 #include "file.h"
 #include "utils.h"
 
-extern unsigned char _binary_resources_ftp_png_start;
-extern unsigned char _binary_resources_ftp_png_size;
-extern unsigned char _binary_resources_dialog_png_start;
-extern unsigned char _binary_resources_dialog_png_size;
-extern unsigned char _binary_resources_context_png_start;
-extern unsigned char _binary_resources_context_png_size;
-extern unsigned char _binary_resources_battery_png_start;
-extern unsigned char _binary_resources_battery_png_size;
-extern unsigned char _binary_resources_battery_bar_red_png_start;
-extern unsigned char _binary_resources_battery_bar_red_png_size;
-extern unsigned char _binary_resources_battery_bar_green_png_start;
-extern unsigned char _binary_resources_battery_bar_green_png_size;
+INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
 
-extern unsigned char _binary_resources_theme_txt_start;
-extern unsigned char _binary_resources_theme_txt_size;
+INCLUDE_EXTERN_RESOURCE(folder_icon_png);
+INCLUDE_EXTERN_RESOURCE(file_icon_png);
+INCLUDE_EXTERN_RESOURCE(archive_icon_png);
+INCLUDE_EXTERN_RESOURCE(image_icon_png);
+INCLUDE_EXTERN_RESOURCE(audio_icon_png);
+INCLUDE_EXTERN_RESOURCE(sfo_icon_png);
+INCLUDE_EXTERN_RESOURCE(text_icon_png);
+INCLUDE_EXTERN_RESOURCE(ftp_png);
+INCLUDE_EXTERN_RESOURCE(battery_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_red_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_green_png);
+INCLUDE_EXTERN_RESOURCE(battery_bar_charge_png);
 
-extern unsigned char _binary_resources_colors_txt_start;
-extern unsigned char _binary_resources_colors_txt_size;
+INCLUDE_EXTERN_RESOURCE(cover_png);
+INCLUDE_EXTERN_RESOURCE(play_png);
+INCLUDE_EXTERN_RESOURCE(pause_png);
+INCLUDE_EXTERN_RESOURCE(fastforward_png);
+INCLUDE_EXTERN_RESOURCE(fastrewind_png);
 
-extern unsigned char _binary_resources_english_us_txt_start;
-extern unsigned char _binary_resources_english_us_txt_size;
+INCLUDE_EXTERN_RESOURCE(theme_txt);
+INCLUDE_EXTERN_RESOURCE(colors_txt);
+INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
-extern unsigned char _binary_resources_headphone_png_start;
-extern unsigned char _binary_resources_audio_previous_png_start;
-extern unsigned char _binary_resources_audio_pause_png_start;
-extern unsigned char _binary_resources_audio_play_png_start;
-extern unsigned char _binary_resources_audio_next_png_start;
+#define DEFAULT_FILE(path, name) { path, (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size }
 
 static DefaultFile default_files[] = {
-	{ "ux0:VitaShell/language/english_us.txt", (void *)&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size },
-	{ "ux0:VitaShell/theme/theme.txt", (void *)&_binary_resources_theme_txt_start, (int)&_binary_resources_theme_txt_size },
-	{ "ux0:VitaShell/theme/Default/colors.txt", (void *)&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size },
-	{ "ux0:VitaShell/theme/Default/ftp.png", (void *)&_binary_resources_ftp_png_start, (int)&_binary_resources_ftp_png_size },
-	{ "ux0:VitaShell/theme/Default/dialog.png", (void *)&_binary_resources_dialog_png_start, (int)&_binary_resources_dialog_png_size },
-	{ "ux0:VitaShell/theme/Default/context.png", (void *)&_binary_resources_context_png_start, (int)&_binary_resources_context_png_size },
-	{ "ux0:VitaShell/theme/Default/battery.png", (void *)&_binary_resources_battery_png_start, (int)&_binary_resources_battery_png_size },
-	{ "ux0:VitaShell/theme/Default/battery_bar_red.png", (void *)&_binary_resources_battery_bar_red_png_start, (int)&_binary_resources_battery_bar_red_png_size },
-	{ "ux0:VitaShell/theme/Default/battery_bar_green.png", (void *)&_binary_resources_battery_bar_green_png_start, (int)&_binary_resources_battery_bar_green_png_size },
+	DEFAULT_FILE("ux0:VitaShell/language/english_us.txt", english_us_txt),
+
+	DEFAULT_FILE("ux0:VitaShell/theme/theme.txt", theme_txt),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/colors.txt", colors_txt),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", folder_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/file_icon.png", file_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/archive_icon.png", archive_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/image_icon.png", image_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/audio_icon.png", audio_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/sfo_icon.png", sfo_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/text_icon.png", text_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", ftp_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery.png", battery_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_green.png", battery_bar_green_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_charge.png", battery_bar_charge_png),
+
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/cover.png", cover_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/play.png", play_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", pause_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", fastforward_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png),
 };
 
 vita2d_pgf *font = NULL;
 char font_size_cache[256];
-
-vita2d_texture *headphone_image = NULL, *audio_previous_image = NULL, *audio_pause_image = NULL, *audio_play_image = NULL, *audio_next_image = NULL;
 
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
@@ -122,29 +132,35 @@ void initVita2dLib() {
 
 		font_size_cache[i] = vita2d_pgf_text_width(font, FONT_SIZE, character);
 	}
-
-	headphone_image = vita2d_load_PNG_buffer(&_binary_resources_headphone_png_start);
-	audio_previous_image = vita2d_load_PNG_buffer(&_binary_resources_audio_previous_png_start);
-	audio_pause_image = vita2d_load_PNG_buffer(&_binary_resources_audio_pause_png_start);
-	audio_play_image = vita2d_load_PNG_buffer(&_binary_resources_audio_play_png_start);
-	audio_next_image = vita2d_load_PNG_buffer(&_binary_resources_audio_next_png_start);
 }
 
 void finishVita2dLib() {
-	vita2d_free_texture(headphone_image);
-	vita2d_free_texture(audio_previous_image);
-	vita2d_free_texture(audio_pause_image);
-	vita2d_free_texture(audio_play_image);
-	vita2d_free_texture(audio_next_image);
 	vita2d_free_pgf(font);
 	vita2d_fini();
 
 	font = NULL;
-	headphone_image = NULL;
-	audio_previous_image = NULL;
-	audio_pause_image = NULL;
-	audio_play_image = NULL;
-	audio_next_image = NULL;
+}
+
+void initNet() {
+	static char memory[16 * 1024];
+
+	SceNetInitParam param;
+	param.memory = memory;
+	param.size = sizeof(memory);
+	param.flags = 0;
+
+	sceNetInit(&param);
+	sceNetCtlInit();
+
+	sceSslInit(300 * 1024);
+	sceHttpInit(40 * 1024);
+}
+
+void finishNet() {
+	sceSslTerm();
+	sceHttpTerm();
+	sceNetCtlTerm();
+	sceNetTerm();	
 }
 
 void initVitaShell() {
@@ -153,7 +169,7 @@ void initVitaShell() {
 
 	// Set sampling mode
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
-	
+
 	// Enable front touchscreen
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 
@@ -161,21 +177,29 @@ void initVitaShell() {
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
 
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PHOTO_EXPORT) != SCE_SYSMODULE_LOADED)
+		sceSysmoduleLoadModule(SCE_SYSMODULE_PHOTO_EXPORT);
+
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_MUSIC_EXPORT) != SCE_SYSMODULE_LOADED)
+		sceSysmoduleLoadModule(SCE_SYSMODULE_MUSIC_EXPORT);
+
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
+
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) != SCE_SYSMODULE_LOADED)
+		sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
 
 	// Init
 	initSceAppUtil();
 	initVita2dLib();
-
-	// Init netdbg
-	netdbg_init();
+	initNet();
 
 	// Init power tick thread
 	initPowerTickThread();
 
 	// Make VitaShell folders
 	sceIoMkdir("ux0:VitaShell", 0777);
+	sceIoMkdir("ux0:VitaShell/internal", 0777);
 	sceIoMkdir("ux0:VitaShell/language", 0777);
 	sceIoMkdir("ux0:VitaShell/theme", 0777);
 	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
@@ -188,19 +212,37 @@ void initVitaShell() {
 		if (sceIoGetstat(default_files[i].path, &stat) < 0)
 			WriteFile(default_files[i].path, default_files[i].buffer, default_files[i].size);
 	}
+
+	// Write changeinfo.xml file to patch
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(stat));
+	if (sceIoGetstat("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", &stat) < 0 || (int)stat.st_size != (int)&_binary_resources_changeinfo_txt_size) {
+		sceIoMkdir("ux0:patch", 0777);
+		sceIoMkdir("ux0:patch/VITASHELL", 0777);
+		sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);
+		sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0777);
+		WriteFile("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", (void *)&_binary_resources_changeinfo_txt_start, (int)&_binary_resources_changeinfo_txt_size);
+	}
 }
 
 void finishVitaShell() {
-	// Finish netdbg
-	netdbg_fini();
-
 	// Finish
+	finishNet();
 	finishVita2dLib();
 	finishSceAppUtil();
 	
 	// Unload modules
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) == SCE_SYSMODULE_LOADED)
+		sceSysmoduleUnloadModule(SCE_SYSMODULE_HTTPS);
+
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) == SCE_SYSMODULE_LOADED)
 		sceSysmoduleUnloadModule(SCE_SYSMODULE_NET);
+
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PHOTO_EXPORT) == SCE_SYSMODULE_LOADED)
+		sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
+
+	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_MUSIC_EXPORT) == SCE_SYSMODULE_LOADED)
+		sceSysmoduleUnloadModule(SCE_SYSMODULE_MUSIC_EXPORT);
 
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF) == SCE_SYSMODULE_LOADED)
 		sceSysmoduleUnloadModule(SCE_SYSMODULE_PGF);

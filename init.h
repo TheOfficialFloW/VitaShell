@@ -21,6 +21,8 @@
 
 #include "file.h"
 
+#define NET_INIT_SIZE 1 * 1024 * 1024
+
 extern int language, enter_button, date_format, time_format;
 
 typedef struct {
@@ -28,12 +30,6 @@ typedef struct {
 	void *buffer;
 	int size;
 } DefaultFile;
-
-void initSceAppUtil();
-void finishSceAppUtil();
-
-void initVita2dLib();
-void finishVita2dLib();
 
 void initVitaShell();
 void finishVitaShell();

@@ -19,27 +19,20 @@
 #ifndef __PACKAGE_INSTALLER_H__
 #define __PACKAGE_INSTALLER_H__
 
-typedef struct SfoHeader {
-	uint32_t magic;
-	uint32_t version;
-	uint32_t keyofs;
-	uint32_t valofs;
-	uint32_t count;
-} __attribute__((packed)) SfoHeader;
+#define ntohl __builtin_bswap32
 
-typedef struct SfoEntry {
-	uint16_t nameofs;
-	uint8_t  alignment;
-	uint8_t  type;
-	uint32_t valsize;
-	uint32_t totalsize;
-	uint32_t dataofs;
-} __attribute__((packed)) SfoEntry;
+#define PACKAGE_PARENT "ux0:ptmp"
+#define PACKAGE_DIR PACKAGE_PARENT "/pkg"
+#define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
 
 typedef struct {
 	char *file;
 } InstallArguments;
 
+int promote(char *path);
+int makeHeadBin();
+
+int installPackage(char *file);
 int install_thread(SceSize args_size, InstallArguments *args);
 
 #endif

@@ -345,14 +345,14 @@ int photoViewer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		}
 
 		// Start drawing
-		startDrawing();
+		startDrawing(bg_photo_image);
 
 		// Photo
 		vita2d_draw_texture_scale_rotate_hotspot(tex, SCREEN_HALF_WIDTH, SCREEN_HALF_HEIGHT, zoom, zoom, rad, x, y);
 
 		// Zoom text
 		if ((sceKernelGetProcessTimeWide() - time) < ZOOM_TEXT_TIME)
-			pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, GENERAL_COLOR, FONT_SIZE, "%.0f%%", zoom * 100.0f);
+			pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, PHOTO_ZOOM_COLOR, FONT_SIZE, "%.0f%%", zoom * 100.0f);
 
 		// End drawing
 		endDrawing();

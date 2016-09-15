@@ -25,15 +25,12 @@
 #include <psp2/audiodec.h>
 #include <psp2/ctrl.h>
 #include <psp2/display.h>
-#include <psp2/kernel/modulemgr.h>
-#include <psp2/kernel/processmgr.h>
-#include <psp2/io/dirent.h>
-#include <psp2/io/fcntl.h>
+#include <psp2/libssl.h>
 #include <psp2/ime_dialog.h>
-#include <psp2/net/net.h>
-#include <psp2/net/netctl.h>
 #include <psp2/message_dialog.h>
 #include <psp2/moduleinfo.h>
+#include <psp2/musicexport.h>
+#include <psp2/photoexport.h>
 #include <psp2/pgf.h>
 #include <psp2/power.h>
 #include <psp2/rtc.h>
@@ -41,6 +38,13 @@
 #include <psp2/system_param.h>
 #include <psp2/touch.h>
 #include <psp2/types.h>
+#include <psp2/kernel/modulemgr.h>
+#include <psp2/kernel/processmgr.h>
+#include <psp2/io/dirent.h>
+#include <psp2/io/fcntl.h>
+#include <psp2/net/http.h>
+#include <psp2/net/net.h>
+#include <psp2/net/netctl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,12 +63,17 @@
 
 #include "functions.h"
 
-#define ENABLE_DEBUGNET_LOGGING 1
+#define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
+
 #define ENABLE_FILE_LOGGING 1
 
 // VitaShell version major.minor
-#define VITASHELL_VERSION_MAJOR 0
-#define VITASHELL_VERSION_MINOR 86
+#define VITASHELL_VERSION_MAJOR 0x01
+#define VITASHELL_VERSION_MINOR 0x10
+
+#define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
+
+#define VITASHELL_LASTDIR "ux0:VitaShell/internal/lastdir.txt"
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
@@ -113,6 +122,7 @@
 #define SCROLL_BAR_MIN_HEIGHT 4.0f
 
 // Context menu
+#define CONTEXT_MENU_MORE_MIN_WIDTH 200.0f
 #define CONTEXT_MENU_MIN_WIDTH 180.0f
 #define CONTEXT_MENU_MARGIN 20.0f
 #define CONTEXT_MENU_VELOCITY 10.0f
@@ -120,7 +130,7 @@
 // File browser
 #define MARK_WIDTH (SCREEN_WIDTH - 2.0f * SHELL_MARGIN_X)
 #define INFORMATION_X 680.0f
-#define MAX_NAME_WIDTH 530.0f
+#define MAX_NAME_WIDTH 500.0f
 
 // Uncommon dialog
 #define UNCOMMON_DIALOG_PROGRESS_BAR_BOX_WIDTH 420.0f
@@ -132,13 +142,6 @@
 
 #define BIG_BUFFER_SIZE 16 * 1024 * 1024
 
-enum ContextMenuModes {
-	CONTEXT_MENU_CLOSED,
-	CONTEXT_MENU_CLOSING,
-	CONTEXT_MENU_OPENED,
-	CONTEXT_MENU_OPENING,
-};
-
 enum DialogSteps {
 	DIALOG_STEP_NONE,
 
@@ -148,8 +151,10 @@ enum DialogSteps {
 	DIALOG_STEP_INFO,
 	DIALOG_STEP_SYSTEM,
 
+	DIALOG_STEP_FTP_WAIT,
 	DIALOG_STEP_FTP,
 
+	DIALOG_STEP_RENAME,
 	DIALOG_STEP_NEW_FOLDER,
 
 	DIALOG_STEP_COPYING,
@@ -162,6 +167,11 @@ enum DialogSteps {
 	DIALOG_STEP_DELETING,
 	DIALOG_STEP_DELETED,
 
+	DIALOG_STEP_EXPORT_QUESTION,
+	DIALOG_STEP_EXPORT_CONFIRMED,
+	DIALOG_STEP_EXPORTING,
+	DIALOG_STEP_EXPORTED,
+
 	DIALOG_STEP_INSTALL_QUESTION,
 	DIALOG_STEP_INSTALL_CONFIRMED,
 	DIALOG_STEP_INSTALL_WARNING,
@@ -169,17 +179,23 @@ enum DialogSteps {
 	DIALOG_STEP_INSTALLING,
 	DIALOG_STEP_INSTALLED,
 
-	DIALOG_STEP_RENAME,
+	DIALOG_STEP_UPDATE_QUESTION,
+	DIALOG_STEP_DOWNLOADING,
+	DIALOG_STEP_DOWNLOADED,
+	DIALOG_STEP_EXTRACTING,
+	DIALOG_STEP_EXTRACTED,
+
+	DIALOG_STEP_HASH_QUESTION,
+	DIALOG_STEP_HASH_CONFIRMED,
+	DIALOG_STEP_HASHING,
 };
 
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
-extern vita2d_texture *headphone_image, *audio_previous_image, *audio_pause_image, *audio_play_image, *audio_next_image;
-
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
-extern int dialog_step;
+extern volatile int dialog_step;
 
 extern int use_custom_config;
 
@@ -187,6 +203,9 @@ void drawScrollBar(int pos, int n);
 void drawShellInfo(char *path);
 
 int isInArchive();
+
+void ftpvita_PROM(ftpvita_client_info_t *client);
+void install_unassisted_sync(char *path);
 
 #endif
 
