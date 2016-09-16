@@ -136,6 +136,9 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 	getAudioInfo(file);
 
 	while (1) {
+		char cur_time_string[12];
+		getTimeStringFunct(cur_time_string);
+
 		readPad();
 
 		// Cancel
@@ -190,71 +193,79 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 
 		// Previous/next song.
 		if (getPercentageFunct() == 100.0f || endOfStreamFunct() || pressed_buttons & SCE_CTRL_LTRIGGER || pressed_buttons & SCE_CTRL_RTRIGGER) {
-			int available = 0;
-
-			int old_base_pos = *base_pos;
-			int old_rel_pos = *rel_pos;
-			FileListEntry *old_entry = entry;
-
 			int previous = pressed_buttons & SCE_CTRL_LTRIGGER;
+			if (previous && strcmp(cur_time_string, "00:00:00") != 0) {
+				endFunct();
+				initFunct(0);
+				loadFunct(file);
+				playFunct();
 
-			if (getPercentageFunct() == 100.0f && !endOfStreamFunct())
-				previous = 1;
+				getAudioInfo(file);
+			} else {
+				int available = 0;
 
-			if (endOfStreamFunct())
-				previous = 0;
+				int old_base_pos = *base_pos;
+				int old_rel_pos = *rel_pos;
+				FileListEntry *old_entry = entry;
 
-			while (previous ? entry->previous : entry->next) {
-				entry = previous ? entry->previous : entry->next;
+				if (getPercentageFunct() == 100.0f && !endOfStreamFunct())
+					previous = 1;
 
-				if (previous) {
-					if (*rel_pos > 0) {
-						(*rel_pos)--;
-					} else {
-						if (*base_pos > 0) {
-							(*base_pos)--;
-						}
-					}
-				} else {
-					if ((*rel_pos + 1) < list->length) {
-						if ((*rel_pos + 1) < MAX_POSITION) {
-							(*rel_pos)++;
+				if (endOfStreamFunct())
+					previous = 0;
+
+				while (previous ? entry->previous : entry->next) {
+					entry = previous ? entry->previous : entry->next;
+
+					if (previous) {
+						if (*rel_pos > 0) {
+							(*rel_pos)--;
 						} else {
-							if ((*base_pos + *rel_pos + 1) < list->length) {
-								(*base_pos)++;
+							if (*base_pos > 0) {
+								(*base_pos)--;
+							}
+						}
+					} else {
+						if ((*rel_pos + 1) < list->length) {
+							if ((*rel_pos + 1) < MAX_POSITION) {
+								(*rel_pos)++;
+							} else {
+								if ((*base_pos + *rel_pos + 1) < list->length) {
+									(*base_pos)++;
+								}
 							}
 						}
 					}
-				}
 
-				if (!entry->is_folder) {
-					char path[MAX_PATH_LENGTH];
-					snprintf(path, MAX_PATH_LENGTH, "%s%s", list->path, entry->name);
-					int type = getFileType(path);
-					if (type == FILE_TYPE_MP3 || type == FILE_TYPE_OGG) {
-						file = path;
+					if (!entry->is_folder) {
+						char path[MAX_PATH_LENGTH];
+						snprintf(path, MAX_PATH_LENGTH, "%s%s", list->path, entry->name);
+						int type = getFileType(path);
+						if (type == FILE_TYPE_MP3 || type == FILE_TYPE_OGG) {
+							file = path;
 
-						endFunct();
+							endFunct();
 
-						setAudioFunctions(type);
+							setAudioFunctions(type);
 
-						initFunct(0);
-						loadFunct(file);
-						playFunct();
+							initFunct(0);
+							loadFunct(file);
+							playFunct();
 
-						getAudioInfo(file);
+							getAudioInfo(file);
 
-						available = 1;
-						break;
+							available = 1;
+							break;
+						}
 					}
 				}
-			}
 
-			if (!available) {
-				*base_pos = old_base_pos;
-				*rel_pos = old_rel_pos;
-				entry = old_entry;
-				break;
+				if (!available) {
+					*base_pos = old_base_pos;
+					*rel_pos = old_rel_pos;
+					entry = old_entry;
+					break;
+				}
 			}
 		}
 
@@ -316,9 +327,6 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		vita2d_draw_texture(icon, x, y + 3.0f);
 
 		// Time
-		char cur_time_string[12];
-		getTimeStringFunct(cur_time_string);
-
 		char string[32];
 		sprintf(string, "%s / %s", cur_time_string, fileinfo->strLength);
 		float time_x = ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string));
