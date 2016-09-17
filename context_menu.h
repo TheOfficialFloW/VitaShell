@@ -57,6 +57,7 @@ enum ContextMenuModes {
 	CONTEXT_MENU_MORE_OPENING = 6,
 };
 
+void setCurrentContextMenu(ContextMenu* ctx);
 int getContextMenuPos();
 void setContextMenuPos(int pos);
 int getContextMenuMorePos();
@@ -64,7 +65,7 @@ void setContextMenuMorePos(int pos);
 int getContextMenuMode();
 void setContextMenuMode(int mode);
 
-void drawContextMenu(ContextMenu *ctx);
-void contextMenuCtrl(ContextMenu *ctx);
+void drawContextMenu();
+void contextMenuCtrl();
 
 #endif

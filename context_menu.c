@@ -22,10 +22,16 @@
 #include "language.h"
 #include "utils.h"
 
+static ContextMenu* current_ctx_menu = NULL;
 static int ctx_menu_mode = CONTEXT_MENU_CLOSED;
 static int ctx_menu_pos = -1;
 static int ctx_menu_more_pos = -1;
 static float ctx_cur_menu_width = 0.0f;
+
+void setCurrentContextMenu(ContextMenu* ctx)
+{
+	current_ctx_menu = ctx;
+}
 
 int getContextMenuPos() {
 	return ctx_menu_pos;
@@ -56,7 +62,10 @@ float easeOut(float x0, float x1, float a) {
 	return ((dx * a) > 0.5f) ? (dx * a) : dx;
 }
 
-void drawContextMenu(ContextMenu *ctx) {
+void drawContextMenu() {
+	if (current_ctx_menu == NULL)
+		return;
+
 	// Closing context menu
 	if (ctx_menu_mode == CONTEXT_MENU_CLOSING) {
 		if (ctx_cur_menu_width > 0.0f) {
@@ -68,8 +77,8 @@ void drawContextMenu(ContextMenu *ctx) {
 
 	// Opening context menu
 	if (ctx_menu_mode == CONTEXT_MENU_OPENING) {
-		if (ctx_cur_menu_width < ctx->menu_max_width) {
-			ctx_cur_menu_width += easeOut(ctx_cur_menu_width, ctx->menu_max_width, 0.375f);
+		if (ctx_cur_menu_width < current_ctx_menu->menu_max_width) {
+			ctx_cur_menu_width += easeOut(ctx_cur_menu_width, current_ctx_menu->menu_max_width, 0.375f);
 		} else {
 			ctx_menu_mode = CONTEXT_MENU_OPENED;
 		}
@@ -77,8 +86,8 @@ void drawContextMenu(ContextMenu *ctx) {
 
 	// Closing context menu 'More'
 	if (ctx_menu_mode == CONTEXT_MENU_MORE_CLOSING) {
-		if (ctx_cur_menu_width > ctx->menu_max_width) {
-			ctx_cur_menu_width -= easeOut(ctx->menu_max_width, ctx_cur_menu_width, 0.375f);
+		if (ctx_cur_menu_width > current_ctx_menu->menu_max_width) {
+			ctx_cur_menu_width -= easeOut(current_ctx_menu->menu_max_width, ctx_cur_menu_width, 0.375f);
 		} else {
 			ctx_menu_mode = CONTEXT_MENU_MORE_CLOSED;
 		}
@@ -86,8 +95,8 @@ void drawContextMenu(ContextMenu *ctx) {
 
 	// Opening context menu 'More'
 	if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
-		if (ctx_cur_menu_width < ctx->menu_max_width + ctx->menu_more_max_width) {
-			ctx_cur_menu_width += easeOut(ctx_cur_menu_width, ctx->menu_max_width + ctx->menu_more_max_width, 0.375f);
+		if (ctx_cur_menu_width < current_ctx_menu->menu_max_width + current_ctx_menu->menu_more_max_width) {
+			ctx_cur_menu_width += easeOut(ctx_cur_menu_width, current_ctx_menu->menu_max_width + current_ctx_menu->menu_more_max_width, 0.375f);
 		} else {
 			ctx_menu_mode = CONTEXT_MENU_MORE_OPENED;
 		}
@@ -95,16 +104,16 @@ void drawContextMenu(ContextMenu *ctx) {
 
 	// Draw context menu
 	if (ctx_menu_mode != CONTEXT_MENU_CLOSED) {
-		if (ctx_cur_menu_width < ctx->menu_max_width) {
+		if (ctx_cur_menu_width < current_ctx_menu->menu_max_width) {
 			vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_cur_menu_width, 0.0f, 0.0f, 0.0f, ctx_cur_menu_width, SCREEN_HEIGHT);
 		} else {
-			vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_cur_menu_width, 0.0f, 0.0f, 0.0f, ctx->menu_max_width, SCREEN_HEIGHT);
-			vita2d_draw_texture_part(context_more_image, SCREEN_WIDTH - ctx_cur_menu_width + ctx->menu_max_width, 0.0f, 0.0f, 0.0f, ctx->menu_more_max_width, SCREEN_HEIGHT);
+			vita2d_draw_texture_part(context_image, SCREEN_WIDTH - ctx_cur_menu_width, 0.0f, 0.0f, 0.0f, current_ctx_menu->menu_max_width, SCREEN_HEIGHT);
+			vita2d_draw_texture_part(context_more_image, SCREEN_WIDTH - ctx_cur_menu_width + current_ctx_menu->menu_max_width, 0.0f, 0.0f, 0.0f, current_ctx_menu->menu_more_max_width, SCREEN_HEIGHT);
 		}
 
 		int i;
-		for (i = 0; i < ctx->n_menu_entries; i++) {
-			if (ctx->menu_entries[i].visibility == CTX_VISIBILITY_UNUSED)
+		for (i = 0; i < current_ctx_menu->n_menu_entries; i++) {
+			if (current_ctx_menu->menu_entries[i].visibility == CTX_VISIBILITY_UNUSED)
 				continue;
 
 			float y = START_Y + (i * FONT_Y_SPACE);
@@ -117,31 +126,33 @@ void drawContextMenu(ContextMenu *ctx) {
 				}
 			}
 
-			if (ctx->menu_entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
+			if (current_ctx_menu->menu_entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
 				color = INVISIBLE_COLOR;
 
 			// Draw entry text
-			pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[ctx->menu_entries[i].name]);
+			pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[current_ctx_menu->menu_entries[i].name]);
 
 			// Draw arrow for 'More'
-			if (i == ctx->more_pos) {
-				char *arrow = NULL;
-				if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
-					arrow = LEFT_ARROW;
-				} else {
-					arrow = RIGHT_ARROW;
-				}
+			if (current_ctx_menu->n_menu_more_entries != 0) {
+				if (i == current_ctx_menu->more_pos) {
+					char *arrow = NULL;
+					if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
+						arrow = LEFT_ARROW;
+					} else {
+						arrow = RIGHT_ARROW;
+					}
 
-				pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + ctx->menu_max_width - vita2d_pgf_text_width(font, FONT_SIZE, arrow) - CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, arrow);
+					pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + current_ctx_menu->menu_max_width - vita2d_pgf_text_width(font, FONT_SIZE, arrow) - CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, arrow);
+				}
 			}
 		}
 
 		if (ctx_menu_mode == CONTEXT_MENU_MORE_CLOSING || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
-			for (i = 0; i < ctx->n_menu_more_entries; i++) {
-				if (ctx->menu_more_entries[i].visibility == CTX_VISIBILITY_UNUSED)
+			for (i = 0; i < current_ctx_menu->n_menu_more_entries; i++) {
+				if (current_ctx_menu->menu_more_entries[i].visibility == CTX_VISIBILITY_UNUSED)
 					continue;
 
-				float y = START_Y + ((ctx->more_pos + i) * FONT_Y_SPACE);
+				float y = START_Y + ((current_ctx_menu->more_pos + i) * FONT_Y_SPACE);
 
 				uint32_t color = CONTEXT_MENU_TEXT_COLOR;
 
@@ -151,22 +162,25 @@ void drawContextMenu(ContextMenu *ctx) {
 					}
 				}
 
-				if (ctx->menu_more_entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
+				if (current_ctx_menu->menu_more_entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
 					color = INVISIBLE_COLOR;
 
 				// Draw entry text
-				pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + ctx->menu_max_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[ctx->menu_more_entries[i].name]);
+				pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + current_ctx_menu->menu_max_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[current_ctx_menu->menu_more_entries[i].name]);
 			}
 		}
 	}
 }
 
-void contextMenuCtrl(ContextMenu *ctx) {
+void contextMenuCtrl() {
+	if (current_ctx_menu == NULL)
+		return;
+
 	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
 		if (ctx_menu_mode == CONTEXT_MENU_OPENED) {
 			int i;
-			for (i = ctx->n_menu_entries - 1; i >= 0; i--) {
-				if (ctx->menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			for (i = current_ctx_menu->n_menu_entries - 1; i >= 0; i--) {
+				if (current_ctx_menu->menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
 					if (i < ctx_menu_pos) {
 						ctx_menu_pos = i;
 						break;
@@ -175,8 +189,8 @@ void contextMenuCtrl(ContextMenu *ctx) {
 			}
 		} else if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
 			int i;
-			for (i = ctx->n_menu_more_entries - 1; i >= 0; i--) {
-				if (ctx->menu_more_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			for (i = current_ctx_menu->n_menu_more_entries - 1; i >= 0; i--) {
+				if (current_ctx_menu->menu_more_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
 					if (i < ctx_menu_more_pos) {
 						ctx_menu_more_pos = i;
 						break;
@@ -187,8 +201,8 @@ void contextMenuCtrl(ContextMenu *ctx) {
 	} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
 		if (ctx_menu_mode == CONTEXT_MENU_OPENED) {
 			int i;
-			for (i = 0; i < ctx->n_menu_entries; i++) {
-				if (ctx->menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			for (i = 0; i < current_ctx_menu->n_menu_entries; i++) {
+				if (current_ctx_menu->menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
 					if (i > ctx_menu_pos) {
 						ctx_menu_pos = i;
 						break;
@@ -197,8 +211,8 @@ void contextMenuCtrl(ContextMenu *ctx) {
 			}
 		} else if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
 			int i;
-			for (i = 0; i < ctx->n_menu_more_entries; i++) {
-				if (ctx->menu_more_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			for (i = 0; i < current_ctx_menu->n_menu_more_entries; i++) {
+				if (current_ctx_menu->menu_more_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
 					if (i > ctx_menu_more_pos) {
 						ctx_menu_more_pos = i;
 						break;
@@ -225,11 +239,11 @@ void contextMenuCtrl(ContextMenu *ctx) {
 	// Handle
 	if (pressed_buttons & SCE_CTRL_ENTER || pressed_buttons & SCE_CTRL_RIGHT) {
 		if (ctx_menu_mode == CONTEXT_MENU_OPENED) {
-			if (ctx->menuEnterCallback)
-				ctx_menu_mode = ctx->menuEnterCallback(ctx_menu_pos, ctx->context);
+			if (current_ctx_menu->menuEnterCallback)
+				ctx_menu_mode = current_ctx_menu->menuEnterCallback(ctx_menu_pos, current_ctx_menu->context);
 		} else if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
-			if (ctx->menuMoreEnterCallback)
-				ctx_menu_mode = ctx->menuMoreEnterCallback(ctx_menu_more_pos, ctx->context);
+			if (current_ctx_menu->menuMoreEnterCallback)
+				ctx_menu_mode = current_ctx_menu->menuMoreEnterCallback(ctx_menu_more_pos, current_ctx_menu->context);
 		}
 	}
 }

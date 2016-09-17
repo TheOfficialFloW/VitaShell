@@ -71,6 +71,9 @@ INSTALL_QUESTION                     = "Do you want to install this package?"
 INSTALL_WARNING                      = "This package requests extended permissions.\It will have access to your personal information.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
 HASH_FILE_QUESTION                   = "SHA1 hashing may take a long time. Continue?"
 
+# Tools Menu
+SYS_INFO_TITLE                       = "System Information"
+
 # Others
 PLEASE_WAIT                          = "Please wait..."
 SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"

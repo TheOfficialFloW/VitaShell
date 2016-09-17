@@ -92,6 +92,7 @@ enum LanguageContainer {
 	HASH_FILE_QUESTION,
 
 	// Others
+	SYS_INFO_TITLE,
 	PLEASE_WAIT,
 	SAVE_MODIFICATIONS,
 	NO_SPACE_ERROR,
