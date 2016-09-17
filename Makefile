@@ -37,6 +37,7 @@ CXX      = $(PREFIX)-g++
 CFLAGS   = -Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable
 CXXFLAGS = $(CFLAGS) -std=c++11 -fno-rtti -fno-exceptions
 ASFLAGS  = $(CFLAGS)
+PSVITAIP = 192.168.1.11
 
 all: $(TARGET).vpk
 

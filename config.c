@@ -25,7 +25,7 @@ void trim(char *str) {
 	int i;
 
 	for (i = len - 1; i >= 0; i--) {
-		if (str[i] == 0x20 || str[i] == '\t') {
+		if (str[i] == 0x20 || str[i] == 0x09 || str[i] == '\t') {
 			str[i] = 0;
 		} else {
 			break;

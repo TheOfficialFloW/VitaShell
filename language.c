@@ -112,6 +112,9 @@ void loadLanguage(int id) {
 		LANGUAGE_ENTRY(EXPORT_MEDIA),
 		LANGUAGE_ENTRY(SEARCH),
 
+		// Tools context menu strings
+		LANGUAGE_ENTRY(SYS_INFO_TITLE),
+
 		// File browser strings
 		LANGUAGE_ENTRY(COPIED_FILE),
 		LANGUAGE_ENTRY(COPIED_FOLDER),
