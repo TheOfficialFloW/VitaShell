@@ -1287,7 +1287,7 @@ void fileBrowserMenuCtrl() {
 		getSizeString(max_size_string, max_size);
 
 		// System information dialog
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string);
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string, scePowerGetBatteryLifePercent());
 		dialog_step = DIALOG_STEP_SYSTEM;
 		*/
 	}
