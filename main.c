@@ -1247,49 +1247,13 @@ int dialogSteps() {
 }
 
 void fileBrowserMenuCtrl() {
-	// System information
+	// Tools context menu
 	if (current_buttons & SCE_CTRL_START) {
 		if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
 			setCurrentContextMenu(&tools_menu);
 			setContextMenuVisibilities();
 			setContextMenuMode(CONTEXT_MENU_OPENING);
 		}
-
-		/*
-		// System software version
-		SceSystemSwVersionParam sw_ver_param;
-		sw_ver_param.size = sizeof(SceSystemSwVersionParam);
-		sceKernelGetSystemSwVersion(&sw_ver_param);
-
-		// MAC address
-		SceNetEtherAddr mac;
-		sceNetGetMacAddress(&mac, 0);
-
-		char mac_string[32];
-		sprintf(mac_string, "%02X:%02X:%02X:%02X:%02X:%02X", mac.data[0], mac.data[1], mac.data[2], mac.data[3], mac.data[4], mac.data[5]);
-
-		// Get IP
-		char ip[16];
-
-		SceNetCtlInfo info;
-		if (sceNetCtlInetGetInfo(SCE_NETCTL_INFO_GET_IP_ADDRESS, &info) < 0) {
-			strcpy(ip, "-");
-		} else {
-			strcpy(ip, info.ip_address);
-		}
-
-		// Memory card
-		uint64_t free_size = 0, max_size = 0;
-		sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
-
-		char free_size_string[16], max_size_string[16];
-		getSizeString(free_size_string, free_size);
-		getSizeString(max_size_string, max_size);
-
-		// System information dialog
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string, scePowerGetBatteryLifePercent());
-		dialog_step = DIALOG_STEP_SYSTEM;
-		*/
 	}
 
 	// FTP
