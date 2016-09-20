@@ -27,6 +27,7 @@
 
 typedef struct
 {
+	int enter_pressed;
 	int animation_mode;
 	int status;
 	float x;

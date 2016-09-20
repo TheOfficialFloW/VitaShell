@@ -71,10 +71,11 @@ void loadListDialog(List* list) {
 	list_dialog.height += 4.0f * SHELL_MARGIN_Y;
 
 	list_dialog.x = CENTER(SCREEN_WIDTH, list_dialog.width);
-	list_dialog.y = CENTER(SCREEN_HEIGHT, list_dialog.height);
+	list_dialog.y = CENTER(SCREEN_HEIGHT, list_dialog.height) - 2.0f * FONT_Y_SPACE;
 	list_dialog.scale = 0.0f;
 	list_dialog.animation_mode = LIST_DIALOG_OPENING;
 	list_dialog.status = SCE_COMMON_DIALOG_STATUS_RUNNING;
+	list_dialog.enter_pressed = 0;
 
 	is_open = LIST_DIALOG_OPEN;
 }
@@ -131,6 +132,11 @@ void drawListDialog() {
 			pgf_draw_text(list_dialog.x + CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, UP_ARROW)), list_dialog.y + (FONT_Y_SPACE * 2), TEXT_COLOR, FONT_SIZE, UP_ARROW);
 		}
 	} else if (list_dialog.animation_mode == LIST_DIALOG_CLOSED) {
+		if (list_dialog.enter_pressed) {
+			if (current_list->listSelectCallback)
+				current_list->listSelectCallback(base_pos + rel_pos);
+		}
+
 		is_open = LIST_DIALOG_CLOSE;
 	}
 }
@@ -139,13 +145,12 @@ void listDialogCtrl() {
 	if (is_open == LIST_DIALOG_CLOSE)
 		return;
 
-	if (pressed_buttons & SCE_CTRL_CANCEL && current_list->can_escape)
+	if ((pressed_buttons & (SCE_CTRL_CANCEL | SCE_CTRL_START)) && current_list->can_escape)
 		list_dialog.animation_mode = LIST_DIALOG_CLOSING;
 
 	if (pressed_buttons & SCE_CTRL_CROSS) {
-		if (current_list->listSelectCallback)
-			if (current_list->listSelectCallback(base_pos + rel_pos) == LIST_CALL_CLOSE)
-				list_dialog.animation_mode = LIST_DIALOG_CLOSING;
+		list_dialog.enter_pressed = 1;
+		list_dialog.animation_mode = LIST_DIALOG_CLOSING;
 	}
 
 	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
