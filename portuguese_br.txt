@@ -1,4 +1,4 @@
-# VitaShell v1.1 language file - (Português - Brasil)
+# VitaShell v1.2 language file - (Português - Brasil) Rev.(0005)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -12,6 +12,7 @@ FOLDER                               = "Pasta"
 MOVING                               = "Movendo..."
 COPYING                              = "Copiando..."
 DELETING                             = "Deletando..."
+EXPORTING                            = "Exportando..."
 INSTALLING                           = "Instalando..."
 DOWNLOADING                          = "Baixando..."
 EXTRACTING                           = "Extraindo..."
@@ -26,7 +27,7 @@ YEAR                                 = "Ano"
 
 # Hex editor strings
 OFFSET                               = "Offset"
-OPEN_HEX_EDITOR                      = "Abrir editor hex"
+OPEN_HEX_EDITOR                      = "Abrir editor Hex"
 
 # Text editor strings
 EDIT_LINE                            = "Editar Linha"
@@ -46,6 +47,7 @@ RENAME                               = "Renomear"
 NEW_FOLDER                           = "Nova pasta"
 INSTALL_ALL                          = "Intalar todos"
 CALCULATE_SHA1                       = "Calcular SHA1"
+EXPORT_MEDIA                         = "Exportar mídia"
 SEARCH                               = "Procurar"
 
 # File browser strings
@@ -57,10 +59,17 @@ COPIED_FILES_FOLDERS                 = "Arquivos/pastas %d copiados."
 DELETE_FILE_QUESTION                 = "Tem certeza de que deseja excluir este arquivo?"
 DELETE_FOLDER_QUESTION               = "Tem certeza de que deseja excluir esta pasta?"
 DELETE_FILES_FOLDERS_QUESTION        = "Tem certeza de que deseja excluir estes arquivos/pastas?"
+EXPORT_FILE_QUESTION                 = "Tem certeza de que deseja exportar este arquivo para mídia?"
+EXPORT_FOLDER_QUESTION               = "Tem certeza de que deseja exportar esta pasta para mídia?"
+EXPORT_FILES_FOLDERS_QUESTION        = "Tem certeza de que deseja exportar estes arquivos/pastas para mídia?"
+EXPORT_NO_MEDIA                      = "Não há arquivos de mídia disponíveis para exportar."
+EXPORT_SONGS_INFO                    = "Exportado(s) %d som(s)."
+EXPORT_PICTURES_INFO                 = "Exportado(s) %d imagem(s)."
+EXPORT_SONGS_PICTURES_INFO           = "Exportado(s) %d som(s) e %d imagem(s)."
 INSTALL_ALL_QUESTION                 = "Você deseja instalar todos os pacotes disponíveis nesta pasta?"
 INSTALL_QUESTION                     = "Você deseja instalar este pacote?"
 INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se você não o obteve de uma fonte confiável,\proceda com cuidado.\\Deseja continuar a instalação?"
-HASH_FILE_QUESTION                   = "O SHA1 hashing pode levar um longo tempo. Deseja continuar?"
+HASH_FILE_QUESTION                   = "O hashing SHA1 pode levar um longo tempo. Deseja continuar?"
 
 # Others
 PLEASE_WAIT                          = "Por favor, aguarde..."
@@ -68,5 +77,7 @@ SAVE_MODIFICATIONS                   = "Você deseja salvar as modificações?"
 NO_SPACE_ERROR                       = "Não há espaço livre suficiente na memória\cartão.\É necessário pelo menos mais %s de espaço livre."
 WIFI_ERROR                           = "Você deve usar o Wi-Fi para fazer isso."
 FTP_SERVER                           = "Servidor FTP está diponível em\ftp://%s:%i\\Pressione 'OK' para mantê-lo em segundo plano.\Pressione 'Cancelar' para desconectar."
-SYS_INFO                             = "Software de sistema: %s\Modelo: 0x%08X\Endereço MAC: %s\Endereço IP: %s\Cartão de memória: %s/%s"
+SYS_INFO                             = "Software de sistema: %s\Modelo: 0x%08X\Endereço MAC: %s\Endereço IP: %s\Cartão de memória: %s/%s\Nível de bateria: %d%%"
 UPDATE_QUESTION                      = "VitaShell %s está disponível.\\Deseja atualizar o aplicativo?""
+TOOLBOX                              = "Caixa de ferramentas"
+SYSINFO_TITLE                        = "Informação do sistema"

@@ -1,5 +1,5 @@
 # VitaShell chinese_t translation by jatalin
-# Updated For VitaShell 1.0 (09/13/16)
+# Updated For VitaShell 1.2 (09/16/16)
 
 # VitaShell language file
 
@@ -15,6 +15,7 @@ FOLDER                               = "文件夾"
 MOVING                               = "移動中..."
 COPYING                              = "複製中..."
 DELETING                             = "刪除中..."
+EXPORTING                            = "導出中..."
 INSTALLING                           = "安裝中..."
 DOWNLOADING                          = "下載中..."
 EXTRACTING                           = "提取中..."
@@ -49,6 +50,7 @@ RENAME                               = "重命名"
 NEW_FOLDER                           = "新建文件夾"
 INSTALL_ALL                          = "全部安裝"
 CALCULATE_SHA1                       = "效驗SHA1直"
+EXPORT_MEDIA                         = "導出媒體文件"
 SEARCH                               = "搜索"
 
 # File browser strings
@@ -60,15 +62,23 @@ COPIED_FILES_FOLDERS                 = "已複製 %d 個文件/文件夾。"
 DELETE_FILE_QUESTION                 = "你確定要刪除此文件嘛？"
 DELETE_FOLDER_QUESTION               = "你確定要刪除此文件夾嘛？"
 DELETE_FILES_FOLDERS_QUESTION        = "你確定要刪除這些文件/文件夾嘛？"
+EXPORT_FILE_QUESTION                 = "你想要導出此文件到媒體嘛？"
+EXPORT_FOLDER_QUESTION               = "你想要導出此文件夾到媒體嘛？"
+EXPORT_FILES_FOLDERS_QUESTION        = "你想要導出這些文件/文件夾到媒體嘛？"
+EXPORT_NO_MEDIA                      = "沒有可用的媒體文件被導出。"
+EXPORT_SONGS_INFO                    = "已導出 %d 首歌曲。"
+EXPORT_PICTURES_INFO                 = "已導出 %d 張圖片。" 
+EXPORT_SONGS_PICTURES_INFO           = "已導出 %d 首歌曲 和 %d 張圖片。"
 INSTALL_ALL_QUESTION                 = "你想安裝此文件夾內所有應用嘛？"
 INSTALL_QUESTION                     = "你想安裝此應用嘛？"
 INSTALL_WARNING                      = "這個應用需要額外的權限。\這可能會獲取你的個人信息。\如果該應用來自不信任的來源，請慎重使用。\\你要繼續安裝嘛？"
 HASH_FILE_QUESTION                   = "SHA1哈希直效驗可能要花費較長時間。繼續效驗嘛?"
 
 # Others
+PLEASE_WAIT                          = "請稍等..."
 SAVE_MODIFICATIONS                   = "你要保存這些更改嘛？"
 NO_SPACE_ERROR                       = "存儲卡上沒有充足的可用空間。\至少需要 %s 可用空間"
 WIFI_ERROR                           = "你必須啓用無線網絡以使用該功能。"
 FTP_SERVER                           = "FTP 服務器正在運行於\ftp://%s:%i\\按 '確定' 將其保留在後台。\按 '取消' 斷開連接。"
 SYS_INFO                             = "固件版本: %s\模式: 0x%08X\MAC地址: %s\IP地址: %s\存儲卡: %s/%s"
-UPDATE_QUESTION                      = "VitaShell %s 發現可用的新版本。\\是否立刻升級程序？"
+UPDATE_QUESTION                      = "發現可用的新版本：\VitaShell %s\\是否立刻升級程序？"
