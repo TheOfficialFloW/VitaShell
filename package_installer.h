@@ -29,7 +29,9 @@ typedef struct {
 	char *file;
 } InstallArguments;
 
-int promote(char *path);
+int promoteApp(char *path);
+int deleteApp(char *titleid);
+
 int makeHeadBin();
 
 int installPackage(char *file);

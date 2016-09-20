@@ -26,6 +26,7 @@
 #include "utils.h"
 #include "sfo.h"
 #include "sha1.h"
+
 #include "sysmodule_internal.h"
 #include "libpromoter/promoterutil.h"
 
@@ -109,7 +110,7 @@ int promoteUpdate(char *path, char *titleid, char *category, void *sfo_buffer, i
 	return 0;
 }
 
-int promote(char *path) {
+int promoteApp(char *path) {
 	int res;
 
 	// Read param.sfo
@@ -177,6 +178,54 @@ int promote(char *path) {
 
 	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
 	return result == 0x80870005 ? 0 : result;
+}
+
+int deleteApp(char *titleid) {
+	int res;
+
+	char temp[0x100];
+
+	res = _sceAppMgrDestroyAppByName(titleid, temp);
+	if (res < 0 && res != 0x80802012)
+		return res;
+
+	loadScePaf();
+
+	res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
+	if (res < 0)
+		return res;
+
+	res = scePromoterUtilityInit();
+	if (res < 0)
+		return res;
+
+	res = scePromoterUtilityDeletePkg(titleid);
+	if (res < 0)
+		return res;
+
+	int state = 0;
+	do {
+		res = scePromoterUtilityGetState(&state);
+		if (res < 0)
+			return res;
+
+		sceKernelDelayThread(100 * 1000);
+	} while (state);
+
+	int result = 0;
+	res = scePromoterUtilityGetResult(&result);
+	if (res < 0)
+		return res;
+
+	res = scePromoterUtilityExit();
+	if (res < 0)
+		return res;
+
+	res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
+	if (res < 0)
+		return res;
+
+	return 0;
 }
 
 void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
@@ -308,8 +357,8 @@ int installPackage(char *file) {
 	if (res < 0)
 		return res;
 
-	// Promote
-	res = promote(PACKAGE_DIR);
+	// Promote app
+	res = promoteApp(PACKAGE_DIR);
 	if (res < 0)
 		return res;
 
@@ -440,8 +489,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		goto EXIT;
 	}
 
-	// Promote
-	res = promote(PACKAGE_DIR);
+	// Promote app
+	res = promoteApp(PACKAGE_DIR);
 	if (res < 0) {
 		closeWaitDialog();
 		errorDialog(res);

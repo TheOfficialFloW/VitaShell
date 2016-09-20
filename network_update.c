@@ -234,8 +234,8 @@ void installUpdater() {
 	// Make head.bin
 	makeHeadBin();
 
-	// Promote
-	promote(PACKAGE_DIR);
+	// Promote app
+	promoteApp(PACKAGE_DIR);
 }
 
 int update_extract_thread(SceSize args, void *argp) {

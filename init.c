@@ -19,6 +19,7 @@
 #include "main.h"
 #include "init.h"
 #include "file.h"
+#include "package_installer.h"
 #include "utils.h"
 
 INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
@@ -164,6 +165,8 @@ void finishNet() {
 }
 
 void initVitaShell() {
+	SceIoStat stat;
+
 	// Init random number generator
 	srand(time(NULL));
 
@@ -214,7 +217,6 @@ void initVitaShell() {
 	}
 
 	// Write changeinfo.xml file to patch
-	SceIoStat stat;
 	memset(&stat, 0, sizeof(stat));
 	if (sceIoGetstat("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", &stat) < 0 || (int)stat.st_size != (int)&_binary_resources_changeinfo_txt_size) {
 		sceIoMkdir("ux0:patch", 0777);
@@ -222,6 +224,12 @@ void initVitaShell() {
 		sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);
 		sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0777);
 		WriteFile("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", (void *)&_binary_resources_changeinfo_txt_start, (int)&_binary_resources_changeinfo_txt_size);
+	}
+
+	// Delete VitaShell updater if available
+	memset(&stat, 0, sizeof(SceIoStat));
+	if (sceIoGetstat("ux0:app/VSUPDATER", &stat) >= 0) {
+		deleteApp("VSUPDATER");
 	}
 }
 

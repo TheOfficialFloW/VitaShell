@@ -14,7 +14,7 @@ typedef struct ScePromoterUtilityLAUpdate {
 
 int scePromoterUtilityInit(void);
 int scePromoterUtilityExit(void);
-int scePromoterUtilityDeletePkg(void *unk);
+int scePromoterUtilityDeletePkg(char *titleid);
 int scePromoterUtilityUpdateLiveArea(ScePromoterUtilityLAUpdate *args);
 int scePromoterUtilityPromotePkg(char *path, int unk);
 int scePromoterUtilityPromotePkgWithRif(const char *path, int unk);
