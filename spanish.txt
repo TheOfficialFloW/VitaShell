@@ -18,11 +18,11 @@ DOWNLOADING                          = "Descargando..."
 EXTRACTING                           = "Extrayendo..."
 HASHING                              = "Hashing..."
 
-# Audio player strings - Carácteres del reproductor de música
+# Audio player strings - Carácteres del reproductor de audio
 TITLE                                = "Título"
 ALBUM                                = "Álbum"
 ARTIST                               = "Artista"
-GENRE                                = "Generp"
+GENRE                                = "Generó"
 YEAR                                 = "Año"
 
 # Hex editor strings - Carácteres del editor hexadecimal
@@ -74,7 +74,7 @@ HASH_FILE_QUESTION				     = "Realizar la operación para el hashing SHA1 puede 
 # Others - Otros
 PLEASE_WAIT                          = "Por favor, espere..."
 SAVE_MODIFICATIONS                   = "¿Quieres guardar estas modificaciones?"
-NO_SPACE_ERROR                       = "No hay mas espacio libre en la tarjeta de memoria.\Se necesita %s de espacio."
+NO_SPACE_ERROR                       = "No hay espacio libre en la tarjeta de memoria.\Se necesita %s de espacio."
 WIFI_ERROR                           = "Tienes que activar la conexión Wi-Fi para usar esta función."
 FTP_SERVER                           = "El servidor FTP está activo en\ftp://%s:%i\\Pulsa 'Aceptar' para mantenerlo en segundo plano.\Pulsa 'Cancelar' para desconectarte."
 SYS_INFO                             = "Versión del sistema: %s\Modelo: 0x%08X\Dirección MAC: %s\Dirección IP: %s\Tarjeta de memoria: %s/%s"
