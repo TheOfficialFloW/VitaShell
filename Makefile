@@ -1,7 +1,7 @@
 TITLE_ID = VITASHELL
 TARGET   = VitaShell
 OBJS     = main.o init.o io_process.o package_installer.o network_update.o context_menu.o archive.o photo.o audioplayer.o file.o text.o hex.o sfo.o \
-		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o \
+		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o list_dialog.o \
 		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o audio/oggplayer.o audio/mp3player.o audio/mp3xing.o \
 		   libmad/bit.o libmad/decoder.o libmad/fixed.o libmad/frame.o \
 		   libmad/huffman.o libmad/layer12.o libmad/layer3.o  \
@@ -41,7 +41,7 @@ ASFLAGS  = $(CFLAGS)
 all: $(TARGET).vpk
 
 %.vpk: eboot.bin
-	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=01.10 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
+	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=01.20 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin \
 		--add pkg/sce_sys/icon0.png=sce_sys/icon0.png \
 		--add pkg/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \

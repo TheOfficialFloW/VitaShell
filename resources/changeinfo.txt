@@ -153,4 +153,14 @@
 - FTP does now show 'Please wait...' until it has been connected to Wi-Fi.<br>
     ]]>
   </changes>
+   <changes app_ver="01.20">
+    <![CDATA[
+- Added ability to export photo and music files ('More' -> 'Export media').<br>
+- Added battery percentage to system information (thanks to littlebalup).<br>
+- Added toolbox where more features will have place, by theorywrong (press START).<br>
+- Improved stability for file browser delete operation.<br>
+- Pressing L in the music player will now restart the song if the song is not at the beginning.<br>
+- VitaShell will now remove the unused updater bubble after successful updating.<br>
+    ]]>
+  </changes>
 </changeinfo>

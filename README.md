@@ -94,6 +94,14 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.2 ###
+- Added ability to export photo and music files ('More' -> 'Export media').
+- Added battery percentage to system information (thanks to littlebalup).
+- Added toolbox where more features will have place, by theorywrong (press START).
+- Improved stability for file browser delete operation.
+- Pressing L in the music player will now restart the song if the song is not at the beginning.
+- VitaShell will now remove the unused updater bubble after successful updating.
+
 ### Changelog 1.1 ###
 - Added cover.jpg and folder.jpg as alternative cover image.
 - Fixed ID3 tag parsing.

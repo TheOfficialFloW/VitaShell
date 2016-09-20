@@ -44,6 +44,7 @@
 #include "language.h"
 #include "utils.h"
 #include "sfo.h"
+#include "list_dialog.h"
 
 #include "audio/vita_audio.h"
 
@@ -82,6 +83,8 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 
 // Dialog step
 volatile int dialog_step = DIALOG_STEP_NONE;
+
+static List toolbox_list;
 
 // Use custom config
 int use_custom_config = 1;
@@ -469,6 +472,16 @@ MenuEntry menu_more_entries[] = {
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
 
+enum ListToolboxEntrys {
+	LIST_TOOLBOX_ENTRY_SYSINFO,
+};
+
+ListEntry list_toolbox_entries[] = {
+	{ SYSINFO_TITLE },
+};
+
+#define N_LIST_TOOLBOX_ENTRIES (sizeof(list_toolbox_entries) / sizeof(ListEntry))
+
 void setContextMenuVisibilities() {
 	int i;
 
@@ -593,6 +606,49 @@ void setContextMenuMoreVisibilities() {
 
 	if (i == N_MENU_MORE_ENTRIES)
 		setContextMenuMorePos(-1);
+}
+
+int listToolboxEnterCallback(int pos) {
+	switch (pos) {
+		case LIST_TOOLBOX_ENTRY_SYSINFO:
+		{
+			// System software version
+			SceSystemSwVersionParam sw_ver_param;
+			sw_ver_param.size = sizeof(SceSystemSwVersionParam);
+			sceKernelGetSystemSwVersion(&sw_ver_param);
+
+			// MAC address
+			SceNetEtherAddr mac;
+			sceNetGetMacAddress(&mac, 0);
+
+			char mac_string[32];
+			sprintf(mac_string, "%02X:%02X:%02X:%02X:%02X:%02X", mac.data[0], mac.data[1], mac.data[2], mac.data[3], mac.data[4], mac.data[5]);
+
+			// Get IP
+			char ip[16];
+
+			SceNetCtlInfo info;
+			if (sceNetCtlInetGetInfo(SCE_NETCTL_INFO_GET_IP_ADDRESS, &info) < 0) {
+				strcpy(ip, "-");
+			} else {
+				strcpy(ip, info.ip_address);
+			}
+
+			// Memory card
+			uint64_t free_size = 0, max_size = 0;
+			sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
+
+			char free_size_string[16], max_size_string[16];
+			getSizeString(free_size_string, free_size);
+			getSizeString(max_size_string, max_size);
+
+			// System information dialog
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string, scePowerGetBatteryLifePercent());
+			dialog_step = DIALOG_STEP_SYSTEM;
+		}
+	}
+
+	return LIST_DIALOG_CLOSE;
 }
 
 int contextMenuEnterCallback(int pos, void* context) {
@@ -1189,41 +1245,17 @@ int dialogSteps() {
 }
 
 void fileBrowserMenuCtrl() {
-	// System information
+	// Show toolbox list dialog
 	if (current_buttons & SCE_CTRL_START) {
-		// System software version
-		SceSystemSwVersionParam sw_ver_param;
-		sw_ver_param.size = sizeof(SceSystemSwVersionParam);
-		sceKernelGetSystemSwVersion(&sw_ver_param);
+		if (getListDialogMode() == LIST_DIALOG_CLOSE) {
+			toolbox_list.title = TOOLBOX;
+			toolbox_list.list_entries = list_toolbox_entries;
+			toolbox_list.n_list_entries = N_LIST_TOOLBOX_ENTRIES;
+			toolbox_list.can_escape = 1;
+			toolbox_list.listSelectCallback = listToolboxEnterCallback;
 
-		// MAC address
-		SceNetEtherAddr mac;
-		sceNetGetMacAddress(&mac, 0);
-
-		char mac_string[32];
-		sprintf(mac_string, "%02X:%02X:%02X:%02X:%02X:%02X", mac.data[0], mac.data[1], mac.data[2], mac.data[3], mac.data[4], mac.data[5]);
-
-		// Get IP
-		char ip[16];
-
-		SceNetCtlInfo info;
-		if (sceNetCtlInetGetInfo(SCE_NETCTL_INFO_GET_IP_ADDRESS, &info) < 0) {
-			strcpy(ip, "-");
-		} else {
-			strcpy(ip, info.ip_address);
+			loadListDialog(&toolbox_list);
 		}
-
-		// Memory card
-		uint64_t free_size = 0, max_size = 0;
-		sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
-
-		char free_size_string[16], max_size_string[16];
-		getSizeString(free_size_string, free_size);
-		getSizeString(max_size_string, max_size);
-
-		// System information dialog
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string, scePowerGetBatteryLifePercent());
-		dialog_step = DIALOG_STEP_SYSTEM;
 	}
 
 	// FTP
@@ -1431,6 +1463,8 @@ int shellMain() {
 		if (dialog_step == DIALOG_STEP_NONE) {
 			if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
 				contextMenuCtrl(&context_menu);
+			} else if (getListDialogMode() != LIST_DIALOG_CLOSE) {
+				listDialogCtrl();
 			} else {
 				fileBrowserMenuCtrl();
 			}
@@ -1587,6 +1621,9 @@ int shellMain() {
 
 		// Draw context menu
 		drawContextMenu(&context_menu);
+
+		// Draw list dialog
+		drawListDialog();
 
 		// End drawing
 		endDrawing();
