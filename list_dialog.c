@@ -148,7 +148,7 @@ void listDialogCtrl() {
 	if ((pressed_buttons & (SCE_CTRL_CANCEL | SCE_CTRL_START)) && current_list->can_escape)
 		list_dialog.animation_mode = LIST_DIALOG_CLOSING;
 
-	if (pressed_buttons & SCE_CTRL_CROSS) {
+	if (pressed_buttons & SCE_CTRL_ENTER) {
 		list_dialog.enter_pressed = 1;
 		list_dialog.animation_mode = LIST_DIALOG_CLOSING;
 	}
