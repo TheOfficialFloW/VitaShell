@@ -74,9 +74,6 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png),
 };
 
-vita2d_pgf *font = NULL;
-char font_size_cache[256];
-
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
 
@@ -122,17 +119,6 @@ void finishSceAppUtil() {
 
 void initVita2dLib() {
 	vita2d_init();
-	font = vita2d_load_default_pgf();
-
-	// Font size cache
-	int i;
-	for (i = 0; i < 256; i++) {
-		char character[2];
-		character[0] = i;
-		character[1] = '\0';
-
-		font_size_cache[i] = vita2d_pgf_text_width(font, FONT_SIZE, character);
-	}
 }
 
 void finishVita2dLib() {
