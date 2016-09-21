@@ -111,6 +111,9 @@ vita2d_texture *previous_wallpaper_image = NULL, *current_wallpaper_image = NULL
 
 int wallpaper_count = 0;
 
+vita2d_pgf *font = NULL;
+char font_size_cache[256];
+
 void loadTheme() {
 	#define COLOR_ENTRY(name) { #name, CONFIG_TYPE_HEXDECIMAL, (void *)&name }
 	ConfigEntry colors_entries[] = {
@@ -286,6 +289,10 @@ void loadTheme() {
 				int random_num = randomNumber(0, wallpaper_count - 1);
 				current_wallpaper_image = wallpaper_image[random_num];
 			}
+
+			// Font
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
+ 			font = vita2d_load_custom_pgf(path);
 		}
 	}
 
@@ -379,4 +386,18 @@ void loadTheme() {
 	
 	if (!fastrewind_image)
 		fastrewind_image = vita2d_load_PNG_buffer(&_binary_resources_fastrewind_png_start);
+
+	// Load default font
+	if (!font)
+		font = vita2d_load_default_pgf();
+
+	// Font size cache
+	int i;
+	for (i = 0; i < 256; i++) {
+		char character[2];
+		character[0] = i;
+		character[1] = '\0';
+
+		font_size_cache[i] = vita2d_pgf_text_width(font, FONT_SIZE, character);
+	}
 }
