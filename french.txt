@@ -1,5 +1,5 @@
 ﻿# VitaShell french translation by xy2_ 
-# Updated by Dragoon1010 (For VitaShell 1.1)
+# Updated by Dragoon1010 (For VitaShell 1.2)
 
 # General strings
 
@@ -87,7 +87,7 @@ SAVE_MODIFICATIONS		= "Voulez vous sauvegarder les modifications ?"
 NO_SPACE_ERROR			= "Il n'y a plus d'espace libre sur la carte mémoire\mémoire interne.\%s supplémentaires sont nécessaires."
 WIFI_ERROR			= "Vous devez activer le Wi-Fi pour utiliser cette fonction."
 FTP_SERVER			= "Serveur FTP actif à l'adresse \ftp://%s:%i\\Appuyez sur 'OK' pour garder en tâche de fond.\Appuyez sur 'Annuler' pour l'arrêter."
-SYS_INFO			= "Logiciel système : %s\Modèle : 0x%08X\addresse MAC : %s\addresse IP : %s\Mémoire restante : %s/%s"
+SYS_INFO			= "Logiciel système : %s\Modèle : 0x%08X\addresse MAC : %s\addresse IP : %s\Mémoire restante : %s/%s\Batteire restante: %d%%"
 UPDATE_QUESTION			= "Une nouvelle version de VitaShell est disponible.\\Voulez vous mettre à jour en version %s ?"
 TOOLBO				= "Boite à outils"
 SYSINFO_TITLE			= "Informations système"
