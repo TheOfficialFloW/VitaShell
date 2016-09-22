@@ -183,9 +183,7 @@ int promoteApp(char *path) {
 int deleteApp(char *titleid) {
 	int res;
 
-	char temp[0x100];
-
-	res = _sceAppMgrDestroyAppByName(titleid, temp);
+	res = sceAppMgrDestroyAppByName(titleid);
 	if (res < 0 && res != 0x80802012)
 		return res;
 
