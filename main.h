@@ -207,5 +207,41 @@ int isInArchive();
 void ftpvita_PROM(ftpvita_client_info_t *client);
 void install_unassisted_sync(char *path);
 
+///////////////////////////////////////////////////
+enum Colors
+{
+    // Primary colors
+    RED = 0xFF0000FF,
+    GREEN = 0xFF00FF00,
+    BLUE = 0xFFFF0000,
+    // Secondary colors
+    CYAN = 0xFFFFFF00,
+    MAGENTA = 0xFFFF00FF,
+    YELLOW = 0xFF00FFFF,
+    // Tertiary colors
+    AZURE = 0xFFFF7F00,
+    VIOLET = 0xFFFF007F,
+    ROSE = 0xFF7F00FF,
+    ORANGE = 0xFF007FFF,
+    CHARTREUSE = 0xFF00FF7F,
+    SPRING_GREEN = 0xFF7FFF00,
+    // Grayscale
+    WHITE = 0xFFFFFFFF,
+    LITEGRAY = 0xFFBFBFBF,
+    GRAY = 0xFF7F7F7F,
+    DARKGRAY = 0xFF3F3F3F,
+    BLACK = 0xFF000000
+};
+
+extern vita2d_texture *headphone_image, *audio_previous_image, *audio_pause_image, *audio_play_image, *audio_next_image;
+extern vita2d_texture *default_wallpaper, *game_card_storage_image, *game_card_image, *memory_card_image;
+extern vita2d_texture *run_file_image, *img_file_image, *unknown_file_image, *sa0_image, *ur0_image, *vd0_image, *vs0_image;
+extern vita2d_texture *savedata0_image, *folder_image, *pd0_image, *app0_image, *ud0_image, *mark_image, *music_image, *os0_image;
+extern vita2d_texture *zip_file_image, *txt_file_image, *title_bar_bg_image ;
+
+
+
+///////////////////////////////////////////////////
+
 #endif
 

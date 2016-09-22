@@ -22,6 +22,39 @@
 #include "package_installer.h"
 #include "utils.h"
 
+//////////////////////////////////////////////////////////////
+extern unsigned char _binary_resources_vita_game_card_png_start;
+extern unsigned char _binary_resources_vita_game_card_storage_png_start;
+extern unsigned char _binary_resources_memory_card_png_start;
+extern unsigned char _binary_resources_os0_png_start;
+extern unsigned char _binary_resources_sa0_png_start;
+extern unsigned char _binary_resources_ur0_png_start;
+extern unsigned char _binary_resources_vd0_png_start;
+extern unsigned char _binary_resources_vs0_png_start;
+extern unsigned char _binary_resources_savedata0_png_start;
+extern unsigned char _binary_resources_pd0_png_start;
+extern unsigned char _binary_resources_app0_png_start;
+extern unsigned char _binary_resources_ud0_png_start;
+
+extern unsigned char _binary_resources_bg_wallpaper_png_start;
+extern unsigned char _binary_resources_folder_png_start;
+extern unsigned char _binary_resources_mark_png_start;
+extern unsigned char _binary_resources_run_file_png_start;
+extern unsigned char _binary_resources_image_file_png_start;
+extern unsigned char _binary_resources_unknown_file_png_start;
+extern unsigned char _binary_resources_music_file_png_start;
+extern unsigned char _binary_resources_zip_file_png_start;
+extern unsigned char _binary_resources_txt_file_png_start;
+extern unsigned char _binary_resources_music_file_png_start;
+extern unsigned char _binary_resources_title_bar_bg_png_start;
+
+vita2d_texture *default_wallpaper = NULL, *game_card_storage_image = NULL, *game_card_image = NULL, *memory_card_image = NULL;
+vita2d_texture *run_file_image = NULL, *img_file_image = NULL, *unknown_file_image = NULL, *sa0_image = NULL, *ur0_image = NULL, *vd0_image = NULL, *vs0_image = NULL;
+vita2d_texture *savedata0_image = NULL, *pd0_image = NULL, *folder_image = NULL, *app0_image = NULL, *ud0_image = NULL, *mark_image = NULL, *music_image = NULL, *os0_image = NULL ;
+vita2d_texture *zip_file_image = NULL, *txt_file_image = NULL, *title_bar_bg_image = NULL ;
+
+//////////////////////////////////////////////////////////////
+
 INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
 
 INCLUDE_EXTERN_RESOURCE(folder_icon_png);
@@ -119,12 +152,88 @@ void finishSceAppUtil() {
 
 void initVita2dLib() {
 	vita2d_init();
+
+	////////////////////////////////////////////////
+	game_card_image = vita2d_load_PNG_buffer(&_binary_resources_vita_game_card_png_start);
+	game_card_storage_image = vita2d_load_PNG_buffer(&_binary_resources_vita_game_card_storage_png_start);
+	memory_card_image = vita2d_load_PNG_buffer(&_binary_resources_memory_card_png_start);
+	os0_image = vita2d_load_PNG_buffer(&_binary_resources_os0_png_start);
+	sa0_image = vita2d_load_PNG_buffer(&_binary_resources_sa0_png_start);
+	ur0_image = vita2d_load_PNG_buffer(&_binary_resources_ur0_png_start);
+	vd0_image = vita2d_load_PNG_buffer(&_binary_resources_vd0_png_start);
+	vs0_image = vita2d_load_PNG_buffer(&_binary_resources_vs0_png_start);
+	savedata0_image = vita2d_load_PNG_buffer(&_binary_resources_savedata0_png_start);
+	pd0_image = vita2d_load_PNG_buffer(&_binary_resources_pd0_png_start);
+	app0_image = vita2d_load_PNG_buffer(&_binary_resources_app0_png_start);
+	ud0_image = vita2d_load_PNG_buffer(&_binary_resources_ud0_png_start);
+
+	default_wallpaper = vita2d_load_PNG_buffer(&_binary_resources_bg_wallpaper_png_start);	
+	folder_image = vita2d_load_PNG_buffer(&_binary_resources_folder_png_start);
+	mark_image = vita2d_load_PNG_buffer(&_binary_resources_mark_png_start);
+	run_file_image =  vita2d_load_PNG_buffer(&_binary_resources_run_file_png_start);
+	img_file_image =  vita2d_load_PNG_buffer(&_binary_resources_image_file_png_start);
+	unknown_file_image =  vita2d_load_PNG_buffer(&_binary_resources_unknown_file_png_start);
+	music_image = vita2d_load_PNG_buffer(&_binary_resources_music_file_png_start);
+	zip_file_image = vita2d_load_PNG_buffer(&_binary_resources_zip_file_png_start);
+	txt_file_image = vita2d_load_PNG_buffer(&_binary_resources_txt_file_png_start);
+	title_bar_bg_image = vita2d_load_PNG_buffer(&_binary_resources_title_bar_bg_png_start);
+	////////////////////////////////////////////////
 }
 
 void finishVita2dLib() {
-	vita2d_free_pgf(font);
-	vita2d_fini();
+/////////////////////////////////////////////////////	
+	vita2d_free_texture(game_card_image);
+	vita2d_free_texture(game_card_storage_image);
+	vita2d_free_texture(memory_card_image);
+	vita2d_free_texture(os0_image);
+	vita2d_free_texture(sa0_image);
+	vita2d_free_texture(ur0_image);
+	vita2d_free_texture(vd0_image);
+	vita2d_free_texture(vs0_image);
+	vita2d_free_texture(savedata0_image);
+	vita2d_free_texture(pd0_image);
+	vita2d_free_texture(app0_image);
+	vita2d_free_texture(ud0_image);
 
+	vita2d_free_texture(default_wallpaper);
+	vita2d_free_texture(folder_image);
+	vita2d_free_texture(mark_image);
+	vita2d_free_texture(run_file_image);
+	vita2d_free_texture(img_file_image);
+	vita2d_free_texture(unknown_file_image);
+	vita2d_free_texture(music_image);
+	vita2d_free_texture(zip_file_image);
+	vita2d_free_texture(txt_file_image);
+	vita2d_free_texture(music_image);
+	vita2d_free_texture(title_bar_bg_image);
+/////////////////////////////////////////////////////
+	vita2d_free_pgf(font);	
+	vita2d_fini();
+/////////////////////////////////////////////////////
+	game_card_image = NULL;
+	game_card_storage_image = NULL;
+	memory_card_image = NULL;
+	os0_image = NULL;
+	sa0_image = NULL;
+	ur0_image = NULL;
+	vd0_image = NULL;
+	vs0_image = NULL;
+	savedata0_image = NULL;
+	pd0_image = NULL;
+	app0_image = NULL;
+	ud0_image = NULL;
+
+	default_wallpaper = NULL;
+	folder_image = NULL;
+	mark_image = NULL;
+	run_file_image = NULL;
+	img_file_image = NULL;
+	unknown_file_image = NULL;
+	music_image = NULL;
+	zip_file_image = NULL;
+	txt_file_image = NULL;
+	title_bar_bg_image = NULL;	
+/////////////////////////////////////////////////////
 	font = NULL;
 }
 
@@ -203,6 +312,7 @@ void initVitaShell() {
 	}
 
 	// Write changeinfo.xml file to patch
+	
 	memset(&stat, 0, sizeof(stat));
 	if (sceIoGetstat("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", &stat) < 0 || (int)stat.st_size != (int)&_binary_resources_changeinfo_txt_size) {
 		sceIoMkdir("ux0:patch", 0777);
@@ -213,10 +323,10 @@ void initVitaShell() {
 	}
 
 	// Delete VitaShell updater if available
-	memset(&stat, 0, sizeof(SceIoStat));
-	if (sceIoGetstat("ux0:app/VSUPDATER", &stat) >= 0) {
-		deleteApp("VSUPDATER");
-	}
+ 	memset(&stat, 0, sizeof(SceIoStat));
+ 	if (sceIoGetstat("ux0:app/VSUPDATER", &stat) >= 0) {
+ 		deleteApp("VSUPDATER");
+ 	}	 
 }
 
 void finishVitaShell() {

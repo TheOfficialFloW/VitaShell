@@ -7,7 +7,11 @@ OBJS     = main.o init.o io_process.o package_installer.o network_update.o conte
 		   libmad/huffman.o libmad/layer12.o libmad/layer3.o  \
 		   libmad/stream.o libmad/synth.o libmad/timer.o
 
-RESOURCES = resources
+RESOURCES = resources \
+			resources/bg_wallpaper.png resources/vita_game_card.png resources/vita_game_card_storage.png \
+		   	resources/os0.png resources/memory_card.png resources/run_file.png resources/unknown_file.png resources/image_file.png \
+		   	resources/sa0.png resources/ur0.png resources/vd0.png resources/vs0.png resources/savedata0.png resources/pd0.png resources/app0.png \
+		   	resources/ud0.png resources/folder.png resources/mark.png resources/music_file.png resources/zip_file.png resources/txt_file.png resources/title_bar_bg.png 
 RESOURCES_PNG := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.png))
 RESOURCES_TXT := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.txt))
 RESOURCES_BIN := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.bin))
@@ -44,6 +48,7 @@ all: $(TARGET).vpk
 	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=01.20 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin \
 		--add pkg/sce_sys/icon0.png=sce_sys/icon0.png \
+		--add pkg/sce_sys/pic0.png=sce_sys/pic0.png \
 		--add pkg/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
 		--add pkg/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
 		--add pkg/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
