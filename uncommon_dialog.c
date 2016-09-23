@@ -378,7 +378,7 @@ int drawUncommonDialog() {
 		x_d_start = uncommon_dialog.x + uncommon_dialog.width;
 		x_d_end = uncommon_dialog.x + uncommon_dialog.width + CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, string));
 		y_d = uncommon_dialog.y + uncommon_dialog.height + string_y + FONT_Y_SPACE2;		
-		vita2d_draw_rectangle(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)) - 10, string_y + FONT_Y_SPACE , (x_d_end - x_d_start) / 3 - 15, FONT_Y_SPACE + 5, COLOR_ALPHA(GRAY, 0xC8));				
+		//vita2d_draw_rectangle(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)) - 10, string_y + FONT_Y_SPACE , (x_d_end - x_d_start) / 3 - 15, FONT_Y_SPACE + 5, COLOR_ALPHA(GRAY, 0xC8));				
 //////////////////////////////////////////////////////////		
 
 		switch (uncommon_dialog.buttonType) {
