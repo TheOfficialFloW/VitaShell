@@ -69,6 +69,7 @@ typedef struct FileListEntry {
 	int is_folder;
 	int type;
 	SceOff size;
+	SceOff size2;
 	SceDateTime time;
 	int reserved[16];
 } FileListEntry;

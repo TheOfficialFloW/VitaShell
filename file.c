@@ -834,6 +834,17 @@ int fileListGetMountPointEntries(FileList *list) {
 				entry->is_folder = 1;
 				entry->type = FILE_TYPE_UNKNOWN;
 
+				SceIoDevInfo info;
+				memset(&info, 0, sizeof(SceIoDevInfo));
+				int res = sceIoDevctl(entry->name, 0x3001, 0, 0, &info, sizeof(SceIoDevInfo));
+				if (res >= 0) {
+					entry->size = info.free_size;
+					entry->size2 = info.max_size;
+				} else {
+					entry->size = 0;
+					entry->size2 = 0;
+				}
+
 				memcpy(&entry->time, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
 
 				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);

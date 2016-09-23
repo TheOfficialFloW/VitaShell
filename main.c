@@ -1594,11 +1594,32 @@ int shellMain() {
 
 			// File information
 			if (strcmp(file_entry->name, DIR_UP) != 0) {
-				// Folder/size
-				char size_string[16];
-				getSizeString(size_string, file_entry->size);
+				char *str = NULL;
 
-				char *str = file_entry->is_folder ? language_container[FOLDER] : size_string;
+				if (dir_level == 0) {
+					if (file_entry->size != 0 && file_entry->size2 != 0) {
+						char free_size_string[16], max_size_string[16];
+						getSizeString(free_size_string, file_entry->size);
+						getSizeString(max_size_string, file_entry->size2);
+
+						char string[32];
+						snprintf(string, sizeof(string), "%s / %s", free_size_string, max_size_string);
+
+						str = string;
+					} else {
+						str = "-";
+					}
+				} else {
+					if (!file_entry->is_folder) {
+						// Folder/size
+						char string[16];
+						getSizeString(string, file_entry->size);
+
+						str = string;
+					} else {
+						str = language_container[FOLDER];
+					}
+				}
 
 				pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
 
