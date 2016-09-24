@@ -460,12 +460,14 @@ MenuEntry menu_entries[] = {
 
 enum MenuMoreEntrys {
 	MENU_MORE_ENTRY_INSTALL_ALL,
+	MENU_MORE_ENTRY_INSTALL_FOLDER,
 	MENU_MORE_ENTRY_EXPORT_MEDIA,
 	MENU_MORE_ENTRY_CALCULATE_SHA1,
 };
 
 MenuEntry menu_more_entries[] = {
 	{ INSTALL_ALL, CTX_VISIBILITY_INVISIBLE },
+	{ INSTALL_FOLDER, CTX_VISIBILITY_INVISIBLE },
 	{ EXPORT_MEDIA, CTX_VISIBILITY_INVISIBLE },
 	{ CALCULATE_SHA1, CTX_VISIBILITY_INVISIBLE },
 };
@@ -572,6 +574,7 @@ void setContextMenuMoreVisibilities() {
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
@@ -579,12 +582,34 @@ void setContextMenuMoreVisibilities() {
 	// Invisble operations in archives
 	if (isInArchive()) {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	if (file_entry->is_folder) {
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
+		do {
+			char check_path[MAX_PATH_LENGTH];
+			SceIoStat stat;
+			int statres;
+			if (strcmp(file_list.path, "ux0:app/") == 0 || strcmp(file_list.path, "ux0:patch/") == 0) {
+				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
+				break;
+			}
+			snprintf(check_path, MAX_PATH_LENGTH, "%s%s/eboot.bin", file_list.path, file_entry->name);
+			statres = sceIoGetstat(check_path, &stat);
+			if (statres < 0 || SCE_S_ISDIR(stat.st_mode)) {
+				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
+				break;
+			}
+			snprintf(check_path, MAX_PATH_LENGTH, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
+			statres = sceIoGetstat(check_path, &stat);
+			if (statres < 0 || SCE_S_ISDIR(stat.st_mode)) {
+				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
+				break;
+			}
+		} while(0);
 	}
 
 	if(file_entry->type != FILE_TYPE_VPK) {
@@ -864,6 +889,15 @@ int contextMenuMoreEnterCallback(int pos, void* context) {
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_ALL_QUESTION]);
 			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
 			
+			break;
+		}
+
+		case MENU_MORE_ENTRY_INSTALL_FOLDER:
+		{
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
+			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
 			break;
 		}
 		
@@ -1210,6 +1244,7 @@ int dialogSteps() {
 				}
 
 				dialog_step = DIALOG_STEP_NONE;
+				refresh = 1;
 			}
 
 			break;
