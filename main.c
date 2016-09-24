@@ -410,18 +410,6 @@ void drawShellInfo(char *path) {
 	// Show numbers of files and folders
 	// sprintf(str, "%d files and %d folders", file_list.files, file_list.folders);
 
-	// Show memory card
-/*
-	uint64_t free_size = 0, max_size = 0;
-	sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
-
-	char free_size_string[16], max_size_string[16];
-	getSizeString(free_size_string, free_size);
-	getSizeString(max_size_string, max_size);
-
-	sprintf(str, "%s/%s", free_size_string, max_size_string);
-*/
-
 	// Draw on bottom left
 	// pgf_draw_textf(ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - SHELL_MARGIN_Y - FONT_Y_SPACE - 2.0f, LITEGRAY, FONT_SIZE, str);
 }
@@ -610,6 +598,8 @@ void setContextMenuMoreVisibilities() {
 				break;
 			}
 		} while(0);
+	} else {
+		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	if(file_entry->type != FILE_TYPE_VPK) {
@@ -1634,7 +1624,7 @@ int shellMain() {
 				if (dir_level == 0) {
 					if (file_entry->size != 0 && file_entry->size2 != 0) {
 						char free_size_string[16], max_size_string[16];
-						getSizeString(free_size_string, file_entry->size);
+						getSizeString(free_size_string, file_entry->size2 - file_entry->size);
 						getSizeString(max_size_string, file_entry->size2);
 
 						char string[32];
@@ -1730,6 +1720,10 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 }
 
 int main(int argc, const char *argv[]) {
+	// Set CPU to 444mhz
+	scePowerSetArmClockFrequency(444);
+
+	// Init audio
 	vitaAudioInit(0x40);
 
 	// Init VitaShell

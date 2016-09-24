@@ -23,13 +23,13 @@
 #include "sha1.h"
 
 static char *mount_points[] = {
-	"app0:",
+	// "app0:",
 	"gro0:",
 	"grw0:",
 	"os0:",
 	"pd0:",
 	"sa0:",
-	"savedata0:",
+	// "savedata0:",
 	"tm0:",
 	"ud0:",
 	"ur0:",
