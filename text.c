@@ -357,7 +357,7 @@ static int cmp (const void * a, const void * b) {
 static int contextMenuEnterCallback(int pos, void *context) {
 	TextEditorState *state = (TextEditorState*) context;
 
-	debugPrintf("ContextMenu Callback: %i\n", pos);
+	// debugPrintf("ContextMenu Callback: %i\n", pos);
 
 	switch (pos) {
 		case TEXT_MENU_ENTRY_SEARCH:

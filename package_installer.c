@@ -183,9 +183,7 @@ int promoteApp(char *path) {
 int deleteApp(char *titleid) {
 	int res;
 
-	char temp[0x100];
-
-	res = _sceAppMgrDestroyAppByName(titleid, temp);
+	res = sceAppMgrDestroyAppByName(titleid);
 	if (res < 0 && res != 0x80802012)
 		return res;
 
@@ -369,6 +367,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	int res;
 	SceUID thid = -1;
 	char path[MAX_PATH_LENGTH];
+	SceIoStat stat;
+	int isFolder = 0;
 
 	// Lock power timers
 	powerLock();
@@ -381,104 +381,166 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	removePath(PACKAGE_PARENT, NULL);
 	sceIoMkdir(PACKAGE_PARENT, 0777);
 
-	// Open archive
-	res = archiveOpen(args->file);
+	res = sceIoGetstat(args->file, &stat);
 	if (res < 0) {
 		closeWaitDialog();
 		errorDialog(res);
 		goto EXIT;
 	}
 
-	// If you cancelled at the time archiveOpen was working,
-	// it would still open the full permission dialog instead of termiating.
-	// So terminate now
-	if (cancelHandler()) {
-		closeWaitDialog();
-		dialog_step = DIALOG_STEP_CANCELLED;
-		goto EXIT;
-	}
-
-	// Check for param.sfo
-	snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
-	if (archiveFileGetstat(path, NULL) < 0) {
-		closeWaitDialog();
-		errorDialog(-2);
-		goto EXIT;
-	}
-
-	// Check permissions
-	snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
-	SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
-	if (fd >= 0) {
-		char buffer[0x88];
-		archiveFileRead(fd, buffer, sizeof(buffer));
-		archiveFileClose(fd);
-
-		// Team molecule's request: Full permission access warning
-		uint64_t authid = *(uint64_t *)(buffer + 0x80);
-		if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
+	if (SCE_S_ISDIR(stat.st_mode)) {
+		// Check for param.sfo
+		snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+		if (sceIoGetstat(path, &stat) < 0 || SCE_S_ISDIR(stat.st_mode)) {
 			closeWaitDialog();
-
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
-			dialog_step = DIALOG_STEP_INSTALL_WARNING;
-
-			// Wait for response
-			while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
-				sceKernelDelayThread(10 * 1000);
-			}
-
-			// Cancelled
-			if (dialog_step == DIALOG_STEP_CANCELLED) {
-				closeWaitDialog();
-				goto EXIT;
-			}
-
-			// Init again
-			initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
-			dialog_step = DIALOG_STEP_INSTALLING;
+			errorDialog(-2);
+			goto EXIT;
 		}
-	}
 
-	// Src path
-	char src_path[MAX_PATH_LENGTH];
-	strcpy(src_path, args->file);
-	addEndSlash(src_path);
+		// Check permissions
+		snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
+		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
+		if (fd >= 0) {
+			char buffer[0x88];
+			sceIoRead(fd, buffer, sizeof(buffer));
+			sceIoClose(fd);
 
-	// Get archive path info
-	uint64_t size = 0;
-	uint32_t folders = 0, files = 0;
-	getArchivePathInfo(src_path, &size, &folders, &files);
+			// Team molecule's request: Full permission access warning
+			uint64_t authid = *(uint64_t *)(buffer + 0x80);
+			if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
+				closeWaitDialog();
 
-	// Check memory card free space
-	if (checkMemoryCardFreeSpace(size))
-		goto EXIT;
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
+				dialog_step = DIALOG_STEP_INSTALL_WARNING;
 
-	// Update thread
-	thid = createStartUpdateThread(size + folders);
+				// Wait for response
+				while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
+					sceKernelDelayThread(10 * 1000);
+				}
 
-	// Extract process
-	uint64_t value = 0;
+				// Cancelled
+				if (dialog_step == DIALOG_STEP_CANCELLED) {
+					closeWaitDialog();
+					goto EXIT;
+				}
 
-	FileProcessParam param;
-	param.value = &value;
-	param.max = size + folders;
-	param.SetProgress = SetProgress;
-	param.cancelHandler = cancelHandler;
+				// Init again
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+				dialog_step = DIALOG_STEP_INSTALLING;
+			}
+		}
 
-	res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
-	if (res <= 0) {
-		closeWaitDialog();
-		dialog_step = DIALOG_STEP_CANCELLED;
-		errorDialog(res);
-		goto EXIT;
-	}
+		res = sceIoRename(args->file, PACKAGE_DIR);
+		if (res < 0) {
+			closeWaitDialog();
+			dialog_step = DIALOG_STEP_CANCELLED;
+			errorDialog(res);
+			goto EXIT;
+		}
+		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 50);
+		sceKernelDelayThread(COUNTUP_WAIT);
 
-	// Close archive
-	res = archiveClose();
-	if (res < 0) {
-		closeWaitDialog();
-		errorDialog(res);
-		goto EXIT;
+		isFolder = 1;
+	} else {
+		// Open archive
+		res = archiveOpen(args->file);
+		if (res < 0) {
+			closeWaitDialog();
+			errorDialog(res);
+			goto EXIT;
+		}
+
+		// If you cancelled at the time archiveOpen was working,
+		// it would still open the full permission dialog instead of termiating.
+		// So terminate now
+		if (cancelHandler()) {
+			closeWaitDialog();
+			dialog_step = DIALOG_STEP_CANCELLED;
+			goto EXIT;
+		}
+
+		// Check for param.sfo
+		snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+		if (archiveFileGetstat(path, NULL) < 0) {
+			closeWaitDialog();
+			errorDialog(-2);
+			goto EXIT;
+		}
+
+		// Check permissions
+		snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
+		SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
+		if (fd >= 0) {
+			char buffer[0x88];
+			archiveFileRead(fd, buffer, sizeof(buffer));
+			archiveFileClose(fd);
+
+			// Team molecule's request: Full permission access warning
+			uint64_t authid = *(uint64_t *)(buffer + 0x80);
+			if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
+				closeWaitDialog();
+
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
+				dialog_step = DIALOG_STEP_INSTALL_WARNING;
+
+				// Wait for response
+				while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
+					sceKernelDelayThread(10 * 1000);
+				}
+
+				// Cancelled
+				if (dialog_step == DIALOG_STEP_CANCELLED) {
+					closeWaitDialog();
+					goto EXIT;
+				}
+
+				// Init again
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+				dialog_step = DIALOG_STEP_INSTALLING;
+			}
+		}
+
+		// Src path
+		char src_path[MAX_PATH_LENGTH];
+		strcpy(src_path, args->file);
+		addEndSlash(src_path);
+
+		// Get archive path info
+		uint64_t size = 0;
+		uint32_t folders = 0, files = 0;
+		getArchivePathInfo(src_path, &size, &folders, &files);
+
+		// Check memory card free space
+		if (checkMemoryCardFreeSpace(size))
+			goto EXIT;
+
+		// Update thread
+		thid = createStartUpdateThread(size + folders);
+
+		// Extract process
+		uint64_t value = 0;
+
+		FileProcessParam param;
+		param.value = &value;
+		param.max = size + folders;
+		param.SetProgress = SetProgress;
+		param.cancelHandler = cancelHandler;
+
+		res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
+		if (res <= 0) {
+			closeWaitDialog();
+			dialog_step = DIALOG_STEP_CANCELLED;
+			errorDialog(res);
+			goto EXIT;
+		}
+
+		// Close archive
+		res = archiveClose();
+		if (res < 0) {
+			closeWaitDialog();
+			errorDialog(res);
+			goto EXIT;
+		}
 	}
 
 	// Make head.bin
@@ -486,6 +548,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	if (res < 0) {
 		closeWaitDialog();
 		errorDialog(res);
+		// If failed, move package folder back
+		if (isFolder) sceIoRename(PACKAGE_DIR, args->file);
 		goto EXIT;
 	}
 
@@ -494,6 +558,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	if (res < 0) {
 		closeWaitDialog();
 		errorDialog(res);
+		// If failed, move package folder back
+		if (isFolder) sceIoRename(PACKAGE_DIR, args->file);
 		goto EXIT;
 	}
 

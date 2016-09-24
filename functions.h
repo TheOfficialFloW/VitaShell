@@ -23,6 +23,13 @@
 #define SCE_ERROR_ERRNO_ENODEV 0x80010013
 
 typedef struct {
+	uint64_t max_size;
+	uint64_t free_size;
+	uint32_t cluster_size;
+	void *unk;
+} SceIoDevInfo;
+
+typedef struct {
 	SceUInt size;
 	SceChar8 version_string[28];
 	SceUInt version_value;
