@@ -54,7 +54,7 @@ RENAME				= "Renommer"
 NEW_FOLDER			= "Nouveau dossier"
 INSTALL_ALL			= "Installer tout"
 CALCULATE_SHA1			= "Vérifier le SHA1"
-EXPORT_MEDIA			= "Exporter vers un périphérique"
+EXPORT_MEDIA			= "Exporter vers média PsVita"
 SEARCH				= "Rechercher"
 
 # File browser strings
