@@ -368,6 +368,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	SceUID thid = -1;
 	char path[MAX_PATH_LENGTH];
 	SceIoStat stat;
+	int isFolder = 0;
 
 	// Lock power timers
 	powerLock();
@@ -438,6 +439,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		}
 		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 50);
 		sceKernelDelayThread(COUNTUP_WAIT);
+
+		isFolder = 1;
 	} else {
 		// Open archive
 		res = archiveOpen(args->file);
@@ -545,6 +548,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	if (res < 0) {
 		closeWaitDialog();
 		errorDialog(res);
+		// If failed, move package folder back
+		if (isFolder) sceIoRename(PACKAGE_DIR, args->file);
 		goto EXIT;
 	}
 
@@ -553,6 +558,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	if (res < 0) {
 		closeWaitDialog();
 		errorDialog(res);
+		// If failed, move package folder back
+		if (isFolder) sceIoRename(PACKAGE_DIR, args->file);
 		goto EXIT;
 	}
 
