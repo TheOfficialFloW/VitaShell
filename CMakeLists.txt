@@ -1,5 +1,25 @@
 cmake_minimum_required (VERSION 3.1.0 FATAL_ERROR)
 
+###### begin vitasdk setup ######
+
+SET(VITASDK $ENV{VITASDK})
+
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+
+SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
+SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+
+SET(CMAKE_VITA_PREFIX ${VITASDK}/bin/arm-vita-eabi)
+set(CMAKE_C_COMPILER ${CMAKE_VITA_PREFIX}-gcc)
+set(CMAKE_CXX_COMPILER ${CMAKE_VITA_PREFIX}-g++)
+set(CMAKE_STRIP ${CMAKE_VITA_PREFIX}-strip CACHE FILEPATH "VitaSDK toolchain stripper" FORCE)
+set(CMAKE_LD ${CMAKE_VITA_PREFIX}-ld CACHE FILEPATH "VitaSDK toolchain linker" FORCE)
+set(CMAKE_AR ${CMAKE_VITA_PREFIX}-ar CACHE FILEPATH "VitaSDK toolchain archiver" FORCE)
+SET(CMAKE_C_FLAGS "-Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable" )
+
+###### end vitasdk setup ######
+
 ##### begin project setup ######
 
 SET(PROJECT_TITLE VitaShell)
@@ -112,8 +132,7 @@ SET(PROJECT_LIBS
 	SceAudio_stub 
 	SceAudiodec_stub 
 	SceTouch_stub
-
-	${CMAKE_CURRENT_SOURCE_DIR}/libpromoter/libScePromoterUtil_stub.a 
+	libpromoter
 )
 
 SET(PROJECT_EXTRA_JSON
@@ -123,31 +142,13 @@ SET(PROJECT_EXTRA_JSON
 
 #####  end project setup  ######
 
-
+# libpromoter project
+add_subdirectory (libpromoter)
 
 project (${PROJECT_TITLE})
 
-###### begin vitasdk setup ######
-
-SET(VITASDK $ENV{VITASDK})
-
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM_PROCESSOR arm)
-
-SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
-
-SET(CMAKE_VITA_PREFIX ${VITASDK}/bin/arm-vita-eabi)
-set(CMAKE_C_COMPILER ${CMAKE_VITA_PREFIX}-gcc)
-set(CMAKE_CXX_COMPILER ${CMAKE_VITA_PREFIX}-g++)
-set(CMAKE_STRIP ${CMAKE_VITA_PREFIX}-strip)
-set(CMAKE_LD ${CMAKE_VITA_PREFIX}-ld)
-set(CMAKE_AR ${CMAKE_VITA_PREFIX}-ar)
-SET(CMAKE_C_FLAGS "-Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable" )
-
-###### end vitasdk setup ######
-
 add_executable(${PROJECT_TITLE}.elf ${PROJECT_SOURCES})
+add_dependencies(${PROJECT_TITLE}.elf libpromoter)
 target_link_libraries(${PROJECT_TITLE}.elf ${PROJECT_LIBS})
 
 foreach(res ${PROJECT_RESOURCES})
