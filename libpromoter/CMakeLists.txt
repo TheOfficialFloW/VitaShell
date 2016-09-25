@@ -4,18 +4,17 @@ execute_process(COMMAND ${VITASDK}/bin/vita-libs-gen ${CMAKE_CURRENT_SOURCE_DIR}
 
 file(GLOB AS_FILES ${CMAKE_CURRENT_BINARY_DIR}/build_libs/*.S)
 
-set(AS_COMMAND true)
-set(AR_COMMAND ${CMAKE_VITA_PREFIX}-ar cru ${TARGETLIB})
+set(AS_OBJS)
 foreach(file ${AS_FILES})
     get_filename_component(name ${file} NAME_WE)
-    list(APPEND AS_COMMAND && ${CMAKE_VITA_PREFIX}-as ${file} -o ${name}.o)
-    list(APPEND AR_COMMAND ${name}.o)
+    add_custom_command(OUTPUT ${name}.o COMMAND ${CMAKE_VITA_PREFIX}-as ${file} -o ${name}.o)
+    list(APPEND AS_OBJS ${name}.o)
 endforeach(file)
 
 add_custom_command(OUTPUT ${TARGETLIB}
-    COMMAND ${AS_COMMAND}
-    COMMAND ${AR_COMMAND}
+    COMMAND ${CMAKE_VITA_PREFIX}-ar cru ${TARGETLIB} ${AS_OBJS}
     COMMAND ${CMAKE_VITA_PREFIX}-ranlib ${TARGETLIB}
+    DEPENDS ${AS_OBJS}
 )
 
 add_custom_target(libpromoter_target DEPENDS ${TARGETLIB})

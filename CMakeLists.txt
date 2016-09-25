@@ -2,7 +2,11 @@ cmake_minimum_required (VERSION 3.1.0 FATAL_ERROR)
 
 ###### begin vitasdk setup ######
 
-SET(VITASDK $ENV{VITASDK})
+if (WIN32)
+set (EXECUTABLE_SUFFIX ".exe")
+endif ()
+
+SET(VITASDK $ENV{VITASDK} CACHE PATH "VitaSDK path" FORCE)
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
@@ -11,11 +15,9 @@ SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
 SET(CMAKE_VITA_PREFIX ${VITASDK}/bin/arm-vita-eabi)
-set(CMAKE_C_COMPILER ${CMAKE_VITA_PREFIX}-gcc)
-set(CMAKE_CXX_COMPILER ${CMAKE_VITA_PREFIX}-g++)
-set(CMAKE_STRIP ${CMAKE_VITA_PREFIX}-strip CACHE FILEPATH "VitaSDK toolchain stripper" FORCE)
-set(CMAKE_LD ${CMAKE_VITA_PREFIX}-ld CACHE FILEPATH "VitaSDK toolchain linker" FORCE)
-set(CMAKE_AR ${CMAKE_VITA_PREFIX}-ar CACHE FILEPATH "VitaSDK toolchain archiver" FORCE)
+set(CMAKE_C_COMPILER ${CMAKE_VITA_PREFIX}-gcc${EXECUTABLE_SUFFIX})
+set(CMAKE_CXX_COMPILER ${CMAKE_VITA_PREFIX}-g++${EXECUTABLE_SUFFIX})
+set(CMAKE_LD ${CMAKE_VITA_PREFIX}-ld${EXECUTABLE_SUFFIX})
 ###### end vitasdk setup ######
 
 ##### begin project setup ######
@@ -155,7 +157,7 @@ foreach(res ${PROJECT_RESOURCES})
 	string(REPLACE "." "_" res_obj ${res})
 	add_custom_command(
 			OUTPUT ${res_obj}.o
-			COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${CMAKE_LD} -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/${res_obj}.o resources/${res}
+			COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_LD} -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/${res_obj}.o resources/${res}
 	)
 	target_sources(${PROJECT_TITLE}.elf PUBLIC ${res_obj}.o)
 endforeach(res)
