@@ -16,14 +16,16 @@ set(CMAKE_CXX_COMPILER ${CMAKE_VITA_PREFIX}-g++)
 set(CMAKE_STRIP ${CMAKE_VITA_PREFIX}-strip CACHE FILEPATH "VitaSDK toolchain stripper" FORCE)
 set(CMAKE_LD ${CMAKE_VITA_PREFIX}-ld CACHE FILEPATH "VitaSDK toolchain linker" FORCE)
 set(CMAKE_AR ${CMAKE_VITA_PREFIX}-ar CACHE FILEPATH "VitaSDK toolchain archiver" FORCE)
-SET(CMAKE_C_FLAGS "-Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable" )
-
 ###### end vitasdk setup ######
 
 ##### begin project setup ######
 
 SET(PROJECT_TITLE VitaShell)
 SET(PROJECT_TITLEID VITASHELL)
+
+project (${PROJECT_TITLE})
+
+set(CMAKE_C_FLAGS "-Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable" )
 
 SET(FTP_HOST 192.168.178.22)
 SET(FTP_PORT 1337)
@@ -145,8 +147,6 @@ SET(PROJECT_EXTRA_JSON
 # libpromoter project
 add_subdirectory (libpromoter)
 
-project (${PROJECT_TITLE})
-
 add_executable(${PROJECT_TITLE}.elf ${PROJECT_SOURCES})
 add_dependencies(${PROJECT_TITLE}.elf libpromoter)
 target_link_libraries(${PROJECT_TITLE}.elf ${PROJECT_LIBS})
@@ -191,7 +191,7 @@ add_custom_target(
 add_custom_command(
 		OUTPUT eboot.bin
 		COMMAND vita-make-fself ${PROJECT_TITLE}.velf eboot.bin
-		DEPENDS velf
+		DEPENDS ${PROJECT_TITLE}.velf
 )
 add_custom_target(
 		eboot
@@ -210,8 +210,8 @@ add_custom_target(
 add_custom_command(
 		OUTPUT ${PROJECT_TITLE}.vpk
 		COMMAND vita-pack-vpk -s param.sfo -b eboot.bin ${__PACK_ASSETS_COMMAND__} ${PROJECT_TITLE}.vpk
-		DEPENDS eboot
-		DEPENDS sfo
+		DEPENDS eboot.bin
+		DEPENDS param.sfo
 )
 add_custom_target(
 		vpk
