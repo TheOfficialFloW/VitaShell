@@ -31,6 +31,7 @@ INCLUDE_EXTERN_RESOURCE(image_icon_png);
 INCLUDE_EXTERN_RESOURCE(audio_icon_png);
 INCLUDE_EXTERN_RESOURCE(sfo_icon_png);
 INCLUDE_EXTERN_RESOURCE(text_icon_png);
+INCLUDE_EXTERN_RESOURCE(wifi_png);
 INCLUDE_EXTERN_RESOURCE(ftp_png);
 INCLUDE_EXTERN_RESOURCE(battery_png);
 INCLUDE_EXTERN_RESOURCE(battery_bar_red_png);
@@ -61,6 +62,7 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/audio_icon.png", audio_icon_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/sfo_icon.png", sfo_icon_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/text_icon.png", text_icon_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/wifi.png", wifi_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", ftp_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery.png", battery_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png),

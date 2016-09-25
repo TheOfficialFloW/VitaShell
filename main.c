@@ -375,6 +375,12 @@ void drawShellInfo(char *path) {
 	float date_time_x = ALIGN_LEFT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string));
 	pgf_draw_text(date_time_x, SHELL_MARGIN_Y, DATE_TIME_COLOR, FONT_SIZE, string);
 
+	// WIFI
+	int state = 0;
+	sceNetCtlInetGetState(&state);
+	if (state == 3)
+		vita2d_draw_texture(wifi_image, date_time_x - 60.0f, SHELL_MARGIN_Y + 3.0f);
+
 	// FTP
 	if (ftpvita_is_initialized())
 		vita2d_draw_texture(ftp_image, date_time_x - 30.0f, SHELL_MARGIN_Y + 3.0f);
