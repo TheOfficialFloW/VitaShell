@@ -182,7 +182,7 @@ endforeach(json)
 
 add_custom_command(
 		OUTPUT ${PROJECT_TITLE}.velf
-		COMMAND vita-elf-create ${PROJECT_TITLE}.elf ${PROJECT_TITLE}.velf ${__PROJECT_EXTRA_JSON__}
+		COMMAND ${VITASDK}/bin/vita-elf-create ${PROJECT_TITLE}.elf ${PROJECT_TITLE}.velf ${__PROJECT_EXTRA_JSON__}
 		DEPENDS ${PROJECT_TITLE}.elf
 )
 add_custom_target(
@@ -192,7 +192,7 @@ add_custom_target(
 
 add_custom_command(
 		OUTPUT eboot.bin
-		COMMAND vita-make-fself ${PROJECT_TITLE}.velf eboot.bin
+		COMMAND ${VITASDK}/bin/vita-make-fself ${PROJECT_TITLE}.velf eboot.bin
 		DEPENDS ${PROJECT_TITLE}.velf
 )
 add_custom_target(
@@ -202,7 +202,7 @@ add_custom_target(
 
 add_custom_command(
 		OUTPUT param.sfo
-		COMMAND vita-mksfoex -s TITLE_ID="${PROJECT_TITLEID}" "${PROJECT_TITLE}" param.sfo
+		COMMAND ${VITASDK}/bin/vita-mksfoex -s TITLE_ID="${PROJECT_TITLEID}" "${PROJECT_TITLE}" param.sfo
 )
 add_custom_target(
 		sfo
@@ -211,7 +211,7 @@ add_custom_target(
 
 add_custom_command(
 		OUTPUT ${PROJECT_TITLE}.vpk
-		COMMAND vita-pack-vpk -s param.sfo -b eboot.bin ${__PACK_ASSETS_COMMAND__} ${PROJECT_TITLE}.vpk
+		COMMAND ${VITASDK}/bin/vita-pack-vpk -s param.sfo -b eboot.bin ${__PACK_ASSETS_COMMAND__} ${PROJECT_TITLE}.vpk
 		DEPENDS eboot.bin
 		DEPENDS param.sfo
 )
