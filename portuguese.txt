@@ -1,0 +1,83 @@
+# VitaShell v1.2 language file - (Português - Portugal) Rev.(0002) By HeavyD (CMaD)
+
+# General strings
+ERROR                                = "Erro 0x%08X."
+OK                                   = "OK"
+YES                                  = "Sim"
+NO                                   = "Não"
+CANCEL                               = "Cancelar"
+FOLDER                               = "Pasta"
+
+# Progress strings
+MOVING                               = "Movendo..."
+COPYING                              = "Copiando..."
+DELETING                             = "Eliminando..."
+EXPORTING                            = "Exportando..."
+INSTALLING                           = "Instalando..."
+DOWNLOADING                          = "Descarregando..."
+EXTRACTING                           = "Extraindo..."
+HASHING                              = "Calculando hash..."
+
+# Audio player strings
+TITLE                                = "Título"
+ALBUM                                = "Álbum"
+ARTIST                               = "Artista"
+GENRE                                = "Gênero"
+YEAR                                 = "Ano"
+
+# Hex editor strings
+OFFSET                               = "Offset"
+OPEN_HEX_EDITOR                      = "Abrir o editor Hex"
+
+# Text editor strings
+EDIT_LINE                            = "Editar linha"
+ENTER_SEARCH_TERM                    = "Escreva o que pretende pesquisar"
+CUT                                  = "Cortar"
+INSERT_EMPTY_LINE                    = "Inserir linha (vazia)"
+
+# File browser context menu strings
+MORE                                 = "Mais"
+MARK_ALL                             = "Selecionar tudo"
+UNMARK_ALL                           = "Desselecionar tudo"
+MOVE                                 = "Mover"
+COPY                                 = "Copiar"
+PASTE                                = "Colar"
+DELETE                               = "Eliminar"
+RENAME                               = "Renomear"
+NEW_FOLDER                           = "Nova pasta"
+INSTALL_ALL                          = "Instalar todos"
+CALCULATE_SHA1                       = "Calcular SHA1"
+EXPORT_MEDIA                         = "Exportar média"
+SEARCH                               = "Pesquisar"
+
+# File browser strings
+COPIED_FILE                          = "Arquivo %d copiado."
+COPIED_FOLDER                        = "Pasta %d copiada."
+COPIED_FILES_FOLDERS                 = "Arquivos/pastas %d copiados."
+
+# Dialog questions
+DELETE_FILE_QUESTION                 = "Tem a certeza de que deseja eliminar este ficheiro?"
+DELETE_FOLDER_QUESTION               = "Tem a certeza de que deseja eliminar esta pasta?"
+DELETE_FILES_FOLDERS_QUESTION        = "Tem a certeza de que deseja eliminar estes ficheiros/pastas?"
+EXPORT_FILE_QUESTION                 = "Tem a certeza de que deseja exportar este ficheiro para média?"
+EXPORT_FOLDER_QUESTION               = "Tem a certeza de que deseja exportar esta pasta para média?"
+EXPORT_FILES_FOLDERS_QUESTION        = "Tem a certeza de que deseja exportar estes ficheiros/pastas para média?"
+EXPORT_NO_MEDIA                      = "Não há arquivos de média disponíveis para exportar."
+EXPORT_SONGS_INFO                    = "Música(s) %d exportada(s)."
+EXPORT_PICTURES_INFO                 = "Imagem(s) %d exportada(s)."
+EXPORT_SONGS_PICTURES_INFO           = "Música(s) e %d imagem(s) %d exportada(s)."
+INSTALL_ALL_QUESTION                 = "Deseja instalar todos os pacotes disponíveis nesta pasta?"
+INSTALL_QUESTION                     = "Deseja instalar este pacote?"
+INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se não o obteve de fonte segura,\proceda com cuidado.\\Deseja continuar a instalação?"
+HASH_FILE_QUESTION                   = "Calcular o SHA1 poderá demorar algum tempo. Deseja continuar?"
+
+# Others
+PLEASE_WAIT                          = "Por favor, aguarde..."
+SAVE_MODIFICATIONS                   = "Deseja guardar as alterações?"
+NO_SPACE_ERROR                       = "Não existe espaço livre suficiente na memória\cartão.\É necessário pelo menos %s de espaço livre."
+WIFI_ERROR                           = "Tem de ligar o Wi-Fi para fazer isso."
+FTP_SERVER                           = "Servidor FTP está diponível em\ftp://%s:%i\\Pressiona 'OK' para mantê-lo em segundo plano.\Pressiona 'Cancelar' para desconectar."
+SYS_INFO                             = "Software de sistema: %s\Modelo: 0x%08X\Endereço MAC: %s\Endereço IP: %s\Cartão de memória: %s/%s\Estado da bateria: %d%%"
+UPDATE_QUESTION                      = "VitaShell %s está disponível.\\Deseja atualizar a aplicação?""
+TOOLBOX                              = "Caixa de Ferramentas"
+SYSINFO_TITLE                        = "Informação do sistema"
