@@ -1,4 +1,4 @@
-# VitaShell v1.2 language file - (Português - Portugal) Rev.(0002) By HeavyD (CMaD)
+# VitaShell v1.2 language file - (Português - Portugal) Rev.02 - By HeavyD (CMaD)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
