@@ -32,6 +32,7 @@ INCLUDE_EXTERN_RESOURCE(image_icon_png);
 INCLUDE_EXTERN_RESOURCE(audio_icon_png);
 INCLUDE_EXTERN_RESOURCE(sfo_icon_png);
 INCLUDE_EXTERN_RESOURCE(text_icon_png);
+INCLUDE_EXTERN_RESOURCE(wifi_png);
 INCLUDE_EXTERN_RESOURCE(ftp_png);
 INCLUDE_EXTERN_RESOURCE(battery_png);
 INCLUDE_EXTERN_RESOURCE(battery_bar_red_png);
@@ -101,7 +102,7 @@ int AUDIO_TIME_BAR;
 int AUDIO_TIME_BAR_BG;
 
 vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
-			   *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
+			   *wifi_image = NULL, *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
 			   *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
 			   *bg_photo_image = NULL, *bg_audio_image = NULL, *cover_image = NULL, *play_image = NULL, *pause_image = NULL, *fastforward_image = NULL, *fastrewind_image = NULL;
 
@@ -216,6 +217,9 @@ void loadTheme() {
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/text_icon.png", theme_name);
 			text_icon = vita2d_load_PNG_file(path);
 
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wifi.png", theme_name);
+			wifi_image = vita2d_load_PNG_file(path);
+
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/ftp.png", theme_name);
 			ftp_image = vita2d_load_PNG_file(path);
 
@@ -317,6 +321,9 @@ void loadTheme() {
 
 	if (!text_icon)
 		text_icon = vita2d_load_PNG_buffer(&_binary_resources_text_icon_png_start);
+
+	if (!wifi_image)
+		wifi_image = vita2d_load_PNG_buffer(&_binary_resources_wifi_png_start);
 
 	if (!ftp_image)
 		ftp_image = vita2d_load_PNG_buffer(&_binary_resources_ftp_png_start);

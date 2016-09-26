@@ -375,6 +375,12 @@ void drawShellInfo(char *path) {
 	float date_time_x = ALIGN_LEFT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string));
 	pgf_draw_text(date_time_x, SHELL_MARGIN_Y, DATE_TIME_COLOR, FONT_SIZE, string);
 
+	// WIFI
+	int state = 0;
+	sceNetCtlInetGetState(&state);
+	if (state == 3)
+		vita2d_draw_texture(wifi_image, date_time_x - 60.0f, SHELL_MARGIN_Y + 3.0f);
+
 	// FTP
 	if (ftpvita_is_initialized())
 		vita2d_draw_texture(ftp_image, date_time_x - 30.0f, SHELL_MARGIN_Y + 3.0f);
@@ -409,18 +415,6 @@ void drawShellInfo(char *path) {
 
 	// Show numbers of files and folders
 	// sprintf(str, "%d files and %d folders", file_list.files, file_list.folders);
-
-	// Show memory card
-/*
-	uint64_t free_size = 0, max_size = 0;
-	sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
-
-	char free_size_string[16], max_size_string[16];
-	getSizeString(free_size_string, free_size);
-	getSizeString(max_size_string, max_size);
-
-	sprintf(str, "%s/%s", free_size_string, max_size_string);
-*/
 
 	// Draw on bottom left
 	// pgf_draw_textf(ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - SHELL_MARGIN_Y - FONT_Y_SPACE - 2.0f, LITEGRAY, FONT_SIZE, str);
@@ -460,12 +454,14 @@ MenuEntry menu_entries[] = {
 
 enum MenuMoreEntrys {
 	MENU_MORE_ENTRY_INSTALL_ALL,
+	MENU_MORE_ENTRY_INSTALL_FOLDER,
 	MENU_MORE_ENTRY_EXPORT_MEDIA,
 	MENU_MORE_ENTRY_CALCULATE_SHA1,
 };
 
 MenuEntry menu_more_entries[] = {
 	{ INSTALL_ALL, CTX_VISIBILITY_INVISIBLE },
+	{ INSTALL_FOLDER, CTX_VISIBILITY_INVISIBLE },
 	{ EXPORT_MEDIA, CTX_VISIBILITY_INVISIBLE },
 	{ CALCULATE_SHA1, CTX_VISIBILITY_INVISIBLE },
 };
@@ -572,6 +568,7 @@ void setContextMenuMoreVisibilities() {
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
@@ -579,12 +576,36 @@ void setContextMenuMoreVisibilities() {
 	// Invisble operations in archives
 	if (isInArchive()) {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	if (file_entry->is_folder) {
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_VISIBILITY_INVISIBLE;
+		do {
+			char check_path[MAX_PATH_LENGTH];
+			SceIoStat stat;
+			int statres;
+			if (strcmp(file_list.path, "ux0:app/") == 0 || strcmp(file_list.path, "ux0:patch/") == 0) {
+				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
+				break;
+			}
+			snprintf(check_path, MAX_PATH_LENGTH, "%s%s/eboot.bin", file_list.path, file_entry->name);
+			statres = sceIoGetstat(check_path, &stat);
+			if (statres < 0 || SCE_S_ISDIR(stat.st_mode)) {
+				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
+				break;
+			}
+			snprintf(check_path, MAX_PATH_LENGTH, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
+			statres = sceIoGetstat(check_path, &stat);
+			if (statres < 0 || SCE_S_ISDIR(stat.st_mode)) {
+				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
+				break;
+			}
+		} while(0);
+	} else {
+		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	if(file_entry->type != FILE_TYPE_VPK) {
@@ -864,6 +885,15 @@ int contextMenuMoreEnterCallback(int pos, void* context) {
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_ALL_QUESTION]);
 			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
 			
+			break;
+		}
+
+		case MENU_MORE_ENTRY_INSTALL_FOLDER:
+		{
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
+			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
 			break;
 		}
 		
@@ -1210,6 +1240,7 @@ int dialogSteps() {
 				}
 
 				dialog_step = DIALOG_STEP_NONE;
+				refresh = 1;
 			}
 
 			break;
@@ -1594,11 +1625,32 @@ int shellMain() {
 
 			// File information
 			if (strcmp(file_entry->name, DIR_UP) != 0) {
-				// Folder/size
-				char size_string[16];
-				getSizeString(size_string, file_entry->size);
+				char *str = NULL;
 
-				char *str = file_entry->is_folder ? language_container[FOLDER] : size_string;
+				if (dir_level == 0) {
+					if (file_entry->size != 0 && file_entry->size2 != 0) {
+						char free_size_string[16], max_size_string[16];
+						getSizeString(free_size_string, file_entry->size2 - file_entry->size);
+						getSizeString(max_size_string, file_entry->size2);
+
+						char string[32];
+						snprintf(string, sizeof(string), "%s / %s", free_size_string, max_size_string);
+
+						str = string;
+					} else {
+						str = "-";
+					}
+				} else {
+					if (!file_entry->is_folder) {
+						// Folder/size
+						char string[16];
+						getSizeString(string, file_entry->size);
+
+						str = string;
+					} else {
+						str = language_container[FOLDER];
+					}
+				}
 
 				pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
 
@@ -1674,6 +1726,10 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 }
 
 int main(int argc, const char *argv[]) {
+	// Set CPU to 444mhz
+	scePowerSetArmClockFrequency(444);
+
+	// Init audio
 	vitaAudioInit(0x40);
 
 	// Init VitaShell

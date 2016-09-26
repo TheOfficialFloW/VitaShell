@@ -23,13 +23,13 @@
 #include "sha1.h"
 
 static char *mount_points[] = {
-	"app0:",
+	// "app0:",
 	"gro0:",
 	"grw0:",
 	"os0:",
 	"pd0:",
 	"sa0:",
-	"savedata0:",
+	// "savedata0:",
 	"tm0:",
 	"ud0:",
 	"ur0:",
@@ -833,6 +833,17 @@ int fileListGetMountPointEntries(FileList *list) {
 				entry->name_length = strlen(entry->name);
 				entry->is_folder = 1;
 				entry->type = FILE_TYPE_UNKNOWN;
+
+				SceIoDevInfo info;
+				memset(&info, 0, sizeof(SceIoDevInfo));
+				int res = sceIoDevctl(entry->name, 0x3001, 0, 0, &info, sizeof(SceIoDevInfo));
+				if (res >= 0) {
+					entry->size = info.free_size;
+					entry->size2 = info.max_size;
+				} else {
+					entry->size = 0;
+					entry->size2 = 0;
+				}
 
 				memcpy(&entry->time, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
 
