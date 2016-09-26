@@ -51,7 +51,7 @@ EXPORT_MEDIA                         = "Exportar média"
 SEARCH                               = "Pesquisar"
 
 # File browser strings
-COPIED_FILE                          = "Arquivo %d copiado."
+COPIED_FILE                          = "Ficheiro %d copiado."
 COPIED_FOLDER                        = "Pasta %d copiada."
 COPIED_FILES_FOLDERS                 = "Arquivos/pastas %d copiados."
 
