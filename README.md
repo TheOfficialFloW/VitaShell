@@ -86,6 +86,7 @@ Be sure you pull request your customized design or language file there.
 * vita2dlib: https://github.com/xerpi/vita2dlib
 * ftpvitalib https://github.com/xerpi/ftpvitalib
 * EasyRPG libraries: https://ci.easyrpg.org/view/Toolchains/job/toolchain-vita/
+* Onigmo library https://github.com/k-takata/Onigmo
 
 ### Credits ###
 * Team Molecule for HENkaku

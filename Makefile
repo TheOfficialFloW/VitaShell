@@ -2,7 +2,7 @@ TITLE_ID = VITASHELL
 TARGET   = VitaShell
 OBJS     = main.o init.o io_process.o package_installer.o network_update.o context_menu.o archive.o photo.o audioplayer.o file.o text.o hex.o sfo.o \
 		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o list_dialog.o \
-		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o audio/oggplayer.o audio/mp3player.o audio/mp3xing.o \
+		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o audio/oggplayer.o audio/mp3player.o audio/mp3xing.o audio/lrcparse.o\
 		   libmad/bit.o libmad/decoder.o libmad/fixed.o libmad/frame.o \
 		   libmad/huffman.o libmad/layer12.o libmad/layer3.o  \
 		   libmad/stream.o libmad/synth.o libmad/timer.o
@@ -14,7 +14,7 @@ RESOURCES_BIN := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.bin))
 
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(RESOURCES_BIN:.bin=.o)
 
-LIBS = -lvorbisfile -logg -lvorbis -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc \
+LIBS = -lvorbisfile -logg -lvorbis -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc -lonig \
 	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
 	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	   -lSceHttp_stub -lSceKernel_stub -lSceMusicExport_stub -lSceNet_stub -lSceNetCtl_stub \
