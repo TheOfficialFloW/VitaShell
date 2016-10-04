@@ -1,6 +1,7 @@
 *.o
 *.a
 /eboot.bin
+.vscode/
 *.elf
 *.sfo
 *.velf

@@ -208,4 +208,3 @@ void ftpvita_PROM(ftpvita_client_info_t *client);
 void install_unassisted_sync(char *path);
 
 #endif
-
