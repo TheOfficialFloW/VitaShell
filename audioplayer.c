@@ -23,102 +23,12 @@
 #include "theme.h"
 #include "language.h"
 #include "utils.h"
-#include "audio/lrcparse.h"
 
 #include "audio/player.h"
 
 static char title[128], album[128], artist[128], genre[128], year[12];
 static struct fileInfo *fileinfo = NULL;
 static vita2d_texture *tex = NULL;
-
-
-/**
-* Calculate the x-axis position if draw text in center
-* @param[in] sx start x-axis
-* @param[in] ex end x-axis
-* @param[in] text
-* @return x-axis position
-*/
-float getCenteroffset(float sx,float ex,char* string){
-    if(!string||(string[0] == '\0'))
-        return sx;
-
-    float drawWidthSpace = ex - sx;
-    uint16_t stringWidth = vita2d_pgf_text_width(font,FONT_SIZE,string);
-    return stringWidth > drawWidthSpace ? sx : sx + (drawWidthSpace - stringWidth) / 2 ;
-}
-
-/**
-* Try to load lrc file from audio path
-* @param[in] path audio path
-* @param[out] totalms set 0
-* @param[out] lyricsIndex set 0
-* @return Lyrics pointer , NULL is fail
-*/
-Lyrics* loadLyricsFile(char* path,uint64_t* totalms,uint32_t* lyricsIndex){
-    size_t pathlength = strlen(path);
-    *totalms = *lyricsIndex = 0;
-
-    while(pathlength > 0){
-        if(path[pathlength] == '.'){
-            break;
-        }
-        pathlength--;
-    }
-
-    if(pathlength < 0)
-        return NULL;
-
-    char lrcPath[pathlength + 5 * sizeof(char)];
-    memccpy(lrcPath,path,sizeof(char),pathlength);//copy path string except filename extension
-    strcpy(lrcPath+pathlength,".lrc");
-
-    return lrcParseLoadWithFile(lrcPath);
-}
-
-/**
-* Draw the lyrics from the designated area
-* @param[in] lyrics Lyrics pointer
-* @param[in] cur_time_string Playing time string
-* @param[out] totalms Playing time (millisecond)
-* @param[out] lyricsIndex Index of lyrics
-* @param[in] lrcSpaceX Designated area starting point x
-* @param[in] lrcSpaceX Designated area starting point y
-*/
-void drawLyrics(Lyrics* lyrics,char* cur_time_string,uint64_t* totalms,uint32_t* lyricsIndex,float lrcSpaceX,float lrcSpaceY){
-    if(!lyrics)
-        return;
-
-    char hourString[3];
-    char minuteString[3];
-    char secondString[3];
-
-    strncpy(hourString,cur_time_string,sizeof(hourString));
-    strncpy(minuteString,cur_time_string + 3,sizeof(minuteString));
-    strncpy(secondString,cur_time_string + 6,sizeof(secondString));
-
-    *totalms = (((atoi(hourString) * 60) + atoi(minuteString)) * 60 + atoi(secondString)) * 1000;
-
-    uint32_t m_index = *lyricsIndex >= 1 ? (*lyricsIndex - 1) : *lyricsIndex;
-    float right_max_x = SCREEN_WIDTH - SHELL_MARGIN_X;
-    //draw current lyrics
-    pgf_draw_textf(getCenteroffset(lrcSpaceX,right_max_x,lyrics->lrclines[m_index].word),lrcSpaceY, AUDIO_INFO_ASSIGN, FONT_SIZE, "%s",lyrics->lrclines[m_index].word);
-
-    int i;
-    for(i = 1;i < 7; i++){//draw 6 line lyrics for preview
-        int n_index = m_index + i;
-        if(n_index + 1 > lyrics->lyricscount)
-            break;
-        pgf_draw_textf(getCenteroffset(lrcSpaceX,right_max_x,lyrics->lrclines[n_index].word),lrcSpaceY + FONT_Y_SPACE * i, AUDIO_INFO, FONT_SIZE, "%s",lyrics->lrclines[n_index].word);
-    }
-
-    if( *totalms >= (lyrics->lrclines[*lyricsIndex].totalms) ){
-        *lyricsIndex = *lyricsIndex + 1;
-    }else
-    if (( *lyricsIndex >= 1 ) & ( *totalms < (lyrics->lrclines[*lyricsIndex - 1].totalms ))){
-        *lyricsIndex = *lyricsIndex - 1;
-    }
-}
 
 void shortenString(char *out, char *in, int width) {
 	strcpy(out, in);
@@ -225,11 +135,6 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 
 	getAudioInfo(file);
 
-	uint64_t totalms = 0;
-	uint32_t lyricsIndex = 0;
-	Lyrics* lyrics = loadLyricsFile(file,&totalms,&lyricsIndex);
-
-
 	while (1) {
 		char cur_time_string[12];
 		getTimeStringFunct(cur_time_string);
@@ -290,16 +195,12 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		if (getPercentageFunct() == 100.0f || endOfStreamFunct() || pressed_buttons & SCE_CTRL_LTRIGGER || pressed_buttons & SCE_CTRL_RTRIGGER) {
 			int previous = pressed_buttons & SCE_CTRL_LTRIGGER;
 			if (previous && strcmp(cur_time_string, "00:00:00") != 0) {
-                lrcParseClose(lyrics);
 				endFunct();
 				initFunct(0);
 				loadFunct(file);
 				playFunct();
 
 				getAudioInfo(file);
-
-				lyrics = loadLyricsFile(file,&totalms,&lyricsIndex);
-
 			} else {
 				int available = 0;
 
@@ -343,7 +244,6 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 						if (type == FILE_TYPE_MP3 || type == FILE_TYPE_OGG) {
 							file = path;
 
-							lrcParseClose(lyrics);
 							endFunct();
 
 							setAudioFunctions(type);
@@ -353,8 +253,6 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 							playFunct();
 
 							getAudioInfo(file);
-
-                            lyrics = loadLyricsFile(file,&totalms,&lyricsIndex);
 
 							available = 1;
 							break;
@@ -373,7 +271,6 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 
 		// Start drawing
 		startDrawing(bg_audio_image);
-
 
 		// Draw shell info
 		drawShellInfo(file);
@@ -405,8 +302,6 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		pgf_draw_text(x, START_Y + (4 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, year);
 
 		x -= 120.0f;
-
-		drawLyrics(lyrics,cur_time_string,&totalms,&lyricsIndex,x,START_Y + (6 * FONT_Y_SPACE));
 
 		float y = SCREEN_HEIGHT - 6.0f * SHELL_MARGIN_Y;
 
@@ -453,7 +348,6 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		tex = NULL;
 	}
 
-	lrcParseClose(lyrics);
 	endFunct();
 
 	powerUnlock();
