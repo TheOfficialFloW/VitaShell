@@ -1633,34 +1633,32 @@ BEGIN_SHELL_UI:
 
 			// File information
 			if (strcmp(file_entry->name, DIR_UP) != 0) {
-				char *str = NULL;
-
 				if (dir_level == 0) {
+					char free_size_string[16], max_size_string[16];
+					int max_size_x = ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, "000.00 MB"));
+					int separator_x = ALIGN_LEFT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "  |  "));
 					if (file_entry->size != 0 && file_entry->size2 != 0) {
-						char free_size_string[16], max_size_string[16];
 						getSizeString(free_size_string, file_entry->size2 - file_entry->size);
 						getSizeString(max_size_string, file_entry->size2);
-
-						char string[32];
-						snprintf(string, sizeof(string), "%s / %s", free_size_string, max_size_string);
-
-						str = string;
 					} else {
-						str = "-";
+						strcpy(free_size_string, "-");
+						strcpy(max_size_string, "-");
 					}
+					pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string)), y, color, FONT_SIZE, max_size_string);
+					pgf_draw_text(separator_x, y, color, FONT_SIZE, "  |");
+					pgf_draw_text(ALIGN_LEFT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, free_size_string)), y, color, FONT_SIZE, free_size_string);
 				} else {
+					char *str = NULL;
 					if (!file_entry->is_folder) {
 						// Folder/size
 						char string[16];
 						getSizeString(string, file_entry->size);
-
 						str = string;
 					} else {
 						str = language_container[FOLDER];
 					}
+					pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
 				}
-
-				pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
 
 				// Date
 				char date_string[16];
