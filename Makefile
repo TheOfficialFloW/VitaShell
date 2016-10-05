@@ -1,20 +1,25 @@
 TITLE_ID = VITASHELL
 TARGET   = VitaShell
 OBJS     = main.o init.o io_process.o package_installer.o network_update.o context_menu.o archive.o photo.o audioplayer.o file.o text.o hex.o sfo.o \
-		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o list_dialog.o \
+		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o list_dialog.o UI2.o touch_shell.o \
 		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o audio/oggplayer.o audio/mp3player.o audio/mp3xing.o audio/lrcparse.o\
 		   libmad/bit.o libmad/decoder.o libmad/fixed.o libmad/frame.o \
 		   libmad/huffman.o libmad/layer12.o libmad/layer3.o  \
 		   libmad/stream.o libmad/synth.o libmad/timer.o
 
-RESOURCES = resources
+RESOURCES = resources \
+			resources/bg_wallpaper.png resources/vita_game_card.png resources/vita_game_card_storage.png \
+			resources/os0.png resources/memory_card.png resources/run_file.png resources/unknown_file.png resources/image_file.png \
+		   	resources/sa0.png resources/ur0.png resources/vd0.png resources/vs0.png resources/savedata0.png resources/pd0.png resources/app0.png \
+		   	resources/ud0.png resources/folder.png resources/mark.png resources/music_file.png resources/zip_file.png resources/txt_file.png resources/title_bar_bg.png \
+			resources/updir.png
 RESOURCES_PNG := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.png))
 RESOURCES_TXT := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.txt))
 RESOURCES_BIN := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.bin))
 
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(RESOURCES_BIN:.bin=.o)
 
-LIBS = -lvorbisfile -logg -lvorbis -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc -lonig \
+LIBS = -lvorbisfile -lvorbis -logg -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc -lonig \
 	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
 	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	   -lSceHttp_stub -lSceKernel_stub -lSceMusicExport_stub -lSceNet_stub -lSceNetCtl_stub \
@@ -44,6 +49,7 @@ all: $(TARGET).vpk
 	vita-mksfoex -d PARENTAL_LEVEL=1 -s APP_VER=01.20 -s TITLE_ID=$(TITLE_ID) "$(TARGET)" param.sfo
 	vita-pack-vpk -s param.sfo -b eboot.bin \
 		--add pkg/sce_sys/icon0.png=sce_sys/icon0.png \
+		--add pkg/sce_sys/pic0.png=sce_sys/pic0.png \
 		--add pkg/sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
 		--add pkg/sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
 		--add pkg/sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
