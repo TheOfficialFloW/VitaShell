@@ -1,33 +1,93 @@
-# VitaShellの日本語の翻訳ファイル by Monolith1225
 # VitaShell language file
+# ver1.2対応日本語言語ファイル 12a12 作者@Umineko19930417
 
-ERROR                                = "Error 0x%08X"
-OK                                   = "OK"
-YES                                  = "はい"
-NO                                   = "いいえ"
-CANCEL                               = "キャンセル"
-OFFSET                               = "オフセット"
-MARK_ALL                             = "全選択"
-UNMARK_ALL                           = "全選択解除"
-MOVE                                 = "移動"
-COPY                                 = "コピー"
-PASTE                                = "ペースト"
-DELETE                               = "削除"
-RENAME                               = "リネーム"
-NEW_FOLDER                           = "新しいフォルダ"
-FOLDER                               = "フォルダ"
-COPIED_FILE                          = "%dつのファイルをコピーしました。"
-COPIED_FOLDER                        = "%dつのフォルダをコピーしました。"
-COPIED_FILES_FOLDERS                 = "%dつのファイル、フォルダをコピーしました。"
-MOVING                               = "移動中..."
-COPYING                              = "コピー中..."
-DELETING                             = "削除中..."
-INSTALLING                           = "インストール中..."
-DELETE_FILE_QUESTION                 = "このファイルを削除してもよろしいですか？"
-DELETE_FOLDER_QUESTION               = "このフォルダを削除してもよろしいですか？"
-DELETE_FILES_FOLDERS_QUESTION        = "これらのファイル、フォルダを削除してもよろしいですか？"
-INSTALL_QUESTION                     = "このパッケージをインストールしますか？"
-INSTALL_WARNING                   　="このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します。\信頼できるソース以外から入手した場合、インストールは自己判断で行ってください。\\インストールを続行してもよろしいですか？"
-SAVE_MODIFICATIONS                   = "この変更を保存しますか？"
-WIFI_ERROR                           = "Wi-Fiをオンにする必要があります。"
-FTP_SERVER                           = "FTP serverを動作させます。\ftp://%s:%i\\'OK'を選択するとバックグラウンドで動作します。\'キャンセル'を選択すると接続を解除します。"
+# General strings
+# 一般的な文字列
+ERROR				= "エラーコード:0x%08X"
+OK				= "OK"
+YES				= "Yes"
+NO				= "No"
+CANCEL				= "キャンセル"
+FOLDER				= "フォルダ"
+
+# Progress strings
+# 進捗の文字列
+MOVING				= "移動中..."
+COPYING				= "コピー中..."
+DELETING			= "削除中..."
+EXPORTING			= "エクスポート中..."
+INSTALLING			= "インストール中..."
+DOWNLOADING			= "ダウンロード中..."
+EXTRACTING			= "吸い出し中..."
+HASHING				= "ハッシュ中..."
+
+# Audio player strings
+# オーディオプレイヤーの文字列
+TITLE				= "タイトル"
+ALBUM				= "アルバム"
+ARTIST				= "アーティスト"
+GENRE				= "ジャンル"
+YEAR				= "年"
+
+# Hex editor strings
+# バイナリエディタの文字列
+OFFSET				= "オフセット"
+OPEN_HEX_EDITOR			= "バイナリエディタを開く"
+
+# Text editor strings
+# テキストエディタの文字列
+EDIT_LINE			= "行編集"
+ENTER_SEARCH_TERM		= "検索用語を入力"
+CUT				= "切り取り"
+INSERT_EMPTY_LINE		= "空行を挿入"
+
+# File browser context menu strings
+# ファイルブラウザーのコンテキストメニューの文字列
+MORE				= "その他"
+MARK_ALL			= "全選択"
+UNMARK_ALL			= "全選択の解除"
+MOVE				= "移動"
+COPY				= "コピー"
+PASTE				= "貼り付け"
+DELETE				= "削除"
+RENAME				= "リネーム"
+NEW_FOLDER			= "新しいフォルダ"
+INSTALL_ALL			= "全てをインストール"
+CALCULATE_SHA1			= "SHA1の表示"
+EXPORT_MEDIA			= "メディアをエクスポート"
+SEARCH				= "検索"
+
+# File browser strings
+# ブラウザーの文字列
+COPIED_FILE			= "%d個のファイルをコピーしました"
+COPIED_FOLDER			= "%d個のフォルダをコピーしました"
+COPIED_FILES_FOLDERS		= "%d個のファイル/フォルダをコピーしました"
+
+# Dialog questions
+# ダイアログの質問
+DELETE_FILE_QUESTION		= "このファイルを削除してもよろしいですか?"
+DELETE_FOLDER_QUESTION		= "このフォルダを削除してもよろしいですか?"
+DELETE_FILES_FOLDERS_QUESTION	= "これらのファイル、フォルダを削除してもよろしいですか?"
+EXPORT_FILE_QUESTION		= "このファイルをメディアにエクスポートしてもよろしいですか?"
+EXPORT_FOLDER_QUESTION		= "このフォルダをメディアにエクスポートしてもよろしいですか?"
+EXPORT_FILES_FOLDERS_QUESTION	= "これらのファイル、フォルダをメディアにエクスポートしてもよろしいですか?"
+EXPORT_NO_MEDIA			= "エクスポートが出来るメディアがありません"
+EXPORT_SONGS_INFO		= "%d個の歌をエクスポートしました"
+EXPORT_PICTURES_INFO		= "%d個の写真をエクスポートしました"
+EXPORT_SONGS_PICTURES_INFO	= "%d個の歌と%d個の写真をエクスポートしました"
+INSTALL_ALL_QUESTION		= "このフォルダの中にある、全てのパッケージをインストールしますか?"
+INSTALL_QUESTION		= "このパッケージをインストールしますか?"
+INSTALL_WARNING			= "このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します\信頼できるソース以外から入手した場合、インストールは自己判断で行って下さい\\インストールを続行してもよろしいですか?"
+HASH_FILE_QUESTION		= "SHA1ハッシュの計算には時間がかかる場合があります\続けますか?"
+
+# Others
+# 他
+PLEASE_WAIT			= "しばらくお待ち下さい..."
+SAVE_MODIFICATIONS		= "変更を保存しますか?"
+NO_SPACE_ERROR			= "メモリーカードに充分な空き容量がありません\あと%s以上の空き容量が必要です"
+WIFI_ERROR			= "Wi-Fiを有効にする必要があります"
+FTP_SERVER			= "FTPサーバーを動作させます\ftp://%s:%i\\'OK'を選択するとバックグラウンドで動作します\'キャンセル'を選択すると接続を解除します"
+SYS_INFO			= "システムソフトウェア: %s\モデル: 0x%08X\MACアドレス: %s\IPアドレス: %s\メモリーカード: %s/%s\バッテリー容量: %d%%"
+UPDATE_QUESTION			= "VitaShellの%s更新が利用出来ます\\VitaShellの更新をしますか?"
+TOOLBOX				= "ツールボックス"
+SYSINFO_TITLE			= "システムインフォメーション"
