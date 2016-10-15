@@ -62,6 +62,7 @@ static FileList file_list, mark_list, copy_list, install_list;
 
 // Paths
 static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], install_path[MAX_PATH_LENGTH];
+static char focus_name[MAX_NAME_LENGTH];
 
 // Position
 static int base_pos = 0, rel_pos = 0;
@@ -143,7 +144,7 @@ DIR_UP_RETURN:
 	dirUpCloseArchive();
 }
 
-void focusOnFilename(char *name) {
+void setFocusOnFilename(char *name) {
 	int name_pos = fileListGetNumberByName(&file_list, name);
 	if (name_pos < file_list.length) {
 		while (1) {
@@ -722,8 +723,7 @@ int contextMenuEnterCallback(int pos, void* context) {
 			}
 
 			// Empty copy list at first
-			if (copy_list.length > 0)
-				fileListEmpty(&copy_list);
+			fileListEmpty(&copy_list);
 
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 
@@ -982,7 +982,7 @@ void initFtp() {
 }
 
 int dialogSteps() {
-	int refresh = 0;
+	int refresh = REFRESH_MODE_NONE;
 
 	int msg_result = updateMessageDialog();
 	int ime_result = updateImeDialog();
@@ -998,27 +998,80 @@ int dialogSteps() {
 
 			break;
 			
-		// With refresh
-		case DIALOG_STEP_COPIED:
+		case DIALOG_STEP_CANCELLED:
+			refresh = REFRESH_MODE_NORMAL;
+			dialog_step = DIALOG_STEP_NONE;
+			break;
+			
 		case DIALOG_STEP_DELETED:
-		case DIALOG_STEP_EXPORTED:
-		case DIALOG_STEP_COMPRESSED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				refresh = 1;
+				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+				// Empty mark list if on marked entry
+				if (fileListFindEntry(&mark_list, file_entry->name)) {
+					fileListEmpty(&mark_list);
+				}
+
+				refresh = REFRESH_MODE_NORMAL;
 				dialog_step = DIALOG_STEP_NONE;
 			}
 
 			break;
 			
-		case DIALOG_STEP_CANCELLED:
-			refresh = 1;
-			dialog_step = DIALOG_STEP_NONE;
+		case DIALOG_STEP_COMPRESSED:
+			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+				// Empty mark list if on marked entry
+				if (fileListFindEntry(&mark_list, file_entry->name)) {
+					fileListEmpty(&mark_list);
+				}
+
+				// The name of the newly created zip
+				char *name = (char *)getImeDialogInputTextUTF8();
+
+				// Mark that entry
+				FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
+				strcpy(mark_entry->name, name);
+				mark_entry->name_length = strlen(name);
+				fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+
+				// Focus
+				strcpy(focus_name, name);
+
+				refresh = REFRESH_MODE_SETFOCUS;
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
 			break;
 			
+		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_MOVED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				fileListEmpty(&copy_list);
-				refresh = 1;
+				// Empty mark list
+				fileListEmpty(&mark_list);
+
+				// Copy copy list to mark list
+				FileListEntry *copy_entry = copy_list.head;
+
+				int i;
+				for (i = 0; i < copy_list.length; i++) {
+					FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
+					memcpy(mark_entry, copy_entry, sizeof(FileListEntry));
+					fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+
+					// Next
+					copy_entry = copy_entry->next;
+				}
+
+				// Focus
+				strcpy(focus_name, copy_list.head->name);
+
+				// Empty copy list when moved
+				if (dialog_step == DIALOG_STEP_MOVED)
+					fileListEmpty(&copy_list);
+
+				refresh = REFRESH_MODE_SETFOCUS;
 				dialog_step = DIALOG_STEP_NONE;
 			}
 
@@ -1051,12 +1104,12 @@ int dialogSteps() {
 			
 		case DIALOG_STEP_FTP:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
-				refresh = 1;
+				refresh = REFRESH_MODE_NORMAL;
 				dialog_step = DIALOG_STEP_NONE;
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				powerUnlock();
 				ftpvita_fini();
-				refresh = 1;
+				refresh = REFRESH_MODE_NORMAL;
 				dialog_step = DIALOG_STEP_NONE;
 			}
 
@@ -1072,7 +1125,7 @@ int dialogSteps() {
 
 				dialog_step = DIALOG_STEP_COPYING;
 
-				SceUID thid = sceKernelCreateThread("copy_thread", (SceKernelThreadEntry)copy_thread, 0x40, 0x10000, 0, 0, NULL);
+				SceUID thid = sceKernelCreateThread("copy_thread", (SceKernelThreadEntry)copy_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(CopyArguments), &args);
 			}
@@ -1098,7 +1151,7 @@ int dialogSteps() {
 
 				dialog_step = DIALOG_STEP_DELETING;
 
-				SceUID thid = sceKernelCreateThread("delete_thread", (SceKernelThreadEntry)delete_thread, 0x40, 0x10000, 0, 0, NULL);
+				SceUID thid = sceKernelCreateThread("delete_thread", (SceKernelThreadEntry)delete_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(DeleteArguments), &args);
 			}
@@ -1124,7 +1177,7 @@ int dialogSteps() {
 
 				dialog_step = DIALOG_STEP_EXPORTING;
 
-				SceUID thid = sceKernelCreateThread("export_thread", (SceKernelThreadEntry)export_thread, 0x40, 0x10000, 0, 0, NULL);
+				SceUID thid = sceKernelCreateThread("export_thread", (SceKernelThreadEntry)export_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(ExportArguments), &args);
 			}
@@ -1156,7 +1209,7 @@ int dialogSteps() {
 						if (res < 0) {
 							errorDialog(res);
 						} else {
-							refresh = 1;
+							refresh = REFRESH_MODE_NORMAL;
 							dialog_step = DIALOG_STEP_NONE;
 						}
 					}
@@ -1180,7 +1233,7 @@ int dialogSteps() {
 					if (res < 0) {
 						errorDialog(res);
 					} else {
-						refresh = 1;
+						refresh = REFRESH_MODE_NORMAL;
 						dialog_step = DIALOG_STEP_NONE;
 					}
 				}
@@ -1207,7 +1260,7 @@ int dialogSteps() {
 					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[COMPRESSING]);
 					dialog_step = DIALOG_STEP_COMPRESSING;
 
-					SceUID thid = sceKernelCreateThread("compress_thread", (SceKernelThreadEntry)compress_thread, 0x40, 0x10000, 0, 0, NULL);
+					SceUID thid = sceKernelCreateThread("compress_thread", (SceKernelThreadEntry)compress_thread, 0x40, 0x100000, 0, 0, NULL);
 					if (thid >= 0)
 						sceKernelStartThread(thid, sizeof(CompressArguments), &args);
 				}
@@ -1241,7 +1294,7 @@ int dialogSteps() {
 				dialog_step = DIALOG_STEP_HASHING;
 
 				// Create a thread to run out actual sum
-				SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x10000, 0, 0, NULL);
+				SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(HashArguments), &args);
 			}
@@ -1268,7 +1321,7 @@ int dialogSteps() {
 					args.file = install_path;
 
 					// Focus
-					focusOnFilename(entry->name);
+					setFocusOnFilename(entry->name);
 
 					// Remove entry
 					fileListRemoveEntry(&install_list, entry);
@@ -1278,7 +1331,7 @@ int dialogSteps() {
 
 				dialog_step = DIALOG_STEP_INSTALLING;
 
-				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x10000, 0, 0, NULL);
+				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, sizeof(InstallArguments), &args);
 			}
@@ -1303,7 +1356,7 @@ int dialogSteps() {
 				}
 
 				dialog_step = DIALOG_STEP_NONE;
-				refresh = 1;
+				refresh = REFRESH_MODE_NORMAL;
 			}
 
 			break;
@@ -1322,7 +1375,7 @@ int dialogSteps() {
 
 				dialog_step = DIALOG_STEP_EXTRACTING;
 
-				SceUID thid = sceKernelCreateThread("update_extract_thread", (SceKernelThreadEntry)update_extract_thread, 0x40, 0x10000, 0, 0, NULL);
+				SceUID thid = sceKernelCreateThread("update_extract_thread", (SceKernelThreadEntry)update_extract_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
 					sceKernelStartThread(thid, 0, NULL);
 			}
@@ -1529,7 +1582,7 @@ BEGIN_SHELL_UI:
 				lastdir[i] = ch2;
 
 				refreshFileList();
-				focusOnFilename(p + 1);
+				setFocusOnFilename(p + 1);
 
 				strcpy(file_list.path, lastdir);
 
@@ -1559,7 +1612,7 @@ BEGIN_SHELL_UI:
 		if (!Change_UI) {
 		readPad();
 
-		int refresh = 0;
+		int refresh = REFRESH_MODE_NONE;
 
 		// Control
 		if (dialog_step == DIALOG_STEP_NONE) {
@@ -1580,14 +1633,18 @@ BEGIN_SHELL_UI:
 
 		// Refresh on app resume
 		if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
-			refresh = 1;
+			refresh = REFRESH_MODE_NORMAL;
 		}
 
-		if (refresh) {
+		if (refresh != REFRESH_MODE_NONE) {
 			// Refresh lists
 			refreshFileList();
 			refreshMarkList();
 			refreshCopyList();
+
+			// Focus
+			if (refresh == REFRESH_MODE_SETFOCUS)
+				setFocusOnFilename(focus_name);
 		}
 
 		// Start drawing
@@ -1831,7 +1888,7 @@ int main(int argc, const char *argv[]) {
 	initTextContextMenuWidth();
 
 	// Automatic network update
-	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x10000100, 0x10000, 0, 0, NULL);
+	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x10000100, 0x100000, 0, 0, NULL);
 	if (thid >= 0)
 		sceKernelStartThread(thid, 0, NULL);
 

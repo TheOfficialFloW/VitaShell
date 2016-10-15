@@ -264,13 +264,13 @@ int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 				}
 			}
 
-			if (written != read) {
+			if (written < 0) {
 				free(buf);
 
 				sceIoClose(fddst);
 				archiveFileClose(fdsrc);
 
-				return (written < 0) ? written : -1;
+				return written;
 			}
 
 			seek += written;

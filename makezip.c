@@ -43,8 +43,6 @@ uLong filetime(const char *filename, tm_zip *tmzip, uLong *dostime) {
 }
 
 int zipAddFile(zipFile zf, char *path, int filename_start, FileProcessParam *param) {
-	debugPrintf("%s %s\n", __FUNCTION__, path);
-
 	int res;
 
 	// Get information about the file on disk so we can store it in zip
@@ -66,7 +64,7 @@ int zipAddFile(zipFile zf, char *path, int filename_start, FileProcessParam *par
 	char filename[MAX_PATH_LENGTH];
 	strcpy(filename, path + filename_start);
 
-	int level = 9;
+	int level = Z_DEFAULT_COMPRESSION;
 
 	res = zipOpenNewFileInZip3_64(zf, filename, &zi,
 				NULL, 0, NULL, 0, NULL,
@@ -113,13 +111,13 @@ int zipAddFile(zipFile zf, char *path, int filename_start, FileProcessParam *par
 			break;
 
 		int written = zipWriteInFileInZip(zf, buf, read);
-		if (written != read) {
+		if (written < 0) {
 			free(buf);
 
 			sceIoClose(fd);
 			zipCloseFileInZip(zf);
 
-			return (written < 0) ? written : -1;
+			return written;
 		}
 
 		seek += written;
@@ -150,11 +148,63 @@ int zipAddFile(zipFile zf, char *path, int filename_start, FileProcessParam *par
 	return 1;
 }
 
-int zipAddPath(zipFile zf, char *path, int filename_start, FileProcessParam *param) {
-	debugPrintf("%s %s\n", __FUNCTION__, path);
+int zipAddFolder(zipFile zf, char *path, int filename_start, FileProcessParam *param) {
+	int res;
 
+	// Get information about the file on disk so we can store it in zip
+	zip_fileinfo zi;
+	memset(&zi, 0, sizeof(zip_fileinfo));
+	filetime(path, &zi.tmz_date, &zi.dosDate);
+
+	// Size
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	res = sceIoGetstat(path, &stat);
+	if (res < 0)
+		return res;
+
+	// Open new file in zip
+	char filename[MAX_PATH_LENGTH];
+	strcpy(filename, path + filename_start);
+	addEndSlash(filename);
+
+	int level = Z_DEFAULT_COMPRESSION;
+
+	res = zipOpenNewFileInZip3_64(zf, filename, &zi,
+				NULL, 0, NULL, 0, NULL,
+				(level != 0) ? Z_DEFLATED : 0,
+				level, 0,
+				-MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
+				NULL, 0, 0);
+
+	if (res < 0)
+		return res;
+
+	if (param) {
+		if (param->value)
+			(*param->value)++;
+
+		if (param->SetProgress)
+			param->SetProgress(param->value ? *param->value : 0, param->max);
+
+		if (param->cancelHandler && param->cancelHandler()) {
+			zipCloseFileInZip(zf);
+			return 0;
+		}
+	}
+
+	zipCloseFileInZip(zf);
+
+	return 1;
+}
+
+int zipAddPath(zipFile zf, char *path, int filename_start, FileProcessParam *param) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
+		int ret = zipAddFolder(zf, path, filename_start, param);
+		if (ret <= 0)
+			return ret;
+
 		int res = 0;
 
 		do {
@@ -163,9 +213,6 @@ int zipAddPath(zipFile zf, char *path, int filename_start, FileProcessParam *par
 
 			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
-				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
-					continue;
-
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
 				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
@@ -179,7 +226,8 @@ int zipAddPath(zipFile zf, char *path, int filename_start, FileProcessParam *par
 
 				free(new_path);
 
-				if (ret <= 0) {
+				// Some folders are protected and return 0x80010001. Bypass them
+				if (ret <= 0 && ret != 0x80010001) {
 					sceIoDclose(dfd);
 					return ret;
 				}
@@ -252,11 +300,12 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 	}
 
 	// Check memory card free space
-/*	if (checkMemoryCardFreeSpace(size))
+	double guessed_size = (double)size * 0.7f;
+	if (checkMemoryCardFreeSpace((uint64_t)guessed_size))
 		goto EXIT;
-*/
+
 	// Update thread
-	thid = createStartUpdateThread(size);
+	thid = createStartUpdateThread(size + folders);
 
 	// Remove process
 	uint64_t value = 0;

@@ -1062,7 +1062,6 @@ static int dialogSteps() {
 		// With refresh
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
-		case DIALOG_STEP_EXPORTED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
