@@ -94,7 +94,7 @@ int checkForUnsafeImports(void *buffer) {
 	uint32_t i = mod_info->impTop;
 	while (i < mod_info->impBtm) {
 		SceImportsTable3xx import;
-		convertToImportsTable3xx((void *)text_addr + i, &import);
+		convertToImportsTable3xx((void *)(text_addr + i), &import);
 
 		char *libname = (char *)(text_addr + import.lib_name - phdr[segment].p_vaddr);
 
