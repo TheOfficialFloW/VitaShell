@@ -27,6 +27,8 @@ static int archive_path_start = 0;
 static unzFile uf = NULL;
 static FileList archive_list;
 
+int checkForUnsafeImports(void *buffer);
+
 int archiveCheckFilesForUnsafeFself() {
 	if (!uf)
 		return -1;
@@ -45,13 +47,37 @@ int archiveCheckFilesForUnsafeFself() {
 
 			// SCE magic
 			if (magic == 0x00454353) {
-				char buffer[0x84];
-				archiveFileRead(ARCHIVE_FD, buffer, sizeof(buffer));
+				char sce_header[0x84];
+				archiveFileRead(ARCHIVE_FD, sce_header, sizeof(sce_header));
 
-				uint64_t authid = *(uint64_t *)(buffer + 0x7C);
+				// Check authid flag
+				uint64_t authid = *(uint64_t *)(sce_header + 0x7C);
 				if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
 					archiveFileClose(ARCHIVE_FD);
 					return 1; // Unsafe
+				}
+
+				// Until here we have read 0x88 bytes
+				// ELF header starts at header_len, so let's seek to there
+				uint64_t header_len = *(uint64_t *)(sce_header + 0xC);
+
+				int i;
+				for (i = 0; i < header_len - 0x88; i += sizeof(uint32_t)) {
+					uint32_t dummy = 0;
+					archiveFileRead(ARCHIVE_FD, &dummy, sizeof(uint32_t));
+				}
+
+				// Check imports
+				char *buffer = malloc(archive_entry->size);
+				if (buffer) {
+					int size = archiveFileRead(ARCHIVE_FD, buffer, archive_entry->size);
+					int unsafe = checkForUnsafeImports(buffer);
+					free(buffer);
+
+					if (unsafe) {
+						archiveFileClose(ARCHIVE_FD);
+						return 1; // Unsafe
+					}
 				}
 			}
 

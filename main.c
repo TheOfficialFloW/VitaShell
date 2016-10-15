@@ -50,7 +50,7 @@
 
 #include "audio/vita_audio.h"
 
-int _newlib_heap_size_user = 64 * 1024 * 1024;
+int _newlib_heap_size_user = 128 * 1024 * 1024;
 
 #define MAX_DIR_LEVELS 1024
 
@@ -575,6 +575,7 @@ void setContextMenuMoreVisibilities() {
 
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
+		menu_more_entries[MENU_MORE_ENTRY_COMPRESS].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
@@ -583,6 +584,7 @@ void setContextMenuMoreVisibilities() {
 
 	// Invisble operations in archives
 	if (isInArchive()) {
+		menu_more_entries[MENU_MORE_ENTRY_COMPRESS].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_VISIBILITY_INVISIBLE;
