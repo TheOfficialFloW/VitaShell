@@ -17,18 +17,11 @@
 */
 
 #include "main.h"
-#include "UI2.h"
-#include "touch_shell.h"
 #include "init.h"
 #include "theme.h"
 #include "language.h"
 #include "utils.h"
 #include "uncommon_dialog.h"
-
-int type_touch = 0; 
-float x_d_start = 0;
-float x_d_end = 0;
-float y_d = 0;
 
 typedef struct {
 	int animation_mode;
@@ -147,24 +140,12 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
 
 SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 	if (uncommon_dialog.status == SCE_COMMON_DIALOG_STATUS_RUNNING) {
-			if (TOUCH_FRONT() == 1) {
-					State_Touch = -1;
-					float t_x = touch.report[0].x;						 		  
-					float t_y = touch.report[0].y;					
-					if ((t_x < x_d_end) & (t_x > x_d_start) & (t_y < y_d + FONT_Y_SPACE2) & (t_y > y_d - FONT_Y_SPACE2)) {						
-							type_touch = 1;
-					}
-					else {
-						type_touch = 2;
-					}																
-				}
-		switch (uncommon_dialog.buttonType) {		
+		switch (uncommon_dialog.buttonType) {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK:
 			{
-				if ((pressed_buttons & SCE_CTRL_ENTER) || (type_touch == 1)) {
+				if (pressed_buttons & SCE_CTRL_ENTER) {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_OK;
-					type_touch = 0;
 				}
 
 				break;
@@ -172,16 +153,14 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 			
 			case SCE_MSG_DIALOG_BUTTON_TYPE_YESNO:
 			{
-				if ((pressed_buttons & SCE_CTRL_ENTER) || (type_touch == 1)) {
+				if (pressed_buttons & SCE_CTRL_ENTER) {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_YES;
-					type_touch = 0;
 				}
 
-				if ((pressed_buttons & SCE_CTRL_CANCEL) || (type_touch == 2)) {
+				if (pressed_buttons & SCE_CTRL_CANCEL) {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_NO;
-					type_touch = 0;
 				}
 
 				break;
@@ -189,16 +168,14 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 			
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL:
 			{
-				if ((pressed_buttons & SCE_CTRL_ENTER) || (type_touch == 1)) {
+				if (pressed_buttons & SCE_CTRL_ENTER) {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_YES;
-					type_touch = 0;
 				}
 
-				if ((pressed_buttons & SCE_CTRL_CANCEL) || (type_touch == 2)) {
+				if (pressed_buttons & SCE_CTRL_CANCEL) {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_NO;
-					type_touch = 0;
 				}
 
 				break;
@@ -206,9 +183,8 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 			
 			case SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL:
 			{
-				if ((pressed_buttons & SCE_CTRL_CANCEL) || (type_touch == 2)) {
+				if (pressed_buttons & SCE_CTRL_CANCEL) {
 					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
-					type_touch = 0;
 				}
 
 				break;
@@ -347,12 +323,6 @@ int drawUncommonDialog() {
 
 			string_y += 2.0f * FONT_Y_SPACE;
 		}
-//////////////////////////////////////////////////////////
-		x_d_start = uncommon_dialog.x + uncommon_dialog.width;
-		x_d_end = uncommon_dialog.x + uncommon_dialog.width + CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, string));
-		y_d = uncommon_dialog.y + uncommon_dialog.height + string_y + FONT_Y_SPACE2;		
-		//vita2d_draw_rectangle(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)) - 10, string_y + FONT_Y_SPACE , (x_d_end - x_d_start) / 3 - 15, FONT_Y_SPACE + 5, COLOR_ALPHA(GRAY, 0xC8));				
-//////////////////////////////////////////////////////////		
 
 		switch (uncommon_dialog.buttonType) {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK:

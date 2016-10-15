@@ -172,4 +172,9 @@
 - Added 'Install folder' by soarqin.<br>
     ]]>
   </changes>
+   <changes app_ver="01.31">
+    <![CDATA[
+- Touching the screen on dialogs would abort the process, fixed.<br>
+    ]]>
+  </changes>
 </changeinfo>

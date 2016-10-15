@@ -95,6 +95,9 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.31 ###
+- Touching the screen on dialogs would abort the process, fixed.
+
 ### Changelog 1.3 ###
 - Added ability to compress files and folders into a zip archive.
 - Added scanning for unsafe fself's and imports.
