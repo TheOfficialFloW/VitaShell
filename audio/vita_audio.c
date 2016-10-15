@@ -481,8 +481,8 @@ vitaWav *vitaWavLoad(const char *filename)
 	lSize = sceIoLseek32(fd, 0, SCE_SEEK_END);
 	sceIoLseek32(fd, 0, SCE_SEEK_SET);
 
-	wav = malloc(lSize + sizeof(wav));
-	wavfile = (unsigned char*)(wav) + sizeof(wav);
+	wav = malloc(lSize + sizeof(vitaWav));
+	wavfile = (unsigned char*)(wav) + sizeof(vitaWav);
 
 	filelen = sceIoRead(fd, wavfile, lSize);
 
