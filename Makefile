@@ -1,18 +1,14 @@
 TITLE_ID = VITASHELL
 TARGET   = VitaShell
-OBJS     = main.o init.o io_process.o package_installer.o network_update.o context_menu.o archive.o photo.o audioplayer.o file.o text.o hex.o sfo.o \
+OBJS     = main.o init.o io_process.o makezip.o package_installer.o network_update.o context_menu.o archive.o photo.o audioplayer.o file.o text.o hex.o sfo.o \
 		   uncommon_dialog.o message_dialog.o ime_dialog.o config.o theme.o language.o utils.o sha1.o list_dialog.o UI2.o touch_shell.o \
-		   minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o audio/oggplayer.o audio/mp3player.o audio/mp3xing.o audio/lrcparse.o\
+		   minizip/zip.o minizip/unzip.o minizip/ioapi.o bm.o audio/vita_audio.o audio/player.o audio/id3.o \
+		   audio/oggplayer.o audio/mp3player.o audio/mp3xing.o audio/lrcparse.o \
 		   libmad/bit.o libmad/decoder.o libmad/fixed.o libmad/frame.o \
 		   libmad/huffman.o libmad/layer12.o libmad/layer3.o  \
 		   libmad/stream.o libmad/synth.o libmad/timer.o
 
-RESOURCES = resources \
-			resources/bg_wallpaper.png resources/vita_game_card.png resources/vita_game_card_storage.png \
-			resources/os0.png resources/memory_card.png resources/run_file.png resources/unknown_file.png resources/image_file.png \
-		   	resources/sa0.png resources/ur0.png resources/vd0.png resources/vs0.png resources/savedata0.png resources/pd0.png resources/app0.png \
-		   	resources/ud0.png resources/folder.png resources/mark.png resources/music_file.png resources/zip_file.png resources/txt_file.png resources/title_bar_bg.png \
-			resources/updir.png
+RESOURCES = resources
 RESOURCES_PNG := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.png))
 RESOURCES_TXT := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.txt))
 RESOURCES_BIN := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.bin))
@@ -26,15 +22,6 @@ LIBS = -lvorbisfile -lvorbis -logg -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc -
 	   -lSceSsl_stub -lSceSysmodule_stub -lScePhotoExport_stub -lScePower_stub \
 	   -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
 	   -lSceAudio_stub -lSceAudiodec_stub -lSceTouch_stub
-
-#NETDBG_IP ?= 192.168.1.50
-
-ifdef NETDBG_IP
-CFLAGS += -DNETDBG_ENABLE=1 -DNETDBG_IP="\"$(NETDBG_IP)\""
-endif
-ifdef NETDBG_PORT
-CFLAGS += -DNETDBG_PORT=$(NETDBG_PORT)
-endif
 
 PREFIX   = arm-vita-eabi
 CC       = $(PREFIX)-gcc

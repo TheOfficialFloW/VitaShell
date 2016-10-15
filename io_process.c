@@ -529,7 +529,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 	// Update thread
 	thid = createStartUpdateThread(size);
 
-	// Remove process
+	// Export process
 	uint64_t value = 0;
 	uint32_t songs = 0, pictures = 0;
 

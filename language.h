@@ -36,6 +36,7 @@ enum LanguageContainer {
 	INSTALLING,
 	DOWNLOADING,
 	EXTRACTING,
+	COMPRESSING,
 	HASHING,
 
 	// Audio player strings
@@ -65,6 +66,7 @@ enum LanguageContainer {
 	DELETE,
 	RENAME,
 	NEW_FOLDER,
+	COMPRESS,
 	INSTALL_ALL,
 	INSTALL_FOLDER,
 	CALCULATE_SHA1,

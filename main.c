@@ -29,6 +29,7 @@
 #include "main.h"
 #include "init.h"
 #include "io_process.h"
+#include "makezip.h"
 #include "package_installer.h"
 #include "network_update.h"
 #include "context_menu.h"
@@ -457,6 +458,7 @@ MenuEntry menu_entries[] = {
 #define N_MENU_ENTRIES (sizeof(menu_entries) / sizeof(MenuEntry))
 
 enum MenuMoreEntrys {
+	MENU_MORE_ENTRY_COMPRESS,
 	MENU_MORE_ENTRY_INSTALL_ALL,
 	MENU_MORE_ENTRY_INSTALL_FOLDER,
 	MENU_MORE_ENTRY_EXPORT_MEDIA,
@@ -464,6 +466,7 @@ enum MenuMoreEntrys {
 };
 
 MenuEntry menu_more_entries[] = {
+	{ COMPRESS, CTX_VISIBILITY_INVISIBLE },
 	{ INSTALL_ALL, CTX_VISIBILITY_INVISIBLE },
 	{ INSTALL_FOLDER, CTX_VISIBILITY_INVISIBLE },
 	{ EXPORT_MEDIA, CTX_VISIBILITY_INVISIBLE },
@@ -749,12 +752,8 @@ int contextMenuEnterCallback(int pos, void* context) {
 			char *message;
 
 			// On marked entry
-			if (fileListFindEntry(&copy_list, file_entry->name)) {
-				if (copy_list.length == 1) {
-					message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
-				} else {
-					message = language_container[COPIED_FILES_FOLDERS];
-				}
+			if (copy_list.length > 1 && fileListFindEntry(&copy_list, file_entry->name)) {
+				message = language_container[COPIED_FILES_FOLDERS];
 			} else {
 				message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
 			}
@@ -795,12 +794,8 @@ int contextMenuEnterCallback(int pos, void* context) {
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 
 			// On marked entry
-			if (fileListFindEntry(&mark_list, file_entry->name)) {
-				if (mark_list.length == 1) {
-					message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
-				} else {
-					message = language_container[DELETE_FILES_FOLDERS_QUESTION];
-				}
+			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
+				message = language_container[DELETE_FILES_FOLDERS_QUESTION];
 			} else {
 				message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
 			}
@@ -861,6 +856,48 @@ int contextMenuEnterCallback(int pos, void* context) {
 
 int contextMenuMoreEnterCallback(int pos, void* context) {
 	switch (pos) {
+		case MENU_MORE_ENTRY_COMPRESS:
+		{
+			char path[MAX_NAME_LENGTH];
+
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+
+			// On marked entry
+			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
+				int end_slash = removeEndSlash(file_list.path);
+
+				char *p = strrchr(file_list.path, '/');
+				if (!p)
+					p = strrchr(file_list.path, ':');
+
+				if (strlen(p + 1) > 0) {
+					strcpy(path, p + 1);
+				} else {
+					strncpy(path, file_list.path, p - file_list.path);
+					path[p - file_list.path] = '\0';
+				}
+
+				if (end_slash)
+					addEndSlash(file_list.path);				
+			} else {
+				char *p = strrchr(file_entry->name, '.');
+				if (!p)
+					p = strrchr(file_entry->name, '/');
+				if (!p)
+					p = file_entry->name + strlen(file_entry->name);
+
+				strncpy(path, file_entry->name, p - file_entry->name);
+				path[p - file_entry->name] = '\0';
+			}
+
+			// Append .zip extension
+			strcat(path, ".zip");
+
+			initImeDialog(language_container[COMPRESS], path, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
+			dialog_step = DIALOG_STEP_COMPRESS;
+			break;
+		}
+		
 		case MENU_MORE_ENTRY_INSTALL_ALL:
 		{
 			// Empty install list
@@ -908,12 +945,8 @@ int contextMenuMoreEnterCallback(int pos, void* context) {
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 
 			// On marked entry
-			if (fileListFindEntry(&mark_list, file_entry->name)) {
-				if (mark_list.length == 1) {
-					message = language_container[file_entry->is_folder ? EXPORT_FOLDER_QUESTION : EXPORT_FILE_QUESTION];
-				} else {
-					message = language_container[EXPORT_FILES_FOLDERS_QUESTION];
-				}
+			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
+				message = language_container[EXPORT_FILES_FOLDERS_QUESTION];
 			} else {
 				message = language_container[file_entry->is_folder ? EXPORT_FOLDER_QUESTION : EXPORT_FILE_QUESTION];
 			}
@@ -969,6 +1002,7 @@ int dialogSteps() {
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_DELETED:
 		case DIALOG_STEP_EXPORTED:
+		case DIALOG_STEP_COMPRESSED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				refresh = 1;
 				dialog_step = DIALOG_STEP_NONE;
@@ -1155,7 +1189,32 @@ int dialogSteps() {
 			}
 
 			break;
+			
+		case DIALOG_STEP_COMPRESS:
+			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+				char *name = (char *)getImeDialogInputTextUTF8();
+				if (name[0] == '\0') {
+					dialog_step = DIALOG_STEP_NONE;
+				} else {
+					snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
+					CompressArguments args;
+					args.file_list = &file_list;
+					args.mark_list = &mark_list;
+					args.index = base_pos + rel_pos;
+					args.path = cur_file;
+
+					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[COMPRESSING]);
+					dialog_step = DIALOG_STEP_COMPRESSING;
+
+					SceUID thid = sceKernelCreateThread("compress_thread", (SceKernelThreadEntry)compress_thread, 0x40, 0x10000, 0, 0, NULL);
+					if (thid >= 0)
+						sceKernelStartThread(thid, sizeof(CompressArguments), &args);
+				}
+			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+			
 		case DIALOG_STEP_HASH_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				// Throw up the progress bar, enter hashing state
@@ -1640,7 +1699,7 @@ BEGIN_SHELL_UI:
 				if (dir_level == 0) {
 					char used_size_string[16], max_size_string[16];
 					int max_size_x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, "0000.00 MB"));
-					int separator_x = ALIGN_RIGHT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "     /  "));
+					int separator_x = ALIGN_RIGHT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "    /  "));
 					if (file_entry->size != 0 && file_entry->size2 != 0) {
 						getSizeString(used_size_string, file_entry->size2 - file_entry->size);
 						getSizeString(max_size_string, file_entry->size2);
@@ -1649,7 +1708,7 @@ BEGIN_SHELL_UI:
 						strcpy(max_size_string, "-");
 					}
 					pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string)), y, color, FONT_SIZE, max_size_string);
-					pgf_draw_text(separator_x, y, color, FONT_SIZE, "     /");
+					pgf_draw_text(separator_x, y, color, FONT_SIZE, "    /");
 					pgf_draw_text(ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string)), y, color, FONT_SIZE, used_size_string);
 				} else {
 					char *str = NULL;
