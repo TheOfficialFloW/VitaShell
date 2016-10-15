@@ -1723,7 +1723,7 @@ void drawShellInfo2(char *path) {
 	pgf_draw_textf(SHELL_MARGIN_X_CUSTOM, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "VitaShell %s", version);
 
 	// Battery
-	float battery_x = ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_texture_get_width(battery_image));
+	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_texture_get_width(battery_image));
 	vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y_CUSTOM + 3.0f);
 
 	vita2d_texture *battery_bar_image = battery_bar_green_image;
@@ -1753,7 +1753,7 @@ void drawShellInfo2(char *path) {
 
 	char string[64];
 	sprintf(string, "%s  %s", date_string, time_string);
-	float date_time_x = ALIGN_LEFT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string));
+	float date_time_x = ALIGN_RIGHT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string));
 	pgf_draw_text(date_time_x, SHELL_MARGIN_Y_CUSTOM, DATE_TIME_COLOR, FONT_SIZE, string);
 
 	// WIFI
@@ -1799,7 +1799,7 @@ void drawShellInfo2(char *path) {
 		// sprintf(str, "%d files and %d folders", file_list.files, file_list.folders);
 
 		// Draw on bottom left
-		// pgf_draw_textf(ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - SHELL_MARGIN_Y_CUSTOM - FONT_Y_SPACE - 2.0f, LITEGRAY, FONT_SIZE, str);
+		// pgf_draw_textf(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - SHELL_MARGIN_Y_CUSTOM - FONT_Y_SPACE - 2.0f, LITEGRAY, FONT_SIZE, str);
 	}
 }
 
@@ -2137,7 +2137,7 @@ NEXT_FILE:
 				}
 			}
 
-			pgf_draw_text(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, str);
+			pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, str);
 
 			// Date
 			char date_string[16];
@@ -2149,7 +2149,7 @@ NEXT_FILE:
 			char string[64];
 			sprintf(string, "%s %s", date_string, time_string);
 
-			pgf_draw_text(ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_pgf_text_width(font, FONT_SIZE, string)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, string);
+			pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_pgf_text_width(font, FONT_SIZE, string)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, string);
 		}
 				
 		if ( h > 0)			

@@ -295,8 +295,10 @@ void loadTheme() {
 			}
 
 			// Font
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
- 			font = vita2d_load_custom_pgf(path);
+			// TheFloW: I am using a modified vita2dlib that doesn't have this function yet
+			//          and I'm too lazy to update mine. Will do it in the future.
+			// snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
+ 			// font = vita2d_load_custom_pgf(path);
 		}
 	}
 

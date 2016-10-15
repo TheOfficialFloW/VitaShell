@@ -186,7 +186,7 @@ int SFOReader(char *file) {
 					break;
 			}
 
-			pgf_draw_textf(ALIGN_LEFT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, string);
+			pgf_draw_textf(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, string);
 		}
 
 		// End drawing

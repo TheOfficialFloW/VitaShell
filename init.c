@@ -96,7 +96,7 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/audio_icon.png", audio_icon_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/sfo_icon.png", sfo_icon_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/text_icon.png", text_icon_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/wifi.png", wifi_png),
+	// DEFAULT_FILE("ux0:VitaShell/theme/Default/wifi.png", wifi_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", ftp_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery.png", battery_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png),

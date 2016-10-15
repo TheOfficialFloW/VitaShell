@@ -27,6 +27,44 @@ static int archive_path_start = 0;
 static unzFile uf = NULL;
 static FileList archive_list;
 
+int archiveCheckFilesForUnsafeFself() {
+	if (!uf)
+		return -1;
+
+	FileListEntry *archive_entry = archive_list.head;
+
+	int i;
+	for (i = 0; i < archive_list.length; i++) {
+		// Set pos
+		unzGoToFilePos64(uf, (unz64_file_pos *)&archive_entry->reserved);
+
+		// Open
+		if (unzOpenCurrentFile(uf) >= 0) {
+			uint32_t magic = 0;
+			archiveFileRead(ARCHIVE_FD, &magic, sizeof(uint32_t));
+
+			// SCE magic
+			if (magic == 0x00454353) {
+				char buffer[0x84];
+				archiveFileRead(ARCHIVE_FD, buffer, sizeof(buffer));
+
+				uint64_t authid = *(uint64_t *)(buffer + 0x7C);
+				if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
+					archiveFileClose(ARCHIVE_FD);
+					return 1; // Unsafe
+				}
+			}
+
+			archiveFileClose(ARCHIVE_FD);
+		}
+
+		// Next
+		archive_entry = archive_entry->next;
+	}
+
+	return 0; // Safe
+}
+
 int fileListGetArchiveEntries(FileList *list, char *path) {
 	int res;
 

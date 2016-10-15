@@ -434,11 +434,11 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 		// Time
 		char string[32];
 		sprintf(string, "%s / %s", cur_time_string, fileinfo->strLength);
-		float time_x = ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string));
+		float time_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string));
 
 		int w = pgf_draw_text(time_x, y, AUDIO_TIME_CURRENT, FONT_SIZE, cur_time_string);
 		pgf_draw_text(time_x + (float)w, y, AUDIO_TIME_SLASH, FONT_SIZE, " /");
-		pgf_draw_text(ALIGN_LEFT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, fileinfo->strLength)), y, AUDIO_TIME_TOTAL, FONT_SIZE, fileinfo->strLength);
+		pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, fileinfo->strLength)), y, AUDIO_TIME_TOTAL, FONT_SIZE, fileinfo->strLength);
 
 		float width = SCREEN_WIDTH - 3.0f * SHELL_MARGIN_X - cover_size;
 		vita2d_draw_rectangle(x, (y) + FONT_Y_SPACE + 10.0f, width, 8, AUDIO_TIME_BAR_BG);
