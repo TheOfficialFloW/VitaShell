@@ -1,4 +1,4 @@
-# VitaShell v1.2 language file - (Português - Brasil) Rev.(0005)
+# VitaShell v1.31 language file - (Português - Brasil) Rev.(0006)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -16,6 +16,7 @@ EXPORTING                            = "Exportando..."
 INSTALLING                           = "Instalando..."
 DOWNLOADING                          = "Baixando..."
 EXTRACTING                           = "Extraindo..."
+COMPRESSING                          = "Comprimindo..."
 HASHING                              = "Hashing..."
 
 # Audio player strings
@@ -45,7 +46,9 @@ PASTE                                = "Colar"
 DELETE                               = "Deletar"
 RENAME                               = "Renomear"
 NEW_FOLDER                           = "Nova pasta"
+COMPRESS                             = "Comprimir"
 INSTALL_ALL                          = "Intalar todos"
+INSTALL_FOLDER                       = "Intalar pasta"
 CALCULATE_SHA1                       = "Calcular SHA1"
 EXPORT_MEDIA                         = "Exportar mídia"
 SEARCH                               = "Procurar"
@@ -67,6 +70,7 @@ EXPORT_SONGS_INFO                    = "Exportado(s) %d som(s)."
 EXPORT_PICTURES_INFO                 = "Exportado(s) %d imagem(s)."
 EXPORT_SONGS_PICTURES_INFO           = "Exportado(s) %d som(s) e %d imagem(s)."
 INSTALL_ALL_QUESTION                 = "Você deseja instalar todos os pacotes disponíveis nesta pasta?"
+INSTALL_FOLDER_QUESTION              = "Você deseja instalar esta pasta?\Warning: esta ação também vai apagar\a pasta após a instalação!"
 INSTALL_QUESTION                     = "Você deseja instalar este pacote?"
 INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se você não o obteve de uma fonte confiável,\proceda com cuidado.\\Deseja continuar a instalação?"
 HASH_FILE_QUESTION                   = "O hashing SHA1 pode levar um longo tempo. Deseja continuar?"
@@ -80,4 +84,4 @@ FTP_SERVER                           = "Servidor FTP está diponível em\ftp://%
 SYS_INFO                             = "Software de sistema: %s\Modelo: 0x%08X\Endereço MAC: %s\Endereço IP: %s\Cartão de memória: %s/%s\Nível de bateria: %d%%"
 UPDATE_QUESTION                      = "VitaShell %s está disponível.\\Deseja atualizar o aplicativo?""
 TOOLBOX                              = "Caixa de ferramentas"
-SYSINFO_TITLE                        = "Informação do sistema"
+SYSINFO_TITLE                        = "Informações do sistema"
