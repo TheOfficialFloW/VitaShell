@@ -27,7 +27,7 @@ static char* getStringFromRegmatch(char* source,size_t so,size_t eo)
         word[0] = '\0';
     }else{
         word = malloc(sizeof(char) * (wordlength + 1));
-        memcpy((void*)word,(void*)source + so,wordlength);//copy string
+        memcpy((void*)word,(void*)(source + so),wordlength);//copy string
         word[sizeof(char) * (wordlength)] = '\0';
     }
     return word;
