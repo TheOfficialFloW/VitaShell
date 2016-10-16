@@ -17,7 +17,7 @@ INSTALLING                           = "Instalando..."
 DOWNLOADING                          = "Descarregando..."
 EXTRACTING                           = "Extraindo..."
 HASHING                              = "Calculando hash..."
-COMPRESSING                         = "Comprimindo..."
+COMPRESSING                          = "Comprimindo..."
 
 # Audio player strings
 TITLE                                = "Título"
@@ -83,4 +83,4 @@ FTP_SERVER                           = "Servidor FTP está diponível em\ftp://%
 SYS_INFO                             = "Software de sistema: %s\Modelo: 0x%08X\Endereço MAC: %s\Endereço IP: %s\Cartão de memória: %s/%s\Estado da bateria: %d%%"
 UPDATE_QUESTION                      = "VitaShell %s está disponível.\\Deseja atualizar a aplicação?""
 TOOLBOX                              = "Caixa de Ferramentas"
-SYSINFO_TITLE                           = "Informação do sistema"
+SYSINFO_TITLE                        = "Informação do sistema"
