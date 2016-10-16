@@ -1,5 +1,5 @@
 # VitaShell language file
-# ver1.2対応日本語言語ファイル 12a12 作者@Umineko19930417
+# VitaShell 1.31対応版日本語言語ファイル 131b17 作者@Umineko19930417
 
 # General strings
 # 一般的な文字列
@@ -19,6 +19,7 @@ EXPORTING			= "エクスポート中..."
 INSTALLING			= "インストール中..."
 DOWNLOADING			= "ダウンロード中..."
 EXTRACTING			= "吸い出し中..."
+COMPRESSING			= "圧縮中..."
 HASHING				= "ハッシュ中..."
 
 # Audio player strings
@@ -52,7 +53,9 @@ PASTE				= "貼り付け"
 DELETE				= "削除"
 RENAME				= "リネーム"
 NEW_FOLDER			= "新しいフォルダ"
+COMPRESS			= "圧縮"
 INSTALL_ALL			= "全てをインストール"
+INSTALL_FOLDER		= "フォルダをインストール"
 CALCULATE_SHA1			= "SHA1の表示"
 EXPORT_MEDIA			= "メディアをエクスポート"
 SEARCH				= "検索"
@@ -76,6 +79,7 @@ EXPORT_SONGS_INFO		= "%d個の歌をエクスポートしました"
 EXPORT_PICTURES_INFO		= "%d個の写真をエクスポートしました"
 EXPORT_SONGS_PICTURES_INFO	= "%d個の歌と%d個の写真をエクスポートしました"
 INSTALL_ALL_QUESTION		= "このフォルダの中にある、全てのパッケージをインストールしますか?"
+INSTALL_FOLDER_QUESTION		= "このフォルダをインストールしますか?\警告: インストール後にフォルダを削除します!"
 INSTALL_QUESTION		= "このパッケージをインストールしますか?"
 INSTALL_WARNING			= "このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します\信頼できるソース以外から入手した場合、インストールは自己判断で行って下さい\\インストールを続行してもよろしいですか?"
 HASH_FILE_QUESTION		= "SHA1ハッシュの計算には時間がかかる場合があります\続けますか?"
