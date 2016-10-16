@@ -1,12 +1,12 @@
 # VitaShell language file
-# VitaShell 1.31対応版日本語言語ファイル 131b17 作者@Umineko19930417
+# VitaShell1.31対応版日本語言語ファイル 131b19
 
 # General strings
 # 一般的な文字列
 ERROR				= "エラーコード:0x%08X"
 OK				= "OK"
-YES				= "Yes"
-NO				= "No"
+YES				= "はい"
+NO				= "いいえ"
 CANCEL				= "キャンセル"
 FOLDER				= "フォルダ"
 
@@ -20,7 +20,7 @@ INSTALLING			= "インストール中..."
 DOWNLOADING			= "ダウンロード中..."
 EXTRACTING			= "吸い出し中..."
 COMPRESSING			= "圧縮中..."
-HASHING				= "ハッシュ中..."
+HASHING				= "ハッシュ計算中..."
 
 # Audio player strings
 # オーディオプレイヤーの文字列
