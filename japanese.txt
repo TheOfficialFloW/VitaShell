@@ -1,5 +1,5 @@
 # VitaShell language file
-# VitaShell1.31対応版日本語言語ファイル 131b19
+# VitaShell ver.1.31対応版日本語言語ファイル 131b19 作者@Umineko19930417
 
 # General strings
 # 一般的な文字列
