@@ -71,6 +71,7 @@ EXPORT_PICTURES_INFO                 = "Imagem(s) %d exportada(s)."
 EXPORT_SONGS_PICTURES_INFO           = "Música(s) e %d imagem(s) %d exportada(s)."
 INSTALL_ALL_QUESTION                 = "Deseja instalar todos os pacotes disponíveis nesta pasta?"
 INSTALL_QUESTION                     = "Deseja instalar este pacote?"
+INSTALL_FOLDER_QUESTION              = "Deseja instalar a pasta?\ATENÇÃO: Esta ação irá eliminar\a pasta após a instalação!"
 INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se não o obteve de fonte segura,\proceda com cuidado.\\Deseja continuar a instalação?"
 HASH_FILE_QUESTION                   = "Calcular o SHA1 poderá demorar algum tempo. Deseja continuar?"
 
