@@ -1,4 +1,4 @@
-# VitaShell v1.2 language file - (Português - Portugal) Rev.02 - By HeavyD (CMaD)
+# VitaShell v1.31 language file - (Português - Portugal) Rev.04 - By HeavyD (CMaD)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -17,6 +17,7 @@ INSTALLING                           = "Instalando..."
 DOWNLOADING                          = "Descarregando..."
 EXTRACTING                           = "Extraindo..."
 HASHING                              = "Calculando hash..."
+COMPRESSING                          = "Comprimindo..."
 
 # Audio player strings
 TITLE                                = "Título"
@@ -30,13 +31,13 @@ OFFSET                               = "Offset"
 OPEN_HEX_EDITOR                      = "Abrir o editor Hex"
 
 # Text editor strings
-EDIT_LINE                            = "Editar linha"
+EDIT_LINE                            = "Editar texto/linha"
 ENTER_SEARCH_TERM                    = "Escreva o que pretende pesquisar"
 CUT                                  = "Cortar"
 INSERT_EMPTY_LINE                    = "Inserir linha (vazia)"
 
 # File browser context menu strings
-MORE                                 = "Mais"
+MORE                                 = "Mais opções"
 MARK_ALL                             = "Selecionar tudo"
 UNMARK_ALL                           = "Desselecionar tudo"
 MOVE                                 = "Mover"
@@ -49,25 +50,28 @@ INSTALL_ALL                          = "Instalar todos"
 CALCULATE_SHA1                       = "Calcular SHA1"
 EXPORT_MEDIA                         = "Exportar média"
 SEARCH                               = "Pesquisar"
+COMPRESS                             = "Comprimir"
+INSTALL_FOLDER                       = "Pasta de instalação"
 
 # File browser strings
 COPIED_FILE                          = "Ficheiro %d copiado."
 COPIED_FOLDER                        = "Pasta %d copiada."
-COPIED_FILES_FOLDERS                 = "Ficheiros/pastas %d copiados."
+COPIED_FILES_FOLDERS                 = "Ficheiros/pastas %d copiados(as)."
 
 # Dialog questions
 DELETE_FILE_QUESTION                 = "Tem a certeza de que deseja eliminar este ficheiro?"
 DELETE_FOLDER_QUESTION               = "Tem a certeza de que deseja eliminar esta pasta?"
-DELETE_FILES_FOLDERS_QUESTION        = "Tem a certeza de que deseja eliminar estes ficheiros/pastas?"
+DELETE_FILES_FOLDERS_QUESTION        = "Tem a certeza de que deseja eliminar estes(as) ficheiros/pastas?"
 EXPORT_FILE_QUESTION                 = "Tem a certeza de que deseja exportar este ficheiro para média?"
 EXPORT_FOLDER_QUESTION               = "Tem a certeza de que deseja exportar esta pasta para média?"
-EXPORT_FILES_FOLDERS_QUESTION        = "Tem a certeza de que deseja exportar estes ficheiros/pastas para média?"
+EXPORT_FILES_FOLDERS_QUESTION        = "Tem a certeza de que deseja exportar estes(as) ficheiros/pastas para média?"
 EXPORT_NO_MEDIA                      = "Não há arquivos de média disponíveis para exportar."
 EXPORT_SONGS_INFO                    = "Música(s) %d exportada(s)."
 EXPORT_PICTURES_INFO                 = "Imagem(s) %d exportada(s)."
 EXPORT_SONGS_PICTURES_INFO           = "Música(s) e %d imagem(s) %d exportada(s)."
 INSTALL_ALL_QUESTION                 = "Deseja instalar todos os pacotes disponíveis nesta pasta?"
 INSTALL_QUESTION                     = "Deseja instalar este pacote?"
+INSTALL_FOLDER_QUESTION              = "Deseja instalar a pasta?\ATENÇÃO: Esta ação irá eliminar\a pasta após a instalação!"
 INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se não o obteve de fonte segura,\proceda com cuidado.\\Deseja continuar a instalação?"
 HASH_FILE_QUESTION                   = "Calcular o SHA1 poderá demorar algum tempo. Deseja continuar?"
 
