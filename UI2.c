@@ -1,4 +1,3 @@
-
 #include "UI2.h"
 #include "touch_shell.h"
 #include "main.h"
@@ -74,7 +73,7 @@ bool notification_on = false;
 float width_item_notification = 300.0f;
 float height_item_notification = 60.0f;
 bool toggle_item_notification[10];
-
+float debug = 0;
 float slide_value_limit = 0;
 float speed_slide = 10.0f;
 int value_cur_pos = 0;
@@ -1522,6 +1521,45 @@ static void fileBrowserMenuCtrl2() {
 				Position = 0;			
 			}
 		}
+		/*
+		//Slide up
+		if (TOUCH_BACK() == 6) {
+			//Reset state everytime TOUCH_BACK called		
+			State_Touch_Back = -1;
+				
+			if ((slide_value > -slide_value_limit)) {
+				if (slide_value_limit > SCREEN_HEIGHT - START_Y - height_item) {	
+					slide_value -=  slide_value - (-(pre_touch_back_y - touch_back.report[0].y) + slide_value_hold2);
+					if (slide_value  < -slide_value_limit)
+						slide_value = -slide_value_limit ;								
+				}
+			}
+			else {
+				
+				//pre_touch_y = touch.report[0].y;
+				animate_slide = true;
+				Position = -slide_value_limit;			
+			}
+			
+		}
+
+		//Slide down
+		if (TOUCH_BACK() == 7)  {
+			//Reset state everytime TOUCH_BACK called
+			State_Touch_Back = -1;
+
+			if((slide_value < 0)) {	
+				slide_value -= slide_value - ((touch_back.report[0].y - pre_touch_back_y) + slide_value_hold2);
+				if (slide_value  < -slide_value_limit)
+						slide_value = 0;						
+			}
+			else {
+				
+				//pre_touch_y = touch.report[0].y;			
+				animate_slide = true;
+				Position = 0;			
+			}
+			}*/
 
 		// Move
 		if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {				
@@ -1719,7 +1757,7 @@ void drawShellInfo2(char *path) {
 
 	vita2d_draw_texture(title_bar_bg_image, 0, slide_value_notification - HEIGHT_TITLE_BAR);
 
-	pgf_draw_textf(SHELL_MARGIN_X_CUSTOM, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "VitaShell %s", version);
+	pgf_draw_textf(SHELL_MARGIN_X_CUSTOM, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "VitaShell %s %f", version, debug);
 
 	// Battery
 	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_texture_get_width(battery_image));
@@ -1917,7 +1955,7 @@ void DrawItem(FileListEntry *file_entry, float x, float y, float extend_item_val
 					char ch_width = font_size_cache[(int)file_entry->name[j]];
 
 					// Too long
-					if ((line_width + ch_width) >= MAX_NAME_WIDTH_TILE + extend_item_value)
+					if ((line_width + ch_width) >= MAX_NAME_WIDTH_TILE + extend_item_value - 1)
 						break;
 
 					// Increase line width
@@ -1936,7 +1974,7 @@ void DrawItem(FileListEntry *file_entry, float x, float y, float extend_item_val
 				// Draw shortened file name
 				if (strcmp(file_entry->name, "..") != 0) {
 					extend_item_value = (int) extend_item_value;								
-					vita2d_draw_rectangle(x - extend_item_value - 1, y + height_item - FONT_Y_SPACE2 + slide_value + extend_item_value - 1,  2*extend_item_value + width_item, FONT_Y_SPACE2 - 1, COLOR_ALPHA(WHITE, 0xB4));																	
+					vita2d_draw_rectangle(x - extend_item_value - 1, y + height_item - FONT_Y_SPACE2 + slide_value + extend_item_value - 1,  2*extend_item_value + width_item - 1, FONT_Y_SPACE2 - 1, COLOR_ALPHA(WHITE, 0xB4));																	
 					pgf_draw_text(x + 2.0f - extend_item_value, y + height_item - FONT_Y_SPACE2 + slide_value + extend_item_value, COLOR_ALPHA(BLACK, 0xF0), FONT_SIZE, file_entry->name);
 					
 				}								
@@ -1957,10 +1995,13 @@ void DrawItem(FileListEntry *file_entry, float x, float y, float extend_item_val
 					
 }
 
-static void mainUI2() {				
+static void mainUI2() {
+               
 		// Start drawing
-		startDrawing(bg_browser_image);
-		vita2d_draw_texture_part(default_wallpaper, 0, START_Y - 1 - max_extend_item_value , 0 , START_Y - 1 - max_extend_item_value, SCREEN_WIDTH, vita2d_texture_get_height(default_wallpaper));			
+                vita2d_start_drawing();
+				
+		//startDrawing(bg_browser_image);
+		drawingWallpaperUI2(default_wallpaper, 0, START_Y - 1 - max_extend_item_value , 0 , START_Y - 1 - max_extend_item_value, SCREEN_WIDTH, vita2d_texture_get_height(default_wallpaper), 1);			
 
 		// Draw scroll bar
 		drawScrollBar2(file_list.length);
@@ -2042,12 +2083,12 @@ NEXT_FILE:
 			int a = x_pos_item_old - animate_extend_item;
 			int b = y_pos_item_old - animate_extend_item + slide_value;
 
-			vita2d_draw_texture_part(default_wallpaper, a- 1, b, a - 1, b, width_item + 2*animate_extend_item, height_item + 2*animate_extend_item);
+			drawingWallpaperUI2(default_wallpaper, a- 1, b, a - 1, b, width_item + 2*animate_extend_item, height_item + 2*animate_extend_item, 0);
 			DrawItem(file_entry2, x_pos_item_old, y_pos_item_old, animate_extend_item);
-			vita2d_draw_texture_part(default_wallpaper, 0, 0 ,0 , 0, SCREEN_WIDTH, START_Y - 1 - max_extend_item_value);						
+			 drawingWallpaperUI2(default_wallpaper, 0, 0 ,0 , 0, SCREEN_WIDTH, START_Y - 1 - max_extend_item_value, 0);						
 		}	
 		else
-			vita2d_draw_texture_part(default_wallpaper, 0, 0 ,0 , 0, SCREEN_WIDTH, START_Y - 1);					
+		  drawingWallpaperUI2(default_wallpaper, 0, 0 ,0 , 0, SCREEN_WIDTH, START_Y - 1, 0);
 
 		// Draw shell info
 		drawShellInfo2(file_list.path);	
@@ -2243,6 +2284,7 @@ void shellUI2() {
 	refreshUI2();	
 
 	while (1) {
+	  debug = pre_touch_back_y; 
 		if (!Change_UI) break;
 
 		readPad();
