@@ -10,7 +10,7 @@ extern int pre_touch_back_x;
 extern float slide_value_hold;
 extern float slide_value;
 extern SceTouchData touch;
-extern bool touch_nothing;
+//extern bool touch_nothing;
 
 // State_Touch is global value to certain function TOUCH_FRONT alway return absolute one value for one time.
 extern int State_Touch;
@@ -68,5 +68,5 @@ extern int State_Touch_Back;
 // 13 : Empty slot
 // 14 : Empty slot
 // 15 : Empty slot;
-int TOUCH_BACK();
+//int TOUCH_BACK();
 

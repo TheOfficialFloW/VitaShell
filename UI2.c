@@ -21,6 +21,7 @@
 #include "list_dialog.h"
 
 bool Change_UI = false;
+bool touch_nothing = false;
 
 static int _newlib_heap_size_user = 64 * 1024 * 1024;
  //bool Change_UI = false;
@@ -74,6 +75,7 @@ float width_item_notification = 300.0f;
 float height_item_notification = 60.0f;
 bool toggle_item_notification[10];
 float debug = 0;
+float debug2 = 0;
 float slide_value_limit = 0;
 float speed_slide = 10.0f;
 int value_cur_pos = 0;
@@ -1412,17 +1414,10 @@ static void fileBrowserMenuCtrl2() {
 		if (!ftpvita_is_initialized()) {
 			int res = ftpvita_init(vita_ip, &vita_port);
 			if (res < 0) {
-				infoDialog(language_container[WIFI_ERROR]);
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
+				dialog_step = DIALOG_STEP_FTP_WAIT;
 			} else {
-				// Add all the current mountpoints to ftpvita
-				int i;
-				for (i = 0; i < getNumberMountPoints(); i++) {
-					char **mount_points = getMountPoints();
-					if (mount_points[i]) {
-						ftpvita_add_device(mount_points[i]);
-					}
-				}
-				ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);
+				initFtp();
 			}
 
 			// Lock power timers
@@ -1477,50 +1472,53 @@ static void fileBrowserMenuCtrl2() {
 		}
 
 
-		//Slide up
-		if (TOUCH_FRONT() == 6) {
-			//Reset state everytime TOUCH_FRONT called		
-			State_Touch = -1;
+	//Slide up
+	if (TOUCH_FRONT() == 6) {
+	    //Reset state everytime TOUCH_FRONT called		
+	    State_Touch = -1;
 				
-			if ((slide_value  > -slide_value_limit)) {
-				if (slide_value_limit > SCREEN_HEIGHT - START_Y - height_item) {	
-					slide_value -=  slide_value - (-(pre_touch_y - touch.report[0].y) + slide_value_hold);
-					if (slide_value  < -slide_value_limit)
-						slide_value = -slide_value_limit ;								
-				}
+	    //if ((slide_value  > -slide_value_limit)) {
+	    if (slide_value_limit > SCREEN_HEIGHT - START_Y - height_item) {	
+		slide_value = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT) - lerp( pre_touch_y, 1088, SCREEN_HEIGHT) + slide_value_hold;
+		if (slide_value  < -slide_value_limit){
+		    /*	slide_value = -slide_value_limit ;								
 			}
-			else {
+			}
+			else {*/
 				
-				//pre_touch_y = touch.report[0].y;
-				animate_slide = true;
-				Position = -slide_value_limit;			
-			}
-			
+		    //pre_touch_y = touch.report[0].y;
+		    animate_slide = true;
+		    Position = -slide_value_limit;			
 		}
-
-		//Slide down
-		if (TOUCH_FRONT() == 7)  {
-			//Reset state everytime TOUCH_FRONT called
-			State_Touch = -1;
-			if ((pre_touch_y < HEIGHT_TITLE_BAR) ) {
-				float n_y = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT);
-				slide_value_notification = n_y;
-				notification_start = true;
-			}
-			else
-
-			if((slide_value < 0)) {	
-				slide_value -= slide_value - ((touch.report[0].y - pre_touch_y) + slide_value_hold);
-				if (slide_value  < -slide_value_limit)
-						slide_value = 0;						
-			}
-			else {
-				
-				//pre_touch_y = touch.report[0].y;			
-				animate_slide = true;
-				Position = 0;			
-			}
+		else {
+		    animate_slide = false;
 		}
+	    }	
+	}
+
+	//Slide down
+	if (TOUCH_FRONT() == 7)  {
+	    //Reset state everytime TOUCH_FRONT called
+	    State_Touch = -1;
+	    if ((pre_touch_y < HEIGHT_TITLE_BAR) ) {
+		float n_y = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT);
+		slide_value_notification = n_y;
+		notification_start = true;
+	    }
+	    else{
+				
+		slide_value = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT) - lerp( pre_touch_y, 1088, SCREEN_HEIGHT) + slide_value_hold;
+		if (slide_value > 0){
+					
+		    //pre_touch_y = touch.report[0].y;			
+		    animate_slide = true;
+		    Position = 0;
+		}
+		else {
+		    animate_slide = false;
+		}
+	    }
+	}
 		/*
 		//Slide up
 		if (TOUCH_BACK() == 6) {
@@ -1603,10 +1601,10 @@ static void fileBrowserMenuCtrl2() {
 		}
 
 			// Mark entry
-			if ((pressed_buttons & SCE_CTRL_SQUARE) || ((TOUCH_FRONT() == 3) & !have_touch_hold & !touch_nothing )) {
+			if ((pressed_buttons & SCE_CTRL_SQUARE) || ((TOUCH_FRONT() == 3) & !touch_nothing )) {
 				State_Touch = -1;
 
-				have_touch_hold = true;
+				//have_touch_hold = true;
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, rel_pos);
 				if (strcmp(file_entry->name, DIR_UP) != 0) {
 					if (!fileListFindEntry(&mark_list, file_entry->name)) {
@@ -1632,12 +1630,12 @@ static void fileBrowserMenuCtrl2() {
 			}
 		}
 
-		if (pressed_buttons & SCE_CTRL_ENTER || ((TOUCH_FRONT() == 1) & (lerp(touch.report[0].y, 1088, SCREEN_HEIGHT) > START_Y))) {
+	if (pressed_buttons & SCE_CTRL_ENTER || ((TOUCH_FRONT() == 1) || (TOUCH_FRONT() == 2) & (lerp(touch.report[0].y, 1088, SCREEN_HEIGHT) > START_Y))) {
 		State_Touch = -1;
 
-		if (touch_nothing || have_touch_hold) {			
+		if (touch_nothing) {			
 				touch_nothing = false;
-				have_touch_hold = false;
+				//have_touch_hold = false;
 				return;
 		}
 
@@ -1755,9 +1753,9 @@ void drawShellInfo2(char *path) {
 	if (version[3] == '0')
 		version[3] = '\0';
 
-	vita2d_draw_texture(title_bar_bg_image, 0, slide_value_notification - HEIGHT_TITLE_BAR);
+	vita2d_draw_texture_tint(title_bar_bg_image, 0, slide_value_notification - HEIGHT_TITLE_BAR,RGBA8(255, 255, 255, 180));
 
-	pgf_draw_textf(SHELL_MARGIN_X_CUSTOM, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "VitaShell %s %f", version, debug);
+	pgf_draw_textf(SHELL_MARGIN_X_CUSTOM, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "VitaShell %s %f %f", version, debug,debug2);
 
 	// Battery
 	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_texture_get_width(battery_image));
@@ -1843,9 +1841,7 @@ void drawShellInfo2(char *path) {
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void DrawItem(FileListEntry *file_entry, float x, float y, float extend_item_value) {
-			
-																																	
+void DrawItem(FileListEntry *file_entry, float x, float y, float extend_item_value) {			
 				
 				//Special Folder
 				if (strcmp(file_entry->name, "gro0:") == 0) {				
@@ -1973,8 +1969,8 @@ void DrawItem(FileListEntry *file_entry, float x, float y, float extend_item_val
 
 				// Draw shortened file name
 				if (strcmp(file_entry->name, "..") != 0) {
-					extend_item_value = (int) extend_item_value;								
-					vita2d_draw_rectangle(x - extend_item_value - 1, y + height_item - FONT_Y_SPACE2 + slide_value + extend_item_value - 1,  2*extend_item_value + width_item - 1, FONT_Y_SPACE2 - 1, COLOR_ALPHA(WHITE, 0xB4));																	
+				  //extend_item_value = (int) extend_item_value;								
+					vita2d_draw_rectangle(x - extend_item_value - 1, y + height_item - FONT_Y_SPACE2 + slide_value + extend_item_value - 1,  2*extend_item_value + width_item - 1, FONT_Y_SPACE2 - 1,  COLOR_ALPHA(WHITE, 0xB4));																	
 					pgf_draw_text(x + 2.0f - extend_item_value, y + height_item - FONT_Y_SPACE2 + slide_value + extend_item_value, COLOR_ALPHA(BLACK, 0xF0), FONT_SIZE, file_entry->name);
 					
 				}								
@@ -2104,7 +2100,7 @@ NEXT_FILE:
 			icon = folder_icon;
 		} else {
 			switch (file_entry2->type) {
-					case FILE_TYPE_BMP:
+				case FILE_TYPE_BMP:
 					case FILE_TYPE_PNG:
 					case FILE_TYPE_JPEG:
 						color = IMAGE_COLOR;
@@ -2118,23 +2114,25 @@ NEXT_FILE:
 						break;
 						
 					case FILE_TYPE_MP3:
+					case FILE_TYPE_OGG:
 						color = IMAGE_COLOR;
 						icon = audio_icon;
 						break;
 						
 					case FILE_TYPE_SFO:
-						// color = SFO_COLOR;
+						color = SFO_COLOR;
 						icon = sfo_icon;
 						break;
 					
 					case FILE_TYPE_INI:
 					case FILE_TYPE_TXT:
 					case FILE_TYPE_XML:
-						// color = TXT_COLOR;
+						color = TXT_COLOR;
 						icon = text_icon;
 						break;
 						
 					default:
+						color = FILE_COLOR;
 						icon = file_icon;
 						break;
 				}
@@ -2150,47 +2148,46 @@ NEXT_FILE:
 
 		// File information
 		if (strcmp(file_entry2->name, DIR_UP) != 0) {
-			char *str = NULL;
-
-			if (dir_level == 0) {
-				if (file_entry2->size != 0 && file_entry2->size2 != 0) {
-					char free_size_string[16], max_size_string[16];
-					getSizeString(free_size_string, file_entry2->size2 - file_entry2->size);
-					getSizeString(max_size_string, file_entry2->size2);
-
-					char string[32];
-					snprintf(string, sizeof(string), "%s / %s", free_size_string, max_size_string);
-
-					str = string;
+				if (dir_level == 0) {
+					char used_size_string[16], max_size_string[16];
+					int max_size_x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, "0000.00 MB"));
+					int separator_x = ALIGN_RIGHT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "    /  "));
+					if (file_entry2->size != 0 && file_entry2->size2 != 0) {
+						getSizeString(used_size_string, file_entry2->size2 - file_entry2->size);
+						getSizeString(max_size_string, file_entry2->size2);
+					} else {
+						strcpy(used_size_string, "-");
+						strcpy(max_size_string, "-");
+					}
+					pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, max_size_string);
+					pgf_draw_text(separator_x, SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, "    /");
+					pgf_draw_text(ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, used_size_string);
 				} else {
-					str = "-";
+					char *str = NULL;
+					if (!file_entry2->is_folder) {
+						// Folder/size
+						char string[16];
+						getSizeString(string, file_entry2->size);
+						str = string;
+					} else {
+						str = language_container[FOLDER];
+					}
+					pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, str);
 				}
-			} else {
-				if (!file_entry2->is_folder) {
-					// Folder/size
-					char string[16];
-					getSizeString(string, file_entry2->size);
 
-					str = string;
-				} else {
-					str = language_container[FOLDER];
-				}
+				// Date
+				char date_string[16];
+				getDateString(date_string, date_format, &file_entry2->time);
+
+				char time_string[24];
+				getTimeString(time_string, time_format, &file_entry2->time);
+
+				char string[64];
+				sprintf(string, "%s %s", date_string, time_string);
+
+				pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_pgf_text_width(font, FONT_SIZE, string)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, string);
 			}
 
-			pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, str);
-
-			// Date
-			char date_string[16];
-			getDateString(date_string, date_format, &file_entry2->time);
-
-			char time_string[24];
-			getTimeString(time_string, time_format, &file_entry2->time);
-
-			char string[64];
-			sprintf(string, "%s %s", date_string, time_string);
-
-			pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_pgf_text_width(font, FONT_SIZE, string)), SCREEN_HEIGHT - FONT_Y_SPACE2, color, FONT_SIZE, string);
-		}
 				
 		if ( h > 0)			
 			slide_value_limit = h * (height_item + length_border ) + length_border;			
@@ -2284,7 +2281,8 @@ void shellUI2() {
 	refreshUI2();	
 
 	while (1) {
-	  debug = pre_touch_back_y; 
+	  debug = slide_value;
+	  debug2 =  pre_touch_y;
 		if (!Change_UI) break;
 
 		readPad();
