@@ -74,8 +74,6 @@ bool notification_on = false;
 float width_item_notification = 300.0f;
 float height_item_notification = 60.0f;
 bool toggle_item_notification[10];
-float debug = 0;
-float debug2 = 0;
 float slide_value_limit = 0;
 float speed_slide = 10.0f;
 int value_cur_pos = 0;
@@ -1755,7 +1753,7 @@ void drawShellInfo2(char *path) {
 
 	vita2d_draw_texture_tint(title_bar_bg_image, 0, slide_value_notification - HEIGHT_TITLE_BAR,RGBA8(255, 255, 255, 180));
 
-	pgf_draw_textf(SHELL_MARGIN_X_CUSTOM, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "VitaShell %s %f %f", version, debug,debug2);
+	pgf_draw_textf(SHELL_MARGIN_X_CUSTOM, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "VitaShell %s", version);
 
 	// Battery
 	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_texture_get_width(battery_image));
@@ -2280,9 +2278,7 @@ void shellUI2() {
 
 	refreshUI2();	
 
-	while (1) {
-	  debug = slide_value;
-	  debug2 =  pre_touch_y;
+	while (1) {	  
 		if (!Change_UI) break;
 
 		readPad();
