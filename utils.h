@@ -22,7 +22,7 @@
 #include "main.h"
 
 #define ALIGN_CENTER(a, b) ((a - b) / 2)
-#define ALIGN_LEFT(x, w) (x - w)
+#define ALIGN_RIGHT(x, w) (x - w)
 
 #define ANALOG_CENTER 128
 #define ANALOG_THRESHOLD 64
@@ -48,6 +48,7 @@ extern SceCtrlData pad;
 extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
 
 void startDrawing(vita2d_texture *bg);
+void drawingWallpaperUI2(vita2d_texture *bg,float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, int change);
 void endDrawing();
 
 void closeWaitDialog();

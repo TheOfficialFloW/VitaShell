@@ -95,6 +95,16 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.31 ###
+- Touching the screen on dialogs would abort the process, fixed.
+
+### Changelog 1.3 ###
+- Added ability to compress files and folders into a zip archive.
+- Added scanning for unsafe fself's and imports.
+- Added lrc support for audio player by Mayoshiroi.
+- Added partition used/total size information, thanks to littlebalup.
+- Added 'Install folder' by soarqin.
+
 ### Changelog 1.2 ###
 - Added ability to export photo and music files ('More' -> 'Export media').
 - Added battery percentage to system information (thanks to littlebalup).

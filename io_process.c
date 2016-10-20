@@ -426,9 +426,6 @@ int exportPath(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam
 
 			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
-				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
-					continue;
-
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
 				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
@@ -529,7 +526,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 	// Update thread
 	thid = createStartUpdateThread(size);
 
-	// Remove process
+	// Export process
 	uint64_t value = 0;
 	uint32_t songs = 0, pictures = 0;
 

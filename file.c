@@ -178,9 +178,6 @@ int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files, 
 
 			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
-				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
-					continue;
-
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
 				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
@@ -245,9 +242,6 @@ int removePath(char *path, FileProcessParam *param) {
 
 			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
-				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
-					continue;
-
 				char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
 				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
@@ -380,13 +374,13 @@ int copyFile(char *src_path, char *dst_path, FileProcessParam *param) {
 			}
 		}
 
-		if (written != read) {
+		if (written < 0) {
 			free(buf);
 
 			sceIoClose(fddst);
 			sceIoClose(fdsrc);
 
-			return (written < 0) ? written : -1;
+			return written;
 		}
 
 		seek += written;
@@ -458,9 +452,6 @@ int copyPath(char *src_path, char *dst_path, FileProcessParam *param) {
 
 			res = sceIoDread(dfd, &dir);
 			if (res > 0) {
-				if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
-					continue;
-
 				char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
 				snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
@@ -554,9 +545,6 @@ int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param)
 
 				res = sceIoDread(dfd, &dir);
 				if (res > 0) {
-					if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
-						continue;
-
 					char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
 					snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
@@ -877,9 +865,6 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 
 		res = sceIoDread(dfd, &dir);
 		if (res > 0) {
-			if (strcmp(dir.d_name, ".") == 0 || strcmp(dir.d_name, "..") == 0)
-				continue;
-
 			FileListEntry *entry = malloc(sizeof(FileListEntry));
 
 			strcpy(entry->name, dir.d_name);

@@ -22,41 +22,35 @@
 #include "package_installer.h"
 #include "utils.h"
 
-//////////////////////////////////////////////////////////////
-extern unsigned char _binary_resources_vita_game_card_png_start;
-extern unsigned char _binary_resources_vita_game_card_storage_png_start;
-extern unsigned char _binary_resources_memory_card_png_start;
-extern unsigned char _binary_resources_os0_png_start;
-extern unsigned char _binary_resources_sa0_png_start;
-extern unsigned char _binary_resources_ur0_png_start;
-extern unsigned char _binary_resources_vd0_png_start;
-extern unsigned char _binary_resources_vs0_png_start;
-extern unsigned char _binary_resources_savedata0_png_start;
-extern unsigned char _binary_resources_pd0_png_start;
-extern unsigned char _binary_resources_app0_png_start;
-extern unsigned char _binary_resources_ud0_png_start;
-
-extern unsigned char _binary_resources_bg_wallpaper_png_start;
-extern unsigned char _binary_resources_folder_png_start;
-extern unsigned char _binary_resources_mark_png_start;
-extern unsigned char _binary_resources_run_file_png_start;
-extern unsigned char _binary_resources_image_file_png_start;
-extern unsigned char _binary_resources_unknown_file_png_start;
-extern unsigned char _binary_resources_music_file_png_start;
-extern unsigned char _binary_resources_zip_file_png_start;
-extern unsigned char _binary_resources_txt_file_png_start;
-extern unsigned char _binary_resources_music_file_png_start;
-extern unsigned char _binary_resources_title_bar_bg_png_start;
-extern unsigned char _binary_resources_updir_png_start;
-
-vita2d_texture *default_wallpaper = NULL, *game_card_storage_image = NULL, *game_card_image = NULL, *memory_card_image = NULL;
-vita2d_texture *run_file_image = NULL, *img_file_image = NULL, *unknown_file_image = NULL, *sa0_image = NULL, *ur0_image = NULL, *vd0_image = NULL, *vs0_image = NULL;
-vita2d_texture *savedata0_image = NULL, *pd0_image = NULL, *folder_image = NULL, *app0_image = NULL, *ud0_image = NULL, *mark_image = NULL, *music_image = NULL, *os0_image = NULL ;
-vita2d_texture *zip_file_image = NULL, *txt_file_image = NULL, *title_bar_bg_image = NULL, *updir_image = NULL ;
-
-//////////////////////////////////////////////////////////////
 
 INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
+
+INCLUDE_EXTERN_RESOURCE(vita_game_card_png);
+INCLUDE_EXTERN_RESOURCE(vita_game_card_storage_png);
+INCLUDE_EXTERN_RESOURCE(memory_card_png);
+INCLUDE_EXTERN_RESOURCE(os0_png);
+INCLUDE_EXTERN_RESOURCE(sa0_png);
+INCLUDE_EXTERN_RESOURCE(ur0_png);
+INCLUDE_EXTERN_RESOURCE(vd0_png);
+INCLUDE_EXTERN_RESOURCE(vs0_png);
+INCLUDE_EXTERN_RESOURCE(savedata0_png);
+INCLUDE_EXTERN_RESOURCE(pd0_png);
+INCLUDE_EXTERN_RESOURCE(app0_png);
+INCLUDE_EXTERN_RESOURCE(ud0_png);
+
+INCLUDE_EXTERN_RESOURCE(bg_wallpaper_png);
+INCLUDE_EXTERN_RESOURCE(folder_png);
+INCLUDE_EXTERN_RESOURCE(mark_png);
+INCLUDE_EXTERN_RESOURCE(run_file_png);
+INCLUDE_EXTERN_RESOURCE(image_file_png);
+INCLUDE_EXTERN_RESOURCE(unknown_file_png);
+INCLUDE_EXTERN_RESOURCE(music_file_png);
+INCLUDE_EXTERN_RESOURCE(zip_file_png);
+INCLUDE_EXTERN_RESOURCE(txt_file_png);
+INCLUDE_EXTERN_RESOURCE(music_file_png);
+INCLUDE_EXTERN_RESOURCE(title_bar_bg_png);
+INCLUDE_EXTERN_RESOURCE(updir_png);
+
 
 INCLUDE_EXTERN_RESOURCE(folder_icon_png);
 INCLUDE_EXTERN_RESOURCE(file_icon_png);
@@ -86,6 +80,32 @@ INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
 static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/language/english_us.txt", english_us_txt),
+	
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/vita_game_card.png", vita_game_card_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/vita_game_card_storage.png", vita_game_card_storage_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/memory_card.png", memory_card_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/os0.png", os0_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/sa0.png", sa0_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/ur0.png", ur0_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/vd0.png", vd0_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/vs0.png", vs0_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/savedata0.png", savedata0_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/pd0.png", pd0_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/app0.png", app0_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/ud0.png", ud0_png),
+
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/bg_wallpaper.png", bg_wallpaper_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/folder.png", folder_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/mark.png", mark_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/run_file.png", run_file_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/image_file.png", image_file_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/unknown_file.png", unknown_file_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/music_file.png", music_file_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/zip_file.png", zip_file_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/txt_file.png", txt_file_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/music_file.png", music_file_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/title_bar_bg.png", title_bar_bg_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/updir.png", updir_png),
 
 	DEFAULT_FILE("ux0:VitaShell/theme/theme.txt", theme_txt),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/colors.txt", colors_txt),
@@ -96,7 +116,7 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/audio_icon.png", audio_icon_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/sfo_icon.png", sfo_icon_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/text_icon.png", text_icon_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/wifi.png", wifi_png),
+	// DEFAULT_FILE("ux0:VitaShell/theme/Default/wifi.png", wifi_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", ftp_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery.png", battery_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png),
@@ -155,91 +175,11 @@ void finishSceAppUtil() {
 
 void initVita2dLib() {
 	vita2d_init();
-
-	////////////////////////////////////////////////
-	game_card_image = vita2d_load_PNG_buffer(&_binary_resources_vita_game_card_png_start);
-	game_card_storage_image = vita2d_load_PNG_buffer(&_binary_resources_vita_game_card_storage_png_start);
-	memory_card_image = vita2d_load_PNG_buffer(&_binary_resources_memory_card_png_start);
-	os0_image = vita2d_load_PNG_buffer(&_binary_resources_os0_png_start);
-	sa0_image = vita2d_load_PNG_buffer(&_binary_resources_sa0_png_start);
-	ur0_image = vita2d_load_PNG_buffer(&_binary_resources_ur0_png_start);
-	vd0_image = vita2d_load_PNG_buffer(&_binary_resources_vd0_png_start);
-	vs0_image = vita2d_load_PNG_buffer(&_binary_resources_vs0_png_start);
-	savedata0_image = vita2d_load_PNG_buffer(&_binary_resources_savedata0_png_start);
-	pd0_image = vita2d_load_PNG_buffer(&_binary_resources_pd0_png_start);
-	app0_image = vita2d_load_PNG_buffer(&_binary_resources_app0_png_start);
-	ud0_image = vita2d_load_PNG_buffer(&_binary_resources_ud0_png_start);
-
-	default_wallpaper = vita2d_load_PNG_buffer(&_binary_resources_bg_wallpaper_png_start);	
-	folder_image = vita2d_load_PNG_buffer(&_binary_resources_folder_png_start);
-	mark_image = vita2d_load_PNG_buffer(&_binary_resources_mark_png_start);
-	run_file_image =  vita2d_load_PNG_buffer(&_binary_resources_run_file_png_start);
-	img_file_image =  vita2d_load_PNG_buffer(&_binary_resources_image_file_png_start);
-	unknown_file_image =  vita2d_load_PNG_buffer(&_binary_resources_unknown_file_png_start);
-	music_image = vita2d_load_PNG_buffer(&_binary_resources_music_file_png_start);
-	zip_file_image = vita2d_load_PNG_buffer(&_binary_resources_zip_file_png_start);
-	txt_file_image = vita2d_load_PNG_buffer(&_binary_resources_txt_file_png_start);
-	title_bar_bg_image = vita2d_load_PNG_buffer(&_binary_resources_title_bar_bg_png_start);
-	updir_image = vita2d_load_PNG_buffer(&_binary_resources_updir_png_start);
-	////////////////////////////////////////////////
 }
 
 void finishVita2dLib() {
-/////////////////////////////////////////////////////	
-	vita2d_free_texture(game_card_image);
-	vita2d_free_texture(game_card_storage_image);
-	vita2d_free_texture(memory_card_image);
-	vita2d_free_texture(os0_image);
-	vita2d_free_texture(sa0_image);
-	vita2d_free_texture(ur0_image);
-	vita2d_free_texture(vd0_image);
-	vita2d_free_texture(vs0_image);
-	vita2d_free_texture(savedata0_image);
-	vita2d_free_texture(pd0_image);
-	vita2d_free_texture(app0_image);
-	vita2d_free_texture(ud0_image);
-
-	vita2d_free_texture(default_wallpaper);
-	vita2d_free_texture(folder_image);
-	vita2d_free_texture(mark_image);
-	vita2d_free_texture(run_file_image);
-	vita2d_free_texture(img_file_image);
-	vita2d_free_texture(unknown_file_image);
-	vita2d_free_texture(music_image);
-	vita2d_free_texture(zip_file_image);
-	vita2d_free_texture(txt_file_image);
-	vita2d_free_texture(music_image);
-	vita2d_free_texture(title_bar_bg_image);
-	vita2d_free_texture(updir_image);
-/////////////////////////////////////////////////////
 	vita2d_free_pgf(font);
 	vita2d_fini();
-/////////////////////////////////////////////////////
-	game_card_image = NULL;
-	game_card_storage_image = NULL;
-	memory_card_image = NULL;
-	os0_image = NULL;
-	sa0_image = NULL;
-	ur0_image = NULL;
-	vd0_image = NULL;
-	vs0_image = NULL;
-	savedata0_image = NULL;
-	pd0_image = NULL;
-	app0_image = NULL;
-	ud0_image = NULL;
-
-	default_wallpaper = NULL;
-	folder_image = NULL;
-	mark_image = NULL;
-	run_file_image = NULL;
-	img_file_image = NULL;
-	unknown_file_image = NULL;
-	music_image = NULL;
-	zip_file_image = NULL;
-	txt_file_image = NULL;
-	title_bar_bg_image = NULL;
-	updir_image = NULL;	
-/////////////////////////////////////////////////////
 
 	font = NULL;
 }
@@ -278,6 +218,9 @@ void initVitaShell() {
 	// Enable front touchscreen
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
 
+	// Enable back touchscreen
+	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
+	
 	// Load modules
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
