@@ -254,7 +254,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			goto EXIT;
 
 		// Update thread
-		thid = createStartUpdateThread(size + folders);
+		thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE);
 
 		// Copy process
 		uint64_t value = 0;
@@ -267,7 +267,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 			FileProcessParam param;
 			param.value = &value;
-			param.max = size + folders;
+			param.max = size + folders * DIRECTORY_SIZE;
 			param.SetProgress = SetProgress;
 			param.cancelHandler = cancelHandler;
 

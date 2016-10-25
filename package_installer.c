@@ -505,14 +505,14 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 			goto EXIT;
 
 		// Update thread
-		thid = createStartUpdateThread(size + folders);
+		thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE);
 
 		// Extract process
 		uint64_t value = 0;
 
 		FileProcessParam param;
 		param.value = &value;
-		param.max = size + folders;
+		param.max = size + folders * DIRECTORY_SIZE;
 		param.SetProgress = SetProgress;
 		param.cancelHandler = cancelHandler;
 

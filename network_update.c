@@ -272,14 +272,14 @@ int update_extract_thread(SceSize args, void *argp) {
 	getArchivePathInfo(src_path, &size, &folders, &files);
 
 	// Update thread
-	thid = createStartUpdateThread(size + folders);
+	thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE);
 
 	// Extract process
 	uint64_t value = 0;
 
 	FileProcessParam param;
 	param.value = &value;
-	param.max = size + folders;
+	param.max = size + folders * DIRECTORY_SIZE;
 	param.SetProgress = SetProgress;
 	param.cancelHandler = cancelHandler;
 

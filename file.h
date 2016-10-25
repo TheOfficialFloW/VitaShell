@@ -24,7 +24,8 @@
 #define MAX_SHORT_NAME_LENGTH 64
 #define MAX_MOUNT_POINT_LENGTH 16
 
-#define TRANSFER_SIZE 64 * 1024
+#define DIRECTORY_SIZE (4 * 1024)
+#define TRANSFER_SIZE (64 * 1024)
 
 #define HOME_PATH "home"
 #define DIR_UP ".."

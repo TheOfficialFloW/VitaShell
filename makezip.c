@@ -182,7 +182,7 @@ int zipAddFolder(zipFile zf, char *path, int filename_start, FileProcessParam *p
 
 	if (param) {
 		if (param->value)
-			(*param->value)++;
+			(*param->value) += DIRECTORY_SIZE;
 
 		if (param->SetProgress)
 			param->SetProgress(param->value ? *param->value : 0, param->max);
@@ -305,7 +305,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 		goto EXIT;
 
 	// Update thread
-	thid = createStartUpdateThread(size + folders);
+	thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE);
 
 	// Remove process
 	uint64_t value = 0;
@@ -317,7 +317,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 
 		FileProcessParam param;
 		param.value = &value;
-		param.max = size;
+		param.max = size + folders * DIRECTORY_SIZE;
 		param.SetProgress = SetProgress;
 		param.cancelHandler = cancelHandler;
 

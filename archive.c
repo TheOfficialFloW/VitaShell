@@ -217,7 +217,7 @@ int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 
 		if (param) {
 			if (param->value)
-				(*param->value)++;
+				(*param->value) += DIRECTORY_SIZE;
 
 			if (param->SetProgress)
 				param->SetProgress(param->value ? *param->value : 0, param->max);
