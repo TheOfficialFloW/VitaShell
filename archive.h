@@ -38,4 +38,6 @@ int ReadArchiveFile(char *file, void *buf, int size);
 int archiveClose();
 int archiveOpen(char *file);
 
+int archiveCheckFilesForUnsafeFself();
+
 #endif

@@ -95,10 +95,11 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
-### Changelog X.XX ###
+### Changelog 1.4 ###
 - Added group RW permissions on files and folders when moving.
   Safe homebrews like RetroArch will now recognize files and folders
   that you have moved from 'ux0:video'.
+- Added scanning for dangerous functions in packages.
 - Added possibility to choose compression level.
 - Fixed time information in zip archives.
 

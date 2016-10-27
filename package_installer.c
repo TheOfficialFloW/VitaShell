@@ -468,10 +468,11 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		}
 
 		// Team molecule's request: Full permission access warning
-		if (archiveCheckFilesForUnsafeFself()) {
+		int unsafe = archiveCheckFilesForUnsafeFself(); // 0: Safe, 1: Unsafe, 2: Dangerous
+		if (unsafe) {
 			closeWaitDialog();
 
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[unsafe == 2 ? INSTALL_BRICK_WARNING : INSTALL_WARNING]);
 			dialog_step = DIALOG_STEP_INSTALL_WARNING;
 
 			// Wait for response

@@ -91,19 +91,38 @@ int checkForUnsafeImports(void *buffer) {
 
 	SceModuleInfo *mod_info = (SceModuleInfo *)(text_addr + offset);
 
+	int has_dangerous_nids = 0;
+	int has_unsafe_libraries = 0;
+
 	uint32_t i = mod_info->impTop;
 	while (i < mod_info->impBtm) {
 		SceImportsTable3xx import;
 		convertToImportsTable3xx((void *)text_addr + i, &import);
 
 		char *libname = (char *)(text_addr + import.lib_name - phdr[segment].p_vaddr);
+		uint32_t *func_nid_table = (uint32_t *)(text_addr + import.func_nid_table - phdr[segment].p_vaddr);
 
-		if (strcmp(libname, "ScePromoterUtil") == 0 || strcmp(libname, "SceShellSvc") == 0) {
-			return 1; // Unsafe
+		if (strcmp(libname, "SceVshBridge") == 0) {
+			int j;
+			for (j = 0; j < import.num_functions; j++) {
+				// Check for dangerous _vshIoMount/vshIoUmount
+				if (func_nid_table[j] == 0x3C522C35 || func_nid_table[j] == 0x35BC26AC) {
+					has_dangerous_nids = 1;
+					break;
+				}
+			}
+		} else if (strcmp(libname, "ScePromoterUtil") == 0 || strcmp(libname, "SceShellSvc") == 0) {
+			has_unsafe_libraries = 1;
 		}
 
 		i += import.size;
 	}
+
+	if (has_dangerous_nids)
+		return 2; // Really not safe bro
+	
+	if (has_unsafe_libraries)
+		return 1; // Unsafe, but won't kill you
 
 	return 0; // Safe
 }

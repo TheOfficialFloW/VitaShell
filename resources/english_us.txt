@@ -73,6 +73,7 @@ INSTALL_ALL_QUESTION                 = "Do you want to install all packages avai
 INSTALL_FOLDER_QUESTION              = "Do you want to install this folder?\Warning: this action will also delete\the folder after installation!"
 INSTALL_QUESTION                     = "Do you want to install this package?"
 INSTALL_WARNING                      = "This package requests extended permissions.\It will have access to your personal information.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
+INSTALL_BRICK_WARNING                = "This package uses functions that remounts\partitions and can potentially brick your device.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
 HASH_FILE_QUESTION                   = "SHA1 hashing may take a long time. Continue?"
 
 # Others

@@ -177,4 +177,14 @@
 - Touching the screen on dialogs would abort the process, fixed.<br>
     ]]>
   </changes>
+   <changes app_ver="01.40">
+    <![CDATA[
+- Added group RW permissions on files and folders when moving.<br>
+  Safe homebrews like RetroArch will now recognize files and folders<br>
+  that you have moved from 'ux0:video'.<br>
+- Added scanning for dangerous functions in packages.<br>
+- Added possibility to choose compression level.<br>
+- Fixed time information in zip archives.<br>
+    ]]>
+  </changes>
 </changeinfo>
