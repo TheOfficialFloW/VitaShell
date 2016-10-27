@@ -94,6 +94,18 @@ int getFileSize(char *pInputFileName)
 	return fileSize;
 }
 
+int changePathPermissions(char *path, int perms) {
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	int res = sceIoGetstat(path, &stat);
+	if (res < 0)
+		return res;
+
+	stat.st_mode |= perms;
+
+	return sceIoChstat(path, &stat, 1);	
+}
+
 int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param) {
 	// Set up SHA1 context
 	SHA1_CTX ctx;
@@ -497,7 +509,11 @@ int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param)
 	}
 
 	int res = sceIoRename(src_path, dst_path);
-	if (res == SCE_ERROR_ERRNO_EEXIST && flags & (MOVE_INTEGRATE | MOVE_REPLACE)) {
+
+	if (res >= 0) {
+		// Give group RW permissions
+		changePathPermissions(dst_path, SCE_S_IROTH | SCE_S_IWOTH);
+	} else if (res == SCE_ERROR_ERRNO_EEXIST && flags & (MOVE_INTEGRATE | MOVE_REPLACE)) {
 		// Src stat
 		SceIoStat src_stat;
 		memset(&src_stat, 0, sizeof(SceIoStat));
@@ -527,6 +543,9 @@ int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param)
 			res = sceIoRename(src_path, dst_path);
 			if (res < 0)
 				return res;
+
+			// Give group RW permissions
+			changePathPermissions(dst_path, SCE_S_IROTH | SCE_S_IWOTH);
 
 			return 1;
 		}
