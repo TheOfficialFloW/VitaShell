@@ -95,6 +95,10 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog X.XX ###
+- Added possibility to choose compression level.
+- Fixed time information in zip archives.
+
 ### Changelog 1.31 ###
 - Touching the screen on dialogs would abort the process, fixed.
 

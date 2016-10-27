@@ -464,7 +464,13 @@ int archiveOpen(char *file) {
 		entry->is_folder = 0;
 		entry->name_length = file_info.size_filename;
 		entry->size = file_info.uncompressed_size;
+
+		// Time
+		SceRtcTick tick;
 		sceRtcSetDosTime(&entry->time, file_info.dosDate);
+		sceRtcGetTick(&entry->time, &tick);
+		sceRtcConvertLocalTimeToUtc(&tick, &tick);
+		sceRtcSetTick(&entry->time, &tick);
 
 		// Get pos
 		unzGetFilePos64(uf, (unz64_file_pos *)&entry->reserved);

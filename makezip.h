@@ -23,6 +23,7 @@ typedef struct {
 	FileList *file_list;
 	FileList *mark_list;
 	int index;
+	int level;
 	char *path;
 } CompressArguments;
 

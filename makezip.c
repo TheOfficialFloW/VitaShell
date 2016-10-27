@@ -24,38 +24,34 @@
 
 #include "minizip/zip.h"
 
-uLong filetime(const char *filename, tm_zip *tmzip, uLong *dostime) {
-	struct stat s;
-	memset(&s, 0, sizeof(struct stat));
-	if (stat(filename, &s) != 0)
-		return 0;
+void convertToZipTime(SceDateTime *time, tm_zip *tmzip) {
+	SceRtcTick tick;
+	sceRtcGetTick(time, &tick);
+	sceRtcConvertUtcToLocalTime(&tick, &tick);
+	sceRtcSetTick(time, &tick);
 
-	struct tm *filedate = localtime(&s.st_mtime);
-
-	tmzip->tm_sec  = filedate->tm_sec;
-	tmzip->tm_min  = filedate->tm_min;
-	tmzip->tm_hour = filedate->tm_hour;
-	tmzip->tm_mday = filedate->tm_mday;
-	tmzip->tm_mon  = filedate->tm_mon ;
-	tmzip->tm_year = filedate->tm_year;
-
-	return 1;
+	tmzip->tm_sec  = time->second;
+	tmzip->tm_min  = time->minute;
+	tmzip->tm_hour = time->hour;
+	tmzip->tm_mday = time->day;
+	tmzip->tm_mon  = time->month;
+	tmzip->tm_year = time->year;
 }
 
-int zipAddFile(zipFile zf, char *path, int filename_start, FileProcessParam *param) {
+int zipAddFile(zipFile zf, char *path, int filename_start, int level, FileProcessParam *param) {
 	int res;
 
-	// Get information about the file on disk so we can store it in zip
-	zip_fileinfo zi;
-	memset(&zi, 0, sizeof(zip_fileinfo));
-	filetime(path, &zi.tmz_date, &zi.dosDate);
-
-	// Size
+	// Get file stat
 	SceIoStat stat;
 	memset(&stat, 0, sizeof(SceIoStat));
 	res = sceIoGetstat(path, &stat);
 	if (res < 0)
 		return res;
+
+	// Get file local time
+	zip_fileinfo zi;
+	memset(&zi, 0, sizeof(zip_fileinfo));
+	convertToZipTime(&stat.st_mtime, &zi.tmz_date);
 
 	// Large file?
 	int use_zip64 = (stat.st_size >= 0xFFFFFFFF);
@@ -63,8 +59,6 @@ int zipAddFile(zipFile zf, char *path, int filename_start, FileProcessParam *par
 	// Open new file in zip
 	char filename[MAX_PATH_LENGTH];
 	strcpy(filename, path + filename_start);
-
-	int level = Z_DEFAULT_COMPRESSION;
 
 	res = zipOpenNewFileInZip3_64(zf, filename, &zi,
 				NULL, 0, NULL, 0, NULL,
@@ -148,27 +142,25 @@ int zipAddFile(zipFile zf, char *path, int filename_start, FileProcessParam *par
 	return 1;
 }
 
-int zipAddFolder(zipFile zf, char *path, int filename_start, FileProcessParam *param) {
+int zipAddFolder(zipFile zf, char *path, int filename_start, int level, FileProcessParam *param) {
 	int res;
 
-	// Get information about the file on disk so we can store it in zip
-	zip_fileinfo zi;
-	memset(&zi, 0, sizeof(zip_fileinfo));
-	filetime(path, &zi.tmz_date, &zi.dosDate);
-
-	// Size
+	// Get file stat
 	SceIoStat stat;
 	memset(&stat, 0, sizeof(SceIoStat));
 	res = sceIoGetstat(path, &stat);
 	if (res < 0)
 		return res;
 
+	// Get file local time
+	zip_fileinfo zi;
+	memset(&zi, 0, sizeof(zip_fileinfo));
+	convertToZipTime(&stat.st_mtime, &zi.tmz_date);
+
 	// Open new file in zip
 	char filename[MAX_PATH_LENGTH];
 	strcpy(filename, path + filename_start);
 	addEndSlash(filename);
-
-	int level = Z_DEFAULT_COMPRESSION;
 
 	res = zipOpenNewFileInZip3_64(zf, filename, &zi,
 				NULL, 0, NULL, 0, NULL,
@@ -182,7 +174,7 @@ int zipAddFolder(zipFile zf, char *path, int filename_start, FileProcessParam *p
 
 	if (param) {
 		if (param->value)
-			(*param->value) += DIRECTORY_SIZE;
+			(*param->value)++;
 
 		if (param->SetProgress)
 			param->SetProgress(param->value ? *param->value : 0, param->max);
@@ -198,10 +190,10 @@ int zipAddFolder(zipFile zf, char *path, int filename_start, FileProcessParam *p
 	return 1;
 }
 
-int zipAddPath(zipFile zf, char *path, int filename_start, FileProcessParam *param) {
+int zipAddPath(zipFile zf, char *path, int filename_start, int level, FileProcessParam *param) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
-		int ret = zipAddFolder(zf, path, filename_start, param);
+		int ret = zipAddFolder(zf, path, filename_start, level, param);
 		if (ret <= 0)
 			return ret;
 
@@ -219,9 +211,9 @@ int zipAddPath(zipFile zf, char *path, int filename_start, FileProcessParam *par
 				int ret = 0;
 
 				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-					ret = zipAddPath(zf, new_path, filename_start, param);
+					ret = zipAddPath(zf, new_path, filename_start, level, param);
 				} else {
-					ret = zipAddFile(zf, new_path, filename_start, param);
+					ret = zipAddFile(zf, new_path, filename_start, level, param);
 				}
 
 				free(new_path);
@@ -236,18 +228,18 @@ int zipAddPath(zipFile zf, char *path, int filename_start, FileProcessParam *par
 
 		sceIoDclose(dfd);
 	} else {
-		return zipAddFile(zf, path, filename_start, param);
+		return zipAddFile(zf, path, filename_start, level, param);
 	}
 
 	return 1;
 }
 
-int makeZip(char *zip_file, char *src_path, int filename_start, int append, FileProcessParam *param) {
+int makeZip(char *zip_file, char *src_path, int filename_start, int level, int append, FileProcessParam *param) {
 	zipFile zf = zipOpen64(zip_file, append);
 	if (zf == NULL)
 		return -1;
 
-	int res = zipAddPath(zf, src_path, filename_start, param);
+	int res = zipAddPath(zf, src_path, filename_start, level, param);
 
 	zipClose(zf, NULL);
 
@@ -305,7 +297,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 		goto EXIT;
 
 	// Update thread
-	thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE);
+	thid = createStartUpdateThread(size + folders);
 
 	// Remove process
 	uint64_t value = 0;
@@ -317,11 +309,11 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 
 		FileProcessParam param;
 		param.value = &value;
-		param.max = size + folders * DIRECTORY_SIZE;
+		param.max = size;
 		param.SetProgress = SetProgress;
 		param.cancelHandler = cancelHandler;
 
-		int res = makeZip(args->path, path, strlen(args->file_list->path), i == 0 ? APPEND_STATUS_CREATE : APPEND_STATUS_ADDINZIP, &param);
+		int res = makeZip(args->path, path, strlen(args->file_list->path), args->level, i == 0 ? APPEND_STATUS_CREATE : APPEND_STATUS_ADDINZIP, &param);
 		if (res <= 0) {
 			closeWaitDialog();
 			dialog_step = DIALOG_STEP_CANCELLED;

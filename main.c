@@ -62,7 +62,7 @@ static FileList file_list, mark_list, copy_list, install_list;
 
 // Paths
 static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], install_path[MAX_PATH_LENGTH];
-static char focus_name[MAX_NAME_LENGTH];
+static char focus_name[MAX_NAME_LENGTH], compress_name[MAX_NAME_LENGTH];
 
 // Position
 static int base_pos = 0, rel_pos = 0;
@@ -895,8 +895,8 @@ int contextMenuMoreEnterCallback(int pos, void* context) {
 			// Append .zip extension
 			strcat(path, ".zip");
 
-			initImeDialog(language_container[COMPRESS], path, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
-			dialog_step = DIALOG_STEP_COMPRESS;
+			initImeDialog(language_container[ARCHIVE_NAME], path, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
+			dialog_step = DIALOG_STEP_COMPRESS_NAME;
 			break;
 		}
 		
@@ -1245,18 +1245,36 @@ int dialogSteps() {
 
 			break;
 			
-		case DIALOG_STEP_COMPRESS:
+		case DIALOG_STEP_COMPRESS_NAME:
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (name[0] == '\0') {
 					dialog_step = DIALOG_STEP_NONE;
 				} else {
-					snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
+					strcpy(compress_name, name);
+
+					initImeDialog(language_container[COMPRESSION_LEVEL], "6", 1, SCE_IME_TYPE_NUMBER, 0);
+					dialog_step = DIALOG_STEP_COMPRESS_LEVEL;
+				}
+			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+			
+			break;
+			
+		case DIALOG_STEP_COMPRESS_LEVEL:
+			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+				char *level = (char *)getImeDialogInputTextUTF8();
+				if (level[0] == '\0') {
+					dialog_step = DIALOG_STEP_NONE;
+				} else {
+					snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, compress_name);
 
 					CompressArguments args;
 					args.file_list = &file_list;
 					args.mark_list = &mark_list;
 					args.index = base_pos + rel_pos;
+					args.level = atoi(level);
 					args.path = cur_file;
 
 					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[COMPRESSING]);
@@ -1269,6 +1287,8 @@ int dialogSteps() {
 			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
 				dialog_step = DIALOG_STEP_NONE;
 			}
+			
+			break;
 			
 		case DIALOG_STEP_HASH_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {

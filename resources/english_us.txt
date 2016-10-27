@@ -85,3 +85,5 @@ SYS_INFO                             = "System software: %s\Model: 0x%08X\MAC ad
 UPDATE_QUESTION                      = "VitaShell %s is now available.\\Do you want to update the application?"
 TOOLBOX                              = "Toolbox"
 SYSINFO_TITLE                        = "System Information"
+ARCHIVE_NAME                         = "Archive name"
+COMPRESSION_LEVEL                    = "Compression level (0-9)"
