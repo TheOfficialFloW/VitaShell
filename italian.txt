@@ -73,6 +73,7 @@ INSTALL_ALL_QUESTION                 = "Vuoi installare tutti i pacchetti presen
 INSTALL_FOLDER_QUESTION              = "Vuoi installare questa cartella?\Attenzione: questa azione eliminerà\la cartella dopo l'installazione!"
 INSTALL_QUESTION	             = "Vuoi installare questo pacchetto?"
 INSTALL_WARNING                      = "Questo pacchetto richiede autorizzazioni estese.\Avrà accesso alle tue informazioni personali.\Se non l'hai ottenuto da una fonte attendibile,\si consiglia di procedere con cautela.\\Vuoi continuare l'installazione?"
+INSTALL_BRICK_WARNING                = "Questo pacchetto usa funzioni che rimontano\partizionano e può potenzialmente brickare il tuo dispositivo.\Se non l'hai ottenuto da una fonte attendibile,\si consiglia di procedere con cautela.\\Vuoi continuare l'installazione?"
 HASH_FILE_QUESTION                   = "L'hashing SHA1 può richiedere molto tempo. Continuare?"
 
 # Others
@@ -85,3 +86,5 @@ SYS_INFO                             = "Software di sistema: %s\Modello: 0x%08X\
 UPDATE_QUESTION                      = "VitaShell %s è disponibile.\\Vuoi aggiornare l'applicazione?"
 TOOLBOX                              = "Strumenti"
 SYSINFO_TITLE                        = "Informazioni di sistema"
+ARCHIVE_NAME                         = "Nome archivio"
+COMPRESSION_LEVEL                    = "Livello di compressione (0-9)"
