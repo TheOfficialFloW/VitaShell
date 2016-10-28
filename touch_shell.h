@@ -5,18 +5,20 @@
 
 extern int pre_touch_y;
 extern int pre_touch_x;
-extern int pre_touch_back_y;
-extern int pre_touch_back_x;
 extern float slide_value_hold;
 extern float slide_value;
 extern SceTouchData touch;
-//extern bool touch_nothing;
+extern int MIN_SLIDE_VERTTICAL;
+extern int MIN_SLIDE_HORIZONTAL;
 
 // State_Touch is global value to certain function TOUCH_FRONT alway return absolute one value for one time.
 extern int State_Touch;
 
 extern bool have_touch_hold;
 extern bool have_touch;
+
+extern bool have_slide_up;
+extern bool have_slide_down;
 
 extern bool disable_touch;
 
