@@ -77,6 +77,13 @@ extern int AUDIO_TIME_TOTAL;
 extern int AUDIO_TIME_BAR;
 extern int AUDIO_TIME_BAR_BG;
 
+//UI2 colors
+extern int ITEM_BORDER;
+extern int ITEM_BORDER_SELECT;
+extern int BACKGROUND_COLOR_TEXT_ITEM;
+extern int ALPHA_TITLEBAR;
+
+
 extern vita2d_texture *default_wallpaper, *game_card_storage_image, *game_card_image, *memory_card_image,
 					  *run_file_image, *img_file_image, *unknown_file_image, *sa0_image, *ur0_image, *vd0_image, 
 					  *vs0_image, *savedata0_image, *pd0_image, *folder_image, *app0_image, *ud0_image, *mark_image,

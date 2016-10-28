@@ -127,6 +127,12 @@ int AUDIO_TIME_TOTAL;
 int AUDIO_TIME_BAR;
 int AUDIO_TIME_BAR_BG;
 
+//UI2 colors
+int ITEM_BORDER;
+int ITEM_BORDER_SELECT;
+int BACKGROUND_COLOR_TEXT_ITEM;
+int ALPHA_TITLEBAR;
+
 vita2d_texture *default_wallpaper = NULL, *game_card_storage_image = NULL, *game_card_image = NULL, *memory_card_image = NULL, *run_file_image = NULL, *img_file_image = NULL, *unknown_file_image = NULL, *sa0_image = NULL, *ur0_image = NULL, *vd0_image = NULL, *vs0_image = NULL, *savedata0_image = NULL, *pd0_image = NULL, *folder_image = NULL, *app0_image = NULL, *ud0_image = NULL, *mark_image = NULL, *music_image = NULL, *os0_image = NULL, *zip_file_image = NULL, *txt_file_image = NULL, *title_bar_bg_image = NULL, *updir_image = NULL ;
 
 
@@ -202,6 +208,12 @@ void loadTheme() {
 		COLOR_ENTRY(AUDIO_TIME_TOTAL),
 		COLOR_ENTRY(AUDIO_TIME_BAR),
 		COLOR_ENTRY(AUDIO_TIME_BAR_BG),
+
+		//UI2 colors
+		COLOR_ENTRY(ITEM_BORDER),		  
+	        COLOR_ENTRY(ITEM_BORDER_SELECT),
+		COLOR_ENTRY(BACKGROUND_COLOR_TEXT_ITEM),
+		COLOR_ENTRY(ALPHA_TITLEBAR),
 	};
 
 	// Load default config file

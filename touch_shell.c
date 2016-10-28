@@ -16,11 +16,15 @@ float slide_value = 0;
 
 bool saved_loc = false;
 bool have_slide = false;
+bool have_slide_up = false;
+bool have_slide_down = false;
 
 bool have_touch_hold = false;
 bool have_touch = true;
 int MIN_SLIDE_VERTTICAL = 40.0f;
+int MIN_SLIDE_VERTTICAL_TEMP = 40.0f; //= MIN_SLIDE_VERTTICAL;
 int MIN_SLIDE_HORIZONTAL = 100.0f;
+int MIN_SLIDE_HORIZONTAL_TEMP = 100.0f; //= MIN_SLIDE_HORIZONTAL;
 int AREA_TOUCH = 40.0f;
 bool disable_touch = false;
 
@@ -44,112 +48,116 @@ clock_t time_on_touch_start = 0;
 // 14 : Three finger slide left
 // 15 : Three finger slide right
 int TOUCH_FRONT() {	
-	sceTouchPeek(0, &touch, 1);
+    sceTouchPeek(0, &touch, 1);
 		
-	if(touch_press & (touch.reportNum == 0) ) {
-		saved_loc = false;			
-		time_on_touch_start = 0;		
+    if(touch_press & (touch.reportNum == 0) ) {
+	saved_loc = false;			
+	time_on_touch_start = 0;		
 
-		//Touch up Select Event
-		//prevent event slide
-		if (!have_slide & !have_touch_hold){			
-			State_Touch = 1;					
+	//Touch up Select Event
+	//prevent event slide
+	if (!have_slide & !have_touch_hold){			
+	    State_Touch = 1;					
 
-			//Touch Double Event			
-			if ((touch.report[0].x < pre_touch_x + AREA_TOUCH) & (touch.report[0].x > pre_touch_x - AREA_TOUCH) & (touch.report[0].y < pre_touch_y + AREA_TOUCH) & (touch.report[0].y > pre_touch_y - AREA_TOUCH)) {
-			  countTouch++;
-			}
+	    //Touch Double Event			
+	    if ((touch.report[0].x < pre_touch_x + AREA_TOUCH) & (touch.report[0].x > pre_touch_x - AREA_TOUCH) & (touch.report[0].y < pre_touch_y + AREA_TOUCH) & (touch.report[0].y > pre_touch_y - AREA_TOUCH)) {
+		countTouch++;
+	    }
 
-			if (countTouch >= 2) {			
-			  countTouch = 0;
-			  State_Touch = 2;			
-			}
+	    if (countTouch >= 2) {			
+		countTouch = 0;
+		State_Touch = 2;			
+	    }
 			
-		}
+	}		      
+
+	//reset listen event slide
+	have_slide = false;
+	have_slide_up = false;
+	have_slide_down = false;
+	
+	have_touch_hold = false;
+
+	MIN_SLIDE_VERTTICAL_TEMP = 40.0f;
+	
+    }
+
+    if (touch.reportNum > 0) {
+	touch_press = true;		
 		
+	if (!saved_loc) {
+	    if (touch.report[0].x > pre_touch_x + AREA_TOUCH || touch.report[0].x < pre_touch_x - AREA_TOUCH) {			 
+		pre_touch_x = touch.report[0].x;
+		countTouch = 0;
+	    }
+	    if (touch.report[0].y > pre_touch_y + AREA_TOUCH || touch.report[0].y < pre_touch_y - AREA_TOUCH) {
+		pre_touch_y = touch.report[0].y;				
+		countTouch = 0;
+	    }
+	    time_on_touch_start = clock();
+	    saved_loc = true;
+    	    slide_value_hold = slide_value;
 
-
-	
-
-		  //reset listen event slide
-		have_slide = false;
-	
-		have_touch_hold = false;
-
-		MIN_SLIDE_VERTTICAL = 40.0f;
+	    //Touch down Select Event				
+	    State_Touch = 0;					
+			
 	}
 
-	if (touch.reportNum > 0) {
-		touch_press = true;		
-		
-		if (!saved_loc) {
-			if (touch.report[0].x > pre_touch_x + AREA_TOUCH || touch.report[0].x < pre_touch_x - AREA_TOUCH) {			 
-				pre_touch_x = touch.report[0].x;
-				countTouch = 0;
-			}
-			if (touch.report[0].y > pre_touch_y + AREA_TOUCH || touch.report[0].y < pre_touch_y - AREA_TOUCH) {
-				pre_touch_y = touch.report[0].y;				
-				countTouch = 0;
-			}
-			time_on_touch_start = clock();
-			saved_loc = true;
-			slide_value_hold = slide_value;
-
-			//Touch down Select Event				
-			State_Touch = 0;					
-			
-		}
-
-		//Touch Slide Up Event
-		if (((touch.report[0].y < pre_touch_y - MIN_SLIDE_VERTTICAL)  || (pre_touch_y > SCREEN_HEIGHT*2 - HEIGHT_TITLE_BAR))& (touch.reportNum == 1)) {			
-			State_Touch = 6;
-
-			MIN_SLIDE_VERTTICAL = 0;
-			have_slide = true;			
-			return State_Touch;
-		}
-
-		//Touch Slide Down Event
-		if (((touch.report[0].y > pre_touch_y + MIN_SLIDE_VERTTICAL) || (pre_touch_y < HEIGHT_TITLE_BAR)) & (touch.reportNum == 1)) {			
-		        State_Touch = 7;
-
-			MIN_SLIDE_VERTTICAL = 0;
-			have_slide = true;				
-			return State_Touch;
-		}
-
-		//Touch Slide Left Event
-		if ((touch.report[0].x < pre_touch_x - MIN_SLIDE_HORIZONTAL)  & (touch.reportNum == 1)) {			
-			State_Touch = 8;						
-			have_slide = true;										      return State_Touch;
-		}
-
-		//Touch Slide Right Event
-		if ((touch.report[0].x > pre_touch_x + MIN_SLIDE_HORIZONTAL)  & (touch.reportNum == 1)) {			
-		    State_Touch = 9;											  have_slide = true;				
-		    return State_Touch;
-		} else
-
-		//Two finger slide right
-		if ((touch.report[0].x > pre_touch_x + MIN_SLIDE_HORIZONTAL) & (touch.report[1].x > pre_touch_x + MIN_SLIDE_HORIZONTAL) & (touch.reportNum == 2)) {			
-			State_Touch = 10;										
-			have_slide = true;				
-			return State_Touch;
-		}
-
-		if (!have_slide) {												
-			if (((float)(clock() - time_on_touch_start)/CLOCKS_PER_SEC  > 0.4f) & (time_on_touch_start > 0)) {
-				if ((touch.report[0].x < pre_touch_x + AREA_TOUCH) & (touch.report[0].x > pre_touch_x - AREA_TOUCH) & (touch.report[0].y < pre_touch_y + AREA_TOUCH) & (touch.report[0].y > pre_touch_y - AREA_TOUCH)) {
-				  if (!have_touch_hold) {
-				  State_Touch = 3;							have_touch_hold = true;
-					return State_Touch;
-				  }
-				}
-			}																
-		}
+	//Touch Slide Up Event
+	if (((touch.report[0].y < pre_touch_y - MIN_SLIDE_VERTTICAL_TEMP)  || (pre_touch_y > SCREEN_HEIGHT*2 - HEIGHT_TITLE_BAR)) & (touch.reportNum == 1)) {			
+	    State_Touch = 6;
+	    have_slide_up = true;
+	    MIN_SLIDE_VERTTICAL_TEMP = 0;
+	    have_slide = true;			
+	    return State_Touch;
 	}
-	else touch_press = false;
-	return State_Touch;
+
+	//Touch Slide Down Event
+	if (((touch.report[0].y > pre_touch_y + MIN_SLIDE_VERTTICAL_TEMP) || (pre_touch_y < HEIGHT_TITLE_BAR)) & (touch.reportNum == 1)) {			
+	    State_Touch = 7;
+	    have_slide_down = true;
+	    MIN_SLIDE_VERTTICAL_TEMP = 0;
+	    have_slide = true;				
+	    return State_Touch;
+	}
+
+	//Touch Slide Left Event
+	if ((touch.report[0].x < pre_touch_x - MIN_SLIDE_HORIZONTAL)  & (touch.reportNum == 1)) {		   
+	    State_Touch = 8;						
+	    have_slide = true;
+	    return State_Touch;
+	}
+
+	//Touch Slide Right Event
+	if ((touch.report[0].x > pre_touch_x + MIN_SLIDE_HORIZONTAL)  & (touch.reportNum == 1)) {			
+	    State_Touch = 9;
+	    have_slide = true;				
+	    return State_Touch;
+	} 
+
+	//Two finger slide right
+	if ((touch.report[0].x > pre_touch_x + MIN_SLIDE_HORIZONTAL) & (touch.report[1].x > pre_touch_x + MIN_SLIDE_HORIZONTAL) & (touch.reportNum == 2)) {			
+	    State_Touch = 10;										
+	    have_slide = true;				
+	    return State_Touch;
+	}
+
+	// Hold Touch
+	if (!have_slide) {
+	    if (((float)(clock() - time_on_touch_start)/CLOCKS_PER_SEC  > 0.4f) & (time_on_touch_start > 0)) {
+		if ((touch.report[0].x < pre_touch_x + AREA_TOUCH) & (touch.report[0].x > pre_touch_x - AREA_TOUCH) & (touch.report[0].y < pre_touch_y + AREA_TOUCH) & (touch.report[0].y > pre_touch_y - AREA_TOUCH)) {		    
+		    if (!have_touch_hold) {
+			State_Touch = 3;
+			have_touch_hold = true;
+			return State_Touch;
+		    }
+		}
+	    }																
+	}
+	
+    }
+    else touch_press = false;
+    return State_Touch;
 }
 
 
@@ -213,14 +221,14 @@ int TOUCH_BACK() {
 		}
 
 		//Touch Slide Up Event
-		if (((touch_back.report[0].y < pre_touch_back_y - MIN_SLIDE_VERTTICAL)  || (pre_touch_back_y > SCREEN_HEIGHT*2 - HEIGHT_TITLE_BAR)) & (touch_back.reportNum == 1)) {			
+		if (((touch_back.report[0].y < pre_touch_back_y - MIN_SLIDE_VERTTICAL_TEMP)  || (pre_touch_back_y > SCREEN_HEIGHT*2 - HEIGHT_TITLE_BAR)) & (touch_back.reportNum == 1)) {			
 		  State_Touch_Back = 6;							
 		  have_slide2 = true;									
 		  return State_Touch_Back;
 		}
 
 		//Touch Slide Down Event
-		if (((touch_back.report[0].y > pre_touch_back_y + MIN_SLIDE_VERTTICAL) || (pre_touch_back_y < HEIGHT_TITLE_BAR)) & (touch_back.reportNum == 1)) {			
+		if (((touch_back.report[0].y > pre_touch_back_y + MIN_SLIDE_VERTTICAL_TEMP) || (pre_touch_back_y < HEIGHT_TITLE_BAR)) & (touch_back.reportNum == 1)) {			
 		  State_Touch_Back = 7;											       
 		  have_slide2 = true;				
 		  return State_Touch_Back;
