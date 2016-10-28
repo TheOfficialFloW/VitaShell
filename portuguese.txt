@@ -79,7 +79,7 @@ HASH_FILE_QUESTION                   = "Calcular o SHA1 poderá demorar algum te
 # Others
 PLEASE_WAIT                          = "Por favor, aguarde..."
 SAVE_MODIFICATIONS                   = "Deseja guardar as alterações?"
-NO_SPACE_ERROR                       = "Não existe espaço suficiente livre no cartão/memória.\É necessário pelo menos %s de espaço livre."
+NO_SPACE_ERROR                       = "Não existe espaço suficiente livre no cartão de memória.\É necessário pelo menos %s de espaço livre."
 WIFI_ERROR                           = "Tem de ligar o Wi-Fi para fazer isso."
 FTP_SERVER                           = "Servidor FTP está diponível em\ftp://%s:%i\\Pressiona 'OK' para mantê-lo em segundo plano.\Pressiona 'Cancelar' para desconectar."
 SYS_INFO                             = "Software de sistema: %s\Modelo: 0x%08X\Endereço MAC: %s\Endereço IP: %s\Cartão de memória: %s/%s\Estado da bateria: %d%%"
