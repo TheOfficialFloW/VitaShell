@@ -141,7 +141,9 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 
 				entry->name_length = strlen(entry->name);
 				entry->size = archive_entry->size;
+				entry->size2 = archive_entry->size2;
 
+				memcpy(&entry->ctime, &archive_entry->ctime, sizeof(SceDateTime));
 				memcpy(&entry->mtime, &archive_entry->mtime, sizeof(SceDateTime));
 
 				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);

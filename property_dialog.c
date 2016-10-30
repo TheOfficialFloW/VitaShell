@@ -310,11 +310,8 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 		max_width = width;
 
 	// Creation date
-	if (!isInArchive()) {
-		getDateString(date_string, date_format, &entry->ctime);
-		getTimeString(time_string, time_format, &entry->ctime);
-	}
-
+	getDateString(date_string, date_format, &entry->ctime);
+	getTimeString(time_string, time_format, &entry->ctime);
 	sprintf(string, "%s %s", date_string, time_string);
 	width = copyStringLimited(property_creation_date, string, PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
 	if (width > max_width)
