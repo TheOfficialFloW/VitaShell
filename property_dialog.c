@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "archive.h"
 #include "init.h"
 #include "theme.h"
 #include "language.h"
@@ -35,7 +36,8 @@ typedef struct {
 
 static PropertyDialog property_dialog;
 
-static char property_name[128], property_type[32], property_size[16], property_contains[32];
+static char property_name[128], property_type[32], property_fself_mode[16];
+static char property_size[16], property_compressed_size[16], property_contains[32];
 static char property_creation_date[64], property_modification_date[64];
 
 #define PROPERTY_DIALOG_ENTRY_MIN_WIDTH 240
@@ -50,16 +52,16 @@ typedef struct {
 
 /*
 	TODO:
-	- Executable information. Safe/unsafe
 	- Audio information
 	- Image information
-	- Archive information
 */
 
 PropertyEntry property_entries[] = {
 	{ PROPERTY_NAME, PROPERTY_ENTRY_VISIBLE, property_name, sizeof(property_name) },
 	{ PROPERTY_TYPE, PROPERTY_ENTRY_VISIBLE, property_type, sizeof(property_type) },
+	{ PROPERTY_FSELF_MODE, PROPERTY_ENTRY_VISIBLE, property_fself_mode, sizeof(property_fself_mode) },
 	{ PROPERTY_SIZE, PROPERTY_ENTRY_VISIBLE, property_size, sizeof(property_size) },
+	{ PROPERTY_COMPRESSED_SIZE, PROPERTY_ENTRY_VISIBLE, property_compressed_size, sizeof(property_compressed_size) },
 	{ PROPERTY_CONTAINS, PROPERTY_ENTRY_VISIBLE, property_contains, sizeof(property_contains) },
 	{ -1, PROPERTY_ENTRY_UNUSED, NULL },
 	{ PROPERTY_CREATION_DATE, PROPERTY_ENTRY_VISIBLE, property_creation_date, sizeof(property_creation_date) },
@@ -69,7 +71,9 @@ PropertyEntry property_entries[] = {
 enum PropertyEntries {
 	PROPERTY_ENTRY_NAME,
 	PROPERTY_ENTRY_TYPE,
+	PROPERTY_ENTRY_FSELF_MODE,
 	PROPERTY_ENTRY_SIZE,
+	PROPERTY_ENTRY_COMPRESSED_SIZE,
 	PROPERTY_ENTRY_CONTAINS,
 	PROPERTY_ENTRY_EMPTY_1,
 	PROPERTY_ENTRY_CREATION_DATE,
@@ -177,6 +181,37 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	// Type
 	int type = entry->is_folder ? FOLDER : FILE_;
 
+	int size = 0;
+	uint32_t buffer[0x88/4];
+
+	if (isInArchive()) {
+		size = ReadArchiveFile(path, buffer, sizeof(buffer));
+	} else {
+		size = ReadFile(path, buffer, sizeof(buffer));
+	}
+
+	// FSELF mode
+	if (*(uint32_t *)buffer == 0x00454353) {
+		type = PROPERTY_TYPE_FSELF;
+
+		// Check authid flag
+		uint64_t authid = *(uint64_t *)((uint32_t)buffer + 0x80);
+		if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {			
+			width = copyStringLimited(property_fself_mode, language_container[PROPERTY_FSELF_MODE_UNSAFE], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+		} else if (authid == 0x2F00000000000002) {
+			width = copyStringLimited(property_fself_mode, language_container[PROPERTY_FSELF_MODE_SAFE], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+		} else {
+			width = copyStringLimited(property_fself_mode, language_container[PROPERTY_FSELF_MODE_SCE], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+		}
+
+		if (width > max_width)
+			max_width = width;
+
+		property_entries[PROPERTY_ENTRY_FSELF_MODE].visibility = PROPERTY_ENTRY_VISIBLE;
+	} else {
+		property_entries[PROPERTY_ENTRY_FSELF_MODE].visibility = PROPERTY_ENTRY_INVISIBLE;
+	}
+
 	switch (entry->type) {
 		case FILE_TYPE_BMP:
 			type = PROPERTY_TYPE_BMP;
@@ -230,8 +265,8 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	// Size & contains
 	if (entry->is_folder) {
 		if (isInArchive()) {
-			strcpy(property_size, "-");
-			strcpy(property_contains, "-");
+			property_entries[PROPERTY_ENTRY_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
+			property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_INVISIBLE;
 		} else {
 			strcpy(property_size, "...");
 			strcpy(property_contains, "...");
@@ -243,12 +278,22 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 			info_thid = sceKernelCreateThread("info_thread", (SceKernelThreadEntry)info_thread, 0x10000100, 0x100000, 0, 0, NULL);
 			if (info_thid >= 0)
 				sceKernelStartThread(info_thid, sizeof(InfoArguments), &info_args);
+			
+			property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_VISIBLE;
 		}
 
-		property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_VISIBLE;
+		property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
 	} else {
 		getSizeString(property_size, entry->size);
 		property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_INVISIBLE;
+		
+		// Compressed size
+		if (isInArchive()) {
+			getSizeString(property_compressed_size, entry->size2);
+			property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_VISIBLE;
+		} else {
+			property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
+		}
 	}
 
 	// Dates

@@ -69,6 +69,7 @@ typedef struct FileListEntry {
 	int name_length;
 	int is_folder;
 	int type;
+	int compression_method;
 	SceOff size;
 	SceOff size2;
 	SceDateTime ctime;
