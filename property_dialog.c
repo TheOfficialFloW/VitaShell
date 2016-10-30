@@ -38,7 +38,7 @@ static PropertyDialog property_dialog;
 static char property_name[128], property_type[32], property_size[16], property_contains[32];
 static char property_creation_date[64], property_modification_date[64];
 
-#define PROPERTY_DIALOG_ENTRY_MIN_WIDTH 200
+#define PROPERTY_DIALOG_ENTRY_MIN_WIDTH 240
 #define PROPERTY_DIALOG_ENTRY_MAX_WIDTH 580
 
 typedef struct {
@@ -47,6 +47,14 @@ typedef struct {
 	char *entry;
 	int entry_size;
 } PropertyEntry;
+
+/*
+	TODO:
+	- Executable information. Safe/unsafe
+	- Audio information
+	- Image information
+	- Archive information
+*/
 
 PropertyEntry property_entries[] = {
 	{ PROPERTY_NAME, PROPERTY_ENTRY_VISIBLE, property_name, sizeof(property_name) },
