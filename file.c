@@ -852,7 +852,9 @@ int fileListGetMountPointEntries(FileList *list) {
 					entry->size2 = 0;
 				}
 
-				memcpy(&entry->time, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
+				memcpy(&entry->ctime, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
+				memcpy(&entry->mtime, (SceDateTime *)&stat.st_mtime, sizeof(SceDateTime));
+				memcpy(&entry->atime, (SceDateTime *)&stat.st_atime, sizeof(SceDateTime));
 
 				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
 
@@ -901,7 +903,9 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 			entry->name_length = strlen(entry->name);
 			entry->size = dir.d_stat.st_size;
 
-			memcpy(&entry->time, (SceDateTime *)&dir.d_stat.st_mtime, sizeof(SceDateTime));
+			memcpy(&entry->ctime, (SceDateTime *)&dir.d_stat.st_ctime, sizeof(SceDateTime));
+			memcpy(&entry->mtime, (SceDateTime *)&dir.d_stat.st_mtime, sizeof(SceDateTime));
+			memcpy(&entry->atime, (SceDateTime *)&dir.d_stat.st_atime, sizeof(SceDateTime));
 
 			fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
 		}

@@ -24,7 +24,7 @@
 #include "uncommon_dialog.h"
 
 typedef struct {
-	int animation_mode;
+	int dialog_status;
 	int status;
 	int mode;
 	int buttonType;
@@ -87,8 +87,8 @@ void calculateDialogBoxSize() {
 		uncommon_dialog.height += 2.0f * FONT_Y_SPACE;
 
 	// Position
-	uncommon_dialog.x = CENTER(SCREEN_WIDTH, uncommon_dialog.width);
-	uncommon_dialog.y = CENTER(SCREEN_HEIGHT, uncommon_dialog.height);
+	uncommon_dialog.x = ALIGN_CENTER(SCREEN_WIDTH, uncommon_dialog.width);
+	uncommon_dialog.y = ALIGN_CENTER(SCREEN_HEIGHT, uncommon_dialog.height);
 
 	// Align
 	int y_n = (int)((float)(uncommon_dialog.y - 2.0f) / FONT_Y_SPACE);
@@ -129,7 +129,7 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
 			return -1;
 	}
 
-	uncommon_dialog.animation_mode = UNCOMMON_DIALOG_OPENING;
+	uncommon_dialog.dialog_status = UNCOMMON_DIALOG_OPENING;
 	uncommon_dialog.mode = param->mode;
 	uncommon_dialog.status = SCE_COMMON_DIALOG_STATUS_RUNNING;
 
@@ -144,7 +144,7 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK:
 			{
 				if (pressed_buttons & SCE_CTRL_ENTER) {
-					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
+					uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_OK;
 				}
 
@@ -154,12 +154,12 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_YESNO:
 			{
 				if (pressed_buttons & SCE_CTRL_ENTER) {
-					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
+					uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_YES;
 				}
 
 				if (pressed_buttons & SCE_CTRL_CANCEL) {
-					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
+					uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_NO;
 				}
 
@@ -169,12 +169,12 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL:
 			{
 				if (pressed_buttons & SCE_CTRL_ENTER) {
-					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
+					uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_YES;
 				}
 
 				if (pressed_buttons & SCE_CTRL_CANCEL) {
-					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
+					uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
 					uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_NO;
 				}
 
@@ -184,7 +184,7 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL:
 			{
 				if (pressed_buttons & SCE_CTRL_CANCEL) {
-					uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
+					uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
 				}
 
 				break;
@@ -199,7 +199,7 @@ int sceMsgDialogClose(void) {
 	if (uncommon_dialog.status != SCE_COMMON_DIALOG_STATUS_RUNNING)
 		return -1;
 
-	uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSING;
+	uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
 	return 0;
 }
 
@@ -232,7 +232,7 @@ int sceMsgDialogProgressBarSetValue(SceMsgDialogProgressBarTarget target, SceUIn
 	return 0;
 }
 
-float easeOut2(float x0, float x1, float a) {
+static float easeOut(float x0, float x1, float a) {
 	float dx = (x1 - x0);
 	return ((dx * a) > 0.01f) ? (dx * a) : dx;
 }
@@ -249,24 +249,24 @@ int drawUncommonDialog() {
 														0.0f, vita2d_texture_get_width(dialog_image) / 2.0f, vita2d_texture_get_height(dialog_image) / 2.0f);
 
 	// Easing out
-	if (uncommon_dialog.animation_mode == UNCOMMON_DIALOG_CLOSING) {
+	if (uncommon_dialog.dialog_status == UNCOMMON_DIALOG_CLOSING) {
 		if (uncommon_dialog.scale > 0.0f) {
-			uncommon_dialog.scale -= easeOut2(0.0f, uncommon_dialog.scale, 0.25f);
+			uncommon_dialog.scale -= easeOut(0.0f, uncommon_dialog.scale, 0.25f);
 		} else {
-			uncommon_dialog.animation_mode = UNCOMMON_DIALOG_CLOSED;
+			uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSED;
 			uncommon_dialog.status = SCE_COMMON_DIALOG_STATUS_FINISHED;
 		}
 	}
 
-	if (uncommon_dialog.animation_mode == UNCOMMON_DIALOG_OPENING) {
+	if (uncommon_dialog.dialog_status == UNCOMMON_DIALOG_OPENING) {
 		if (uncommon_dialog.scale < 1.0f) {
-			uncommon_dialog.scale += easeOut2(uncommon_dialog.scale, 1.0f, 0.25f);
+			uncommon_dialog.scale += easeOut(uncommon_dialog.scale, 1.0f, 0.25f);
 		} else {
-			uncommon_dialog.animation_mode = UNCOMMON_DIALOG_OPENED;
+			uncommon_dialog.dialog_status = UNCOMMON_DIALOG_OPENED;
 		}
 	}
 
-	if (uncommon_dialog.animation_mode == UNCOMMON_DIALOG_OPENED) {
+	if (uncommon_dialog.dialog_status == UNCOMMON_DIALOG_OPENED) {
 		// Draw message
 		float string_y = uncommon_dialog.y + SHELL_MARGIN_Y - 2.0f;
 
@@ -319,7 +319,7 @@ int drawUncommonDialog() {
 
 			char string[8];
 			sprintf(string, "%d%%", uncommon_dialog.progress);
-			pgf_draw_text(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, string);
+			pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, string);
 
 			string_y += 2.0f * FONT_Y_SPACE;
 		}
@@ -329,7 +329,7 @@ int drawUncommonDialog() {
 			case SCE_MSG_DIALOG_BUTTON_TYPE_YESNO:
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL:
 			case SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL:
-				pgf_draw_text(CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, button_string);
+				pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, button_string);
 				break;
 		}
 	}

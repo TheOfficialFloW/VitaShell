@@ -71,7 +71,9 @@ typedef struct FileListEntry {
 	int type;
 	SceOff size;
 	SceOff size2;
-	SceDateTime time;
+	SceDateTime ctime;
+	SceDateTime mtime;
+	SceDateTime atime;
 	int reserved[16];
 } FileListEntry;
 

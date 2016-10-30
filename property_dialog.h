@@ -16,21 +16,32 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __UNCOMMON_DIALOG_H__
-#define __UNCOMMON_DIALOG_H__
+#ifndef __PROPERTY_DIALOG_H__
+#define __PROPERTY_DIALOG_H__
+
+#include "file.h"
 
 #define CROSS "\xE2\x95\xB3"
 #define SQUARE "\xE2\x96\xA1"
 #define TRIANGLE "\xE2\x96\xB3"
 #define CIRCLE "\xE2\x97\x8B"
 
-enum UncommonDialogStatus {
-	UNCOMMON_DIALOG_CLOSED,
-	UNCOMMON_DIALOG_CLOSING,
-	UNCOMMON_DIALOG_OPENED,
-	UNCOMMON_DIALOG_OPENING,
+enum PropertyEntryVisibilities {
+	PROPERTY_ENTRY_UNUSED,
+	PROPERTY_ENTRY_INVISIBLE,
+	PROPERTY_ENTRY_VISIBLE,
 };
 
-int drawUncommonDialog();
+enum PropertyDialogStatus {
+	PROPERTY_DIALOG_CLOSED,
+	PROPERTY_DIALOG_CLOSING,
+	PROPERTY_DIALOG_OPENED,
+	PROPERTY_DIALOG_OPENING,
+};
+
+int getPropertyDialogStatus();
+int initPropertyDialog(char *path, FileListEntry *entry);
+void propertyDialogCtrl();
+void drawPropertyDialog();
 
 #endif

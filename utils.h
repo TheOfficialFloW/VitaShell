@@ -21,8 +21,8 @@
 
 #include "main.h"
 
-#define ALIGN_CENTER(a, b) ((a - b) / 2)
-#define ALIGN_RIGHT(x, w) (x - w)
+#define ALIGN_CENTER(a, b) (((a) - (b)) / 2)
+#define ALIGN_RIGHT(x, w) ((x) - (w))
 
 #define ANALOG_CENTER 128
 #define ANALOG_THRESHOLD 64

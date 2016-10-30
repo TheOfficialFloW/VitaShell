@@ -39,6 +39,7 @@
 #include "file.h"
 #include "text.h"
 #include "hex.h"
+#include "property_dialog.h"
 #include "message_dialog.h"
 #include "ime_dialog.h"
 #include "theme.h"
@@ -437,6 +438,7 @@ enum MenuEntrys {
 	MENU_ENTRY_RENAME,
 	MENU_ENTRY_EMPTY_4,
 	MENU_ENTRY_NEW_FOLDER,
+	MENU_ENTRY_PROPERTIES,
 	MENU_ENTRY_EMPTY_5,
 	MENU_ENTRY_MORE,
 };
@@ -452,6 +454,7 @@ MenuEntry menu_entries[] = {
 	{ RENAME, CTX_VISIBILITY_INVISIBLE },
 	{ -1, CTX_VISIBILITY_UNUSED },
 	{ NEW_FOLDER, CTX_VISIBILITY_INVISIBLE },
+	{ PROPERTIES, CTX_VISIBILITY_INVISIBLE },
 	{ -1, CTX_VISIBILITY_UNUSED },
 	{ MORE, CTX_VISIBILITY_INVISIBLE }
 };
@@ -504,6 +507,7 @@ void setContextMenuVisibilities() {
 		menu_entries[MENU_ENTRY_COPY].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_PROPERTIES].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Invisible 'Paste' if nothing is copied yet
@@ -806,7 +810,7 @@ int contextMenuEnterCallback(int pos, void* context) {
 			dialog_step = DIALOG_STEP_DELETE_QUESTION;
 			break;
 		}
-
+		
 		case MENU_ENTRY_RENAME:
 		{
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
@@ -818,6 +822,15 @@ int contextMenuEnterCallback(int pos, void* context) {
 			initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
 
 			dialog_step = DIALOG_STEP_RENAME;
+			break;
+		}
+		
+		case MENU_ENTRY_PROPERTIES:
+		{
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+			initPropertyDialog(cur_file, file_entry);
+
 			break;
 		}
 		
@@ -1637,16 +1650,18 @@ BEGIN_SHELL_UI:
 		int refresh = REFRESH_MODE_NONE;
 
 		// Control
-		if (dialog_step == DIALOG_STEP_NONE) {
+		if (dialog_step != DIALOG_STEP_NONE) {
+			refresh = dialogSteps();
+		} else {
 			if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
 				contextMenuCtrl(&context_menu);
+			} else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
+				propertyDialogCtrl();
 			} else if (getListDialogMode() != LIST_DIALOG_CLOSE) {
 				listDialogCtrl();
 			} else {
 				fileBrowserMenuCtrl();
 			}
-		} else {
-			refresh = dialogSteps();
 		}
 
 		// Receive system event
@@ -1804,10 +1819,10 @@ BEGIN_SHELL_UI:
 
 				// Date
 				char date_string[16];
-				getDateString(date_string, date_format, &file_entry->time);
+				getDateString(date_string, date_format, &file_entry->mtime);
 
 				char time_string[24];
-				getTimeString(time_string, time_format, &file_entry->time);
+				getTimeString(time_string, time_format, &file_entry->mtime);
 
 				char string[64];
 				sprintf(string, "%s %s", date_string, time_string);
@@ -1824,6 +1839,9 @@ BEGIN_SHELL_UI:
 
 		// Draw list dialog
 		drawListDialog();
+
+		// Draw property dialog
+		drawPropertyDialog();
 
 		// End drawing
 		endDrawing();

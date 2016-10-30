@@ -142,7 +142,7 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 				entry->name_length = strlen(entry->name);
 				entry->size = archive_entry->size;
 
-				memcpy(&entry->time, &archive_entry->time, sizeof(SceDateTime));
+				memcpy(&entry->mtime, &archive_entry->mtime, sizeof(SceDateTime));
 
 				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
 			}
@@ -348,9 +348,9 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
 				//stat->st_mode = 
 				//stat->st_attr = 
 				stat->st_size = archive_entry->size;
-				memcpy(&stat->st_ctime, &archive_entry->time, sizeof(SceDateTime));
-				memcpy(&stat->st_atime, &archive_entry->time, sizeof(SceDateTime));
-				memcpy(&stat->st_mtime, &archive_entry->time, sizeof(SceDateTime));
+				memcpy(&stat->st_ctime, &archive_entry->mtime, sizeof(SceDateTime));
+				memcpy(&stat->st_atime, &archive_entry->mtime, sizeof(SceDateTime));
+				memcpy(&stat->st_mtime, &archive_entry->mtime, sizeof(SceDateTime));
 			}
 
 			return 0;
@@ -464,13 +464,14 @@ int archiveOpen(char *file) {
 		entry->is_folder = 0;
 		entry->name_length = file_info.size_filename;
 		entry->size = file_info.uncompressed_size;
+		entry->size2 = file_info.compressed_size;
 
 		// Time
 		SceRtcTick tick;
-		sceRtcSetDosTime(&entry->time, file_info.dosDate);
-		sceRtcGetTick(&entry->time, &tick);
+		sceRtcSetDosTime(&entry->mtime, file_info.dosDate);
+		sceRtcGetTick(&entry->mtime, &tick);
 		sceRtcConvertLocalTimeToUtc(&tick, &tick);
-		sceRtcSetTick(&entry->time, &tick);
+		sceRtcSetTick(&entry->mtime, &tick);
 
 		// Get pos
 		unzGetFilePos64(uf, (unz64_file_pos *)&entry->reserved);

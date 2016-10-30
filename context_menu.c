@@ -51,7 +51,7 @@ void setContextMenuMode(int mode) {
 	ctx_menu_mode = mode;
 }
 
-float easeOut(float x0, float x1, float a) {
+static float easeOut(float x0, float x1, float a) {
 	float dx = (x1 - x0);
 	return ((dx * a) > 0.5f) ? (dx * a) : dx;
 }

@@ -19,7 +19,6 @@
 #ifndef __LIST_DIALOG_H__
 #define __LIST_DIALOG_H__
 
-#define CENTER(a, b) (((a) - (b)) / 2)
 #define LIST_MAX_ENTRY 5
 
 #define UP_ARROW "\xe2\x96\xb2"

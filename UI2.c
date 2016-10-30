@@ -2328,10 +2328,10 @@ static void mainUI2() {
 
 	// Date
 	char date_string[16];
-	getDateString(date_string, date_format, &file_entry2->time);
+	getDateString(date_string, date_format, &file_entry2->mtime);
 
 	char time_string[24];
-	getTimeString(time_string, time_format, &file_entry2->time);
+	getTimeString(time_string, time_format, &file_entry2->mtime);
 
 	char string[64];
 	sprintf(string, "%s %s", date_string, time_string);

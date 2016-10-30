@@ -70,8 +70,8 @@ void loadListDialog(List* list) {
 	list_dialog.width += 2.0f * SHELL_MARGIN_X;
 	list_dialog.height += 4.0f * SHELL_MARGIN_Y;
 
-	list_dialog.x = CENTER(SCREEN_WIDTH, list_dialog.width);
-	list_dialog.y = CENTER(SCREEN_HEIGHT, list_dialog.height) - 2.0f * FONT_Y_SPACE;
+	list_dialog.x = ALIGN_CENTER(SCREEN_WIDTH, list_dialog.width);
+	list_dialog.y = ALIGN_CENTER(SCREEN_HEIGHT, list_dialog.height) - 2.0f * FONT_Y_SPACE;
 	list_dialog.scale = 0.0f;
 	list_dialog.animation_mode = LIST_DIALOG_OPENING;
 	list_dialog.status = SCE_COMMON_DIALOG_STATUS_RUNNING;
@@ -115,21 +115,21 @@ void drawListDialog() {
 	}
 
 	if (list_dialog.animation_mode == LIST_DIALOG_OPENED) {
-		pgf_draw_text(list_dialog.x + CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[current_list->title])), list_dialog.y + FONT_Y_SPACE, TEXT_COLOR, FONT_SIZE, language_container[current_list->title]);
+		pgf_draw_text(list_dialog.x + ALIGN_CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[current_list->title])), list_dialog.y + FONT_Y_SPACE, TEXT_COLOR, FONT_SIZE, language_container[current_list->title]);
 
 		int z;
 		for (z = 0;z < LIST_MAX_ENTRY && (base_pos + z) < current_list->n_list_entries; z++) {
 			uint32_t color = (rel_pos == z) ? TEXT_FOCUS_COLOR : TEXT_COLOR;
-			pgf_draw_text(list_dialog.x + CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[current_list->list_entries[(z + base_pos)].name])), list_dialog.y + (FONT_Y_SPACE * 3) + (FONT_Y_SPACE * z), color, FONT_SIZE, language_container[current_list->list_entries[(z + base_pos)].name]);
+			pgf_draw_text(list_dialog.x + ALIGN_CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[current_list->list_entries[(z + base_pos)].name])), list_dialog.y + (FONT_Y_SPACE * 3) + (FONT_Y_SPACE * z), color, FONT_SIZE, language_container[current_list->list_entries[(z + base_pos)].name]);
 		}
 
 		int max_base_pos = current_list->n_list_entries - LIST_MAX_ENTRY;
 		if (base_pos < max_base_pos  && current_list->n_list_entries > LIST_MAX_ENTRY) {
-			pgf_draw_text(list_dialog.x + CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, DOWN_ARROW)), list_dialog.y + (FONT_Y_SPACE * 3) + (FONT_Y_SPACE * max_entry_show), TEXT_COLOR, FONT_SIZE, DOWN_ARROW);
+			pgf_draw_text(list_dialog.x + ALIGN_CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, DOWN_ARROW)), list_dialog.y + (FONT_Y_SPACE * 3) + (FONT_Y_SPACE * max_entry_show), TEXT_COLOR, FONT_SIZE, DOWN_ARROW);
 		}
 
 		if (base_pos > 0 && current_list->n_list_entries > LIST_MAX_ENTRY) {
-			pgf_draw_text(list_dialog.x + CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, UP_ARROW)), list_dialog.y + (FONT_Y_SPACE * 2), TEXT_COLOR, FONT_SIZE, UP_ARROW);
+			pgf_draw_text(list_dialog.x + ALIGN_CENTER(list_dialog.width, vita2d_pgf_text_width(font, FONT_SIZE, UP_ARROW)), list_dialog.y + (FONT_Y_SPACE * 2), TEXT_COLOR, FONT_SIZE, UP_ARROW);
 		}
 	} else if (list_dialog.animation_mode == LIST_DIALOG_CLOSED) {
 		if (list_dialog.enter_pressed) {
