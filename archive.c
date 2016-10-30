@@ -125,7 +125,6 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 
 			if (strlen(name) > 0 && !fileListFindEntry(list, name)) {
 				FileListEntry *entry = malloc(sizeof(FileListEntry));
-				memcpy(entry, archive_entry, sizeof(FileListEntry));
 
 				strcpy(entry->name, archive_entry->name + name_length);
 
@@ -141,6 +140,9 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 				}
 
 				entry->name_length = strlen(entry->name);
+				entry->size = archive_entry->size;
+
+				memcpy(&entry->mtime, &archive_entry->mtime, sizeof(SceDateTime));
 
 				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
 			}
