@@ -187,4 +187,10 @@
 - Fixed time information in zip archives.<br>
     ]]>
   </changes>
+   <changes app_ver="01.41">
+    <![CDATA[
+- Added ability to sort files and folders by size and date. Press R to switch sort method.<br>
+- Added the long desired 'Properties' feature. You can also check whether an eboot.bin is safe or not.<br>
+    ]]>
+  </changes>
 </changeinfo>

@@ -95,6 +95,10 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.41 ###
+- Added ability to sort files and folders by size and date. Press R to switch sort method.
+- Added the long desired 'Properties' feature. You can also check whether an eboot.bin is safe or not.
+
 ### Changelog 1.4 ###
 - Added group RW permissions on files and folders when moving.
   Safe homebrews like RetroArch will now recognize files and folders
