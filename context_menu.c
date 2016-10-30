@@ -124,7 +124,7 @@ void drawContextMenu(ContextMenu *ctx) {
 			pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[ctx->menu_entries[i].name]);
 
 			// Draw arrow for 'More'
-			if (i == ctx->more_pos) {
+			if (ctx->menu_entries[i].more) {
 				char *arrow = NULL;
 				if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
 					arrow = LEFT_ARROW;
@@ -141,7 +141,7 @@ void drawContextMenu(ContextMenu *ctx) {
 				if (ctx->menu_more_entries[i].visibility == CTX_VISIBILITY_UNUSED)
 					continue;
 
-				float y = START_Y + ((ctx->more_pos + i) * FONT_Y_SPACE);
+				float y = START_Y + ((ctx_menu_pos + i) * FONT_Y_SPACE);
 
 				uint32_t color = CONTEXT_MENU_TEXT_COLOR;
 

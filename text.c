@@ -573,7 +573,6 @@ int textViewer(char *file) {
 	s->context_menu.menu_max_width = text_ctx_menu_max_width;
 	s->context_menu.context = s;
 	s->context_menu.menuEnterCallback = contextMenuEnterCallback;
-	s->context_menu.more_pos = -1;
 	//context_menu.menuMoreEnterCallback = contextMenuMoreEnterCallback;
 
 	int i;

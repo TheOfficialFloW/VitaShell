@@ -91,7 +91,7 @@ int archiveCheckFilesForUnsafeFself() {
 	return 0; // Safe
 }
 
-int fileListGetArchiveEntries(FileList *list, char *path) {
+int fileListGetArchiveEntries(FileList *list, char *path, int sort) {
 	int res;
 
 	if (!uf)
@@ -102,7 +102,7 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 	entry->name_length = strlen(entry->name);
 	entry->is_folder = 1;
 	entry->type = FILE_TYPE_UNKNOWN;
-	fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
+	fileListAddEntry(list, entry, sort);
 
 	char *archive_path = path + archive_path_start;
 	int name_length = strlen(archive_path);
@@ -145,8 +145,9 @@ int fileListGetArchiveEntries(FileList *list, char *path) {
 
 				memcpy(&entry->ctime, &archive_entry->ctime, sizeof(SceDateTime));
 				memcpy(&entry->mtime, &archive_entry->mtime, sizeof(SceDateTime));
+				memcpy(&entry->atime, &archive_entry->atime, sizeof(SceDateTime));
 
-				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
+				fileListAddEntry(list, entry, sort);
 			}
 
 			if (p)
@@ -169,7 +170,7 @@ int getArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *
 	if (archiveFileGetstat(path, &stat) < 0) {
 		FileList list;
 		memset(&list, 0, sizeof(FileList));
-		fileListGetArchiveEntries(&list, path);
+		fileListGetArchiveEntries(&list, path, SORT_NONE);
 
 		FileListEntry *entry = list.head->next; // Ignore ..
 
@@ -209,7 +210,7 @@ int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 	if (archiveFileGetstat(src, &stat) < 0) {
 		FileList list;
 		memset(&list, 0, sizeof(FileList));
-		fileListGetArchiveEntries(&list, src);
+		fileListGetArchiveEntries(&list, src, SORT_NONE);
 
 		int ret = sceIoMkdir(dst, 0777);
 		if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
@@ -347,12 +348,12 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
 	for (i = 0; i < archive_list.length; i++) {
 		if (archive_entry->name_length == name_length && strcasecmp(archive_entry->name, archive_path) == 0) {
 			if (stat) {
-				//stat->st_mode = 
-				//stat->st_attr = 
+				// stat->st_mode = 
+				// stat->st_attr = 
 				stat->st_size = archive_entry->size;
-				memcpy(&stat->st_ctime, &archive_entry->mtime, sizeof(SceDateTime));
-				memcpy(&stat->st_atime, &archive_entry->mtime, sizeof(SceDateTime));
+				memcpy(&stat->st_ctime, &archive_entry->ctime, sizeof(SceDateTime));
 				memcpy(&stat->st_mtime, &archive_entry->mtime, sizeof(SceDateTime));
+				memcpy(&stat->st_atime, &archive_entry->atime, sizeof(SceDateTime));
 			}
 
 			return 0;
@@ -470,16 +471,21 @@ int archiveOpen(char *file) {
 
 		// Time
 		SceRtcTick tick;
-		sceRtcSetDosTime(&entry->mtime, file_info.dosDate);
-		sceRtcGetTick(&entry->mtime, &tick);
+		SceDateTime time;
+		sceRtcSetDosTime(&time, file_info.dosDate);
+		sceRtcGetTick(&time, &tick);
 		sceRtcConvertLocalTimeToUtc(&tick, &tick);
-		sceRtcSetTick(&entry->mtime, &tick);
+		sceRtcSetTick(&time, &tick);
+
+		memcpy(&entry->ctime, &time, sizeof(SceDateTime));
+		memcpy(&entry->mtime, &time, sizeof(SceDateTime));
+		memcpy(&entry->atime, &time, sizeof(SceDateTime));
 
 		// Get pos
 		unzGetFilePos64(uf, (unz64_file_pos *)&entry->reserved);
 
 		// Add entry
-		fileListAddEntry(&archive_list, entry, SORT_BY_NAME_AND_FOLDER);
+		fileListAddEntry(&archive_list, entry, SORT_BY_NAME);
 
 		// Next
 		res = unzGoToNextFile2(uf, &file_info, name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);

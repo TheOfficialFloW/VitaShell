@@ -47,7 +47,9 @@ enum FileTypes {
 
 enum FileSortFlags {
 	SORT_NONE,
-	SORT_BY_NAME_AND_FOLDER,
+	SORT_BY_NAME,
+	SORT_BY_SIZE,
+	SORT_BY_DATE,
 };
 
 enum FileMoveFlags {
@@ -113,6 +115,6 @@ int fileListRemoveEntryByName(FileList *list, char *name);
 
 void fileListEmpty(FileList *list);
 
-int fileListGetEntries(FileList *list, char *path);
+int fileListGetEntries(FileList *list, char *path, int sort);
 
 #endif

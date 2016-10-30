@@ -30,6 +30,7 @@ enum ContextMenuVisibilities {
 
 typedef struct {
 	int name;
+	int more;
 	int visibility;
 } MenuEntry;
 
@@ -40,9 +41,8 @@ typedef struct {
 	int n_menu_more_entries;
 	float menu_max_width;
 	float menu_more_max_width;
-	int more_pos;
-	int (* menuEnterCallback)(int pos, void* context);
-	int (* menuMoreEnterCallback)(int pos, void* context);
+	int (* menuEnterCallback)(int pos, void *context);
+	int (* menuMoreEnterCallback)(int pos, void *context);
 	void *context;
 } ContextMenu;
 

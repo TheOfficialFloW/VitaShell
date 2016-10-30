@@ -23,7 +23,7 @@
 
 #define ARCHIVE_FD 0x12345678
 
-int fileListGetArchiveEntries(FileList *list, char *path);
+int fileListGetArchiveEntries(FileList *list, char *path, int sort);
 
 int getArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files);
 int extractArchivePath(char *src, char *dst, FileProcessParam *param);

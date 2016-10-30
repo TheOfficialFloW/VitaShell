@@ -695,25 +695,76 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 			FileListEntry *previous = NULL;
 
 			while (p) {
-				// Sort by type
-				if (entry->is_folder > p->is_folder)
-					break;
+				// Get the minimum length without /
+				int len = MIN(entry->name_length, p->name_length);
+				if (entry->name[len - 1] == '/' || p->name[len - 1] == '/')
+					len--;
 
 				// '..' is always at first
 				if (strcmp(entry->name, "..") == 0)
 					break;
 
-				if (strcmp(p->name, "..") != 0) {
-					// Get the minimum length without /
-					int len = MIN(entry->name_length, p->name_length);
-					if (entry->name[len - 1] == '/' || p->name[len - 1] == '/')
-						len--;
+				if (strcmp(p->name, "..") == 0) {
+					previous = p;
+					p = p->next;
+					continue;
+				}
 
-					// Sort by name
+				// Sort by type
+				if (sort == SORT_BY_NAME) {
+					// First folders then files
+					if (entry->is_folder > p->is_folder)
+						break;
+				} else if (sort == SORT_BY_SIZE || sort == SORT_BY_DATE) {
+					// First files then folders
+					if (entry->is_folder < p->is_folder)
+						break;
+				}
+
+				if (sort == SORT_BY_NAME) {
+					// Sort by name within the same type
 					if (entry->is_folder == p->is_folder) {
 						int diff = strncasecmp(entry->name, p->name, len);
 						if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
 							break;
+						}
+					}
+				} else if (sort == SORT_BY_SIZE) {
+					// Sort by name for folders
+					if (entry->is_folder && p->is_folder) {
+						int diff = strncasecmp(entry->name, p->name, len);
+						if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
+							break;
+						}
+					} else if (!entry->is_folder && !p->is_folder) {
+						// Sort by size for files
+						if (entry->size > p->size)
+							break;
+
+						// Sort by name for files with the same size
+						if (entry->size == p->size) {
+							int diff = strncasecmp(entry->name, p->name, len);
+							if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
+								break;
+							}
+						}
+					}
+				} else if (sort == SORT_BY_DATE) {
+					if (entry->is_folder == p->is_folder) {
+						SceRtcTick entry_tick, p_tick;
+						sceRtcGetTick(&entry->mtime, &entry_tick);
+						sceRtcGetTick(&p->mtime, &p_tick);
+
+						// Sort by date within the same type
+						if (entry_tick.tick > p_tick.tick)
+							break;
+
+						// Sort by name for files and folders with the same date
+						if (entry_tick.tick == p_tick.tick) {
+							int diff = strncasecmp(entry->name, p->name, len);
+							if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
+								break;
+							}
 						}
 					}
 				}
@@ -856,7 +907,7 @@ int fileListGetMountPointEntries(FileList *list) {
 				memcpy(&entry->mtime, (SceDateTime *)&stat.st_mtime, sizeof(SceDateTime));
 				memcpy(&entry->atime, (SceDateTime *)&stat.st_atime, sizeof(SceDateTime));
 
-				fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
+				fileListAddEntry(list, entry, SORT_BY_NAME);
 
 				list->folders++;
 			}
@@ -866,7 +917,7 @@ int fileListGetMountPointEntries(FileList *list) {
 	return 0;
 }
 
-int fileListGetDirectoryEntries(FileList *list, char *path) {
+int fileListGetDirectoryEntries(FileList *list, char *path, int sort) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd < 0)
 		return dfd;
@@ -876,7 +927,7 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 	entry->name_length = strlen(entry->name);
 	entry->is_folder = 1;
 	entry->type = FILE_TYPE_UNKNOWN;
-	fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
+	fileListAddEntry(list, entry, sort);
 
 	int res = 0;
 
@@ -907,7 +958,7 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 			memcpy(&entry->mtime, (SceDateTime *)&dir.d_stat.st_mtime, sizeof(SceDateTime));
 			memcpy(&entry->atime, (SceDateTime *)&dir.d_stat.st_atime, sizeof(SceDateTime));
 
-			fileListAddEntry(list, entry, SORT_BY_NAME_AND_FOLDER);
+			fileListAddEntry(list, entry, sort);
 		}
 	} while (res > 0);
 
@@ -916,14 +967,14 @@ int fileListGetDirectoryEntries(FileList *list, char *path) {
 	return 0;
 }
 
-int fileListGetEntries(FileList *list, char *path) {
+int fileListGetEntries(FileList *list, char *path, int sort) {
 	if (isInArchive()) {
-		return fileListGetArchiveEntries(list, path);
+		return fileListGetArchiveEntries(list, path, sort);
 	}
 
 	if (strcasecmp(path, HOME_PATH) == 0) {
 		return fileListGetMountPointEntries(list);
 	}
 
-	return fileListGetDirectoryEntries(list, path);
+	return fileListGetDirectoryEntries(list, path, sort);
 }

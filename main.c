@@ -61,6 +61,9 @@ static float ctx_menu_max_width = 0.0f, ctx_menu_more_max_width = 0.0f;
 // File lists
 static FileList file_list, mark_list, copy_list, install_list;
 
+// Sort mode
+static int sort_mode = SORT_BY_NAME;
+
 // Paths
 static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], install_path[MAX_PATH_LENGTH];
 static char focus_name[MAX_NAME_LENGTH], compress_name[MAX_NAME_LENGTH];
@@ -184,7 +187,7 @@ int refreshFileList() {
 	do {
 		fileListEmpty(&file_list);
 
-		res = fileListGetEntries(&file_list, file_list.path);
+		res = fileListGetEntries(&file_list, file_list.path, sort_mode);
 
 		if (res < 0) {
 			ret = res;
@@ -444,19 +447,19 @@ enum MenuEntrys {
 };
 
 MenuEntry menu_entries[] = {
-	{ MARK_ALL, CTX_VISIBILITY_INVISIBLE },
-	{ -1, CTX_VISIBILITY_UNUSED },
-	{ MOVE, CTX_VISIBILITY_INVISIBLE },
-	{ COPY, CTX_VISIBILITY_INVISIBLE },
-	{ PASTE, CTX_VISIBILITY_INVISIBLE },
-	{ -1, CTX_VISIBILITY_UNUSED },
-	{ DELETE, CTX_VISIBILITY_INVISIBLE },
-	{ RENAME, CTX_VISIBILITY_INVISIBLE },
-	{ -1, CTX_VISIBILITY_UNUSED },
-	{ NEW_FOLDER, CTX_VISIBILITY_INVISIBLE },
-	{ PROPERTIES, CTX_VISIBILITY_INVISIBLE },
-	{ -1, CTX_VISIBILITY_UNUSED },
-	{ MORE, CTX_VISIBILITY_INVISIBLE }
+	{ MARK_ALL, 0, CTX_VISIBILITY_INVISIBLE },
+	{ -1, 0, CTX_VISIBILITY_UNUSED },
+	{ MOVE, 0, CTX_VISIBILITY_INVISIBLE },
+	{ COPY, 0, CTX_VISIBILITY_INVISIBLE },
+	{ PASTE, 0, CTX_VISIBILITY_INVISIBLE },
+	{ -1, 0, CTX_VISIBILITY_UNUSED },
+	{ DELETE, 0, CTX_VISIBILITY_INVISIBLE },
+	{ RENAME, 0, CTX_VISIBILITY_INVISIBLE },
+	{ -1, 0, CTX_VISIBILITY_UNUSED },
+	{ NEW_FOLDER, 0, CTX_VISIBILITY_INVISIBLE },
+	{ PROPERTIES, 0, CTX_VISIBILITY_INVISIBLE },
+	{ -1, 0, CTX_VISIBILITY_UNUSED },
+	{ MORE, 1, CTX_VISIBILITY_INVISIBLE }
 };
 
 #define N_MENU_ENTRIES (sizeof(menu_entries) / sizeof(MenuEntry))
@@ -470,11 +473,11 @@ enum MenuMoreEntrys {
 };
 
 MenuEntry menu_more_entries[] = {
-	{ COMPRESS, CTX_VISIBILITY_INVISIBLE },
-	{ INSTALL_ALL, CTX_VISIBILITY_INVISIBLE },
-	{ INSTALL_FOLDER, CTX_VISIBILITY_INVISIBLE },
-	{ EXPORT_MEDIA, CTX_VISIBILITY_INVISIBLE },
-	{ CALCULATE_SHA1, CTX_VISIBILITY_INVISIBLE },
+	{ COMPRESS, 0, CTX_VISIBILITY_INVISIBLE },
+	{ INSTALL_ALL, 0, CTX_VISIBILITY_INVISIBLE },
+	{ INSTALL_FOLDER, 0, CTX_VISIBILITY_INVISIBLE },
+	{ EXPORT_MEDIA, 0, CTX_VISIBILITY_INVISIBLE },
+	{ CALCULATE_SHA1, 0, CTX_VISIBILITY_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
@@ -1426,7 +1429,9 @@ int dialogSteps() {
 	return refresh;
 }
 
-void fileBrowserMenuCtrl() {
+int fileBrowserMenuCtrl() {
+	int refresh = 0;
+
 	// Show toolbox list dialog
 	if (current_buttons & SCE_CTRL_START) {
 		if (getListDialogMode() == LIST_DIALOG_CLOSE) {
@@ -1440,10 +1445,16 @@ void fileBrowserMenuCtrl() {
 		}
 	}
 
-	// Change UI
+	// Change sort mode
 	if (pressed_buttons & SCE_CTRL_RTRIGGER) {
-		// TheFloW: I will integrate the alternative UI if it's finished
-		// Change_UI = true;
+		if (sort_mode == SORT_BY_NAME)
+			sort_mode = SORT_BY_SIZE;
+		else if (sort_mode == SORT_BY_SIZE)
+			sort_mode = SORT_BY_DATE;
+		else if (sort_mode == SORT_BY_DATE)
+			sort_mode = SORT_BY_NAME;
+
+		refresh = 1;
 	}
 
 	// FTP
@@ -1570,6 +1581,8 @@ void fileBrowserMenuCtrl() {
 			}
 		}
 	}
+
+	return refresh;
 }
 
 int shellMain() {
@@ -1639,7 +1652,6 @@ BEGIN_SHELL_UI:
 	context_menu.n_menu_more_entries = N_MENU_MORE_ENTRIES;
 	context_menu.menu_max_width = ctx_menu_max_width;
 	context_menu.menu_more_max_width = ctx_menu_more_max_width;
-	context_menu.more_pos = MENU_ENTRY_MORE;
 	context_menu.menuEnterCallback = contextMenuEnterCallback;
 	context_menu.menuMoreEnterCallback = contextMenuMoreEnterCallback;
 
@@ -1660,7 +1672,7 @@ BEGIN_SHELL_UI:
 			} else if (getListDialogMode() != LIST_DIALOG_CLOSE) {
 				listDialogCtrl();
 			} else {
-				fileBrowserMenuCtrl();
+				refresh = fileBrowserMenuCtrl();
 			}
 		}
 
