@@ -1,5 +1,5 @@
 # VitaShell language file
-# VitaShell1.4対応版日本語言語ファイル 14a94
+# VitaShell1.41対応版日本語言語ファイル 141a102
 # 作者 @Umineko19930417
 
 # General strings
@@ -9,6 +9,7 @@ OK				= "OK"
 YES				= "はい"
 NO				= "いいえ"
 CANCEL				= "キャンセル"
+FILE_				= "ファイル"
 FOLDER				= "フォルダ"
 
 # Progress strings
@@ -21,7 +22,7 @@ INSTALLING			= "インストール中..."
 DOWNLOADING			= "ダウンロード中..."
 EXTRACTING			= "吸い出し中..."
 COMPRESSING			= "圧縮中..."
-HASHING				= "SHA-1ハッシュ値の計算中..."
+HASHING				= "SHA-1ハッシュ値を計算中..."
 
 # Audio player strings
 # オーディオプレイヤーの文字列
@@ -44,7 +45,7 @@ CUT				= "切り取り"
 INSERT_EMPTY_LINE		= "空行を挿入"
 
 # File browser context menu strings
-# ファイルブラウザーのコンテキストメニューの文字列
+# ファイルブラウザーコンテキストメニューの文字列
 MORE				= "その他"
 MARK_ALL			= "全選択"
 UNMARK_ALL			= "全選択の解除"
@@ -54,15 +55,43 @@ PASTE				= "貼り付け"
 DELETE				= "削除"
 RENAME				= "名前変更"
 NEW_FOLDER			= "新しいフォルダ"
+PROPERTIES			= "プロパティ"
 COMPRESS			= "圧縮"
 INSTALL_ALL			= "全てをインストール"
 INSTALL_FOLDER		= "フォルダをインストール"
-CALCULATE_SHA1			= "SHA-1ハッシュ値の表示"
+CALCULATE_SHA1			= "SHA-1ハッシュ値を表示"
 EXPORT_MEDIA			= "メディアを出力"
 SEARCH				= "検索"
 
+# File browser properties strings
+# ファイルブラウザプロパティの文字列
+PROPERTY_NAME			= "名前"
+PROPERTY_TYPE			= "種類"
+PROPERTY_FSELF_MODE			= "FSELFモード"
+PROPERTY_SIZE			= "容量"
+PROPERTY_COMPRESSED_SIZE           	 = "圧縮容量"
+PROPERTY_CONTAINS			= "内容物	"
+PROPERTY_CONTAINS_FILES_FOLDERS			= "%d ファイル / %d フォルダ"
+PROPERTY_CREATION_DATE			= "作成日時"
+PROPERTY_MODFICATION_DATE			= "更新日時"
+PROPERTY_TYPE_BMP			= "Bitmap画像"
+PROPERTY_TYPE_INI			= "ファイル構成"
+PROPERTY_TYPE_JPEG			= "JPEG画像"
+PROPERTY_TYPE_MP3			= "MP3音声ファイル"
+PROPERTY_TYPE_OGG			= "OGG音声ファイル"
+PROPERTY_TYPE_PNG			= "PNG画像"
+PROPERTY_TYPE_SFO			= "SFOファイル"
+PROPERTY_TYPE_TXT			= "テキスト文章"
+PROPERTY_TYPE_VPK			= "VPKパッケージ"
+PROPERTY_TYPE_XML			= "XMLファイル"
+PROPERTY_TYPE_ZIP			= "ZIP圧縮ファイル"
+PROPERTY_TYPE_FSELF			= "FSELFファイル"
+PROPERTY_FSELF_MODE_SAFE			= "安全"
+PROPERTY_FSELF_MODE_UNSAFE			= "危険"
+PROPERTY_FSELF_MODE_SCE				= "SCEの署名済"
+
 # File browser strings
-# ブラウザーの文字列
+# ファイルブラウザーの文字列
 COPIED_FILE			= "%d個のファイルをコピーしました"
 COPIED_FOLDER			= "%d個のフォルダをコピーしました"
 COPIED_FILES_FOLDERS		 = "%d個のファイル/フォルダをコピーしました"
@@ -71,10 +100,10 @@ COPIED_FILES_FOLDERS		 = "%d個のファイル/フォルダをコピーしまし
 # ダイアログの質問
 DELETE_FILE_QUESTION		= "このファイルを削除してもよろしいですか?"
 DELETE_FOLDER_QUESTION		  = "このフォルダを削除してもよろしいですか?"
-DELETE_FILES_FOLDERS_QUESTION	  = "これらのファイル、フォルダを削除してもよろしいですか?"
+DELETE_FILES_FOLDERS_QUESTION	  = "これらのファイル/フォルダを削除してもよろしいですか?"
 EXPORT_FILE_QUESTION		= "このファイルをメディアに出力してもよろしいですか?"
 EXPORT_FOLDER_QUESTION		 = "このフォルダをメディアに出力してもよろしいですか?"
-EXPORT_FILES_FOLDERS_QUESTION	  = "これらのファイル、フォルダをメディアに出力してもよろしいですか?"
+EXPORT_FILES_FOLDERS_QUESTION	  = "これらのファイル/フォルダをメディアに出力してもよろしいですか?"
 EXPORT_NO_MEDIA			= "出力が出来るメディアがありません"
 EXPORT_SONGS_INFO		= "%d個の歌を出力しました"
 EXPORT_PICTURES_INFO		= "%d個の写真を出力しました"
@@ -87,7 +116,7 @@ INSTALL_BRICK_WARNING			   = "このパッケージは、システム領域等�
 HASH_FILE_QUESTION		= "SHA-1ハッシュ値の計算には時間がかかる場合があります\\ハッシュ値の計算を続行しますか?"
 
 # Others
-# 他
+# その他
 PLEASE_WAIT			= "しばらくお待ち下さい..."
 SAVE_MODIFICATIONS		= "変更を保存しますか?"
 NO_SPACE_ERROR			   = "メモリーカードに充分な空き容量がありません\あと%s以上の空き容量が必要です"
@@ -96,6 +125,6 @@ FTP_SERVER			   = "FTPサーバーを動作させます\ftp://%s:%i\\OKを選択
 SYS_INFO			  = "システムソフトウェア: %s\モデル: 0x%08X\MACアドレス: %s \IPアドレス: %s \メモリーカード: %s/%s \バッテリー容量: %d%%"
 UPDATE_QUESTION			= "VitaShell %sの更新が利用出来ます\\VitaShellの更新をしますか?"
 TOOLBOX				= "ツールボックス"
-SYSINFO_TITLE			= "システムインフォメーション"
+SYSINFO_TITLE			= "システム情報"
 ARCHIVE_NAME			= "アーカイブ名"
 COMPRESSION_LEVEL			= "圧縮率 (0-9)"
