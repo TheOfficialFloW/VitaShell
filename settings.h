@@ -32,6 +32,28 @@ enum SettingsMenuStatus {
 	SETTINGS_MENU_OPENING,
 };
 
+typedef struct {
+	int status;
+	float cur_pos;
+	int entry_sel;
+	int option_sel;
+	int n_options;
+} SettingsMenu;
+
+typedef struct {
+	int name;
+	int type;
+	char *string;
+	int size_string;
+	int *value;
+} SettingsMenuOption;
+
+typedef struct {
+	int name;
+	SettingsMenuOption *options;
+	int n_options;
+} SettingsMenuEntry;
+
 void initSettingsMenu();
 void openSettingsMenu();
 int getSettingsMenuStatus();

@@ -38,5 +38,6 @@ typedef struct {
 
 int readConfigBuffer(void *buffer, int size, ConfigEntry *entries, int n_entries);
 int readConfig(char *path, ConfigEntry *entries, int n_entries);
+int writeConfig(char *path, ConfigEntry *entries, int n_entries);
 
 #endif

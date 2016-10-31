@@ -207,6 +207,8 @@ enum DialogSteps {
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
+extern int is_molecular_shell;
+
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
 extern volatile int dialog_step;

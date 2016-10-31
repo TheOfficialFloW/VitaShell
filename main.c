@@ -18,8 +18,6 @@
 
 /*
 	TODO:
-	- Hide mount points
-	- Inverse sort, sort by date, size
 	- Hex editor byte group size
 	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
 	- Shortcuts
@@ -85,6 +83,8 @@ static int dir_level_archive = -1;
 // FTP
 static char vita_ip[16];
 static unsigned short int vita_port;
+
+int is_molecular_shell = 0;
 
 // Enter and cancel buttons
 int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
@@ -1936,8 +1936,17 @@ int main(int argc, const char *argv[]) {
 	// Init VitaShell
 	initVitaShell();
 
-	// Allow writing to ux0:app/VITASHELL
-	sceAppMgrUmount("app0:");
+	// Get titleid
+	char titleid[12];
+	memset(titleid, 0, sizeof(titleid));
+	sceAppMgrAppParamGetString(sceKernelGetProcessId(), 12, titleid, sizeof(titleid));
+
+	if (strcmp(titleid, "MLCL00001") == 0) {
+		is_molecular_shell = 1;
+	} else {
+		// Allow writing to ux0:app/VITASHELL
+		sceAppMgrUmount("app0:");
+	}
 
 	// No custom config, in case they are damaged or unuseable
 	readPad();

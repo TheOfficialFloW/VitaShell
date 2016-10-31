@@ -227,3 +227,68 @@ int readConfig(char *path, ConfigEntry *entries, int n_entries) {
 
 	return 0;
 }
+
+int writeEntry(SceUID fd, ConfigEntry *entry) {
+    int result;
+    if ((result = sceIoWrite(fd, entry->name, strlen(entry->name))) < 0)
+        return result;
+
+    if ((result = sceIoWrite(fd, " = ", 3)) < 0)
+        return result;
+
+    char *val;
+    char buffer[33];
+
+    switch (entry->type) {
+        case CONFIG_TYPE_BOOLEAN:
+            val = *(uint32_t*)entry->value != 0 ? "true" : "false";
+            result = sceIoWrite(fd, val, strlen(val));
+            break;
+			
+        case CONFIG_TYPE_DECIMAL:
+            itoa(*(int*)entry->value, buffer, 10);
+            result = sceIoWrite(fd, buffer, strlen(buffer));
+            break;
+			
+        case CONFIG_TYPE_HEXDECIMAL:
+            itoa(*(int*)entry->value, buffer, 16);
+            result = sceIoWrite(fd, buffer, strlen(buffer));
+            break;
+			
+        case CONFIG_TYPE_STRING:
+            val = *(char **)entry->value;
+            sceIoWrite(fd, "\"", 1);
+            result = sceIoWrite(fd, val, strlen(val));
+            sceIoWrite(fd, "\"", 1);
+            break;
+			
+        default:
+            return 1;
+    }
+
+    if (result < 0)
+        return result;
+
+    if ((sceIoWrite(fd, "\n", 1)) < 0)
+        return result;
+
+    return 0;
+}
+
+int writeConfig(char *path, ConfigEntry *entries, int n_entries) {
+    SceUID fd = sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+    if (fd < 0)
+        return fd;
+
+    int i;
+    for (i = 0; i < n_entries; i++) {
+        int result = writeEntry(fd, entries+i);
+        if (result != 0) {
+            return result;
+        }
+    }
+
+    sceIoClose(fd);
+
+    return 0;
+}

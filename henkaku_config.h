@@ -22,6 +22,8 @@
 #define HENKAKU_CONFIG_MAGIC 0x4C434C4D
 #define HENKAKU_VERSION 7
 
+#define HENKAKU_DEFAULT_VERSION_STRING "3.61"
+
 typedef struct {
 	int magic;
 	int version;

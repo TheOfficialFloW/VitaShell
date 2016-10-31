@@ -113,6 +113,11 @@ HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Enable unsafe homebrew"
 HENKAKU_ENABLE_VERSION_SPOOFING      = "Enable version spoofing"
 HENKAKU_SPOOFED_VERSION              = "Spoofed version"
 
+# VitaShell settings
+VITASHELL_SETTINGS_MAIN              = "Main settings"
+VITASHELL_SETTINGS_LANGUAGE          = "Language"
+VITASHELL_SETTINGS_THEME             = "Theme"
+
 # Others
 PLEASE_WAIT                          = "Please wait..."
 SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"
