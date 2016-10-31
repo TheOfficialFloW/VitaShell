@@ -77,6 +77,13 @@ int TITLE_COLOR;
 int PATH_COLOR;
 int DATE_TIME_COLOR;
 
+// Settings color
+int SETTINGS_MENU_COLOR;
+int SETTINGS_MENU_FOCUS_COLOR;
+int SETTINGS_MENU_TITLE_COLOR;
+int SETTINGS_MENU_ITEM_COLOR;
+int SETTINGS_MENU_OPTION_COLOR;
+
 // File browser colors
 int FOCUS_COLOR;
 int FILE_COLOR;
@@ -137,8 +144,8 @@ vita2d_texture *default_wallpaper = NULL, *game_card_storage_image = NULL, *game
 
 
 vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
-			   *wifi_image = NULL, *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *battery_image = NULL, *battery_bar_red_image = NULL,
-			   *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
+			   *wifi_image = NULL, *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *settings_image = NULL, *battery_image = NULL,
+			   *battery_bar_red_image = NULL, *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
 			   *bg_photo_image = NULL, *bg_audio_image = NULL, *cover_image = NULL, *play_image = NULL, *pause_image = NULL, *fastforward_image = NULL, *fastrewind_image = NULL;
 
 vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
@@ -158,6 +165,13 @@ void loadTheme() {
 		COLOR_ENTRY(TITLE_COLOR),
 		COLOR_ENTRY(PATH_COLOR),
 		COLOR_ENTRY(DATE_TIME_COLOR),
+
+		// Settings colors
+		COLOR_ENTRY(SETTINGS_MENU_COLOR),
+		COLOR_ENTRY(SETTINGS_MENU_FOCUS_COLOR),
+		COLOR_ENTRY(SETTINGS_MENU_TITLE_COLOR),
+		COLOR_ENTRY(SETTINGS_MENU_ITEM_COLOR),
+		COLOR_ENTRY(SETTINGS_MENU_OPTION_COLOR),
 
 		// File browser colors
 		COLOR_ENTRY(FOCUS_COLOR),
@@ -210,8 +224,8 @@ void loadTheme() {
 		COLOR_ENTRY(AUDIO_TIME_BAR_BG),
 
 		//UI2 colors
-		COLOR_ENTRY(ITEM_BORDER),		  
-	        COLOR_ENTRY(ITEM_BORDER_SELECT),
+		COLOR_ENTRY(ITEM_BORDER),
+		COLOR_ENTRY(ITEM_BORDER_SELECT),
 		COLOR_ENTRY(BACKGROUND_COLOR_TEXT_ITEM),
 		COLOR_ENTRY(ALPHA_TITLEBAR),
 	};
@@ -272,6 +286,9 @@ void loadTheme() {
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/context_more.png", theme_name);
 			context_more_image = vita2d_load_PNG_file(path);
+
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/settings.png", theme_name);
+			settings_image = vita2d_load_PNG_file(path);
 
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery.png", theme_name);
 			battery_image = vita2d_load_PNG_file(path);
@@ -475,6 +492,19 @@ void loadTheme() {
 			int x;
 			for (x = 0; x < SCREEN_WIDTH; x++) {
 				((uint32_t *)data)[x + SCREEN_WIDTH * y] = CONTEXT_MENU_MORE_COLOR;
+			}
+		}
+	}
+
+	if (!settings_image) {
+		settings_image = vita2d_create_empty_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
+		void *data = vita2d_texture_get_datap(settings_image);
+
+		int y;
+		for (y = 0; y < SCREEN_HEIGHT; y++) {
+			int x;
+			for (x = 0; x < SCREEN_WIDTH; x++) {
+				((uint32_t *)data)[x + SCREEN_WIDTH * y] = SETTINGS_MENU_COLOR;
 			}
 		}
 	}

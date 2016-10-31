@@ -80,6 +80,8 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+#define IS_DIGIT(i) (i >= '0' && i <= '9')
+
 #define NOALPHA 0xFF
 
 #define COLOR_ALPHA(color, alpha) (color & 0x00FFFFFF) | ((alpha & 0xFF) << 24)
@@ -198,6 +200,8 @@ enum DialogSteps {
 	DIALOG_STEP_HASH_QUESTION,
 	DIALOG_STEP_HASH_CONFIRMED,
 	DIALOG_STEP_HASHING,
+
+	DIALOG_STEP_SETTINGS_STRING,
 };
 
 extern vita2d_pgf *font;

@@ -6,6 +6,13 @@ TITLE_COLOR                  = 0xFFFF007F    # Violet
 PATH_COLOR                   = 0xFFBFBFBF    # Litegray
 DATE_TIME_COLOR              = 0xFFFFFFFF    # White
 
+# Settings colors
+SETTINGS_MENU_COLOR          = 0xE0000000    # Black with alpha
+SETTINGS_MENU_FOCUS_COLOR    = 0x6FFF7F00    # Azure with alpha
+SETTINGS_MENU_TITLE_COLOR    = 0xFFFFFFFF    # White
+SETTINGS_MENU_ITEM_COLOR     = 0xFF7F7F7F    # Gray
+SETTINGS_MENU_OPTION_COLOR   = 0xFF00FF00    # Green
+
 # File browser colors
 FOCUS_COLOR                  = 0xFF00FF00    # Green
 FILE_COLOR                   = 0xFFFFFFFF    # White
@@ -56,8 +63,8 @@ AUDIO_TIME_TOTAL             = 0xFFFFFFFF    # White
 AUDIO_TIME_BAR               = 0xFFFF7F00    # Azure
 AUDIO_TIME_BAR_BG            = 0xFF7F7F7F    # Gray
 
-//UI2 colors
-ITEM_BORDER		     = 0xDDDDDDDD   # Gray
-ITEM_BORDER_SELECT	     = 0xFF00FF00   # Green
+# UI2 colors
+ITEM_BORDER                  = 0xDDDDDDDD   # Gray
+ITEM_BORDER_SELECT           = 0xFF00FF00   # Green
 BACKGROUND_COLOR_TEXT_ITEM   = 0xFFFFFFFF   # White
-ALPHA_TITLEBAR               = 0xB4         # 180          
+ALPHA_TITLEBAR               = 0xB4         # 180      

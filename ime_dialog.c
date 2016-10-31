@@ -23,6 +23,7 @@
 static int ime_dialog_running = 0;
 static int ime_dialog_option = 0;
 
+static char *ime_initial_text = NULL;
 static uint16_t ime_title_utf16[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
 static uint16_t ime_initial_text_utf16[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
 static uint16_t ime_input_text_utf16[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
@@ -74,6 +75,8 @@ int initImeDialog(char *title, char *initial_text, int max_text_length, int type
 	if (ime_dialog_running)
 		return -1;
 
+	ime_initial_text = initial_text;
+
 	// Convert UTF8 to UTF16
 	utf8_to_utf16((uint8_t *)title, ime_title_utf16);
 	utf8_to_utf16((uint8_t *)initial_text, ime_initial_text_utf16);
@@ -111,6 +114,10 @@ uint16_t *getImeDialogInputTextUTF16() {
 
 uint8_t *getImeDialogInputTextUTF8() {
 	return ime_input_text_utf8;
+}
+
+char *getImeDialogInitialText() {
+	return ime_initial_text;
 }
 
 int updateImeDialog() {

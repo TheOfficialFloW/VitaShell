@@ -39,6 +39,7 @@
 #include "file.h"
 #include "text.h"
 #include "hex.h"
+#include "settings.h"
 #include "property_dialog.h"
 #include "message_dialog.h"
 #include "ime_dialog.h"
@@ -1420,6 +1421,20 @@ int dialogSteps() {
 
 			break;
 			
+		case DIALOG_STEP_SETTINGS_STRING:
+			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+				char *string = (char *)getImeDialogInputTextUTF8();
+				if (string[0] != '\0') {
+					strcpy(getImeDialogInitialText(), string);
+				}
+
+				dialog_step = DIALOG_STEP_NONE;
+			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+			
+			break;
+			
 		case DIALOG_STEP_EXTRACTED:
 			launchAppByUriExit("VSUPDATER");
 			dialog_step = DIALOG_STEP_NONE;
@@ -1432,17 +1447,9 @@ int dialogSteps() {
 int fileBrowserMenuCtrl() {
 	int refresh = 0;
 
-	// Show toolbox list dialog
-	if (current_buttons & SCE_CTRL_START) {
-		if (getListDialogMode() == LIST_DIALOG_CLOSE) {
-			toolbox_list.title = TOOLBOX;
-			toolbox_list.list_entries = list_toolbox_entries;
-			toolbox_list.n_list_entries = N_LIST_TOOLBOX_ENTRIES;
-			toolbox_list.can_escape = 1;
-			toolbox_list.listSelectCallback = listToolboxEnterCallback;
-
-			loadListDialog(&toolbox_list);
-		}
+	// Settings menu
+	if (pressed_buttons & SCE_CTRL_START) {
+		openSettingsMenu();
 	}
 
 	// Change sort mode
@@ -1655,6 +1662,9 @@ BEGIN_SHELL_UI:
 	context_menu.menuEnterCallback = contextMenuEnterCallback;
 	context_menu.menuMoreEnterCallback = contextMenuMoreEnterCallback;
 
+	// Init settings menu
+	initSettingsMenu();
+
 	while (1) {
 		if (!Change_UI) {
 		readPad();
@@ -1665,7 +1675,9 @@ BEGIN_SHELL_UI:
 		if (dialog_step != DIALOG_STEP_NONE) {
 			refresh = dialogSteps();
 		} else {
-			if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
+			if (getSettingsMenuStatus() != SETTINGS_MENU_CLOSED) {
+				settingsMenuCtrl();
+			} else if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
 				contextMenuCtrl(&context_menu);
 			} else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
 				propertyDialogCtrl();
@@ -1713,138 +1725,145 @@ BEGIN_SHELL_UI:
 			uint32_t color = FILE_COLOR;
 			float y = START_Y + (i * FONT_Y_SPACE);
 
-			vita2d_texture *icon = NULL;
-
-			// Folder
-			if (file_entry->is_folder) {
-				color = FOLDER_COLOR;
-				icon = folder_icon;
+			if (file_entry->type == FILE_TYPE_HENKAKU) {
+				pgf_draw_text(SHELL_MARGIN_X + 26.0f, y, color, FONT_SIZE, language_container[HENKAKU_CONFIGURATION]);
 			} else {
-				switch (file_entry->type) {
-					case FILE_TYPE_BMP:
-					case FILE_TYPE_PNG:
-					case FILE_TYPE_JPEG:
-						color = IMAGE_COLOR;
-						icon = image_icon;
-						break;
-						
-					case FILE_TYPE_VPK:
-					case FILE_TYPE_ZIP:
-						color = ARCHIVE_COLOR;
-						icon = archive_icon;
-						break;
-						
-					case FILE_TYPE_MP3:
-					case FILE_TYPE_OGG:
-						color = IMAGE_COLOR;
-						icon = audio_icon;
-						break;
-						
-					case FILE_TYPE_SFO:
-						color = SFO_COLOR;
-						icon = sfo_icon;
-						break;
-					
-					case FILE_TYPE_INI:
-					case FILE_TYPE_TXT:
-					case FILE_TYPE_XML:
-						color = TXT_COLOR;
-						icon = text_icon;
-						break;
-						
-					default:
-						color = FILE_COLOR;
-						icon = file_icon;
-						break;
-				}
-			}
+				vita2d_texture *icon = NULL;
 
-			// Draw icon
-			if (icon)
-				vita2d_draw_texture(icon, SHELL_MARGIN_X, y + 3.0f);
-
-			// Current position
-			if (i == rel_pos)
-				color = FOCUS_COLOR;
-
-			// Marked
-			if (fileListFindEntry(&mark_list, file_entry->name))
-				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
-
-			// File name
-			int length = strlen(file_entry->name);
-			int line_width = 0;
-
-			int j;
-			for (j = 0; j < length; j++) {
-				char ch_width = font_size_cache[(int)file_entry->name[j]];
-
-				// Too long
-				if ((line_width + ch_width) >= MAX_NAME_WIDTH)
-					break;
-
-				// Increase line width
-				line_width += ch_width;
-			}
-
-			char ch = 0;
-
-			if (j != length) {
-				ch = file_entry->name[j];
-				file_entry->name[j] = '\0';
-			}
-
-			// Draw shortened file name
-			pgf_draw_text(SHELL_MARGIN_X + 26.0f, y, color, FONT_SIZE, file_entry->name);
-
-			if (j != length)
-				file_entry->name[j] = ch;
-
-			// File information
-			if (strcmp(file_entry->name, DIR_UP) != 0) {
-				if (dir_level == 0) {
-					char used_size_string[16], max_size_string[16];
-					int max_size_x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, "0000.00 MB"));
-					int separator_x = ALIGN_RIGHT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "    /  "));
-					if (file_entry->size != 0 && file_entry->size2 != 0) {
-						getSizeString(used_size_string, file_entry->size2 - file_entry->size);
-						getSizeString(max_size_string, file_entry->size2);
-					} else {
-						strcpy(used_size_string, "-");
-						strcpy(max_size_string, "-");
-					}
-					pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string)), y, color, FONT_SIZE, max_size_string);
-					pgf_draw_text(separator_x, y, color, FONT_SIZE, "    /");
-					pgf_draw_text(ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string)), y, color, FONT_SIZE, used_size_string);
+				// Folder
+				if (file_entry->is_folder) {
+					color = FOLDER_COLOR;
+					icon = folder_icon;
 				} else {
-					char *str = NULL;
-					if (!file_entry->is_folder) {
-						// Folder/size
-						char string[16];
-						getSizeString(string, file_entry->size);
-						str = string;
-					} else {
-						str = language_container[FOLDER];
+					switch (file_entry->type) {
+						case FILE_TYPE_BMP:
+						case FILE_TYPE_PNG:
+						case FILE_TYPE_JPEG:
+							color = IMAGE_COLOR;
+							icon = image_icon;
+							break;
+							
+						case FILE_TYPE_VPK:
+						case FILE_TYPE_ZIP:
+							color = ARCHIVE_COLOR;
+							icon = archive_icon;
+							break;
+							
+						case FILE_TYPE_MP3:
+						case FILE_TYPE_OGG:
+							color = IMAGE_COLOR;
+							icon = audio_icon;
+							break;
+							
+						case FILE_TYPE_SFO:
+							color = SFO_COLOR;
+							icon = sfo_icon;
+							break;
+						
+						case FILE_TYPE_INI:
+						case FILE_TYPE_TXT:
+						case FILE_TYPE_XML:
+							color = TXT_COLOR;
+							icon = text_icon;
+							break;
+							
+						default:
+							color = FILE_COLOR;
+							icon = file_icon;
+							break;
 					}
-					pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
 				}
 
-				// Date
-				char date_string[16];
-				getDateString(date_string, date_format, &file_entry->mtime);
+				// Draw icon
+				if (icon)
+					vita2d_draw_texture(icon, SHELL_MARGIN_X, y + 3.0f);
 
-				char time_string[24];
-				getTimeString(time_string, time_format, &file_entry->mtime);
+				// Current position
+				if (i == rel_pos)
+					color = FOCUS_COLOR;
 
-				char string[64];
-				sprintf(string, "%s %s", date_string, time_string);
+				// Marked
+				if (fileListFindEntry(&mark_list, file_entry->name))
+					vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
 
-				pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), y, color, FONT_SIZE, string);
+				// File name
+				int length = strlen(file_entry->name);
+				int line_width = 0;
+
+				int j;
+				for (j = 0; j < length; j++) {
+					char ch_width = font_size_cache[(int)file_entry->name[j]];
+
+					// Too long
+					if ((line_width + ch_width) >= MAX_NAME_WIDTH)
+						break;
+
+					// Increase line width
+					line_width += ch_width;
+				}
+
+				char ch = 0;
+
+				if (j != length) {
+					ch = file_entry->name[j];
+					file_entry->name[j] = '\0';
+				}
+
+				// Draw shortened file name
+				pgf_draw_text(SHELL_MARGIN_X + 26.0f, y, color, FONT_SIZE, file_entry->name);
+
+				if (j != length)
+					file_entry->name[j] = ch;
+
+				// File information
+				if (strcmp(file_entry->name, DIR_UP) != 0) {
+					if (dir_level == 0) {
+						char used_size_string[16], max_size_string[16];
+						int max_size_x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, "0000.00 MB"));
+						int separator_x = ALIGN_RIGHT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "    /  "));
+						if (file_entry->size != 0 && file_entry->size2 != 0) {
+							getSizeString(used_size_string, file_entry->size2 - file_entry->size);
+							getSizeString(max_size_string, file_entry->size2);
+						} else {
+							strcpy(used_size_string, "-");
+							strcpy(max_size_string, "-");
+						}
+						pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string)), y, color, FONT_SIZE, max_size_string);
+						pgf_draw_text(separator_x, y, color, FONT_SIZE, "    /");
+						pgf_draw_text(ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string)), y, color, FONT_SIZE, used_size_string);
+					} else {
+						char *str = NULL;
+						if (!file_entry->is_folder) {
+							// Folder/size
+							char string[16];
+							getSizeString(string, file_entry->size);
+							str = string;
+						} else {
+							str = language_container[FOLDER];
+						}
+						pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
+					}
+
+					// Date
+					char date_string[16];
+					getDateString(date_string, date_format, &file_entry->mtime);
+
+					char time_string[24];
+					getTimeString(time_string, time_format, &file_entry->mtime);
+
+					char string[64];
+					sprintf(string, "%s %s", date_string, time_string);
+
+					pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), y, color, FONT_SIZE, string);
+				}
 			}
 
 			// Next
 			file_entry = file_entry->next;
 		}
+
+		// Draw settings menu
+		drawSettingsMenu();
 
 		// Draw context menu
 		drawContextMenu(&context_menu);
@@ -1859,7 +1878,7 @@ BEGIN_SHELL_UI:
 		endDrawing();
 		}
 		else {
-			break;			
+			break;
 		}
 	}
 

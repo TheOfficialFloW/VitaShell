@@ -16,19 +16,19 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __IME_DIALOG_H__
-#define __IME_DIALOG_H__
+#ifndef __HENKAKU_CONFIGURATION_H__
+#define __HENKAKU_CONFIGURATION_H__
 
-#define IME_DIALOG_RESULT_NONE 0
-#define IME_DIALOG_RESULT_RUNNING 1
-#define IME_DIALOG_RESULT_FINISHED 2
-#define IME_DIALOG_RESULT_CANCELED 3
+#define HENKAKU_CONFIG_MAGIC 0x4C434C4D
+#define HENKAKU_VERSION 7
 
-int initImeDialog(char *title, char *initial_text, int max_text_length, int type, int option);
-uint16_t *getImeDialogInputTextUTF16();
-uint8_t *getImeDialogInputTextUTF8();
-char *getImeDialogInitialText();
-int isImeDialogRunning();
-int updateImeDialog();
+typedef struct {
+	int magic;
+	int version;
+	int use_psn_spoofing;
+	int allow_unsafe_hb;
+	int use_spoofed_version;
+	int spoofed_version;
+} HENkakuConfig;
 
 #endif

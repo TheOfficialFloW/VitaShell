@@ -6,6 +6,8 @@ OK                                   = "OK"
 YES                                  = "Yes"
 NO                                   = "No"
 CANCEL                               = "Cancel"
+ON                                   = "On"
+OFF                                  = "Off"
 FILE_                                = "File"
 FOLDER                               = "Folder"
 
@@ -103,6 +105,13 @@ INSTALL_QUESTION                     = "Do you want to install this package?"
 INSTALL_WARNING                      = "This package requests extended permissions.\It will have access to your personal information.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
 INSTALL_BRICK_WARNING                = "This package uses functions that remounts\partitions and can potentially brick your device.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
 HASH_FILE_QUESTION                   = "SHA1 hashing may take a long time. Continue?"
+
+# HENkaku configuration strings
+HENKAKU_CONFIGURATION                = "HENkaku configuration"
+HENKAKU_ENABLE_PSN_SPOOFING          = "Enable PSN spoofing"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Enable unsafe homebrew"
+HENKAKU_ENABLE_VERSION_SPOOFING      = "Enable version spoofing"
+HENKAKU_SPOOFED_VERSION              = "Spoofed version"
 
 # Others
 PLEASE_WAIT                          = "Please wait..."

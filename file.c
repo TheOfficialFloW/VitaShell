@@ -880,6 +880,14 @@ void fileListEmpty(FileList *list) {
 }
 
 int fileListGetMountPointEntries(FileList *list) {
+	// HENkaku configuration
+	FileListEntry *entry = malloc(sizeof(FileListEntry));
+	strcpy(entry->name, DIR_UP);
+	entry->name_length = strlen(entry->name);
+	entry->is_folder = 1;
+	entry->type = FILE_TYPE_HENKAKU;
+	fileListAddEntry(list, entry, SORT_BY_NAME);
+
 	int i;
 	for (i = 0; i < N_MOUNT_POINTS; i++) {
 		if (mount_points[i]) {

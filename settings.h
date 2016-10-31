@@ -16,19 +16,26 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __IME_DIALOG_H__
-#define __IME_DIALOG_H__
+#ifndef __SETTINGS_H__
+#define __SETTINGS_H__
 
-#define IME_DIALOG_RESULT_NONE 0
-#define IME_DIALOG_RESULT_RUNNING 1
-#define IME_DIALOG_RESULT_FINISHED 2
-#define IME_DIALOG_RESULT_CANCELED 3
+enum SettingsOptionType {
+	SETTINGS_OPTION_TYPE_BOOLEAN,
+	SETTINGS_OPTION_TYPE_INTEGER,
+	SETTINGS_OPTION_TYPE_STRING,
+};
 
-int initImeDialog(char *title, char *initial_text, int max_text_length, int type, int option);
-uint16_t *getImeDialogInputTextUTF16();
-uint8_t *getImeDialogInputTextUTF8();
-char *getImeDialogInitialText();
-int isImeDialogRunning();
-int updateImeDialog();
+enum SettingsMenuStatus {
+	SETTINGS_MENU_CLOSED = 0,
+	SETTINGS_MENU_CLOSING = 1,
+	SETTINGS_MENU_OPENED = 2,
+	SETTINGS_MENU_OPENING = 3,
+};
+
+void initSettingsMenu();
+void openSettingsMenu();
+int getSettingsMenuStatus();
+void drawSettingsMenu();
+void settingsMenuCtrl();
 
 #endif
