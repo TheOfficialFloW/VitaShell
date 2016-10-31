@@ -79,7 +79,7 @@ PROPERTY_TYPE_ZIP                    = "Arquivo ZIP"
 PROPERTY_TYPE_FSELF                  = "Ficheiro FSELF"
 PROPERTY_FSELF_MODE_SAFE             = "Seguro"
 PROPERTY_FSELF_MODE_UNSAFE           = "Inseguro"
-PROPERTY_FSELF_MODE_SCE              = "Composto SCE"
+PROPERTY_FSELF_MODE_SCE              = Assinatura SCE"
 
 # File browser strings
 COPIED_FILE                          = "Ficheiro %d copiado."
