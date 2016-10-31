@@ -114,12 +114,12 @@ void openSettingsMenu() {
 void closeSettingsMenu() {
 	settings_menu.status = SETTINGS_MENU_CLOSING;
 
-	char a = spoofed_version[0] - '0';
-	char b = spoofed_version[2] - '0';
-	char c = spoofed_version[3] - '0';
-	char d = IS_DIGIT(spoofed_version[4]) ? spoofed_version[4] - '0' : '\0';
-
 	if (IS_DIGIT(spoofed_version[0]) && spoofed_version[1] == '.' && IS_DIGIT(spoofed_version[2]) && IS_DIGIT(spoofed_version[3])) {
+		char a = spoofed_version[0] - '0';
+		char b = spoofed_version[2] - '0';
+		char c = spoofed_version[3] - '0';
+		char d = IS_DIGIT(spoofed_version[4]) ? spoofed_version[4] - '0' : '\0';
+
 		henkaku_config.spoofed_version = ((a << 28) | (b << 24) | (c << 20) | (d << 16));
 	} else {
 		henkaku_config.spoofed_version = 0;
