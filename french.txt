@@ -1,5 +1,5 @@
 ﻿# VitaShell french translation by xy2_ 
-# Updated by Dragoon1010 (For VitaShell 1.3)
+# Updated by Dragoon1010 (For VitaShell 1.41)
 
 # General strings
 
