@@ -112,6 +112,7 @@ HENKAKU_ENABLE_PSN_SPOOFING          = "Enable PSN spoofing"
 HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Enable unsafe homebrew"
 HENKAKU_ENABLE_VERSION_SPOOFING      = "Enable version spoofing"
 HENKAKU_SPOOFED_VERSION              = "Spoofed version"
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Unsafe homebrew can damage your device permanently if\they are misused, misconfigured, or malicious.\Please take caution when installing them."
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "Main settings"

@@ -191,6 +191,14 @@ int main(int argc, const char *argv[]) {
 	if (titleid && strcmp(titleid, "VITASHELL") == 0) {
 		copyFile(PACKAGE_DIR "/eboot.bin", "ux0:app/MLCL00001/eboot.bin");
 
+		SceUID fd = sceIoOpen("ux0:app/MLCL00001/eboot.bin", SCE_O_WRONLY, 0777);
+		if (fd >= 0) {
+			char flag = 0x02;
+			sceIoLseek(fd, 0x80, SCE_SEEK_SET);
+			sceIoWrite(fd, &flag, sizeof(char));
+			sceIoClose(fd);
+		}
+
 		if (promote(PACKAGE_DIR) >= 0)
 			launchAppByUriExit("VITASHELL");
 	}
