@@ -241,17 +241,17 @@ int writeEntry(SceUID fd, ConfigEntry *entry) {
 
     switch (entry->type) {
         case CONFIG_TYPE_BOOLEAN:
-            val = *(uint32_t*)entry->value != 0 ? "true" : "false";
+            val = *(uint32_t *)entry->value != 0 ? "true" : "false";
             result = sceIoWrite(fd, val, strlen(val));
             break;
 			
         case CONFIG_TYPE_DECIMAL:
-            itoa(*(int*)entry->value, buffer, 10);
+            itoa(*(int *)entry->value, buffer, 10);
             result = sceIoWrite(fd, buffer, strlen(buffer));
             break;
 			
         case CONFIG_TYPE_HEXDECIMAL:
-            itoa(*(int*)entry->value, buffer, 16);
+            itoa(*(int *)entry->value, buffer, 16);
             result = sceIoWrite(fd, buffer, strlen(buffer));
             break;
 			
@@ -282,7 +282,7 @@ int writeConfig(char *path, ConfigEntry *entries, int n_entries) {
 
     int i;
     for (i = 0; i < n_entries; i++) {
-        int result = writeEntry(fd, entries+i);
+        int result = writeEntry(fd, entries + i);
         if (result != 0) {
             return result;
         }

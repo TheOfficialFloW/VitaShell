@@ -46,9 +46,14 @@
 	- Display battery percentage
 */
 
+void henkakuRestoreDefaultSettings();
+void rebootDevice();
+void shutdownDevice();
+void suspendDevice();
+
 static HENkakuConfig henkaku_config;
 
-static char spoofed_version[5];
+static char spoofed_version[6];
 
 // Dummy
 int language, theme;
@@ -57,24 +62,33 @@ static SettingsMenuEntry *settings_menu_entries = NULL;
 static int n_settings_entries = 0;
 
 SettingsMenuOption henkaku_settings[] = {
-	{ HENKAKU_ENABLE_PSN_SPOOFING,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &henkaku_config.use_psn_spoofing },
-	{ HENKAKU_ENABLE_UNSAFE_HOMEBREW,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &henkaku_config.allow_unsafe_hb },
-	{ HENKAKU_ENABLE_VERSION_SPOOFING,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &henkaku_config.use_spoofed_version },
-	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, spoofed_version, sizeof(spoofed_version), NULL },
+	{ HENKAKU_ENABLE_PSN_SPOOFING,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &henkaku_config.use_psn_spoofing },
+	{ HENKAKU_ENABLE_UNSAFE_HOMEBREW,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &henkaku_config.allow_unsafe_hb },
+	{ HENKAKU_ENABLE_VERSION_SPOOFING,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &henkaku_config.use_spoofed_version },
+	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, NULL, spoofed_version, sizeof(spoofed_version) - 1, NULL },
+	{ HENKAKU_RESTORE_DEFAULT_SETTINGS,	SETTINGS_OPTION_TYPE_CALLBACK, (void *)henkakuRestoreDefaultSettings, NULL, 0, NULL },
 };
 
 SettingsMenuOption main_settings[] = {
-	{ VITASHELL_SETTINGS_LANGUAGE,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &language },
-	{ VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &theme },
+	{ VITASHELL_SETTINGS_LANGUAGE,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &language },
+	{ VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &theme },
+};
+
+SettingsMenuOption power_settings[] = {
+	{ VITASHELL_SETTINGS_REBOOT,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)rebootDevice, NULL, 0, NULL },
+	{ VITASHELL_SETTINGS_POWEROFF,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)shutdownDevice, NULL, 0, NULL },
+	{ VITASHELL_SETTINGS_STANDBY,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)suspendDevice, NULL, 0, NULL },
 };
 
 SettingsMenuEntry molecularshell_settings_menu_entries[] = {
 	{ HENKAKU_SETTINGS, henkaku_settings, sizeof(henkaku_settings) / sizeof(SettingsMenuOption) },
-	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+	// { VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
 };
 
 SettingsMenuEntry vitashell_settings_menu_entries[] = {
-	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+	// { VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
 };
 
 static SettingsMenu settings_menu;
@@ -82,6 +96,26 @@ static SettingsMenu settings_menu;
 static float easeOut(float x0, float x1, float a) {
 	float dx = (x1 - x0);
 	return ((dx * a) > 0.01f) ? (dx * a) : dx;
+}
+
+void rebootDevice() {
+	closeSettingsMenu();
+	scePowerRequestColdReset();
+}
+
+void shutdownDevice() {
+	closeSettingsMenu();
+	scePowerRequestStandby();
+}
+
+void suspendDevice() {
+	closeSettingsMenu();
+	scePowerRequestSuspend();
+}
+
+void henkakuRestoreDefaultSettings() {
+	memset(&henkaku_config, 0, sizeof(HENkakuConfig));
+	strcpy(spoofed_version, HENKAKU_DEFAULT_VERSION_STRING);
 }
 
 void initSettingsMenu() {
@@ -206,15 +240,21 @@ void drawSettingsMenu() {
 			if (settings_menu.entry_sel == i && settings_menu.option_sel == j)
 				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, SETTINGS_MENU_FOCUS_COLOR);
 
-			// Item
-			float x = vita2d_pgf_text_width(font, FONT_SIZE, language_container[options[j].name]);
-			pgf_draw_text(ALIGN_RIGHT(SCREEN_HALF_WIDTH - 10.0f, x), y, SETTINGS_MENU_ITEM_COLOR, FONT_SIZE, language_container[options[j].name]);
+			if (options[j].type == SETTINGS_OPTION_TYPE_CALLBACK) {
+				// Item
+				float x = vita2d_pgf_text_width(font, FONT_SIZE, language_container[options[j].name]);
+				pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, x), y, SETTINGS_MENU_ITEM_COLOR, FONT_SIZE, language_container[options[j].name]);
+			} else {
+				// Item
+				float x = vita2d_pgf_text_width(font, FONT_SIZE, language_container[options[j].name]);
+				pgf_draw_text(ALIGN_RIGHT(SCREEN_HALF_WIDTH - 10.0f, x), y, SETTINGS_MENU_ITEM_COLOR, FONT_SIZE, language_container[options[j].name]);
 
-			// Option
-			if (options[j].type == SETTINGS_OPTION_TYPE_BOOLEAN) {
-				pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, *(options[j].value) ? language_container[ON] : language_container[OFF]);
-			} else if (options[j].type == SETTINGS_OPTION_TYPE_STRING) {
-				pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].string);
+				// Option
+				if (options[j].type == SETTINGS_OPTION_TYPE_BOOLEAN) {
+					pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, *(options[j].value) ? language_container[ON] : language_container[OFF]);
+				} else if (options[j].type == SETTINGS_OPTION_TYPE_STRING) {
+					pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].string);
+				}
 			}
 
 			y += FONT_Y_SPACE;
@@ -261,6 +301,8 @@ void settingsMenuCtrl() {
 			} else if (option->type == SETTINGS_OPTION_TYPE_STRING) {
 				initImeDialog(language_container[option->name], option->string, option->size_string, SCE_IME_TYPE_EXTENDED_NUMBER, 0);
 				dialog_step = DIALOG_STEP_SETTINGS_STRING;
+			} else if (option->type == SETTINGS_OPTION_TYPE_CALLBACK) {
+				option->callback(&option);
 			}
 		}
 	}

@@ -50,6 +50,7 @@ typedef struct {
 typedef struct {
 	int name;
 	int type;
+	int (* callback)();
 	char *string;
 	int size_string;
 	int *value;
@@ -63,6 +64,7 @@ typedef struct {
 
 void initSettingsMenu();
 void openSettingsMenu();
+void closeSettingsMenu();
 int getSettingsMenuStatus();
 void drawSettingsMenu();
 void settingsMenuCtrl();
