@@ -148,7 +148,7 @@ vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *im
 			   *battery_bar_red_image = NULL, *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
 			   *bg_photo_image = NULL, *bg_audio_image = NULL, *cover_image = NULL, *play_image = NULL, *pause_image = NULL, *fastforward_image = NULL, *fastrewind_image = NULL;
 
-vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
+vita2d_texture *wallpaper_image;
 
 vita2d_texture *previous_wallpaper_image = NULL, *current_wallpaper_image = NULL;
 
@@ -335,7 +335,7 @@ void loadTheme() {
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/vita_game_card.png", theme_name);
 			game_card_storage_image = vita2d_load_PNG_file(path);
 			
-		        snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/vita_game_card_storage.png", theme_name);
+		    snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/vita_game_card_storage.png", theme_name);
 			game_card_image = vita2d_load_PNG_file(path);
 			
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/memory_card.png", theme_name);
@@ -401,25 +401,9 @@ void loadTheme() {
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/updir.png", theme_name);
 			updir_image = vita2d_load_PNG_file(path);
 
-			// Wallpapers
+			// Wallpaper
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wallpaper.png", theme_name);
-			vita2d_texture *image = vita2d_load_PNG_file(path);
-			if (image)
-				wallpaper_image[wallpaper_count++] = image;
-
-			int i;
-			for (i = 1; i < MAX_WALLPAPERS; i++) {
-				snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wallpaper%d.png", theme_name, i + 1);
-				vita2d_texture *image = vita2d_load_PNG_file(path);
-				if (image)
-					wallpaper_image[wallpaper_count++] = image;
-			}
-
-			// Set random wallpaper
-			if (wallpaper_count > 0) {
-				int random_num = randomNumber(0, wallpaper_count - 1);
-				current_wallpaper_image = wallpaper_image[random_num];
-			}
+			wallpaper_image = vita2d_load_PNG_file(path);
 
 			// Font
 			// TheFloW: I am using a modified vita2dlib that doesn't have this function yet

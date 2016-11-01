@@ -34,97 +34,23 @@ static int net_init = -1;
 
 static int lock_power = 0;
 
-static uint64_t wallpaper_time_start = 0;
-static int wallpaper_random_delay = 0;
-static float wallpaper_alpha = 255.0f;
-
 void startDrawing(vita2d_texture *bg) {
 	vita2d_start_drawing();
 	vita2d_set_clear_color(BACKGROUND_COLOR);
 	vita2d_clear_screen();
 
-	// Background image
-	if (bg)
+	if (wallpaper_image) {
+		vita2d_draw_texture(wallpaper_image, 0.0f, 0.0f);
+	} else if (bg) {
 		vita2d_draw_texture(bg, 0.0f, 0.0f);
-
-	// Wallpaper
-	if (current_wallpaper_image) {
-		if (wallpaper_time_start == 0) {
-			wallpaper_time_start = sceKernelGetProcessTimeWide();
-			wallpaper_random_delay = randomNumber(15, 30);
-		}
-
-		if ((sceKernelGetProcessTimeWide() - wallpaper_time_start) >= (wallpaper_random_delay * 1000 * 1000)) {
-			int random_num = randomNumber(0, wallpaper_count - 1);
-
-			vita2d_texture *random_wallpaper_image = wallpaper_image[random_num];
-			if (random_wallpaper_image != current_wallpaper_image) {
-				previous_wallpaper_image = current_wallpaper_image;
-				current_wallpaper_image = random_wallpaper_image;
-				wallpaper_alpha = 0.0f;
-			}
-
-			wallpaper_time_start = 0;
-		}
-
-		if (previous_wallpaper_image) {
-			vita2d_draw_texture(previous_wallpaper_image, 0.0f, 0.0f);
-		}
-
-		if (wallpaper_alpha < 255.0f) {
-			vita2d_draw_texture_tint(current_wallpaper_image, 0.0f, 0.0f, RGBA8(255, 255, 255, (int)wallpaper_alpha));
-			wallpaper_alpha += 1.5f;
-		} else {
-			vita2d_draw_texture(current_wallpaper_image, 0.0f, 0.0f);
-			previous_wallpaper_image = NULL;
-		}
 	}
 }
 
 void drawingWallpaperUI2(vita2d_texture *bg,float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, int change) {
-  	
-	// Wallpaper
-	if (current_wallpaper_image) {
-		if (wallpaper_time_start == 0) {
-			wallpaper_time_start = sceKernelGetProcessTimeWide();
-			wallpaper_random_delay = randomNumber(15, 30);
-		}
-
-		if ((sceKernelGetProcessTimeWide() - wallpaper_time_start) >= (wallpaper_random_delay * 1000 * 1000)) {
-		  if (change == 1) {
-			int random_num = randomNumber(0, wallpaper_count - 1);
-
-			vita2d_texture *random_wallpaper_image = wallpaper_image[random_num];
-			if (random_wallpaper_image != current_wallpaper_image) {
-				previous_wallpaper_image = current_wallpaper_image;
-				current_wallpaper_image = random_wallpaper_image;
-				wallpaper_alpha = 0.0f;
-			}
-		  }
-			wallpaper_time_start = 0;
-		}
-
-		if (previous_wallpaper_image) {
-		  
-		  vita2d_draw_texture_part(previous_wallpaper_image, x, y, tex_x, tex_y, tex_w, tex_h);
-		    
-		  
-		}
-
-		if (wallpaper_alpha < 255.0f) {
-		  vita2d_draw_texture_tint_part(current_wallpaper_image, x, y, tex_x, tex_y, tex_w, tex_h, RGBA8(255, 255, 255, (int)wallpaper_alpha));	
-		    
-	      	wallpaper_alpha += 1.5f;
-		} else {
-		
-		    vita2d_draw_texture_part(current_wallpaper_image,x, y, tex_x, tex_y, tex_w, tex_h);		    
-	       	previous_wallpaper_image = NULL;
-		}
-	}
-	else {
-	  // Background image
-	  if (bg)
-	    vita2d_draw_texture_part(bg, x, y, tex_x, tex_y, tex_w, tex_h);
+  	if (wallpaper_image) {
+		vita2d_draw_texture_part(wallpaper_image, x, y, tex_x, tex_y, tex_w, tex_h);
+	} else if (bg) {
+		vita2d_draw_texture_part(bg, x, y, tex_x, tex_y, tex_w, tex_h);
 	}
 }
 
