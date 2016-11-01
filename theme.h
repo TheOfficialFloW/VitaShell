@@ -103,8 +103,6 @@ extern vita2d_texture *folder_icon, *file_icon, *archive_icon, *image_icon, *aud
 extern vita2d_texture *wallpaper_image;
 extern vita2d_texture *previous_wallpaper_image, *current_wallpaper_image;
 
-extern int wallpaper_count;
-
 void loadTheme();
 
 #endif

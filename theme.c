@@ -152,10 +152,70 @@ vita2d_texture *wallpaper_image;
 
 vita2d_texture *previous_wallpaper_image = NULL, *current_wallpaper_image = NULL;
 
-int wallpaper_count = 0;
-
 vita2d_pgf *font = NULL;
 char font_size_cache[256];
+
+typedef struct {
+	char *name;
+	void *default_buf;
+	vita2d_texture **texture;
+} ThemeImage;
+
+ThemeImage theme_images[] = {
+	{ "folder_icon.png", &_binary_resources_folder_icon_png_start, &folder_icon },
+	{ "file_icon.png", &_binary_resources_file_icon_png_start, &file_icon },
+	{ "archive_icon.png", &_binary_resources_archive_icon_png_start, &archive_icon },
+	{ "image_icon.png", &_binary_resources_image_icon_png_start, &image_icon },
+	{ "audio_icon.png", &_binary_resources_audio_icon_png_start, &audio_icon },
+	{ "sfo_icon.png", &_binary_resources_sfo_icon_png_start, &sfo_icon },
+	{ "text_icon.png", &_binary_resources_text_icon_png_start, &text_icon },
+	{ "wifi.png", &_binary_resources_wifi_png_start, &wifi_image },
+	{ "ftp.png", &_binary_resources_ftp_png_start, &ftp_image },
+	{ "dialog.png", NULL, &dialog_image },
+	{ "context.png", NULL, &context_image },
+	{ "context_more.png", NULL, &context_more_image },
+	{ "settings.png", NULL, &settings_image },
+	{ "battery.png", &_binary_resources_battery_png_start, &battery_image },
+	{ "battery_bar_red.png", &_binary_resources_battery_bar_red_png_start, &battery_bar_red_image },
+	{ "battery_bar_green.png", &_binary_resources_battery_bar_green_png_start, &battery_bar_green_image },
+	{ "battery_bar_charge.png", &_binary_resources_battery_bar_charge_png_start, &battery_bar_charge_image },
+	{ "bg_browser.png", NULL, &bg_browser_image },
+	{ "bg_hexeditor.png", NULL, &bg_hex_image },
+	{ "bg_texteditor.png", NULL, &bg_text_image },
+	{ "bg_photoviewer.png", NULL, &bg_photo_image },
+	{ "bg_audioplayer.png", NULL, &bg_audio_image },
+	{ "cover.png", &_binary_resources_cover_png_start, &cover_image },
+	{ "play.png", &_binary_resources_play_png_start, &play_image },
+	{ "pause.png", &_binary_resources_pause_png_start, &pause_image },
+	{ "fastforward.png", &_binary_resources_fastforward_png_start, &fastforward_image },
+	{ "fastrewind.png", &_binary_resources_fastrewind_png_start, &fastrewind_image },
+	{ "wallpaper.png", NULL, &wallpaper_image },
+
+	{ "vita_game_card.png", &_binary_resources_vita_game_card_png_start, &game_card_image },
+	{ "vita_game_card_storage.png", &_binary_resources_vita_game_card_storage_png_start, &game_card_storage_image },
+	{ "memory_card.png", &_binary_resources_memory_card_png_start, &memory_card_image },
+	{ "os0.png", &_binary_resources_os0_png_start, &os0_image },
+	{ "sa0.png", &_binary_resources_sa0_png_start, &sa0_image },
+	{ "ur0.png", &_binary_resources_ur0_png_start, &ur0_image },
+	{ "vd0.png", &_binary_resources_vd0_png_start, &vd0_image },
+	{ "vs0.png", &_binary_resources_vs0_png_start, &vs0_image },
+	{ "savedata0.png", &_binary_resources_savedata0_png_start, &savedata0_image },
+	{ "pd0.png", &_binary_resources_pd0_png_start, &pd0_image },
+	{ "app0.png", &_binary_resources_app0_png_start, &app0_image },
+	{ "ud0.png", &_binary_resources_ud0_png_start, &ud0_image },
+	{ "folder.png", &_binary_resources_folder_png_start, &folder_image },
+	{ "mark.png", &_binary_resources_mark_png_start, &mark_image },
+	{ "run_file.png", &_binary_resources_run_file_png_start, &run_file_image },
+	{ "image_file.png", &_binary_resources_image_file_png_start, &img_file_image },
+	{ "unknown_file.png", &_binary_resources_unknown_file_png_start, &unknown_file_image },
+	{ "music_file.png", &_binary_resources_music_file_png_start, &music_image },
+	{ "zip_file.png", &_binary_resources_zip_file_png_start, &zip_file_image },
+	{ "txt_file.png", &_binary_resources_txt_file_png_start, &txt_file_image },
+	{ "title_bar_bg.png", &_binary_resources_title_bar_bg_png_start, &title_bar_bg_image },
+	{ "updir.png", &_binary_resources_updir_png_start, &updir_image },
+};
+
+#define N_THEME_IMAGES (sizeof(theme_images) / sizeof(ThemeImage))
 
 void loadTheme() {
 	#define COLOR_ENTRY(name) { #name, CONFIG_TYPE_HEXDECIMAL, (void *)&name }
@@ -230,6 +290,8 @@ void loadTheme() {
 		COLOR_ENTRY(ALPHA_TITLEBAR),
 	};
 
+	int i;
+
 	// Load default config file
 	readConfigBuffer(&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
@@ -250,197 +312,28 @@ void loadTheme() {
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
 			readConfig(path, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
-			// Load pngs
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/folder_icon.png", theme_name);
-			folder_icon = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/file_icon.png", theme_name);
-			file_icon = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/archive_icon.png", theme_name);
-			archive_icon = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/image_icon.png", theme_name);
-			image_icon = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/audio_icon.png", theme_name);
-			audio_icon = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/sfo_icon.png", theme_name);
-			sfo_icon = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/text_icon.png", theme_name);
-			text_icon = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wifi.png", theme_name);
-			wifi_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/ftp.png", theme_name);
-			ftp_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/dialog.png", theme_name);
-			dialog_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/context.png", theme_name);
-			context_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/context_more.png", theme_name);
-			context_more_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/settings.png", theme_name);
-			settings_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery.png", theme_name);
-			battery_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery_bar_red.png", theme_name);
-			battery_bar_red_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery_bar_green.png", theme_name);
-			battery_bar_green_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/battery_bar_charge.png", theme_name);
- 			battery_bar_charge_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_browser.png", theme_name);
- 			bg_browser_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_hexeditor.png", theme_name);
- 			bg_hex_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_texteditor.png", theme_name);
- 			bg_text_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_photoviewer.png", theme_name);
- 			bg_photo_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/bg_audioplayer.png", theme_name);
- 			bg_audio_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/cover.png", theme_name);
- 			cover_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/play.png", theme_name);
- 			play_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/pause.png", theme_name);
- 			pause_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/fastforward.png", theme_name);
- 			fastforward_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/fastrewind.png", theme_name);
- 			fastrewind_image = vita2d_load_PNG_file(path);
-
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/vita_game_card.png", theme_name);
-			game_card_storage_image = vita2d_load_PNG_file(path);
-			
-		    snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/vita_game_card_storage.png", theme_name);
-			game_card_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/memory_card.png", theme_name);
-			memory_card_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/os0.png", theme_name);
-			os0_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/sa0.png", theme_name);
-			sa0_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/ur0.png", theme_name);
-			ur0_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/vd0.png", theme_name);
-			vd0_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/vs0.png", theme_name);
-			vs0_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/savedata0.png", theme_name);
-			savedata0_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/pd0.png", theme_name);
-			pd0_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/app0.png", theme_name);
-			app0_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/ud0.png", theme_name);
-			ud0_image = vita2d_load_PNG_file(path);
-		
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/folder.png", theme_name);
-			folder_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/mark.png", theme_name);
-			mark_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/run_file.png", theme_name);
-			run_file_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/image_file.png", theme_name);
-			img_file_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/unknown_file.png", theme_name);
-			unknown_file_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/music_file.png", theme_name);
-			music_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/zip_file.png", theme_name);
-			zip_file_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/txt_file.png", theme_name);
-			txt_file_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/music_file.png", theme_name);
-			music_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/title_bar_bg.png", theme_name);
-			title_bar_bg_image = vita2d_load_PNG_file(path);
-			
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/updir.png", theme_name);
-			updir_image = vita2d_load_PNG_file(path);
-
-			// Wallpaper
-			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/wallpaper.png", theme_name);
-			wallpaper_image = vita2d_load_PNG_file(path);
-
 			// Font
 			// TheFloW: I am using a modified vita2dlib that doesn't have this function yet
 			//          and I'm too lazy to update mine. Will do it in the future.
 			// snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
  			// font = vita2d_load_custom_pgf(path);
+			
+			// Load theme
+			for (i = 0; i < N_THEME_IMAGES; i++) {
+				snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/%s", theme_name, theme_images[i].name);
+				if (theme_images[i].texture && *(theme_images[i].texture) == NULL)
+					*(theme_images[i].texture) = vita2d_load_PNG_file(path);
+			}
 		}
 	}
 
+	// Load default theme
+	for (i = 0; i < N_THEME_IMAGES; i++) {
+		if (theme_images[i].texture && *(theme_images[i].texture) == NULL && theme_images[i].default_buf)
+			*(theme_images[i].texture) = vita2d_load_PNG_buffer(theme_images[i].default_buf);
+	}
+
 	// Load default pngs
-	if (!folder_icon)
-		folder_icon = vita2d_load_PNG_buffer(&_binary_resources_folder_icon_png_start);
-
-	if (!file_icon)
-		file_icon = vita2d_load_PNG_buffer(&_binary_resources_file_icon_png_start);
-
-	if (!archive_icon)
-		archive_icon = vita2d_load_PNG_buffer(&_binary_resources_archive_icon_png_start);
-
-	if (!image_icon)
-		image_icon = vita2d_load_PNG_buffer(&_binary_resources_image_icon_png_start);
-
-	if (!audio_icon)
-		audio_icon = vita2d_load_PNG_buffer(&_binary_resources_audio_icon_png_start);
-
-	if (!sfo_icon)
-		sfo_icon = vita2d_load_PNG_buffer(&_binary_resources_sfo_icon_png_start);
-
-	if (!text_icon)
-		text_icon = vita2d_load_PNG_buffer(&_binary_resources_text_icon_png_start);
-
-	if (!wifi_image)
-		wifi_image = vita2d_load_PNG_buffer(&_binary_resources_wifi_png_start);
-
-	if (!ftp_image)
-		ftp_image = vita2d_load_PNG_buffer(&_binary_resources_ftp_png_start);
-
 	if (!dialog_image) {
 		dialog_image = vita2d_create_empty_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
 		void *data = vita2d_texture_get_datap(dialog_image);
@@ -493,107 +386,11 @@ void loadTheme() {
 		}
 	}
 
-	if (!battery_image)
-		battery_image = vita2d_load_PNG_buffer(&_binary_resources_battery_png_start);
-
-	if (!battery_bar_red_image)
-		battery_bar_red_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_red_png_start);
-
-	if (!battery_bar_green_image)
-		battery_bar_green_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_green_png_start);
-	
-	if (!battery_bar_charge_image)
-		battery_bar_charge_image = vita2d_load_PNG_buffer(&_binary_resources_battery_bar_charge_png_start);
-
-	if (!cover_image)
-		cover_image = vita2d_load_PNG_buffer(&_binary_resources_cover_png_start);
-
-	if (!play_image)
-		play_image = vita2d_load_PNG_buffer(&_binary_resources_play_png_start);
-
-	if (!pause_image)
-		pause_image = vita2d_load_PNG_buffer(&_binary_resources_pause_png_start);
-	
-	if (!fastforward_image)
-		fastforward_image = vita2d_load_PNG_buffer(&_binary_resources_fastforward_png_start);
-	
-	if (!fastrewind_image)
-		fastrewind_image = vita2d_load_PNG_buffer(&_binary_resources_fastrewind_png_start);
-	
-	if (!game_card_image)
-	  game_card_image = vita2d_load_PNG_buffer(&_binary_resources_vita_game_card_png_start);
-
-	if (!game_card_storage_image)
-	  game_card_storage_image = vita2d_load_PNG_buffer(&_binary_resources_vita_game_card_storage_png_start);
-
-	if (!memory_card_image)
-	  memory_card_image = vita2d_load_PNG_buffer(&_binary_resources_memory_card_png_start);
-
-	if (!os0_image)	  
-	  os0_image = vita2d_load_PNG_buffer(&_binary_resources_os0_png_start);
-
-	if (!sa0_image)
-	  sa0_image = vita2d_load_PNG_buffer(&_binary_resources_sa0_png_start);
-	
-	if (!ur0_image)
-	  ur0_image = vita2d_load_PNG_buffer(&_binary_resources_ur0_png_start);
-	
-	if (!vd0_image)
-	  vd0_image = vita2d_load_PNG_buffer(&_binary_resources_vd0_png_start);
-	
-	if (!vs0_image)
-	  vs0_image = vita2d_load_PNG_buffer(&_binary_resources_vs0_png_start);
-	
-	if (!savedata0_image)
-	  savedata0_image = vita2d_load_PNG_buffer(&_binary_resources_savedata0_png_start);
-	
-	if (!pd0_image)
-	  pd0_image = vita2d_load_PNG_buffer(&_binary_resources_pd0_png_start);
-	
-	if (!app0_image)	  
-	  app0_image = vita2d_load_PNG_buffer(&_binary_resources_app0_png_start);
-	
-	if (!ud0_image)
-	  ud0_image = vita2d_load_PNG_buffer(&_binary_resources_ud0_png_start);	
-
-	default_wallpaper = vita2d_load_PNG_buffer(&_binary_resources_bg_wallpaper_png_start);
-
-	if (!folder_image)
-	  folder_image = vita2d_load_PNG_buffer(&_binary_resources_folder_png_start);
-
-	if (!mark_image)
-	  mark_image = vita2d_load_PNG_buffer(&_binary_resources_mark_png_start);
-
-	if (!run_file_image)
-	  run_file_image =  vita2d_load_PNG_buffer(&_binary_resources_run_file_png_start);
-	
-	if (!img_file_image)
-	  img_file_image =  vita2d_load_PNG_buffer(&_binary_resources_image_file_png_start);
-	
-	if (!unknown_file_image)
-	  unknown_file_image =  vita2d_load_PNG_buffer(&_binary_resources_unknown_file_png_start);
-	
-	if (!music_image)
-	  music_image = vita2d_load_PNG_buffer(&_binary_resources_music_file_png_start);
-	
-	if (!zip_file_image)
-	  zip_file_image = vita2d_load_PNG_buffer(&_binary_resources_zip_file_png_start);
-	
-	if (!txt_file_image)
-	  txt_file_image = vita2d_load_PNG_buffer(&_binary_resources_txt_file_png_start);
-	
-	if (!title_bar_bg_image)
-	  title_bar_bg_image = vita2d_load_PNG_buffer(&_binary_resources_title_bar_bg_png_start);
-	
-	if (!updir_image)
-	  updir_image = vita2d_load_PNG_buffer(&_binary_resources_updir_png_start);
-
 	// Load default font
 	if (!font)
 		font = vita2d_load_default_pgf();
 
 	// Font size cache
-	int i;
 	for (i = 0; i < 256; i++) {
 		char character[2];
 		character[0] = i;
