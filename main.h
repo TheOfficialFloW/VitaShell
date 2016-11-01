@@ -201,11 +201,14 @@ enum DialogSteps {
 	DIALOG_STEP_HASH_CONFIRMED,
 	DIALOG_STEP_HASHING,
 
+	DIALOG_STEP_SETTINGS_AGREEMENT,
 	DIALOG_STEP_SETTINGS_STRING,
 };
 
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
+
+extern char henkaku_config_path[32];
 
 extern int is_molecular_shell;
 

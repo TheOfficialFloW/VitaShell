@@ -84,6 +84,8 @@ static int dir_level_archive = -1;
 static char vita_ip[16];
 static unsigned short int vita_port;
 
+char henkaku_config_path[32];
+
 int is_molecular_shell = 0;
 
 // Enter and cancel buttons
@@ -990,10 +992,10 @@ int contextMenuMoreEnterCallback(int pos, void* context) {
 void initFtp() {
 	// Add all the current mountpoints to ftpvita
 	int i;
-	for (i = 0; i < getNumberMountPoints(); i++) {
-		char **mount_points = getMountPoints();
-		if (mount_points[i]) {
-			ftpvita_add_device(mount_points[i]);
+	for (i = 0; i < getNumberOfDevices(); i++) {
+		char **devices = getDevices();
+		if (devices[i]) {
+			ftpvita_add_device(devices[i]);
 		}
 	}
 
@@ -1419,6 +1421,20 @@ int dialogSteps() {
 					sceKernelStartThread(thid, 0, NULL);
 			}
 
+			break;
+			
+		case DIALOG_STEP_SETTINGS_AGREEMENT:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				settingsAgree();
+				dialog_step = DIALOG_STEP_NONE;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				settingsDisagree();
+				dialog_step = DIALOG_STEP_NONE;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				settingsAgree();
+				dialog_step = DIALOG_STEP_NONE;
+			}
+			
 			break;
 			
 		case DIALOG_STEP_SETTINGS_STRING:
@@ -1942,6 +1958,12 @@ int main(int argc, const char *argv[]) {
 	sceAppMgrAppParamGetString(sceKernelGetProcessId(), 12, titleid, sizeof(titleid));
 
 	if (strcmp(titleid, "MLCL00001") == 0) {
+		// HENkaku config path (ux0:temp/app_work/MLCL00001/rec/config.bin)
+		char mount_point[16];
+		memset(mount_point, 0, sizeof(mount_point));
+		sceAppMgrWorkDirMountById(207, titleid, mount_point);
+		sprintf(henkaku_config_path, "%s/config.bin", mount_point);
+
 		is_molecular_shell = 1;
 	} else {
 		// Allow writing to ux0:app/VITASHELL

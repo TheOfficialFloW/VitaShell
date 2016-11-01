@@ -21,6 +21,7 @@
 #include "theme.h"
 #include "language.h"
 #include "settings.h"
+#include "message_dialog.h"
 #include "ime_dialog.h"
 #include "utils.h"
 
@@ -106,7 +107,11 @@ void openSettingsMenu() {
 	settings_menu.option_sel = 0;
 
 	if (is_molecular_shell) {
-		ReadFile("savedata0:config.bin", &henkaku_config, sizeof(HENkakuConfig));
+		ReadFile(henkaku_config_path, &henkaku_config, sizeof(HENkakuConfig));
+
+		if (henkaku_config.magic != HENKAKU_CONFIG_MAGIC) {
+			memset(&henkaku_config, 0, sizeof(HENkakuConfig));
+		}
 
 		char a = (henkaku_config.spoofed_version >> 28) & 0xF;
 		char b = (henkaku_config.spoofed_version >> 24) & 0xF;
@@ -132,30 +137,6 @@ void openSettingsMenu() {
 	}
 }
 
-int WriteSaveData(char *name, void *buf, int size) {
-	SceAppUtilSaveDataSlotParam param;
-	memset(&param, 0, sizeof(SceAppUtilSaveDataSlotParam));
-	int res = sceAppUtilSaveDataSlotCreate(0, &param, NULL);
-	if (res < 0 && res != SCE_APPUTIL_ERROR_SAVEDATA_SLOT_EXISTS) {
-		return res;
-	}
-
-	SceAppUtilSaveDataFileSlot slot;
-	memset(&slot, 0, sizeof(slot));
-	slot.id = 0;
-	slot.slotParam = &param;
-
-	SceAppUtilSaveDataFile file;
-	memset(&file, 0, sizeof(file));
-	file.filePath = name;
-	file.buf = buf;
-	file.bufSize = size;
-	file.offset = 0;
-
-	SceSize required_size = 0;
-	return sceAppUtilSaveDataDataSave(&slot, &file, 1, NULL, &required_size);
-}
-
 void closeSettingsMenu() {
 	settings_menu.status = SETTINGS_MENU_CLOSING;
 
@@ -174,7 +155,7 @@ void closeSettingsMenu() {
 		henkaku_config.magic = HENKAKU_CONFIG_MAGIC;
 		henkaku_config.version = HENKAKU_VERSION;
 
-		WriteSaveData("config.bin", &henkaku_config, sizeof(HENkakuConfig));
+		WriteFile(henkaku_config_path, &henkaku_config, sizeof(HENkakuConfig));
 	}
 }
 
@@ -243,10 +224,45 @@ void drawSettingsMenu() {
 	}
 }
 
+static int agreement = SETTINGS_AGREEMENT_NONE;
+
+void settingsAgree() {
+	agreement = SETTINGS_AGREEMENT_AGREE;
+}
+
+void settingsDisagree() {
+	agreement = SETTINGS_AGREEMENT_DISAGREE;
+}
+
 void settingsMenuCtrl() {
-	// Close
-	if (pressed_buttons & (SCE_CTRL_CANCEL | SCE_CTRL_START)) {
-		closeSettingsMenu();
+	SettingsMenuOption *option = &settings_menu_entries[settings_menu.entry_sel].options[settings_menu.option_sel];
+
+	// Agreement
+	if (agreement != SETTINGS_AGREEMENT_NONE) {
+		agreement = SETTINGS_AGREEMENT_NONE;
+
+		if (option->name == HENKAKU_ENABLE_UNSAFE_HOMEBREW) {
+			*(option->value) = !*(option->value);
+		}
+	}
+
+	// Change options
+	if (pressed_buttons & (SCE_CTRL_ENTER | SCE_CTRL_LEFT | SCE_CTRL_RIGHT)) {
+		if (option->name == HENKAKU_ENABLE_UNSAFE_HOMEBREW) {
+			if (*(option->value) == 0) {
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[HENKAKU_UNSAFE_HOMEBREW_MESSAGE]);
+				dialog_step = DIALOG_STEP_SETTINGS_AGREEMENT;
+			} else {
+				*(option->value) = !*(option->value);
+			}
+		} else {
+			if (option->type == SETTINGS_OPTION_TYPE_BOOLEAN) {
+				*(option->value) = !*(option->value);
+			} else if (option->type == SETTINGS_OPTION_TYPE_STRING) {
+				initImeDialog(language_container[option->name], option->string, option->size_string, SCE_IME_TYPE_EXTENDED_NUMBER, 0);
+				dialog_step = DIALOG_STEP_SETTINGS_STRING;
+			}
+		}
 	}
 
 	// Move
@@ -266,15 +282,8 @@ void settingsMenuCtrl() {
 		}
 	}
 
-	// Change options
-	SettingsMenuOption *option = &settings_menu_entries[settings_menu.entry_sel].options[settings_menu.option_sel];
-
-	if (pressed_buttons & (SCE_CTRL_ENTER | SCE_CTRL_LEFT | SCE_CTRL_RIGHT)) {
-		if (option->type == SETTINGS_OPTION_TYPE_BOOLEAN) {	
-			*(option->value) = !*(option->value);
-		} else if (option->type == SETTINGS_OPTION_TYPE_STRING) {
-			initImeDialog(language_container[option->name], option->string, option->size_string, SCE_IME_TYPE_EXTENDED_NUMBER, 0);
-			dialog_step = DIALOG_STEP_SETTINGS_STRING;
-		}
+	// Close
+	if (pressed_buttons & (SCE_CTRL_CANCEL | SCE_CTRL_START)) {
+		closeSettingsMenu();
 	}
 }

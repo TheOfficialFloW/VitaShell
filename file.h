@@ -22,7 +22,6 @@
 #define MAX_PATH_LENGTH 1024
 #define MAX_NAME_LENGTH 256
 #define MAX_SHORT_NAME_LENGTH 64
-#define MAX_MOUNT_POINT_LENGTH 16
 
 #define DIRECTORY_SIZE (4 * 1024)
 #define TRANSFER_SIZE (64 * 1024)
@@ -102,8 +101,8 @@ int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param)
 
 int getFileType(char *file);
 
-int getNumberMountPoints();
-char **getMountPoints();
+int getNumberOfDevices();
+char **getDevices();
 
 FileListEntry *fileListFindEntry(FileList *list, char *name);
 FileListEntry *fileListGetNthEntry(FileList *list, int n);

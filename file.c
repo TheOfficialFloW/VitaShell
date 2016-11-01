@@ -22,7 +22,7 @@
 #include "utils.h"
 #include "sha1.h"
 
-static char *mount_points[] = {
+static char *devices[] = {
 	// "app0:",
 	"gro0:",
 	"grw0:",
@@ -38,7 +38,7 @@ static char *mount_points[] = {
 	"vs0:",
 };
 
-#define N_MOUNT_POINTS (sizeof(mount_points) / sizeof(char **))
+#define N_DEVICES (sizeof(devices) / sizeof(char **))
 
 int allocateReadFile(char *file, void **buffer) {
 	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
@@ -627,12 +627,12 @@ int getFileType(char *file) {
 	return FILE_TYPE_UNKNOWN;
 }
 
-int getNumberMountPoints() {
-	return N_MOUNT_POINTS;
+int getNumberOfDevices() {
+	return N_DEVICES;
 }
 
-char **getMountPoints() {
-	return mount_points;
+char **getDevices() {
+	return devices;
 }
 
 FileListEntry *fileListFindEntry(FileList *list, char *name) {
@@ -879,15 +879,20 @@ void fileListEmpty(FileList *list) {
 	list->folders = 0;
 }
 
-int fileListGetMountPointEntries(FileList *list) {
+int fileListGetDeviceEntries(FileList *list) {
 	int i;
-	for (i = 0; i < N_MOUNT_POINTS; i++) {
-		if (mount_points[i]) {
+	for (i = 0; i < N_DEVICES; i++) {
+		if (devices[i]) {
+			if (is_molecular_shell) {
+				if (strcmp(devices[i], "ux0:") != 0)
+					continue;
+			}
+
 			SceIoStat stat;
 			memset(&stat, 0, sizeof(SceIoStat));
-			if (sceIoGetstat(mount_points[i], &stat) >= 0) {
+			if (sceIoGetstat(devices[i], &stat) >= 0) {
 				FileListEntry *entry = malloc(sizeof(FileListEntry));
-				strcpy(entry->name, mount_points[i]);
+				strcpy(entry->name, devices[i]);
 				entry->name_length = strlen(entry->name);
 				entry->is_folder = 1;
 				entry->type = FILE_TYPE_UNKNOWN;
@@ -899,8 +904,12 @@ int fileListGetMountPointEntries(FileList *list) {
 					entry->size = info.free_size;
 					entry->size2 = info.max_size;
 				} else {
-					entry->size = 0;
-					entry->size2 = 0;
+					if (strcmp(devices[i], "ux0:") == 0) {
+						sceAppMgrGetDevInfo("ux0:", (uint64_t *)&entry->size2, (uint64_t *)&entry->size);
+					} else {
+						entry->size = 0;
+						entry->size2 = 0;
+					}
 				}
 
 				memcpy(&entry->ctime, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
@@ -973,7 +982,7 @@ int fileListGetEntries(FileList *list, char *path, int sort) {
 	}
 
 	if (strcasecmp(path, HOME_PATH) == 0) {
-		return fileListGetMountPointEntries(list);
+		return fileListGetDeviceEntries(list);
 	}
 
 	return fileListGetDirectoryEntries(list, path, sort);

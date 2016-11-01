@@ -19,6 +19,12 @@
 #ifndef __SETTINGS_H__
 #define __SETTINGS_H__
 
+enum SettingsAgreement {
+	SETTINGS_AGREEMENT_NONE,
+	SETTINGS_AGREEMENT_AGREE,
+	SETTINGS_AGREEMENT_DISAGREE,
+};
+
 enum SettingsOptionType {
 	SETTINGS_OPTION_TYPE_BOOLEAN,
 	SETTINGS_OPTION_TYPE_INTEGER,
@@ -59,5 +65,8 @@ void openSettingsMenu();
 int getSettingsMenuStatus();
 void drawSettingsMenu();
 void settingsMenuCtrl();
+
+void settingsAgree();
+void settingsDisagree();
 
 #endif

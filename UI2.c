@@ -170,10 +170,10 @@ void drawnotification() {
 			} else {
 				// Add all the current mountpoints to ftpvita
 				int i;
-				for (i = 0; i < getNumberMountPoints(); i++) {
-					char **mount_points = getMountPoints();
-					if (mount_points[i]) {
-						ftpvita_add_device(mount_points[i]);
+				for (i = 0; i < getNumberOfDevices(); i++) {
+					char **devices = getDevices();
+					if (devices[i]) {
+						ftpvita_add_device(devices[i]);
 					}
 				}
 				ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);
@@ -1068,10 +1068,10 @@ static int contextMenuMoreEnterCallback(int pos, void* context) {
 static void initFtp() {
 	// Add all the current mountpoints to ftpvita
 	int i;
-	for (i = 0; i < getNumberMountPoints(); i++) {
-		char **mount_points = getMountPoints();
-		if (mount_points[i]) {
-			ftpvita_add_device(mount_points[i]);
+	for (i = 0; i < getNumberOfDevices(); i++) {
+		char **devices = getDevices();
+		if (devices[i]) {
+			ftpvita_add_device(devices[i]);
 		}
 	}
 
