@@ -883,10 +883,8 @@ int fileListGetDeviceEntries(FileList *list) {
 	int i;
 	for (i = 0; i < N_DEVICES; i++) {
 		if (devices[i]) {
-			if (is_molecular_shell) {
-				if (strcmp(devices[i], "ux0:") != 0)
-					continue;
-			}
+			if (is_molecular_shell && strcmp(devices[i], "ux0:") != 0)
+				continue;
 
 			SceIoStat stat;
 			memset(&stat, 0, sizeof(SceIoStat));

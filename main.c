@@ -995,6 +995,9 @@ void initFtp() {
 	for (i = 0; i < getNumberOfDevices(); i++) {
 		char **devices = getDevices();
 		if (devices[i]) {
+			if (is_molecular_shell && strcmp(devices[i], "ux0:") != 0)
+				continue;
+
 			ftpvita_add_device(devices[i]);
 		}
 	}

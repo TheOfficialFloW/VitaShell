@@ -28,7 +28,7 @@
 #include "henkaku_config.h"
 
 /*
-	* HENkaku configuration *
+	* HENkaku settings *
 	- Enable PSN spoofing
 	- Enable unsafe homebrew
 	- Enable version spoofing
@@ -48,7 +48,7 @@
 
 static HENkakuConfig henkaku_config;
 
-static char spoofed_version[8];
+static char spoofed_version[5];
 
 // Dummy
 int language, theme;
@@ -56,25 +56,25 @@ int language, theme;
 static SettingsMenuEntry *settings_menu_entries = NULL;
 static int n_settings_entries = 0;
 
-SettingsMenuOption henkaku_configuration[] = {
+SettingsMenuOption henkaku_settings[] = {
 	{ HENKAKU_ENABLE_PSN_SPOOFING,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &henkaku_config.use_psn_spoofing },
 	{ HENKAKU_ENABLE_UNSAFE_HOMEBREW,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &henkaku_config.allow_unsafe_hb },
 	{ HENKAKU_ENABLE_VERSION_SPOOFING,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &henkaku_config.use_spoofed_version },
-	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, spoofed_version, 5, NULL },
+	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, spoofed_version, sizeof(spoofed_version), NULL },
 };
 
-SettingsMenuOption vitashell_main[] = {
+SettingsMenuOption main_settings[] = {
 	{ VITASHELL_SETTINGS_LANGUAGE,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &language },
 	{ VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, 0, &theme },
 };
 
 SettingsMenuEntry molecularshell_settings_menu_entries[] = {
-	{ HENKAKU_CONFIGURATION, henkaku_configuration, sizeof(henkaku_configuration) / sizeof(SettingsMenuOption) },
-	{ VITASHELL_SETTINGS_MAIN, vitashell_main, sizeof(vitashell_main) / sizeof(SettingsMenuOption) },
+	{ HENKAKU_SETTINGS, henkaku_settings, sizeof(henkaku_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
 };
 
 SettingsMenuEntry vitashell_settings_menu_entries[] = {
-	{ VITASHELL_SETTINGS_MAIN, vitashell_main, sizeof(vitashell_main) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
 };
 
 static SettingsMenu settings_menu;
