@@ -25,17 +25,15 @@
 #include "minizip/zip.h"
 
 void convertToZipTime(SceDateTime *time, tm_zip *tmzip) {
-	SceRtcTick tick;
-	sceRtcGetTick(time, &tick);
-	sceRtcConvertUtcToLocalTime(&tick, &tick);
-	sceRtcSetTick(time, &tick);
+	SceDateTime time_local;
+	convertUtcToLocalTime(&time_local, time);
 
-	tmzip->tm_sec  = time->second;
-	tmzip->tm_min  = time->minute;
-	tmzip->tm_hour = time->hour;
-	tmzip->tm_mday = time->day;
-	tmzip->tm_mon  = time->month;
-	tmzip->tm_year = time->year;
+	tmzip->tm_sec  = time_local.second;
+	tmzip->tm_min  = time_local.minute;
+	tmzip->tm_hour = time_local.hour;
+	tmzip->tm_mday = time_local.day;
+	tmzip->tm_mon  = time_local.month;
+	tmzip->tm_year = time_local.year;
 }
 
 int zipAddFile(zipFile zf, char *path, int filename_start, int level, FileProcessParam *param) {

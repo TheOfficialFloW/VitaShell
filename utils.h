@@ -70,6 +70,10 @@ int removeEndSlash(char *path);
 int addEndSlash(char *path);
 
 void getSizeString(char *string, uint64_t size);
+
+void convertUtcToLocalTime(SceDateTime *time_local, SceDateTime *time_utc);
+void convertLocalTimeToUtc(SceDateTime *time_utc, SceDateTime *time_local);
+
 void getDateString(char *string, int date_format, SceDateTime *time);
 void getTimeString(char *string, int time_format, SceDateTime *time);
 

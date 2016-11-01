@@ -470,12 +470,9 @@ int archiveOpen(char *file) {
 		entry->size2 = file_info.compressed_size;
 
 		// Time
-		SceRtcTick tick;
 		SceDateTime time;
 		sceRtcSetDosTime(&time, file_info.dosDate);
-		sceRtcGetTick(&time, &tick);
-		sceRtcConvertLocalTimeToUtc(&tick, &tick);
-		sceRtcSetTick(&time, &tick);
+		convertLocalTimeToUtc(&time, &time);
 
 		memcpy(&entry->ctime, &time, sizeof(SceDateTime));
 		memcpy(&entry->mtime, &time, sizeof(SceDateTime));

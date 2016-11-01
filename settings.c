@@ -50,7 +50,7 @@ static HENkakuConfig henkaku_config;
 static char spoofed_version[8];
 
 // Dummy
-static int language, theme;
+int language, theme;
 
 static SettingsMenuEntry *settings_menu_entries = NULL;
 static int n_settings_entries = 0;
@@ -132,6 +132,30 @@ void openSettingsMenu() {
 	}
 }
 
+int WriteSaveData(char *name, void *buf, int size) {
+	SceAppUtilSaveDataSlotParam param;
+	memset(&param, 0, sizeof(SceAppUtilSaveDataSlotParam));
+	int res = sceAppUtilSaveDataSlotCreate(0, &param, NULL);
+	if (res < 0 && res != SCE_APPUTIL_ERROR_SAVEDATA_SLOT_EXISTS) {
+		return res;
+	}
+
+	SceAppUtilSaveDataFileSlot slot;
+	memset(&slot, 0, sizeof(slot));
+	slot.id = 0;
+	slot.slotParam = &param;
+
+	SceAppUtilSaveDataFile file;
+	memset(&file, 0, sizeof(file));
+	file.filePath = name;
+	file.buf = buf;
+	file.bufSize = size;
+	file.offset = 0;
+
+	SceSize required_size = 0;
+	return sceAppUtilSaveDataDataSave(&slot, &file, 1, NULL, &required_size);
+}
+
 void closeSettingsMenu() {
 	settings_menu.status = SETTINGS_MENU_CLOSING;
 
@@ -149,7 +173,8 @@ void closeSettingsMenu() {
 
 		henkaku_config.magic = HENKAKU_CONFIG_MAGIC;
 		henkaku_config.version = HENKAKU_VERSION;
-		WriteFile("savedata0:config.bin", &henkaku_config, sizeof(HENkakuConfig));
+
+		WriteSaveData("config.bin", &henkaku_config, sizeof(HENkakuConfig));
 	}
 }
 

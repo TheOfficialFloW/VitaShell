@@ -319,30 +319,42 @@ void getSizeString(char *string, uint64_t size) {
 	sprintf(string, "%.*f %s", (i == 0) ? 0 : 2, double_size, units[i]);
 }
 
+void convertUtcToLocalTime(SceDateTime *time_local, SceDateTime *time_utc) {
+	SceRtcTick tick;
+	sceRtcGetTick(time_utc, &tick);
+	sceRtcConvertUtcToLocalTime(&tick, &tick);
+	sceRtcSetTick(time_local, &tick);	
+}
+
+void convertLocalTimeToUtc(SceDateTime *time_utc, SceDateTime *time_local) {
+	SceRtcTick tick;
+	sceRtcGetTick(time_local, &tick);
+	sceRtcConvertLocalTimeToUtc(&tick, &tick);
+	sceRtcSetTick(time_utc, &tick);	
+}
+
 void getDateString(char *string, int date_format, SceDateTime *time) {
+	SceDateTime time_local;
+	convertUtcToLocalTime(&time_local, time);
+
 	switch (date_format) {
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_YYYYMMDD:
-			sprintf(string, "%04d/%02d/%02d", time->year, time->month, time->day);
+			sprintf(string, "%04d/%02d/%02d", time_local.year, time_local.month, time_local.day);
 			break;
 
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_DDMMYYYY:
-			sprintf(string, "%02d/%02d/%04d", time->day, time->month, time->year);
+			sprintf(string, "%02d/%02d/%04d", time_local.day, time_local.month, time_local.year);
 			break;
 
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_MMDDYYYY:
-			sprintf(string, "%02d/%02d/%04d", time->month, time->day, time->year);
+			sprintf(string, "%02d/%02d/%04d", time_local.month, time_local.day, time_local.year);
 			break;
 	}
 }
 
 void getTimeString(char *string, int time_format, SceDateTime *time) {
 	SceDateTime time_local;
-	SceRtcTick tick_utc;
-	SceRtcTick tick_local;
-
-	sceRtcGetTick(time, &tick_utc);
-	sceRtcConvertUtcToLocalTime(&tick_utc, &tick_local);
-	sceRtcSetTick(&time_local, &tick_local);
+	convertUtcToLocalTime(&time_local, time);
 
 	switch(time_format) {
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
