@@ -61,14 +61,6 @@ static unsigned short int vita_port;
 
 char henkaku_config_path[32];
 
-int is_molecular_shell = 0;
-
-// Enter and cancel buttons
-int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
-
-// Dialog step
-volatile int dialog_step = DIALOG_STEP_NONE;
-
 static List toolbox_list;
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -118,6 +110,21 @@ DIR_UP_RETURN:
 	base_pos = base_pos_list[dir_level];
 	rel_pos = rel_pos_list[dir_level];
 	dirUpCloseArchive();
+
+	int cnt = 0;
+	while (true) {
+	    int a = START_Y + (cnt * (height_item + length_border));
+	    if (a < SCREEN_HEIGHT - 10)
+		cnt++;
+	    else
+		break;
+	}
+	float a = (cnt * (height_item +  length_border)) - length_border;
+	float b = ((rel_pos /  length_row_items) * (height_item +  length_border)) - length_border;
+	float x =  - ((rel_pos /  length_row_items - cnt + 1) * (height_item +  length_border)) - length_border + (a - b);
+	if (x > 0) x = 0;
+			
+	slide_value = x;
 }
 
 static void setFocusOnFilename(char *name) {
@@ -356,7 +363,7 @@ enum ListToolboxEntrys {
 	LIST_TOOLBOX_ENTRY_SYSINFO,
 };
 
-ListEntry list_toolbox_entries[] = {
+static ListEntry list_toolbox_entries[] = {
 	{ SYSINFO_TITLE },
 };
 
@@ -1334,14 +1341,9 @@ static int dialogSteps() {
 
 bool Change_UI = false;
 bool touch_nothing = false;
-
 float ani_extend_bg_up = 0;
 
 int MAX_NAME_WIDTH_TILE = 0;
-int length_row_items = 7;
-float length_border = 5.0f;
-float width_item = 0;
-float height_item = 0;
 float max_extend_item_value = 10;
 int animate_extend_item = 0;
 int animate_extend_item_pos = 0;
@@ -1556,39 +1558,44 @@ void refreshUI2(){
 	MAX_NAME_WIDTH_TILE = width_item;	
 }
 
-static void fileBrowserMenuCtrl2() {	
-	if(!notification_on){
-
-	// Show toolbox list dialog
-	if (current_buttons & SCE_CTRL_START) {
-		if (getListDialogMode() == LIST_DIALOG_CLOSE) {
-			toolbox_list.title = TOOLBOX;
-			toolbox_list.list_entries = list_toolbox_entries;
-			toolbox_list.n_list_entries = N_LIST_TOOLBOX_ENTRIES;
-			toolbox_list.can_escape = 1;
-			toolbox_list.listSelectCallback = listToolboxEnterCallback;
-
-			loadListDialog(&toolbox_list);
-		}
-	}
+static int fileBrowserMenuCtrl2() {
+    int refresh = 0;
+    if(!notification_on){
 
 	// Change UI
-	if (pressed_buttons & SCE_CTRL_RTRIGGER) {		
-		Change_UI = false;
+	if (current_buttons & SCE_CTRL_LTRIGGER && pressed_buttons & SCE_CTRL_LEFT ) {
+	    Change_UI = false;
+	}
+	
+	// Settings menu
+	if (pressed_buttons & SCE_CTRL_START) {
+		openSettingsMenu();
+	}
+
+	// Change sort mode
+	if (pressed_buttons & SCE_CTRL_RTRIGGER) {
+		if (sort_mode == SORT_BY_NAME)
+			sort_mode = SORT_BY_SIZE;
+		else if (sort_mode == SORT_BY_SIZE)
+			sort_mode = SORT_BY_DATE;
+		else if (sort_mode == SORT_BY_DATE)
+			sort_mode = SORT_BY_NAME;
+
+		refresh = 1;
 	}
 
 	if (current_buttons & SCE_CTRL_LTRIGGER && pressed_buttons & SCE_CTRL_UP ) {
-		if (length_row_items + 1 < 9) {
-			length_row_items++;
-			refreshUI2();
-		}
+	    if (length_row_items + 1 < 9) {
+		length_row_items++;
+		refreshUI2();
+	    }
 	}
 
 	if (current_buttons & SCE_CTRL_LTRIGGER && pressed_buttons & SCE_CTRL_DOWN ) {
-		if (length_row_items - 1 > 5) {
-			length_row_items--;
-			refreshUI2();
-		}
+	    if (length_row_items - 1 > 5) {
+		length_row_items--;
+		refreshUI2();
+	    }
 	}
 
 	// FTP
@@ -1705,221 +1712,222 @@ static void fileBrowserMenuCtrl2() {
 		}
 	    }
 	}
-		/*
-		//Slide up
-		if (TOUCH_BACK() == 6) {
-			//Reset state everytime TOUCH_BACK called		
-			State_Touch_Back = -1;
+	/*
+	//Slide up
+	if (TOUCH_BACK() == 6) {
+	//Reset state everytime TOUCH_BACK called		
+	State_Touch_Back = -1;
 				
-			if ((slide_value > -slide_value_limit)) {
-				if (slide_value_limit > SCREEN_HEIGHT - START_Y - height_item) {	
-					slide_value -=  slide_value - (-(pre_touch_back_y - touch_back.report[0].y) + slide_value_hold2);
-					if (slide_value  < -slide_value_limit)
-						slide_value = -slide_value_limit ;								
-				}
-			}
-			else {
+	if ((slide_value > -slide_value_limit)) {
+	if (slide_value_limit > SCREEN_HEIGHT - START_Y - height_item) {	
+	slide_value -=  slide_value - (-(pre_touch_back_y - touch_back.report[0].y) + slide_value_hold2);
+	if (slide_value  < -slide_value_limit)
+	slide_value = -slide_value_limit ;								
+	}
+	}
+	else {
 				
-				//pre_touch_y = touch.report[0].y;
-				animate_slide = true;
-				Position = -slide_value_limit;			
-			}
+	//pre_touch_y = touch.report[0].y;
+	animate_slide = true;
+	Position = -slide_value_limit;			
+	}
 			
-		}
+	}
 
-		//Slide down
-		if (TOUCH_BACK() == 7)  {
-			//Reset state everytime TOUCH_BACK called
-			State_Touch_Back = -1;
+	//Slide down
+	if (TOUCH_BACK() == 7)  {
+	//Reset state everytime TOUCH_BACK called
+	State_Touch_Back = -1;
 
-			if((slide_value < 0)) {	
-				slide_value -= slide_value - ((touch_back.report[0].y - pre_touch_back_y) + slide_value_hold2);
-				if (slide_value  < -slide_value_limit)
-						slide_value = 0;						
-			}
-			else {
+	if((slide_value < 0)) {	
+	slide_value -= slide_value - ((touch_back.report[0].y - pre_touch_back_y) + slide_value_hold2);
+	if (slide_value  < -slide_value_limit)
+	slide_value = 0;						
+	}
+	else {
 				
-				//pre_touch_y = touch.report[0].y;			
-				animate_slide = true;
-				Position = 0;			
-			}
-			}*/
+	//pre_touch_y = touch.report[0].y;			
+	animate_slide = true;
+	Position = 0;			
+	}
+	}*/
 
-		// Move
-		if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {				
-			if ((rel_pos - length_row_items) > 0) {			
-				rel_pos -= length_row_items;
-			}
-			else {
-				rel_pos = 0;				
-			}
-			return_current_pos();	
-		} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN ) {									
-			if ((rel_pos + length_row_items) < file_list.length) {
-				rel_pos += length_row_items;				
-			}
-			else {
-						rel_pos = file_list.length - 1;
-					}
-			return_current_pos();		
-		} else if (hold_buttons & SCE_CTRL_RIGHT || hold2_buttons & SCE_CTRL_LEFT_ANALOG_RIGHT) {
-			if ((rel_pos + 1) < file_list.length) {
-				if ((rel_pos + 1) < file_list.length) {
-					rel_pos++;
-				} 
-			}
-			return_current_pos();
-		} else if (hold_buttons & SCE_CTRL_LEFT || hold2_buttons & SCE_CTRL_LEFT_ANALOG_LEFT) {
-			if (rel_pos > 0) {
-				rel_pos--;
-			} 
-			return_current_pos();
-		}
+	// Move
+	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {				
+	    if ((rel_pos - length_row_items) > 0) {			
+		rel_pos -= length_row_items;
+	    }
+	    else {
+		rel_pos = 0;				
+	    }
+	    return_current_pos();	
+	} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN ) {									
+	    if ((rel_pos + length_row_items) < file_list.length) {
+		rel_pos += length_row_items;				
+	    }
+	    else {
+		rel_pos = file_list.length - 1;
+	    }
+	    return_current_pos();		
+	} else if (hold_buttons & SCE_CTRL_RIGHT || hold2_buttons & SCE_CTRL_LEFT_ANALOG_RIGHT) {
+	    if ((rel_pos + 1) < file_list.length) {
+		if ((rel_pos + 1) < file_list.length) {
+		    rel_pos++;
+		} 
+	    }
+	    return_current_pos();
+	} else if (hold_buttons & SCE_CTRL_LEFT || hold2_buttons & SCE_CTRL_LEFT_ANALOG_LEFT) {
+	    if (rel_pos > 0) {
+		rel_pos--;
+	    } 
+	    return_current_pos();
+	}
 
-		// Not at 'home'
+	// Not at 'home'
 	if (dir_level > 0) {
-		// Context menu trigger
-		if (pressed_buttons & SCE_CTRL_TRIANGLE) {
-			if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
-				setContextMenuVisibilities();
-				setContextMenuMode(CONTEXT_MENU_OPENING);
-			}
+	    // Context menu trigger
+	    if (pressed_buttons & SCE_CTRL_TRIANGLE) {
+		if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
+		    setContextMenuVisibilities();
+		    setContextMenuMode(CONTEXT_MENU_OPENING);
 		}
+	    }
 
-			// Mark entry
-			if ((pressed_buttons & SCE_CTRL_SQUARE) || ((TOUCH_FRONT() == 3) & !touch_nothing )) {
-				State_Touch = -1;
-
-				if ((touch_nothing) || lerp(pre_touch_y, 1088, SCREEN_HEIGHT) < START_Y) {			
-				    touch_nothing = false;
-				    //have_touch_hold = false;
-				    return;
-				}
-
-				FileListEntry *file_entry = fileListGetNthEntry(&file_list, rel_pos);
-				if (strcmp(file_entry->name, DIR_UP) != 0) {
-					if (!fileListFindEntry(&mark_list, file_entry->name)) {
-						FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
-						memcpy(mark_entry, file_entry, sizeof(FileListEntry));
-						fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
-					} else {
-						fileListRemoveEntryByName(&mark_list, file_entry->name);
-					}
-				}
-			}
-
-			// Back
-			if (pressed_buttons & SCE_CTRL_CANCEL || (TOUCH_FRONT() == 10)) {
-				State_Touch = -1;
-				//reset position to top
-				slide_value = 0;
-				Position = 0;
-
-				fileListEmpty(&mark_list);
-				dirUp();
-				refreshFileList();
-			}
-		}
-
-	
-	if (pressed_buttons & SCE_CTRL_ENTER || ((TOUCH_FRONT() == 1) || (TOUCH_FRONT() == 2) & (lerp(touch.report[0].y, 1088, SCREEN_HEIGHT) > START_Y))) {
+	    // Mark entry
+	    if ((pressed_buttons & SCE_CTRL_SQUARE) || ((TOUCH_FRONT() == 3) & !touch_nothing )) {
 		State_Touch = -1;
 
 		if ((touch_nothing) || lerp(pre_touch_y, 1088, SCREEN_HEIGHT) < START_Y) {			
 		    touch_nothing = false;
 		    //have_touch_hold = false;
-		    return;
+		    return 0;
 		}
+
+		FileListEntry *file_entry = fileListGetNthEntry(&file_list, rel_pos);
+		if (strcmp(file_entry->name, DIR_UP) != 0) {
+		    if (!fileListFindEntry(&mark_list, file_entry->name)) {
+			FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
+			memcpy(mark_entry, file_entry, sizeof(FileListEntry));
+			fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+		    } else {
+			fileListRemoveEntryByName(&mark_list, file_entry->name);			
+		    }
+		}	
+	    }
+
+	    // Back
+	    if (pressed_buttons & SCE_CTRL_CANCEL || (TOUCH_FRONT() == 10)) {
+		State_Touch = -1;
+		//reset position to top
+		slide_value = 0;
+		Position = 0;
 
 		fileListEmpty(&mark_list);
+		dirUp();
+		refreshFileList();
+	    }
+	}
 
-		// Handle file or folder
-		FileListEntry *file_entry = fileListGetNthEntry(&file_list,  rel_pos);
-		if (file_entry->is_folder) {
+	
+	if (pressed_buttons & SCE_CTRL_ENTER || ((TOUCH_FRONT() == 1) || (TOUCH_FRONT() == 2) & (lerp(touch.report[0].y, 1088, SCREEN_HEIGHT) > START_Y))) {
+	    State_Touch = -1;
 
-			//reset position to top
-			slide_value = 0;
-			Position = 0;
+	    if ((touch_nothing) || lerp(pre_touch_y, 1088, SCREEN_HEIGHT) < START_Y) {			
+		touch_nothing = false;
+		//have_touch_hold = false;
+		return 0;
+	    }
 
-			if (strcmp(file_entry->name, DIR_UP) == 0) {
-				dirUp();
-			} else {
-				if (dir_level == 0) {
-					strcpy(file_list.path, file_entry->name);
-				} else {
-					if (dir_level > 1)
-						addEndSlash(file_list.path);
-					strcat(file_list.path, file_entry->name);
-				}
+	    fileListEmpty(&mark_list);
 
-				dirLevelUp();
-			}
+	    // Handle file or folder
+	    FileListEntry *file_entry = fileListGetNthEntry(&file_list,  rel_pos);
+	    if (file_entry->is_folder) {
 
-			// Save last dir
-			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+		//reset position to top
+		slide_value = 0;
+		Position = 0;
 
-			// Open folder
-			int res = refreshFileList();
-			if (res < 0)
-				errorDialog(res);
+		if (strcmp(file_entry->name, DIR_UP) == 0) {
+		    dirUp();		     
 		} else {
-			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-			int type = handleFile(cur_file, file_entry);
-			
-			// Archive mode
-			if (type == FILE_TYPE_ZIP) {
-				slide_value = 0;	
-				is_in_archive = 1;
-				dir_level_archive = dir_level;
+		    if (dir_level == 0) {
+			strcpy(file_list.path, file_entry->name);
+		    } else {
+			if (dir_level > 1)
+			    addEndSlash(file_list.path);
+			strcat(file_list.path, file_entry->name);
+		    }
 
-				snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-				
-				strcat(file_list.path, file_entry->name);
-				addEndSlash(file_list.path);
-				
-				dirLevelUp();				
-				refreshFileList();
-				
-			}			
+		    dirLevelUp();
 		}
+
+		// Save last dir
+		WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+
+		// Open folder
+		int res = refreshFileList();
+		if (res < 0)
+		    errorDialog(res);
+	    } else {
+		snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+		int type = handleFile(cur_file, file_entry);
+			
+		// Archive mode
+		if (type == FILE_TYPE_ZIP) {
+		    slide_value = 0;
+		    is_in_archive = 1;
+		    dir_level_archive = dir_level;
+
+		    snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+
+		    strcat(file_list.path, file_entry->name);
+		    addEndSlash(file_list.path);
+
+		    dirLevelUp();
+		    refreshFileList();
+		}			
+	    }
 	}
 	
-	}
-	else {
-		if (TOUCH_FRONT() == 0)  {
-			//Reset state everytime TOUCH_FRONT called
-			State_Touch = -1;
-			have_touch = true;
-			float x = lerp(touch.report[0].x, 1920, SCREEN_WIDTH);		  					
-			float y = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT);
+    }
+    else {
+	if (TOUCH_FRONT() == 0)  {
+	    //Reset state everytime TOUCH_FRONT called
+	    State_Touch = -1;
+	    have_touch = true;
+	    float x = lerp(touch.report[0].x, 1920, SCREEN_WIDTH);		  					
+	    float y = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT);
 			
 
-			if ((x > SHELL_MARGIN_X_CUSTOM) & (x < SHELL_MARGIN_X_CUSTOM + width_item_notification))
-				if ((y > START_Y  + 10) & (y < START_Y  + 10 + height_item_notification)) {
+	    if ((x > SHELL_MARGIN_X_CUSTOM) & (x < SHELL_MARGIN_X_CUSTOM + width_item_notification))
+		if ((y > START_Y  + 10) & (y < START_Y  + 10 + height_item_notification)) {
 					
-						toggle_item_notification[0] = !toggle_item_notification[0];
+		    toggle_item_notification[0] = !toggle_item_notification[0];
 					 
-				}
+		}
 					
-		}
-		
-		//Slide up close notification	
-		if (TOUCH_FRONT() == 6) {
-			//Reset state everytime TOUCH_FRONT called		
-			State_Touch = -1;		
-			if (pre_touch_y > SCREEN_HEIGHT - HEIGHT_TITLE_BAR) {
-				float n_y = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT);
-				slide_value_notification = n_y;	
-			}
-		}
-
-		if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
-			notification_close = true;
-		}
-		
 	}
+		
+	//Slide up close notification	
+	if (TOUCH_FRONT() == 6) {
+	    //Reset state everytime TOUCH_FRONT called		
+	    State_Touch = -1;		
+	    if (pre_touch_y > SCREEN_HEIGHT - HEIGHT_TITLE_BAR) {
+		float n_y = lerp(touch.report[0].y, 1088, SCREEN_HEIGHT);
+		slide_value_notification = n_y;	
+	    }
+	}
+
+	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+	    notification_close = true;
+	}
+		
+    }
+    return refresh;
 	
 }
+
 void drawScrollBar2(int file_list_length) {
     if (((file_list_length / length_row_items) + 1) * (height_item + length_border) > SCREEN_HEIGHT - START_Y) {
 		
@@ -2186,10 +2194,10 @@ void DrawItem(FileListEntry *file_entry, float x, float y, float extend_item_val
 static void mainUI2() {
                
     // Start drawing
-    vita2d_start_drawing();
+    vita2d_start_drawing();     
 				
     //startDrawing(bg_browser_image);
-    drawingWallpaperUI2(default_wallpaper, 0, START_Y - 1 - max_extend_item_value , 0 , START_Y - 1 - max_extend_item_value, SCREEN_WIDTH, vita2d_texture_get_height(default_wallpaper), 1);			
+    drawingWallpaperUI2(default_wallpaper, 0, START_Y - 1 - max_extend_item_value , 0 , START_Y - 1 - max_extend_item_value, SCREEN_WIDTH, vita2d_texture_get_height(default_wallpaper)); 
 
     // Draw scroll bar
     drawScrollBar2(file_list.length);
@@ -2271,7 +2279,7 @@ static void mainUI2() {
 	int a = x_pos_item_old - animate_extend_item;
 	int b = y_pos_item_old - animate_extend_item + slide_value;
 
-	drawingWallpaperUI2(default_wallpaper, a- 1, b, a - 1, b, width_item + 2*animate_extend_item, height_item + 2*animate_extend_item, 0);
+	drawingWallpaperUI2(default_wallpaper, a- 1, b, a - 1, b, width_item + 2*animate_extend_item, height_item + 2*animate_extend_item);
 	DrawItem(file_entry2, x_pos_item_old, y_pos_item_old, animate_extend_item);
 	if (ani_extend_bg_up <  max_extend_item_value)
 	    ani_extend_bg_up ++;
@@ -2282,8 +2290,9 @@ static void mainUI2() {
 	    ani_extend_bg_up --;
     }
 
-    drawingWallpaperUI2(default_wallpaper, 0, 0 ,0 , 0, SCREEN_WIDTH, START_Y - 1 - ani_extend_bg_up, 0);
+    drawingWallpaperUI2(default_wallpaper, 0, 0 ,0 , 0, SCREEN_WIDTH, START_Y - 1 - ani_extend_bg_up);
 
+    
     // Draw shell info
     drawShellInfo2(file_list.path);	
 
@@ -2407,7 +2416,7 @@ static void mainUI2() {
 }
 
 void shellUI2() {    
-        // Position
+       	// Position
 	memset(base_pos_list, 0, sizeof(base_pos_list));
 	memset(rel_pos_list, 0, sizeof(rel_pos_list));
 
@@ -2420,6 +2429,7 @@ void shellUI2() {
 	memset(&mark_list, 0, sizeof(FileList));
 	memset(&copy_list, 0, sizeof(FileList));
 	memset(&install_list, 0, sizeof(FileList));
+	
 
 	// Current path is 'home'
 	strcpy(file_list.path, HOME_PATH);
@@ -2475,6 +2485,10 @@ void shellUI2() {
 	context_menu.menuEnterCallback = contextMenuEnterCallback;
 	context_menu.menuMoreEnterCallback = contextMenuMoreEnterCallback;
 
+	
+	// Init settings menu
+	initSettingsMenu();
+
 	refreshUI2();	
 
 	while (1) {	  
@@ -2485,41 +2499,56 @@ void shellUI2() {
 		int refresh = 0;
 
 		// Control
-		if (dialog_step == DIALOG_STEP_NONE) {
-			if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
+		if (dialog_step != DIALOG_STEP_NONE) {
+			refresh = dialogSteps();
+		} else {
+			if (getSettingsMenuStatus() != SETTINGS_MENU_CLOSED) {
+				settingsMenuCtrl();
+			} else if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
 				contextMenuCtrl(&context_menu);
+			} else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
+				propertyDialogCtrl();
 			} else if (getListDialogMode() != LIST_DIALOG_CLOSE) {
 				listDialogCtrl();
 			} else {
-				fileBrowserMenuCtrl2();
+				refresh = fileBrowserMenuCtrl2();
 			}
-		} else {
-			refresh = dialogSteps();
 		}
 
 		// Receive system event
 		SceAppMgrSystemEvent event;
 		sceAppMgrReceiveSystemEvent(&event);
 
+		
 		// Refresh on app resume
 		if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
-			refresh = 1;
+			refresh = REFRESH_MODE_NORMAL;
 		}
 
-		if (refresh) {
+		if (refresh != REFRESH_MODE_NONE) {
 			// Refresh lists
 			refreshFileList();
 			refreshMarkList();
 			refreshCopyList();
+
+			// Focus
+			if (refresh == REFRESH_MODE_SETFOCUS)
+				setFocusOnFilename(focus_name);
 		}
 
-		mainUI2();			
-
+		mainUI2();
+		
+		// Draw settings menu
+		drawSettingsMenu();
+		
 		// Draw context menu
 		drawContextMenu(&context_menu);
 
 		// Draw list dialog
 		drawListDialog();
+
+		// Draw property dialog
+		drawPropertyDialog();
 
 		// End drawing
 		endDrawing();		
@@ -2558,6 +2587,7 @@ static void initContextMenuWidth() {
 }
 
 int UI2() {
+    
 	// Init context menu width
 	initContextMenuWidth();
 	initTextContextMenuWidth();	

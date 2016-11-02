@@ -190,7 +190,8 @@ ThemeImage theme_images[] = {
 	{ "fastforward.png", &_binary_resources_fastforward_png_start, &fastforward_image },
 	{ "fastrewind.png", &_binary_resources_fastrewind_png_start, &fastrewind_image },
 	{ "wallpaper.png", NULL, &wallpaper_image },
-
+	
+	{ "bg_wallpaper.png", &_binary_resources_bg_wallpaper_png_start, &default_wallpaper },
 	{ "vita_game_card.png", &_binary_resources_vita_game_card_png_start, &game_card_image },
 	{ "vita_game_card_storage.png", &_binary_resources_vita_game_card_storage_png_start, &game_card_storage_image },
 	{ "memory_card.png", &_binary_resources_memory_card_png_start, &memory_card_image },

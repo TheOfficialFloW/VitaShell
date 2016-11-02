@@ -5,8 +5,8 @@
 bool touch_press = false;
 SceTouchData touch;
 int countTouch = 0;
-int pre_touch_y = 0;
-int pre_touch_x = 0;
+int pre_touch_x = 966;
+int pre_touch_y = 544;
 //bool touch_nothing = false;
 
 // State_Touch is global value to certain function TOUCH_FRONT alway return absolute one value for one time.

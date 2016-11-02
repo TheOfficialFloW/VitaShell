@@ -89,6 +89,11 @@ extern vita2d_texture *zip_file_image, *txt_file_image, *title_bar_bg_image, *up
 
 extern bool Change_UI;
 
+int length_row_items = 7;
+float length_border = 5.0f;
+float width_item = 0;
+float height_item = 0;
+
 int UI2();
 
 
