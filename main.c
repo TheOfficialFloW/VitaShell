@@ -84,6 +84,8 @@ static int dir_level_archive = -1;
 static char vita_ip[16];
 static unsigned short int vita_port;
 
+VitaShellConfig vitashell_config;
+
 char henkaku_config_path[32];
 
 int is_molecular_shell = 0;
@@ -349,7 +351,7 @@ void drawShellInfo(char *path) {
 	if (version[3] == '0')
 		version[3] = '\0';
 
-	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "VitaShell %s", version);
+	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
 
 	// Battery
 	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_texture_get_width(battery_image));
@@ -1978,6 +1980,9 @@ int main(int argc, const char *argv[]) {
 	if (current_buttons & SCE_CTRL_LTRIGGER)
 		use_custom_config = 0;
 
+	// Load settings
+	loadSettingsConfig();
+
 	// Load theme
 	loadTheme();
 
@@ -1989,9 +1994,11 @@ int main(int argc, const char *argv[]) {
 	initTextContextMenuWidth();
 
 	// Automatic network update
-	SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x10000100, 0x100000, 0, 0, NULL);
-	if (thid >= 0)
-		sceKernelStartThread(thid, 0, NULL);
+	if (!vitashell_config.disable_autoupdate) {
+		SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x10000100, 0x100000, 0, 0, NULL);
+		if (thid >= 0)
+			sceKernelStartThread(thid, 0, NULL);
+	}
 
 	// Main
 	shellMain();

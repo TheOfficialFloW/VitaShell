@@ -92,6 +92,17 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.42 ###
+- Added a brand new settings menu which is accessible by pressing START (design by WesleyPolicena).
+  This adds the ability to disable auto-update and power options have been added where you can
+  reboot, enter standby or turn off your device.
+- Fixed local date being incorrect.
+- The name 'molecularShell' will now be displayed if it's runned as molecularShell, otherwise 'VitaShell'.
+  This will help differentiating the two applications, as molecularShell is from now on a safe homebrew
+  and doesn't have the full range of features like VitaShell. Additionally in molecularShell you can see
+  the HENkaku settings section which are hidden in VitaShell (note that both still share the same eboot.bin,
+  only the flag is different).
+
 ### Changelog 1.41 ###
 - Added ability to sort files and folders by size and date. Press R to switch sort method.
 - Added the long desired 'Properties' feature. You can also check whether an eboot.bin is safe or not.

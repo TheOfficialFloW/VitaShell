@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "config.h"
 #include "init.h"
 #include "theme.h"
 #include "language.h"
@@ -35,9 +36,10 @@
 	- Spoofed version
 
 	* Main *
-	- CPU
 	- Language
 	- Theme
+	- CPU
+	- Disable auto-update
 
 	* FTP *
 	- Auto-start
@@ -51,15 +53,18 @@ void rebootDevice();
 void shutdownDevice();
 void suspendDevice();
 
+static int changed = 0;
+
 static HENkakuConfig henkaku_config;
 
 static char spoofed_version[6];
 
-// Dummy
-int language, theme;
-
 static SettingsMenuEntry *settings_menu_entries = NULL;
 static int n_settings_entries = 0;
+
+static ConfigEntry settings_entries[] = {
+	{ "DISABLE_AUTOUPDATE", CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_autoupdate }
+};
 
 SettingsMenuOption henkaku_settings[] = {
 	{ HENKAKU_ENABLE_PSN_SPOOFING,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &henkaku_config.use_psn_spoofing },
@@ -70,8 +75,9 @@ SettingsMenuOption henkaku_settings[] = {
 };
 
 SettingsMenuOption main_settings[] = {
-	{ VITASHELL_SETTINGS_LANGUAGE,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &language },
-	{ VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &theme },
+	// { VITASHELL_SETTINGS_LANGUAGE,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &language },
+	// { VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &theme },
+	{ VITASHELL_SETTINGS_NO_AUTO_UPDATE,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &vitashell_config.disable_autoupdate },
 };
 
 SettingsMenuOption power_settings[] = {
@@ -82,12 +88,12 @@ SettingsMenuOption power_settings[] = {
 
 SettingsMenuEntry molecularshell_settings_menu_entries[] = {
 	{ HENKAKU_SETTINGS, henkaku_settings, sizeof(henkaku_settings) / sizeof(SettingsMenuOption) },
-	// { VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
 	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
 };
 
 SettingsMenuEntry vitashell_settings_menu_entries[] = {
-	// { VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
 	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
 };
 
@@ -96,6 +102,17 @@ static SettingsMenu settings_menu;
 static float easeOut(float x0, float x1, float a) {
 	float dx = (x1 - x0);
 	return ((dx * a) > 0.01f) ? (dx * a) : dx;
+}
+
+void loadSettingsConfig() {
+	// Load settings config file
+	memset(&vitashell_config, 0, sizeof(VitaShellConfig));
+	readConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries) / sizeof(ConfigEntry));
+}
+
+void saveSettingsConfig() {
+	// Save settings config file
+	writeConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries) / sizeof(ConfigEntry));
 }
 
 void rebootDevice() {
@@ -169,27 +186,33 @@ void openSettingsMenu() {
 			strcpy(spoofed_version, HENKAKU_DEFAULT_VERSION_STRING);
 		}
 	}
+
+	changed = 0;
 }
 
 void closeSettingsMenu() {
 	settings_menu.status = SETTINGS_MENU_CLOSING;
 
-	if (is_molecular_shell) {
-		if (IS_DIGIT(spoofed_version[0]) && spoofed_version[1] == '.' && IS_DIGIT(spoofed_version[2]) && IS_DIGIT(spoofed_version[3])) {
-			char a = spoofed_version[0] - '0';
-			char b = spoofed_version[2] - '0';
-			char c = spoofed_version[3] - '0';
-			char d = IS_DIGIT(spoofed_version[4]) ? spoofed_version[4] - '0' : '\0';
+	if (changed) {
+		if (is_molecular_shell) {
+			if (IS_DIGIT(spoofed_version[0]) && spoofed_version[1] == '.' && IS_DIGIT(spoofed_version[2]) && IS_DIGIT(spoofed_version[3])) {
+				char a = spoofed_version[0] - '0';
+				char b = spoofed_version[2] - '0';
+				char c = spoofed_version[3] - '0';
+				char d = IS_DIGIT(spoofed_version[4]) ? spoofed_version[4] - '0' : '\0';
 
-			henkaku_config.spoofed_version = ((a << 28) | (b << 24) | (c << 20) | (d << 16));
-		} else {
-			henkaku_config.spoofed_version = 0;
+				henkaku_config.spoofed_version = ((a << 28) | (b << 24) | (c << 20) | (d << 16));
+			} else {
+				henkaku_config.spoofed_version = 0;
+			}
+
+			henkaku_config.magic = HENKAKU_CONFIG_MAGIC;
+			henkaku_config.version = HENKAKU_VERSION;
+
+			WriteFile(henkaku_config_path, &henkaku_config, sizeof(HENkakuConfig));
 		}
 
-		henkaku_config.magic = HENKAKU_CONFIG_MAGIC;
-		henkaku_config.version = HENKAKU_VERSION;
-
-		WriteFile(henkaku_config_path, &henkaku_config, sizeof(HENkakuConfig));
+		saveSettingsConfig();
 	}
 }
 
@@ -288,6 +311,8 @@ void settingsMenuCtrl() {
 
 	// Change options
 	if (pressed_buttons & (SCE_CTRL_ENTER | SCE_CTRL_LEFT | SCE_CTRL_RIGHT)) {
+		changed = 1;
+
 		if (option->name == HENKAKU_ENABLE_UNSAFE_HOMEBREW) {
 			if (*(option->value) == 0) {
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[HENKAKU_UNSAFE_HOMEBREW_MESSAGE]);

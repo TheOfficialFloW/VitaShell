@@ -193,4 +193,17 @@
 - Added the long desired 'Properties' feature. You can also check whether an eboot.bin is safe or not.<br>
     ]]>
   </changes>
+   <changes app_ver="01.42">
+    <![CDATA[
+- Added a brand new settings menu which is accessible by pressing START (design by WesleyPolicena).<br>
+  This adds the ability to disable auto-update and power options have been added where you can<br>
+  reboot, enter standby or turn off your device.<br>
+- Fixed local date being incorrect.<br>
+- The name 'molecularShell' will now be displayed if it's runned as molecularShell, otherwise 'VitaShell'.<br>
+  This will help differentiating the two applications, as molecularShell is from now on a safe homebrew<br>
+  and doesn't have the full range of features like VitaShell. Additionally in molecularShell you can see<br>
+  the HENkaku settings section which are hidden in VitaShell (note that both still share the same eboot.bin,<br>
+  only the flag is different).<br>
+    ]]>
+  </changes>
 </changeinfo>

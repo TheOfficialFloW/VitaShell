@@ -119,6 +119,7 @@ HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Unsafe homebrews can damage your device\
 VITASHELL_SETTINGS_MAIN              = "Main settings"
 VITASHELL_SETTINGS_LANGUAGE          = "Language"
 VITASHELL_SETTINGS_THEME             = "Theme"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Disable auto-update"
 VITASHELL_SETTINGS_POWER             = "Power"
 VITASHELL_SETTINGS_REBOOT            = "Reboot"
 VITASHELL_SETTINGS_POWEROFF          = "Power off"

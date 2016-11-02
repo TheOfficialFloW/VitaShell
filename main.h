@@ -62,6 +62,7 @@
 #include <ftpvita.h>
 
 #include "functions.h"
+#include "vitashell_config.h"
 
 #define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
 
@@ -69,7 +70,7 @@
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0x01
-#define VITASHELL_VERSION_MINOR 0x41
+#define VITASHELL_VERSION_MINOR 0x42
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 
@@ -207,6 +208,8 @@ enum DialogSteps {
 
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
+
+extern VitaShellConfig vitashell_config;
 
 extern char henkaku_config_path[32];
 

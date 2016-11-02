@@ -27,7 +27,7 @@
 #include "utils.h"
 
 #define BASE_ADDRESS "https://github.com/TheOfficialFloW/VitaShell/releases/download"
-#define VERSION_URL "/0.1/version.bin"
+#define VERSION_URL "/0.2/version.bin"
 #define VITASHELL_UPDATE_FILE "ux0:VitaShell/internal/VitaShell.vpk"
 #define VITASHELL_VERSION_FILE "ux0:VitaShell/internal/version.bin"
 
