@@ -46,7 +46,7 @@ void startDrawing(vita2d_texture *bg) {
 	}
 }
 
-void drawingWallpaperUI2(vita2d_texture *bg,float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, int change) {
+void drawingWallpaperUI2(vita2d_texture *bg,float x, float y, float tex_x, float tex_y, float tex_w, float tex_h) {
   	if (wallpaper_image) {
 		vita2d_draw_texture_part(wallpaper_image, x, y, tex_x, tex_y, tex_w, tex_h);
 	} else if (bg) {
