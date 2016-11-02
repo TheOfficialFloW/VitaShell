@@ -11,6 +11,8 @@
 #include "file.h"
 #include "text.h"
 #include "hex.h"
+#include "settings.h"
+#include "property_dialog.h"
 #include "message_dialog.h"
 #include "ime_dialog.h"
 #include "theme.h"
@@ -23,13 +25,7 @@
 
 #include "audio/vita_audio.h"
 
-bool Change_UI = false;
-bool touch_nothing = false;
-
-float ani_extend_bg_up = 0;
-
 static int _newlib_heap_size_user = 128 * 1024 * 1024;
- //bool Change_UI = false;
 
 #define MAX_DIR_LEVELS 1024
 
@@ -38,6 +34,9 @@ static float ctx_menu_max_width = 0.0f, ctx_menu_more_max_width = 0.0f;
 
 // File lists
 static FileList file_list, mark_list, copy_list, install_list;
+
+// Sort mode
+static int sort_mode = SORT_BY_NAME;
 
 // Paths
 static char cur_file[MAX_PATH_LENGTH], archive_path[MAX_PATH_LENGTH], install_path[MAX_PATH_LENGTH];
@@ -53,244 +52,24 @@ static int dir_level = 0;
 static int copy_mode = COPY_MODE_NORMAL;
 
 // Archive
-int is_in_archive = 0;
+static int is_in_archive = 0;
 static int dir_level_archive = -1;
 
 // FTP
 static char vita_ip[16];
 static unsigned short int vita_port;
 
+char henkaku_config_path[32];
+
+int is_molecular_shell = 0;
+
+// Enter and cancel buttons
+int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
+
+// Dialog step
+volatile int dialog_step = DIALOG_STEP_NONE;
+
 static List toolbox_list;
-
-int MAX_NAME_WIDTH_TILE = 0;
-int length_row_items = 7;
-float length_border = 5.0f;
-float width_item = 0;
-float height_item = 0;
-float max_extend_item_value = 10;
-int animate_extend_item = 0;
-int animate_extend_item_pos = 0;
-
-//notification value
-float slide_value_notification = HEIGHT_TITLE_BAR;
-bool notification_open = false;
-bool notification_close = false;
-bool notification_start = false;
-bool notification_on = false;
-float width_item_notification = 300.0f;
-float height_item_notification = 60.0f;
-bool toggle_item_notification[10];
-float slide_value_limit = 0;
-float speed_slide = 10.0f;
-int value_cur_pos = 0;
-bool animate_slide = false;
-int Position = 0;
-
-void DrawBorderRectSimple(int x, int y, int w, int h, unsigned int color, int lengthBorder) {
-	int i = 0;
-	int a = 255;	
-	int count = 0;
-
-	for (i = 0; i <= lengthBorder; i ++) {		
-			if  (i == 0) 
-				count = 1;
-			else 
-				count = pow(2, i * lengthBorder); 		
-
-		vita2d_draw_line(x - i , y - i, x + w + i , y - i, COLOR_ALPHA(color, a/count));	
-		vita2d_draw_line(x + w + i, y - i , x + w + i - 1, y + h + i - 1 , COLOR_ALPHA(color, a/count));		
-		vita2d_draw_line(x + w + i , y + h + i, x - i , y + h + i, COLOR_ALPHA(color, a/count));			
-		vita2d_draw_line(x - i, y + h + i , x - i - 1, y - i - 1 , COLOR_ALPHA(color, a/count));		
-					
-		}
-}
-
-
-void return_current_pos() {
-	have_touch = false;
-	notification_close = true;
-	if ((rel_pos / length_row_items * (height_item + length_border) < -slide_value) || (rel_pos / length_row_items * (height_item + length_border) + height_item > -slide_value + (SCREEN_HEIGHT - START_Y))) {			
-			animate_slide = true;
-			if (rel_pos /  length_row_items == file_list.length/ length_row_items)
-				Position = - (rel_pos /  length_row_items * (height_item +  length_border)) - length_border;	
-			else
-				Position = - (rel_pos /  length_row_items * (height_item +  length_border));// - length_border;				
-		}
-}
-
-float easeOut_T(float x0, float x1, float a) {
-	float dx = (x1 - x0);	
-	if (dx > 0)
-		return ((dx * a) > 0.91f) ? (dx * a) : dx;
-	else
-	 	return ((dx * a) < -1) ? (dx * a) : dx;	
-}
-
-bool ftp_on = false;
-void drawnotification() {
-	float y = - SCREEN_HEIGHT + slide_value_notification;
-	if ( y < 0)		
-		vita2d_draw_rectangle(0, y , SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
-	else
-		vita2d_draw_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
-	
-	//Example 1: FTP
-	
-	vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM, y + START_Y  + 10, width_item_notification, height_item_notification, VIOLET);
-
-	// Dialog	
-	if (TOUCH_FRONT() == 1) {
-		if (toggle_item_notification[0]) {				
-			ftp_on = true;		
-		}
-		else  {
-			ftp_on = false;
-			if (ftpvita_is_initialized()) {
-				powerUnlock();
-				ftpvita_fini();		
-				vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM + width_item_notification - 20, y + START_Y + 10 , 10, height_item_notification, RED);		
-				dialog_step = DIALOG_STEP_NONE;
-			}
-
-			
-			
-		}
-	}
-			
-
-
-		
-	
-
-	if (!ftpvita_is_initialized() & ftp_on) {
-			int res = ftpvita_init(vita_ip, &vita_port);
-			
-			if (res < 0) {
-				infoDialog(language_container[WIFI_ERROR]);
-			} else {
-				// Add all the current mountpoints to ftpvita
-				int i;
-				for (i = 0; i < getNumberOfDevices(); i++) {
-					char **devices = getDevices();
-					if (devices[i]) {
-						ftpvita_add_device(devices[i]);
-					}
-				}
-				ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);
-			}
-
-			vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM + width_item_notification - 20, y + START_Y + 10 , 10, height_item_notification, VIOLET);	
-
-			// Lock power timers
-			powerLock();
-		}		
-
-	
-	
-
-	if (ftpvita_is_initialized()) {			
-		char vita_ip_and_port[40];
-		//Not show vita port?
-		sprintf(vita_ip_and_port, vita_ip, &vita_port );
-		pgf_draw_text(SHELL_MARGIN_X_CUSTOM + 5.0f, y + START_Y  + 10 + FONT_Y_SPACE2  , WHITE, FONT_SIZE, vita_ip_and_port);
-
-		//Draw light green when ftp on
-		vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM + width_item_notification - 20, y + START_Y + 10 , 10, height_item_notification, GREEN);		
-	}
-	else {
-		//Draw light red when ftp off
-			vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM + width_item_notification - 20, y + START_Y + 10 , 10, height_item_notification, RED);	
-	}
-	pgf_draw_text(SHELL_MARGIN_X_CUSTOM + 5.0f, y + START_Y  + 10  , WHITE, FONT_SIZE, "FTP");
-
-
-	//End Example 1
-}
-
-void initnotification() {		
-		drawnotification();
-
-		if (notification_open){
-				slide_value_notification += easeOut_T(slide_value_notification, SCREEN_HEIGHT,  0.375f);
-				if (slide_value_notification >= (SCREEN_HEIGHT * 98)/ 100) {
-					slide_value_notification = SCREEN_HEIGHT;
-					notification_on = true;
-					//notification_start = false;
-					notification_open = false;									
-				}			
-			}
-		else
-		if (notification_close){
-				slide_value_notification -= easeOut_T(HEIGHT_TITLE_BAR, slide_value_notification, 0.375f);
-				if (slide_value_notification <= HEIGHT_TITLE_BAR + 10){
-					slide_value_notification = HEIGHT_TITLE_BAR;
-					notification_on = false;
-					notification_start = false;
-					notification_close = false;					
-				}					
-		}
-
-		if (touch.reportNum == 0) {
-			if (!notification_on){
-				if(slide_value_notification >= (SCREEN_HEIGHT * 33) / 100)  {										
-						notification_open = true;				
-					}
-					else {
-						notification_close = true;
-					}					
-			}
-			else {
-				if(slide_value_notification <= (SCREEN_HEIGHT * 66) / 100)  {
-					notification_close = true;
-				}
-				else {
-					notification_open = true;
-				}
-			}
-			
-		
-		}							
-			//if (TOUCH_FRONT() == 1) {
-				
-						
-			//}									
-}
-
-void draw_length_free_size(uint64_t free_size, uint64_t max_size, int x, int y) {		
-	int length_free_size = (width_item * free_size) / max_size;								
-	//return length_free_size;														
-	if ((100 * length_free_size) / width_item >= 90)
-		vita2d_draw_rectangle(x , y + slide_value , length_free_size , 5.0f , RED);
-	else
-		vita2d_draw_rectangle(x , y + slide_value , length_free_size , 5.0f , GREEN);				
-}
-
-void slide_to_location( float speed) {
-	if (animate_slide) {	
-			if (slide_value < Position){
-				slide_value -= easeOut_T(Position , slide_value , speed);
-				if (slide_value >= Position) {					
-					animate_slide = false;
-					Position = 0;
-				}
-			}
-			else {
-				slide_value -= easeOut_T(Position, slide_value , speed);
-				if (slide_value <= Position) {					
-					animate_slide = false;
-					Position = 0;
-				}
-			}
-	}
-}
-
-void refreshUI2(){
-	slide_value = 0;
-	rel_pos = 0;
-	width_item = ((SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM) / length_row_items) - length_border - max_extend_item_value/length_row_items;
-	height_item = (17 * width_item) / 15;
-	MAX_NAME_WIDTH_TILE = width_item;	
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 static void dirLevelUp() {
@@ -380,7 +159,7 @@ static int refreshFileList() {
 	do {
 		fileListEmpty(&file_list);
 
-		res = fileListGetEntries(&file_list, file_list.path, SORT_BY_NAME);
+		res = fileListGetEntries(&file_list, file_list.path, sort_mode);
 
 		if (res < 0) {
 			ret = res;
@@ -532,6 +311,7 @@ enum MenuEntrys {
 	MENU_ENTRY_RENAME,
 	MENU_ENTRY_EMPTY_4,
 	MENU_ENTRY_NEW_FOLDER,
+	MENU_ENTRY_PROPERTIES,
 	MENU_ENTRY_EMPTY_5,
 	MENU_ENTRY_MORE,
 };
@@ -547,6 +327,7 @@ static MenuEntry menu_entries[] = {
 	{ RENAME, 0, CTX_VISIBILITY_INVISIBLE },
 	{ -1, 0, CTX_VISIBILITY_UNUSED },
 	{ NEW_FOLDER, 0, CTX_VISIBILITY_INVISIBLE },
+	{ PROPERTIES, 0, CTX_VISIBILITY_INVISIBLE },
 	{ -1, 0, CTX_VISIBILITY_UNUSED },
 	{ MORE, 1, CTX_VISIBILITY_INVISIBLE }
 };
@@ -575,7 +356,7 @@ enum ListToolboxEntrys {
 	LIST_TOOLBOX_ENTRY_SYSINFO,
 };
 
-static ListEntry list_toolbox_entries[] = {
+ListEntry list_toolbox_entries[] = {
 	{ SYSINFO_TITLE },
 };
 
@@ -599,6 +380,7 @@ static void setContextMenuVisibilities() {
 		menu_entries[MENU_ENTRY_COPY].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_DELETE].visibility = CTX_VISIBILITY_INVISIBLE;
 		menu_entries[MENU_ENTRY_RENAME].visibility = CTX_VISIBILITY_INVISIBLE;
+		menu_entries[MENU_ENTRY_PROPERTIES].visibility = CTX_VISIBILITY_INVISIBLE;
 	}
 
 	// Invisible 'Paste' if nothing is copied yet
@@ -901,7 +683,7 @@ static int contextMenuEnterCallback(int pos, void* context) {
 			dialog_step = DIALOG_STEP_DELETE_QUESTION;
 			break;
 		}
-
+		
 		case MENU_ENTRY_RENAME:
 		{
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
@@ -913,6 +695,15 @@ static int contextMenuEnterCallback(int pos, void* context) {
 			initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
 
 			dialog_step = DIALOG_STEP_RENAME;
+			break;
+		}
+		
+		case MENU_ENTRY_PROPERTIES:
+		{
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+			initPropertyDialog(cur_file, file_entry);
+
 			break;
 		}
 		
@@ -1071,6 +862,9 @@ static void initFtp() {
 	for (i = 0; i < getNumberOfDevices(); i++) {
 		char **devices = getDevices();
 		if (devices[i]) {
+			if (is_molecular_shell && strcmp(devices[i], "ux0:") != 0)
+				continue;
+
 			ftpvita_add_device(devices[i]);
 		}
 	}
@@ -1499,6 +1293,34 @@ static int dialogSteps() {
 
 			break;
 			
+		case DIALOG_STEP_SETTINGS_AGREEMENT:
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				settingsAgree();
+				dialog_step = DIALOG_STEP_NONE;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				settingsDisagree();
+				dialog_step = DIALOG_STEP_NONE;
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				settingsAgree();
+				dialog_step = DIALOG_STEP_NONE;
+			}
+			
+			break;
+			
+		case DIALOG_STEP_SETTINGS_STRING:
+			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+				char *string = (char *)getImeDialogInputTextUTF8();
+				if (string[0] != '\0') {
+					strcpy(getImeDialogInitialText(), string);
+				}
+
+				dialog_step = DIALOG_STEP_NONE;
+			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+				dialog_step = DIALOG_STEP_NONE;
+			}
+			
+			break;
+			
 		case DIALOG_STEP_EXTRACTED:
 			launchAppByUriExit("VSUPDATER");
 			dialog_step = DIALOG_STEP_NONE;
@@ -1506,6 +1328,232 @@ static int dialogSteps() {
 	}
 
 	return refresh;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Change_UI = false;
+bool touch_nothing = false;
+
+float ani_extend_bg_up = 0;
+
+int MAX_NAME_WIDTH_TILE = 0;
+int length_row_items = 7;
+float length_border = 5.0f;
+float width_item = 0;
+float height_item = 0;
+float max_extend_item_value = 10;
+int animate_extend_item = 0;
+int animate_extend_item_pos = 0;
+
+//notification value
+float slide_value_notification = HEIGHT_TITLE_BAR;
+bool notification_open = false;
+bool notification_close = false;
+bool notification_start = false;
+bool notification_on = false;
+float width_item_notification = 300.0f;
+float height_item_notification = 60.0f;
+bool toggle_item_notification[10];
+float slide_value_limit = 0;
+float speed_slide = 10.0f;
+int value_cur_pos = 0;
+bool animate_slide = false;
+int Position = 0;
+
+void DrawBorderRectSimple(int x, int y, int w, int h, unsigned int color, int lengthBorder) {
+	int i = 0;
+	int a = 255;	
+	int count = 0;
+
+	for (i = 0; i <= lengthBorder; i ++) {		
+			if  (i == 0) 
+				count = 1;
+			else 
+				count = pow(2, i * lengthBorder); 		
+
+		vita2d_draw_line(x - i , y - i, x + w + i , y - i, COLOR_ALPHA(color, a/count));	
+		vita2d_draw_line(x + w + i, y - i , x + w + i - 1, y + h + i - 1 , COLOR_ALPHA(color, a/count));		
+		vita2d_draw_line(x + w + i , y + h + i, x - i , y + h + i, COLOR_ALPHA(color, a/count));			
+		vita2d_draw_line(x - i, y + h + i , x - i - 1, y - i - 1 , COLOR_ALPHA(color, a/count));		
+					
+		}
+}
+
+
+void return_current_pos() {
+	have_touch = false;
+	notification_close = true;
+	if ((rel_pos / length_row_items * (height_item + length_border) < -slide_value) || (rel_pos / length_row_items * (height_item + length_border) + height_item > -slide_value + (SCREEN_HEIGHT - START_Y))) {			
+			animate_slide = true;
+			if (rel_pos /  length_row_items == file_list.length/ length_row_items)
+				Position = - (rel_pos /  length_row_items * (height_item +  length_border)) - length_border;	
+			else
+				Position = - (rel_pos /  length_row_items * (height_item +  length_border));// - length_border;				
+		}
+}
+
+float easeOut_T(float x0, float x1, float a) {
+	float dx = (x1 - x0);	
+	if (dx > 0)
+		return ((dx * a) > 0.91f) ? (dx * a) : dx;
+	else
+	 	return ((dx * a) < -1) ? (dx * a) : dx;	
+}
+
+bool ftp_on = false;
+void drawnotification() {
+	float y = - SCREEN_HEIGHT + slide_value_notification;
+	if ( y < 0)		
+		vita2d_draw_rectangle(0, y , SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+	else
+		vita2d_draw_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+	
+	//Example 1: FTP
+	
+	vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM, y + START_Y  + 10, width_item_notification, height_item_notification, VIOLET);
+
+	// Dialog	
+	if (TOUCH_FRONT() == 1) {
+		if (toggle_item_notification[0]) {				
+			ftp_on = true;		
+		}
+		else  {
+			ftp_on = false;
+			if (ftpvita_is_initialized()) {
+				powerUnlock();
+				ftpvita_fini();		
+				vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM + width_item_notification - 20, y + START_Y + 10 , 10, height_item_notification, RED);		
+				dialog_step = DIALOG_STEP_NONE;
+			}						
+		}
+	}				
+	
+	if (!ftpvita_is_initialized() & ftp_on) {
+			int res = ftpvita_init(vita_ip, &vita_port);
+			
+			if (res < 0) {
+				infoDialog(language_container[WIFI_ERROR]);
+			} else {
+				// Add all the current mountpoints to ftpvita
+				int i;
+				for (i = 0; i < getNumberOfDevices(); i++) {
+					char **devices = getDevices();
+					if (devices[i]) {
+						ftpvita_add_device(devices[i]);
+					}
+				}
+				ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);
+			}
+
+			vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM + width_item_notification - 20, y + START_Y + 10 , 10, height_item_notification, VIOLET);	
+
+			// Lock power timers
+			powerLock();
+		}				
+
+	if (ftpvita_is_initialized()) {			
+		char vita_ip_and_port[40];
+		//Not show vita port?
+		sprintf(vita_ip_and_port, vita_ip, &vita_port );
+		pgf_draw_text(SHELL_MARGIN_X_CUSTOM + 5.0f, y + START_Y  + 10 + FONT_Y_SPACE2  , WHITE, FONT_SIZE, vita_ip_and_port);
+
+		//Draw light green when ftp on
+		vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM + width_item_notification - 20, y + START_Y + 10 , 10, height_item_notification, GREEN);		
+	}
+	else {
+		//Draw light red when ftp off
+			vita2d_draw_rectangle(SHELL_MARGIN_X_CUSTOM + width_item_notification - 20, y + START_Y + 10 , 10, height_item_notification, RED);	
+	}
+	pgf_draw_text(SHELL_MARGIN_X_CUSTOM + 5.0f, y + START_Y  + 10  , WHITE, FONT_SIZE, "FTP");
+
+
+	//End Example 1
+}
+
+void initnotification() {		
+		drawnotification();
+
+		if (notification_open){
+				slide_value_notification += easeOut_T(slide_value_notification, SCREEN_HEIGHT,  0.375f);
+				if (slide_value_notification >= (SCREEN_HEIGHT * 98)/ 100) {
+					slide_value_notification = SCREEN_HEIGHT;
+					notification_on = true;
+					//notification_start = false;
+					notification_open = false;									
+				}			
+			}
+		else
+		if (notification_close){
+				slide_value_notification -= easeOut_T(HEIGHT_TITLE_BAR, slide_value_notification, 0.375f);
+				if (slide_value_notification <= HEIGHT_TITLE_BAR + 10){
+					slide_value_notification = HEIGHT_TITLE_BAR;
+					notification_on = false;
+					notification_start = false;
+					notification_close = false;					
+				}					
+		}
+
+		if (touch.reportNum == 0) {
+			if (!notification_on){
+				if(slide_value_notification >= (SCREEN_HEIGHT * 33) / 100)  {										
+						notification_open = true;				
+					}
+					else {
+						notification_close = true;
+					}					
+			}
+			else {
+				if(slide_value_notification <= (SCREEN_HEIGHT * 66) / 100)  {
+					notification_close = true;
+				}
+				else {
+					notification_open = true;
+				}
+			}
+			
+		
+		}							
+			//if (TOUCH_FRONT() == 1) {
+				
+						
+			//}									
+}
+
+void draw_length_free_size(uint64_t free_size, uint64_t max_size, int x, int y) {		
+	int length_free_size = (width_item * free_size) / max_size;								
+	//return length_free_size;														
+	if ((100 * length_free_size) / width_item >= 90)
+		vita2d_draw_rectangle(x , y + slide_value , length_free_size , 5.0f , RED);
+	else
+		vita2d_draw_rectangle(x , y + slide_value , length_free_size , 5.0f , GREEN);				
+}
+
+void slide_to_location( float speed) {
+	if (animate_slide) {	
+			if (slide_value < Position){
+				slide_value -= easeOut_T(Position , slide_value , speed);
+				if (slide_value >= Position) {					
+					animate_slide = false;
+					Position = 0;
+				}
+			}
+			else {
+				slide_value -= easeOut_T(Position, slide_value , speed);
+				if (slide_value <= Position) {					
+					animate_slide = false;
+					Position = 0;
+				}
+			}
+	}
+}
+
+void refreshUI2(){
+	slide_value = 0;
+	rel_pos = 0;
+	width_item = ((SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM) / length_row_items) - length_border - max_extend_item_value/length_row_items;
+	height_item = (17 * width_item) / 15;
+	MAX_NAME_WIDTH_TILE = width_item;	
 }
 
 static void fileBrowserMenuCtrl2() {	
@@ -1983,7 +2031,6 @@ void drawShellInfo2(char *path) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void DrawItem(FileListEntry *file_entry, float x, float y, float extend_item_value) {			
