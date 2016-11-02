@@ -9,6 +9,8 @@ OK                                   = "OK"
 YES                                  = "Igen"
 NO                                   = "Nem"
 CANCEL                               = "Mégse"
+ON                                   = "Be"
+OFF                                  = "Ki"
 FILE_                                = "Fájl"
 FOLDER                               = "Mappa"
 
@@ -114,6 +116,26 @@ INSTALL_QUESTION                     = "Biztosan telepíteni szeretnéd ezt a cs
 INSTALL_WARNING                      = "Ez a csomag kiterjesztett jogosultságokat kér,\így hozzá fog férni a személyes adataidhoz.\Ha a csomag nem megbízható forrásból származik,\csak saját felelősségedre lépj tovább.\\Folytatódjon a telepítés?"
 INSTALL_BRICK_WARNING                = "Ez a csomag olyan funkciókat használ, ami újra felcsatol\partíciókat és lehetséges, hogy téglává teszi az eszközöd.\Ha a csomag nem megbízható forrásból származik,\csak saját felelősségedre lépj tovább.\\Folytatódjon a telepítés?
 HASH_FILE_QUESTION                   = "SHA1 hashelése sokáig eltarthat. Folytatódjon?"
+
+# HENkaku settings strings
+# HENkaku beállitások szövegek
+HENKAKU_SETTINGS                     = "HENkaku beállitások"
+HENKAKU_ENABLE_PSN_SPOOFING          = "PSN hamisítás bekapcsolása"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Nem biztonságos homebrewek bekapcsolása"
+HENKAKU_ENABLE_VERSION_SPOOFING      = "Verzió hamisítás bekapcsolása"
+HENKAKU_SPOOFED_VERSION              = "Hamisított verzió"
+HENKAKU_RESTORE_DEFAULT_SETTINGS     = "Alapértelmezett beállítások visszaállítása"
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "A nem biztonságos homebrewek tönkretehetik az eszközöd\örökre, ha rosszul használod, rosszul van beállitva,\vagy rosszindulatu.\\Kérlek vigyázz amikor telepíted őket."
+
+# VitaShell settings
+# VitaShell beállitások
+VITASHELL_SETTINGS_MAIN              = "Fő beállítások"
+VITASHELL_SETTINGS_LANGUAGE          = "Nyelv"
+VITASHELL_SETTINGS_THEME             = "Téma"
+VITASHELL_SETTINGS_POWER             = "Energiagazdálkodás"
+VITASHELL_SETTINGS_REBOOT            = "Újraindítás"
+VITASHELL_SETTINGS_POWEROFF          = "Kikapcsolás"
+VITASHELL_SETTINGS_STANDBY           = "Készenlét"
 
 # Others
 # Egyebek
