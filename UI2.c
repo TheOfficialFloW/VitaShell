@@ -25,6 +25,21 @@
 
 #include "audio/vita_audio.h"
 
+bool Change_UI = false;
+bool touch_nothing = false;
+
+int length_row_items = 7;
+float length_border = 5.0f;
+float width_item = 0;
+float height_item = 0;
+float ani_extend_bg_up = 0;
+
+int MAX_NAME_WIDTH_TILE = 0;
+float max_extend_item_value = 10;
+int animate_extend_item = 0;
+int animate_extend_item_pos = 0;
+
+
 static int _newlib_heap_size_user = 128 * 1024 * 1024;
 
 #define MAX_DIR_LEVELS 1024
@@ -1338,16 +1353,6 @@ static int dialogSteps() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Change_UI = false;
-bool touch_nothing = false;
-float ani_extend_bg_up = 0;
-
-int MAX_NAME_WIDTH_TILE = 0;
-float max_extend_item_value = 10;
-int animate_extend_item = 0;
-int animate_extend_item_pos = 0;
-
 //notification value
 float slide_value_notification = HEIGHT_TITLE_BAR;
 bool notification_open = false;
