@@ -1,5 +1,5 @@
 # VitaShell language file
-# VitaShell1.41対応版日本語言語ファイル 141a102
+# VitaShell1.41対応版日本語言語ファイル 142a110
 # 作者 @Umineko19930417
 
 # General strings
@@ -9,6 +9,8 @@ OK				= "OK"
 YES				= "はい"
 NO				= "いいえ"
 CANCEL				= "キャンセル"
+ON			= "オン"
+OFF			= "オフ"
 FILE_				= "ファイル"
 FOLDER				= "フォルダ"
 
@@ -58,7 +60,7 @@ NEW_FOLDER			= "新しいフォルダ"
 PROPERTIES			= "プロパティ"
 COMPRESS			= "圧縮"
 INSTALL_ALL			= "全てをインストール"
-INSTALL_FOLDER		= "フォルダをインストール"
+INSTALL_FOLDER			= "フォルダをインストール"
 CALCULATE_SHA1			= "SHA-1ハッシュ値を表示"
 EXPORT_MEDIA			= "メディアを出力"
 SEARCH				= "検索"
@@ -114,6 +116,27 @@ INSTALL_QUESTION		    = "このパッケージをインストールしますか?
 INSTALL_WARNING			    = "このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します \信頼可能なソース以外から入手した場合のインストールは\自己判断で行って下さい\\インストールを続行しますか?"
 INSTALL_BRICK_WARNING			   = "このパッケージは、システム領域等に接続する機能が使用されており、\デバイスを破壊する危険性が含まれている可能性があります   \信頼可能なソース以外から入手した場合のインストールは  \自己判断で行って下さい\\インストールを続行しますか?"
 HASH_FILE_QUESTION		= "SHA-1ハッシュ値の計算には時間がかかる場合があります\\ハッシュ値の計算を続行しますか?"
+
+# HENkaku settings strings
+# 変革設定の文字列
+HENKAKU_SETTINGS			= "HENkaku設定"
+HENKAKU_ENABLE_PSN_SPOOFING			= "PSN偽装を有効"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW			   = "危険な自作アプリを有効"
+HENKAKU_ENABLE_VERSION_SPOOFING			= "バージョン偽装を有効"
+HENKAKU_SPOOFED_VERSION			= "バージョン偽装"
+HENKAKU_RESTORE_DEFAULT_SETTINGS			  = "デフォルトの設定に戻す"
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE			   = "悪意が含まれていたり誤って設定されていた場合、  \危険な自作アプリはあなたのデバイスを永久的に破壊する事が出来ます\  \インストールをする時は注意して下さい"
+
+# VitaShell settings
+# Vitashellの設定
+VITASHELL_SETTINGS_MAIN			= "メインの設定"
+VITASHELL_SETTINGS_LANGUAGE			= "言語"
+VITASHELL_SETTINGS_THEME			= "テーマ"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE			= "自動的な更新を無効"
+VITASHELL_SETTINGS_POWER			= "電源"
+VITASHELL_SETTINGS_REBOOT			= "再起動"
+VITASHELL_SETTINGS_POWEROFF			= "電源を切る"
+VITASHELL_SETTINGS_STANDBY			= "待機状態"
 
 # Others
 # その他
