@@ -1470,6 +1470,7 @@ int fileBrowserMenuCtrl() {
 
 	// Settings menu
 	if (pressed_buttons & SCE_CTRL_START) {
+		sceShellUtilUnlock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
 		openSettingsMenu();
 	}
 
@@ -1950,6 +1951,9 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 int main(int argc, const char *argv[]) {
 	// Set CPU to 444mhz
 	scePowerSetArmClockFrequency(444);
+
+	// Init SceShellUtil stuff
+	SceShellUtil_E8AD11EC(0);
 
 	// Init audio
 	vitaAudioInit(0x40);

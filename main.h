@@ -34,6 +34,7 @@
 #include <psp2/pgf.h>
 #include <psp2/power.h>
 #include <psp2/rtc.h>
+#include <psp2/shellutil.h>
 #include <psp2/sysmodule.h>
 #include <psp2/system_param.h>
 #include <psp2/touch.h>

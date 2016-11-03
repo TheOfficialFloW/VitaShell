@@ -125,12 +125,19 @@ void initPowerTickThread() {
 }
 
 void powerLock() {
+	if (!lock_power)
+		sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+
 	lock_power++;
 }
 
 void powerUnlock() {
+	if (lock_power)
+		sceShellUtilUnlock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+
 	lock_power--;
-	if (lock_power < 0) lock_power = 0;
+	if (lock_power < 0)
+		lock_power = 0;
 }
 
 void readPad() {
