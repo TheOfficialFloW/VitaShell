@@ -1470,7 +1470,6 @@ int fileBrowserMenuCtrl() {
 
 	// Settings menu
 	if (pressed_buttons & SCE_CTRL_START) {
-		sceShellUtilUnlock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
 		openSettingsMenu();
 	}
 
@@ -1952,8 +1951,8 @@ int main(int argc, const char *argv[]) {
 	// Set CPU to 444mhz
 	scePowerSetArmClockFrequency(444);
 
-	// Init SceShellUtil stuff
-	SceShellUtil_E8AD11EC(0);
+	// Init SceShellUtil events
+	sceShellUtilInitEvents(0);
 
 	// Init audio
 	vitaAudioInit(0x40);
