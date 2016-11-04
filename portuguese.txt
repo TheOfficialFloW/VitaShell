@@ -1,4 +1,4 @@
-# VitaShell v1.4 language file - (Português - Portugal) Rev.06 - By HeavyD (CMaD)
+# VitaShell v1.42 language file - (Português - Portugal) Rev.08 - By HeavyD (CMaD)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -6,6 +6,8 @@ OK                                   = "OK"
 YES                                  = "Sim"
 NO                                   = "Não"
 CANCEL                               = "Cancelar"
+ON                                   = "Ligado"
+OFF                                  = "Desligado"
 FILE_                                = "Ficheiro"
 FOLDER                               = "Pasta"
 
@@ -100,9 +102,28 @@ EXPORT_SONGS_PICTURES_INFO           = "Música(s) e %d imagem(s) %d exportada(s
 INSTALL_ALL_QUESTION                 = "Deseja instalar todos os pacotes disponíveis nesta pasta?"
 INSTALL_FOLDER_QUESTION              = "Deseja instalar a pasta?\ATENÇÃO: Esta ação irá eliminar\a pasta após a instalação!"
 INSTALL_QUESTION                     = "Deseja instalar este pacote?"
-INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se não obteve de fonte segura,\por favor, proceda por sua conta e risco.\\Deseja continuar com a instalação?"
-INSTALL_BRICK_WARNING                = "AVISO: Este pacote utiliza funções que remonta\a partição e poderá bloquear (brick) o seu dispositivo.\Se não obteve de fonte segura,\por favor, proceda por sua conta e risco.\\Deseja continuar com a instalação?"
+INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se não o obteve de fonte segura,\por favor, proceda por sua conta e risco.\\Deseja continuar com a instalação?"
+INSTALL_BRICK_WARNING                = "AVISO: Este pacote utiliza funções que remonta\a partição e poderá bloquear (brick) o seu dispositivo.\Se não o obteve de fonte segura,\por favor, proceda por sua conta e risco.\\Deseja continuar com a instalação?"
 HASH_FILE_QUESTION                   = "Calcular o SHA1 poderá demorar algum tempo. Deseja continuar?"
+
+# HENkaku settings strings
+HENKAKU_SETTINGS                     = "Definições HENkaku"
+HENKAKU_ENABLE_PSN_SPOOFING          = "Ativar spoofing PSN"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Ativar aplicação insegura"
+HENKAKU_ENABLE_VERSION_SPOOFING      = "Ativar versão spoofing"
+HENKAKU_SPOOFED_VERSION              = "Versão Spoofed"
+HENKAKU_RESTORE_DEFAULT_SETTINGS     = "Restaurar definições padrão"
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Aplicações (Homebrews) não seguras podem danificar o seu dispositivo\permanentemente, se forem mal utilizados, mal configurados,\ou maliciosos.\\Por favor, toma precauções quando os instalas."
+
+# VitaShell settings
+VITASHELL_SETTINGS_MAIN              = "Definições Principais"
+VITASHELL_SETTINGS_LANGUAGE          = "Linguagem"
+VITASHELL_SETTINGS_THEME             = "Tema"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Desativar update-automático"
+VITASHELL_SETTINGS_POWER             = "Opções de Energia"
+VITASHELL_SETTINGS_REBOOT            = "Reiniciar"
+VITASHELL_SETTINGS_POWEROFF          = "Desligar"
+VITASHELL_SETTINGS_STANDBY           = "Modo de Espera"
 
 # Others
 PLEASE_WAIT                          = "Por favor, aguarde..."
@@ -115,4 +136,4 @@ UPDATE_QUESTION                      = "VitaShell %s está disponível.\\Deseja 
 TOOLBOX                              = "Caixa de Ferramentas"
 SYSINFO_TITLE                        = "Informação do Sistema"
 ARCHIVE_NAME                         = "Nome do Arquivo"
-COMPRESSION_LEVEL 					 = "Nível de Compressão (0-9)"
+COMPRESSION_LEVEL                    = "Nível de Compressão (0-9)"
