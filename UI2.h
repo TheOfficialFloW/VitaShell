@@ -48,8 +48,6 @@
 
 #include "file.h"
 
-#include "functions.h"
-
 #define lerp(value, from_max, to_max) ((((value*10) * (to_max*10))/(from_max*10))/10)
 #define HEIGHT_TITLE_BAR 31.0f
 #define FONT_Y_SPACE2 28.0f

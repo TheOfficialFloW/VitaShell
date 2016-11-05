@@ -19,6 +19,9 @@
 #ifndef __FILE_H__
 #define __FILE_H__
 
+#define SCE_ERROR_ERRNO_EEXIST 0x80010011
+#define SCE_ERROR_ERRNO_ENODEV 0x80010013
+
 #define MAX_PATH_LENGTH 1024
 #define MAX_NAME_LENGTH 256
 #define MAX_SHORT_NAME_LENGTH 64
@@ -55,6 +58,13 @@ enum FileMoveFlags {
 	MOVE_INTEGRATE	= 0x1, // Integrate directories
 	MOVE_REPLACE	= 0x2, // Replace files
 };
+
+typedef struct {
+	uint64_t max_size;
+	uint64_t free_size;
+	uint32_t cluster_size;
+	void *unk;
+} SceIoDevInfo;
 
 typedef struct {
 	uint64_t *value;

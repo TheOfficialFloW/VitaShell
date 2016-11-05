@@ -132,6 +132,8 @@ void suspendDevice() {
 
 void henkakuRestoreDefaultSettings() {
 	memset(&henkaku_config, 0, sizeof(HENkakuConfig));
+	henkaku_config.use_psn_spoofing = 1;
+	henkaku_config.use_spoofed_version = 1;
 	strcpy(spoofed_version, HENKAKU_DEFAULT_VERSION_STRING);
 }
 
@@ -158,10 +160,13 @@ void openSettingsMenu() {
 	settings_menu.option_sel = 0;
 
 	if (is_molecular_shell) {
-		ReadFile(henkaku_config_path, &henkaku_config, sizeof(HENkakuConfig));
+		memset(&henkaku_config, 0, sizeof(HENkakuConfig));
+		int res = ReadFile(henkaku_config_path, &henkaku_config, sizeof(HENkakuConfig));
 
-		if (henkaku_config.magic != HENKAKU_CONFIG_MAGIC) {
+		if (res < 0 || henkaku_config.magic != HENKAKU_CONFIG_MAGIC) {
 			memset(&henkaku_config, 0, sizeof(HENkakuConfig));
+			henkaku_config.use_psn_spoofing = 1;
+			henkaku_config.use_spoofed_version = 1;
 		}
 
 		char a = (henkaku_config.spoofed_version >> 28) & 0xF;

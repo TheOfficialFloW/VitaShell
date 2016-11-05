@@ -656,9 +656,9 @@ int listToolboxEnterCallback(int pos) {
 		case LIST_TOOLBOX_ENTRY_SYSINFO:
 		{
 			// System software version
-			SceSystemSwVersionParam sw_ver_param;
-			sw_ver_param.size = sizeof(SceSystemSwVersionParam);
-			sceKernelGetSystemSwVersion(&sw_ver_param);
+			SceKernelFwInfo param;
+			param.size = sizeof(SceKernelFwInfo);
+			sceKernelGetSystemSwVersion(&param);
 
 			// MAC address
 			SceNetEtherAddr mac;
@@ -686,7 +686,7 @@ int listToolboxEnterCallback(int pos) {
 			getSizeString(max_size_string, max_size);
 
 			// System information dialog
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], sw_ver_param.version_string, sceKernelGetModelForCDialog(), mac_string, ip, free_size_string, max_size_string, scePowerGetBatteryLifePercent());
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], param.versionString, sceKernelGetModel(), mac_string, ip, free_size_string, max_size_string, scePowerGetBatteryLifePercent());
 			dialog_step = DIALOG_STEP_SYSTEM;
 		}
 	}

@@ -41,6 +41,7 @@
 #include <psp2/types.h>
 #include <psp2/kernel/modulemgr.h>
 #include <psp2/kernel/processmgr.h>
+#include <psp2/io/devctl.h>
 #include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/net/http.h>
@@ -62,7 +63,6 @@
 #include <vita2d.h>
 #include <ftpvita.h>
 
-#include "functions.h"
 #include "vitashell_config.h"
 
 #define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \

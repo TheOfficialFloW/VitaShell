@@ -897,7 +897,7 @@ int fileListGetDeviceEntries(FileList *list) {
 
 				SceIoDevInfo info;
 				memset(&info, 0, sizeof(SceIoDevInfo));
-				int res = sceIoDevctl(entry->name, 0x3001, 0, 0, &info, sizeof(SceIoDevInfo));
+				int res = sceIoDevctl(entry->name, 0x3001, NULL, 0, &info, sizeof(SceIoDevInfo));
 				if (res >= 0) {
 					entry->size = info.free_size;
 					entry->size2 = info.max_size;
