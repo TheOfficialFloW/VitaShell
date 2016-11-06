@@ -218,18 +218,16 @@ EXIT:
 }
 
 void installUpdater() {
-	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL);
-	sceIoMkdir(PACKAGE_PARENT, 0777);
+	// Recursively clean up pkg directory
+	removePath(PACKAGE_DIR, NULL);
+	sceIoMkdir(PACKAGE_DIR, 0777);
 
-	// Make dirs
-	sceIoMkdir("ux0:ptmp", 0777);
-	sceIoMkdir("ux0:ptmp/pkg", 0777);
-	sceIoMkdir("ux0:ptmp/pkg/sce_sys", 0777);
+	// Make dir
+	sceIoMkdir("ux0:data/pkg/sce_sys", 0777);
 
 	// Write VitaShell updater files
-	WriteFile("ux0:ptmp/pkg/eboot.bin", (void *)&_binary_resources_updater_eboot_bin_start, (int)&_binary_resources_updater_eboot_bin_size);
-	WriteFile("ux0:ptmp/pkg/sce_sys/param.sfo", (void *)&_binary_resources_updater_param_bin_start, (int)&_binary_resources_updater_param_bin_size);
+	WriteFile("ux0:data/pkg/eboot.bin", (void *)&_binary_resources_updater_eboot_bin_start, (int)&_binary_resources_updater_eboot_bin_size);
+	WriteFile("ux0:data/pkg/sce_sys/param.sfo", (void *)&_binary_resources_updater_param_bin_start, (int)&_binary_resources_updater_param_bin_size);
 
 	// Make head.bin
 	makeHeadBin();
@@ -251,9 +249,9 @@ int update_extract_thread(SceSize args, void *argp) {
 	// Install updater
 	installUpdater();
 
-	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL);
-	sceIoMkdir(PACKAGE_PARENT, 0777);
+	// Recursively clean up pkg directory
+	removePath(PACKAGE_DIR, NULL);
+	sceIoMkdir(PACKAGE_DIR, 0777);
 
 	// Open archive
 	int res = archiveOpen(VITASHELL_UPDATE_FILE);

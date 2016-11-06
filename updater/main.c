@@ -30,8 +30,7 @@
 
 #define TRANSFER_SIZE 64 * 1024
 
-#define PACKAGE_PARENT "ux0:ptmp"
-#define PACKAGE_DIR PACKAGE_PARENT "/pkg"
+#define PACKAGE_DIR "ux0:data/pkg"
 #define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
 
 typedef struct SfoHeader {

@@ -326,9 +326,9 @@ int makeHeadBin() {
 int installPackage(char *file) {
 	int res;
 
-	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL);
-	sceIoMkdir(PACKAGE_PARENT, 0777);
+	// Recursively clean up pkg directory
+	removePath(PACKAGE_DIR, NULL);
+	sceIoMkdir(PACKAGE_DIR, 0777);
 
 	// Open archive
 	res = archiveOpen(file);
@@ -377,9 +377,9 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
 	sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
-	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL);
-	sceIoMkdir(PACKAGE_PARENT, 0777);
+	// Recursively clean up pkg directory
+	removePath(PACKAGE_DIR, NULL);
+	sceIoMkdir(PACKAGE_DIR, 0777);
 
 	res = sceIoGetstat(args->file, &stat);
 	if (res < 0) {
@@ -568,8 +568,7 @@ EXIT:
 		sceKernelWaitThreadEnd(thid, NULL, NULL);
 
 	// Recursively clean up package_temp directory
-	removePath(PACKAGE_PARENT, NULL);
-	sceIoMkdir(PACKAGE_PARENT, 0777);	
+	removePath(PACKAGE_DIR, NULL);
 
 	// Unlock power timers
 	powerUnlock();

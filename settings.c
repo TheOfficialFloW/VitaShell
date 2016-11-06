@@ -163,16 +163,16 @@ void openSettingsMenu() {
 		memset(&henkaku_config, 0, sizeof(HENkakuConfig));
 		int res = ReadFile(henkaku_config_path, &henkaku_config, sizeof(HENkakuConfig));
 
-		if (res < 0 || henkaku_config.magic != HENKAKU_CONFIG_MAGIC) {
+		if (res != sizeof(HENkakuConfig) || henkaku_config.magic != HENKAKU_CONFIG_MAGIC || henkaku_config.version != HENKAKU_VERSION) {
 			memset(&henkaku_config, 0, sizeof(HENkakuConfig));
 			henkaku_config.use_psn_spoofing = 1;
 			henkaku_config.use_spoofed_version = 1;
 		}
 
-		char a = (henkaku_config.spoofed_version >> 28) & 0xF;
-		char b = (henkaku_config.spoofed_version >> 24) & 0xF;
-		char c = (henkaku_config.spoofed_version >> 20) & 0xF;
-		char d = (henkaku_config.spoofed_version >> 16) & 0xF;
+		char a = (henkaku_config.spoofed_version >> 24) & 0xF;
+		char b = (henkaku_config.spoofed_version >> 20) & 0xF;
+		char c = (henkaku_config.spoofed_version >> 16) & 0xF;
+		char d = (henkaku_config.spoofed_version >> 12) & 0xF;
 
 		memset(spoofed_version, 0, sizeof(spoofed_version));
 
@@ -206,7 +206,7 @@ void closeSettingsMenu() {
 				char c = spoofed_version[3] - '0';
 				char d = IS_DIGIT(spoofed_version[4]) ? spoofed_version[4] - '0' : '\0';
 
-				henkaku_config.spoofed_version = ((a << 28) | (b << 24) | (c << 20) | (d << 16));
+				henkaku_config.spoofed_version = ((a << 24) | (b << 20) | (c << 16) | (d << 12));
 			} else {
 				henkaku_config.spoofed_version = 0;
 			}
