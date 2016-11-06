@@ -222,6 +222,9 @@ extern volatile int dialog_step;
 
 extern int use_custom_config;
 
+extern int is_in_archive;
+extern int dir_level_archive;
+
 void drawScrollBar(int pos, int n);
 void drawShellInfo(char *path);
 

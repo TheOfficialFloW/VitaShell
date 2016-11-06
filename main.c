@@ -23,7 +23,6 @@
 	- Shortcuts
 	- CPU changement
 */
-
 #include "main.h"
 #include "init.h"
 #include "io_process.h"
@@ -77,8 +76,8 @@ static int dir_level = 0;
 static int copy_mode = COPY_MODE_NORMAL;
 
 // Archive
-static int is_in_archive = 0;
-static int dir_level_archive = -1;
+int is_in_archive = 0;
+int dir_level_archive = -1;
 
 // FTP
 static char vita_ip[16];
