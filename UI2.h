@@ -19,12 +19,14 @@
 #include <psp2/pgf.h>
 #include <psp2/power.h>
 #include <psp2/rtc.h>
+#include <psp2/shellutil.h>
 #include <psp2/sysmodule.h>
 #include <psp2/system_param.h>
 #include <psp2/touch.h>
 #include <psp2/types.h>
 #include <psp2/kernel/modulemgr.h>
 #include <psp2/kernel/processmgr.h>
+#include <psp2/io/devctl.h>
 #include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
 #include <psp2/net/http.h>

@@ -67,8 +67,8 @@ static int dir_level = 0;
 static int copy_mode = COPY_MODE_NORMAL;
 
 // Archive
-static int is_in_archive = 0;
-static int dir_level_archive = -1;
+//static int is_in_archive = 0;
+//static int dir_level_archive = -1;
 
 // FTP
 static char vita_ip[16];
@@ -126,19 +126,9 @@ DIR_UP_RETURN:
 	rel_pos = rel_pos_list[dir_level];
 	dirUpCloseArchive();
 
-	int cnt = 0;
-	while (true) {
-	    int a = START_Y + (cnt * (height_item + length_border));
-	    if (a < SCREEN_HEIGHT - 10)
-		cnt++;
-	    else
-		break;
-	}
-	float a = (cnt * (height_item +  length_border)) - length_border;
-	float b = ((rel_pos /  length_row_items) * (height_item +  length_border)) - length_border;
-	float x =  - ((rel_pos /  length_row_items - cnt + 1) * (height_item +  length_border)) - length_border + (a - b);
+	float userview = SCREEN_HEIGHT - START_Y;
+	float x =  - ((rel_pos /  length_row_items + 1) * (height_item +  length_border)) - length_border + userview - FONT_Y_SPACE2;
 	if (x > 0) x = 0;
-			
 	slide_value = x;
 }
 
@@ -1879,7 +1869,7 @@ static int fileBrowserMenuCtrl2() {
 		int type = handleFile(cur_file, file_entry);
 			
 		// Archive mode
-		if (type == FILE_TYPE_ZIP) {
+		if (type == FILE_TYPE_ZIP) {		    		    
 		    slide_value = 0;
 		    is_in_archive = 1;
 		    dir_level_archive = dir_level;
@@ -1937,13 +1927,13 @@ void drawScrollBar2(int file_list_length) {
     if (((file_list_length / length_row_items) + 1) * (height_item + length_border) > SCREEN_HEIGHT - START_Y) {
 		
 		float view_size = SCREEN_HEIGHT - START_Y;
-		float max_scroll = (((file_list_length / length_row_items) + 1) * (height_item + length_border)) + view_size - height_item;
+		float max_scroll = (((file_list_length / length_row_items)) * (height_item + length_border)) + view_size - height_item;
 		vita2d_draw_rectangle(SCROLL_BAR_X, START_Y + 10.0f , SCROLL_BAR_WIDTH, view_size - FONT_Y_SPACE2 - 15.0f, SCROLL_BAR_BG_COLOR);// COLOR_ALPHA(GRAY, 0xC8));	
 		
-		float height = ( (view_size - FONT_Y_SPACE2 - 15.0f) * view_size)/ max_scroll ;
+		float height = ((view_size - FONT_Y_SPACE2 - 15.0f) * view_size)/ max_scroll ;
 		float y = ( (-slide_value ) * (view_size - FONT_Y_SPACE2 - 15.0f )  )  / max_scroll  + START_Y + 10.0f;
 		if (y < START_Y + 10.0f) y = START_Y + 10.0f;
-		//if (y > view_size - FONT_Y_SPACE2 - 15.0f) y = view_size - FONT_Y_SPACE2 - 15.0f;
+		//if (y > view_size - FONT_Y_SPACE2 - 15.0f + height) y = view_size - FONT_Y_SPACE2 - 15.0f + height;
 				
 		vita2d_draw_rectangle(SCROLL_BAR_X, y, SCROLL_BAR_WIDTH, height, SCROLL_BAR_COLOR);// COLOR_ALPHA(WHITE, 0x64));
 		}
@@ -1958,7 +1948,7 @@ void drawShellInfo2(char *path) {
 
 	vita2d_draw_texture_tint(title_bar_bg_image, 0, slide_value_notification - HEIGHT_TITLE_BAR,RGBA8(255, 255, 255, ALPHA_TITLEBAR));
 
-	pgf_draw_textf(SHELL_MARGIN_X_CUSTOM, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "VitaShell %s", version);
+	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y_CUSTOM, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
 
 	// Battery
 	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X_CUSTOM, vita2d_texture_get_width(battery_image));
@@ -2200,8 +2190,7 @@ static void mainUI2() {
                
     // Start drawing
     vita2d_start_drawing();     
-				
-    //startDrawing(bg_browser_image);
+				   
     drawingWallpaperUI2(default_wallpaper, 0, START_Y - 1 - max_extend_item_value , 0 , START_Y - 1 - max_extend_item_value, SCREEN_WIDTH, vita2d_texture_get_height(default_wallpaper)); 
 
     // Draw scroll bar
