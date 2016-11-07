@@ -1121,6 +1121,8 @@ int dialogSteps() {
 					if (ftpvita_is_initialized()) {
 						initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
 						dialog_step = DIALOG_STEP_FTP;
+					} else {
+						powerUnlock();
 					}
 				}
 			}
