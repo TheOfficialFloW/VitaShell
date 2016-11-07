@@ -28,7 +28,6 @@
 #include <psp2/libssl.h>
 #include <psp2/ime_dialog.h>
 #include <psp2/message_dialog.h>
-#include <psp2/moduleinfo.h>
 #include <psp2/musicexport.h>
 #include <psp2/photoexport.h>
 #include <psp2/pgf.h>

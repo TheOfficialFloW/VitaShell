@@ -19,6 +19,27 @@
 #include "main.h"
 #include "elf.h"
 
+//! Module Information
+typedef struct {
+	uint16_t attr;	//!< Attribute
+	uint16_t ver;	//!< Version
+	char name[27];	//!< Name
+	uint8_t type;	//!< Type
+	void *gp;	//!< Global Pointer
+	uint32_t expTop;	//!< Offset of the top of export table
+	uint32_t expBtm;	//!< Offset of the bottom of export table
+	uint32_t impTop;	//!< Offset of the top of import table
+	uint32_t impBtm;	//!< Offset of the bottom of import table
+	uint32_t nid;	//!< NID
+	uint32_t unk[3];	//!< Unknown
+	uint32_t start;	//!< Offset of module_start function
+	uint32_t stop;	//!< Offset of module_stop function
+	uint32_t exidxTop;	//!< Offset of the top of exidx section
+	uint32_t exidxBtm;	//!< Offset of the bottom of exidx section
+	uint32_t extabTop;	//!< Offset of the top of extab section
+	uint32_t extabBtm;	//!< Offset of the bottom of extab section
+} SceModuleInfo;
+
 typedef struct {
 	uint16_t size;
 	uint16_t lib_version;
