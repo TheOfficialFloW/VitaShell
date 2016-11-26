@@ -24,7 +24,7 @@
 
 INCLUDE_EXTERN_RESOURCE(colors_txt);
 INCLUDE_EXTERN_RESOURCE(colors_txt_size);
-
+/*
 INCLUDE_EXTERN_RESOURCE(vita_game_card_png);
 INCLUDE_EXTERN_RESOURCE(vita_game_card_storage_png);
 INCLUDE_EXTERN_RESOURCE(memory_card_png);
@@ -50,7 +50,7 @@ INCLUDE_EXTERN_RESOURCE(txt_file_png);
 INCLUDE_EXTERN_RESOURCE(music_file_png);
 INCLUDE_EXTERN_RESOURCE(title_bar_bg_png);
 INCLUDE_EXTERN_RESOURCE(updir_png);
-
+*/
 INCLUDE_EXTERN_RESOURCE(folder_icon_png);
 INCLUDE_EXTERN_RESOURCE(file_icon_png);
 INCLUDE_EXTERN_RESOURCE(archive_icon_png);
@@ -190,7 +190,7 @@ ThemeImage theme_images[] = {
 	{ "fastforward.png", &_binary_resources_fastforward_png_start, &fastforward_image },
 	{ "fastrewind.png", &_binary_resources_fastrewind_png_start, &fastrewind_image },
 	{ "wallpaper.png", NULL, &wallpaper_image },
-	
+	/*
 	{ "bg_wallpaper.png", &_binary_resources_bg_wallpaper_png_start, &default_wallpaper },
 	{ "vita_game_card.png", &_binary_resources_vita_game_card_png_start, &game_card_image },
 	{ "vita_game_card_storage.png", &_binary_resources_vita_game_card_storage_png_start, &game_card_storage_image },
@@ -214,6 +214,7 @@ ThemeImage theme_images[] = {
 	{ "txt_file.png", &_binary_resources_txt_file_png_start, &txt_file_image },
 	{ "title_bar_bg.png", &_binary_resources_title_bar_bg_png_start, &title_bar_bg_image },
 	{ "updir.png", &_binary_resources_updir_png_start, &updir_image },
+	*/
 };
 
 #define N_THEME_IMAGES (sizeof(theme_images) / sizeof(ThemeImage))

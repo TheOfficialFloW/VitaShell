@@ -215,6 +215,8 @@ void closeSettingsMenu() {
 			henkaku_config.version = HENKAKU_VERSION;
 
 			WriteFile(henkaku_config_path, &henkaku_config, sizeof(HENkakuConfig));
+
+			henkaku_reload_config();
 		}
 
 		saveSettingsConfig();

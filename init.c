@@ -22,9 +22,8 @@
 #include "package_installer.h"
 #include "utils.h"
 
-
 INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
-
+/*
 INCLUDE_EXTERN_RESOURCE(vita_game_card_png);
 INCLUDE_EXTERN_RESOURCE(vita_game_card_storage_png);
 INCLUDE_EXTERN_RESOURCE(memory_card_png);
@@ -50,8 +49,7 @@ INCLUDE_EXTERN_RESOURCE(txt_file_png);
 INCLUDE_EXTERN_RESOURCE(music_file_png);
 INCLUDE_EXTERN_RESOURCE(title_bar_bg_png);
 INCLUDE_EXTERN_RESOURCE(updir_png);
-
-
+*/
 INCLUDE_EXTERN_RESOURCE(folder_icon_png);
 INCLUDE_EXTERN_RESOURCE(file_icon_png);
 INCLUDE_EXTERN_RESOURCE(archive_icon_png);
@@ -80,7 +78,7 @@ INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
 static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/language/english_us.txt", english_us_txt),
-	
+/*
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/vita_game_card.png", vita_game_card_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/vita_game_card_storage.png", vita_game_card_storage_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/memory_card.png", memory_card_png),
@@ -106,7 +104,7 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/music_file.png", music_file_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/title_bar_bg.png", title_bar_bg_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/updir.png", updir_png),
-
+*/
 	DEFAULT_FILE("ux0:VitaShell/theme/theme.txt", theme_txt),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/colors.txt", colors_txt),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", folder_icon_png),
