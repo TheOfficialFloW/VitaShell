@@ -206,4 +206,11 @@
   only the flag is different).<br>
     ]]>
   </changes>
+   <changes app_ver="01.43">
+    <![CDATA[
+- Added taiHEN config.txt reload option available in molecularShell.<br>
+- Changed default HENkaku spoofed version to 3.63.<br>
+- Fixed bug where you couldn't exit the application.<br>
+    ]]>
+  </changes>
 </changeinfo>

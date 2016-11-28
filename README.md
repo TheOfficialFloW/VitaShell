@@ -92,6 +92,11 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.43 ###
+- Added taiHEN config.txt reload option available in molecularShell.
+- Changed default HENkaku spoofed version to 3.63.
+- Fixed bug where you couldn't exit the application.
+
 ### Changelog 1.42 ###
 - Added a brand new settings menu which is accessible by pressing START (design by WesleyPolicena).
   This adds the ability to disable auto-update and power options have been added where you can
