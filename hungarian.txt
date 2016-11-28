@@ -14,7 +14,7 @@ FILE_                                = "Fájl"
 FOLDER                               = "Mappa"
 
 # Progress strings
-# Haladási szövegek
+# Folyamati szövegek
 MOVING                               = "Mozgatás..."
 COPYING                              = "Másolás..."
 DELETING                             = "Törlés..."
@@ -26,7 +26,7 @@ COMPRESSING                          = "Becsomagolás..."
 HASHING                              = "Hashelés..."
 
 # Audio player strings
-# Hang lejátszó szövegek
+# Hang lejátszói szövegek
 TITLE                                = "Cím"
 ALBUM                                = "Album"
 ARTIST                               = "Előadó"
@@ -34,19 +34,19 @@ GENRE                                = "Műfaj"
 YEAR                                 = "Év"
 
 # Hex editor strings
-# Hex szerkesztő szövegek
+# Hex szerkesztői szövegek
 OFFSET                               = "Eltolt"
 OPEN_HEX_EDITOR                      = "Hex szerkesztő megnyitása"
 
 # Text editor strings
-# Szöveg szerkesztő szövegek
+# Szöveg szerkesztői szövegek
 EDIT_LINE                            = "Sor szerkesztése"
 ENTER_SEARCH_TERM                    = "Keresendő kifejezés"
 CUT                                  = "Kivágás"
 INSERT_EMPTY_LINE                    = "Üres sor beillesztése"
 
 # File browser context menu strings
-# Fájl böngésző kontextusi menü szövegek
+# Fájl böngésző összefüggési menü szövegek
 MORE                                 = "Több"
 MARK_ALL                             = "Összes kijelölése"
 UNMARK_ALL                           = "Összes kijelölés törlése"
@@ -65,7 +65,7 @@ EXPORT_MEDIA                         = "Média exportálása"
 SEARCH                               = "Keresés"
 
 # File browser properties strings
-# Fájl böngésző tulajdonságok szövegek
+# Fájl böngésző tulajdonsági szövegek
 PROPERTY_NAME                        = "Név"
 PROPERTY_TYPE                        = "Tipus"
 PROPERTY_FSELF_MODE                  = "FSELF mód"
@@ -92,13 +92,13 @@ PROPERTY_FSELF_MODE_UNSAFE           = "Nem biztonságos"
 PROPERTY_FSELF_MODE_SCE              = "SCE aláírt"
 
 # File browser strings
-# Fájl böngésző szövegek
+# Fájl böngészői szövegek
 COPIED_FILE                          = "%d fájl másolva."
 COPIED_FOLDER                        = "%d mappa másolva."
 COPIED_FILES_FOLDERS                 = "%d fájl/mappa másolva."
 
 # Dialog questions
-# Párbeszéd kérdések
+# Párbeszédi kérdések
 DELETE_FILE_QUESTION                 = "Biztosan törölni szeretnéd ezt a fájlt?"
 DELETE_FOLDER_QUESTION               = "Biztosan törölni szeretnéd ezt a mappát?"
 DELETE_FILES_FOLDERS_QUESTION        = "Biztosan törölni szeretnéd ezeket a fájlokat/mappákat?"
@@ -117,7 +117,7 @@ INSTALL_BRICK_WARNING                = "Ez a csomag olyan funkciókat használ, 
 HASH_FILE_QUESTION                   = "SHA1 hashelése sokáig eltarthat. Folytatódjon?"
 
 # HENkaku settings strings
-# HENkaku beállitások szövegek
+# HENkaku beállitási szövegek
 HENKAKU_SETTINGS                     = "HENkaku beállitások"
 HENKAKU_ENABLE_PSN_SPOOFING          = "PSN hamisítás bekapcsolása"
 HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Nem biztonságos homebrewek bekapcsolása"
