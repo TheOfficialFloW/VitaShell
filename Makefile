@@ -17,13 +17,11 @@ RESOURCES_BIN := $(foreach dir,$(RESOURCES), $(wildcard $(dir)/*.bin))
 OBJS += $(RESOURCES_PNG:.png=.o) $(RESOURCES_TXT:.txt=.o) $(RESOURCES_BIN:.bin=.o)
 
 LIBS = -lvorbisfile -lvorbis -logg -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc -lonig \
-	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceCommonDialog_stub \
-	   -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
-	   -lSceHttp_stub -lSceMusicExport_stub -lSceNet_stub -lSceNetCtl_stub \
-	   -lSceSsl_stub -lSceSysmodule_stub -lScePhotoExport_stub -lScePower_stub \
-	   -lScePgf_stub libpromoter/libScePromoterUtil_stub.a \
-	   -lSceAudio_stub -lSceAudiodec_stub -lSceTouch_stub -lSceShellSvc_stub \
-	   -lHENkaku_stub
+	   -lSceAppMgr_stub -lSceAppUtil_stub -lSceAudio_stub -lSceAudiodec_stub \
+	   -lSceCommonDialog_stub -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
+	   -lSceHttp_stub -lSceMusicExport_stub -lSceNet_stub -lSceNetCtl_stub -lSceShellSvc_stub \
+	   -lSceSsl_stub -lSceSysmodule_stub -lScePhotoExport_stub -lScePower_stub -lScePgf_stub \
+	   -lSceTouch_stub -ltaihen_stub libHENkaku_stub.a libpromoter/libScePromoterUtil_stub.a
 
 PREFIX   = arm-vita-eabi
 CC       = $(PREFIX)-gcc
@@ -47,7 +45,7 @@ eboot.bin: $(TARGET).velf
 	vita-make-fself $< $@
 
 %.velf: %.elf
-	vita-elf-create $< $@ libpromoter/promoterutil.json
+	vita-elf-create $< $@
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@

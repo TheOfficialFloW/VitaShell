@@ -48,6 +48,7 @@
 	- Display battery percentage
 */
 
+void taihenReloadConfig();
 void henkakuRestoreDefaultSettings();
 void rebootDevice();
 void shutdownDevice();
@@ -72,6 +73,7 @@ SettingsMenuOption henkaku_settings[] = {
 	{ HENKAKU_ENABLE_VERSION_SPOOFING,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &henkaku_config.use_spoofed_version },
 	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, NULL, spoofed_version, sizeof(spoofed_version) - 1, NULL },
 	{ HENKAKU_RESTORE_DEFAULT_SETTINGS,	SETTINGS_OPTION_TYPE_CALLBACK, (void *)henkakuRestoreDefaultSettings, NULL, 0, NULL },
+	{ HENKAKU_RELOAD_CONFIG,			SETTINGS_OPTION_TYPE_CALLBACK, (void *)taihenReloadConfig, NULL, 0, NULL },
 };
 
 SettingsMenuOption main_settings[] = {
@@ -135,6 +137,14 @@ void henkakuRestoreDefaultSettings() {
 	henkaku_config.use_psn_spoofing = 1;
 	henkaku_config.use_spoofed_version = 1;
 	strcpy(spoofed_version, HENKAKU_DEFAULT_VERSION_STRING);
+	changed = 1;
+
+	infoDialog(language_container[HENKAKU_RESTORE_DEFAULT_MESSAGE]);
+}
+
+void taihenReloadConfig() {
+	taiReloadConfig();
+	infoDialog(language_container[HENKAKU_RELOAD_CONFIG_MESSAGE]);
 }
 
 void initSettingsMenu() {
