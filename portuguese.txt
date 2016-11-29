@@ -1,4 +1,4 @@
-# VitaShell v1.42 language file - (Português - Portugal) Rev.08 - By HeavyD (CMaD)
+# VitaShell v1.43 language file - (Português - Portugal) Rev.09 - By HeavyD (CMaD)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -113,7 +113,10 @@ HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Ativar Aplicação Insegura"
 HENKAKU_ENABLE_VERSION_SPOOFING      = "Ativar Versão do Spoof"
 HENKAKU_SPOOFED_VERSION              = "Versão do Spoof"
 HENKAKU_RESTORE_DEFAULT_SETTINGS     = "Restaurar as Configurações Padrão"
-HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Aplicações (Homebrews) não seguras podem danificar o seu dispositivo\permanentemente, se forem mal utilizadas, mal configuradas\ou maliciosas.\\Por favor, tome precauções quando as instalas."
+HENKAKU_RELOAD_CONFIG                = "Recarregar ficheiro 'config.txt' do taiHEN"
+HENKAKU_RESTORE_DEFAULT_MESSAGE      = "As configurações padrão foram restauradas com sucesso."
+HENKAKU_RELOAD_CONFIG_MESSAGE        = "Ficheiro 'config.txt' do taiHEN foi recarregado com sucesso."
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Aplicações (Homebrews) não seguras podem danificar o seu dispositivo\permanentemente, se forem mal utilizadas, mal configuradas,\ou maliciosas.\\Por favor, toma precauções quando as instalas."
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "Configurações Principais"
