@@ -16,6 +16,9 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <psp2/sysmodule.h>
+#include <psp2/promoterutil.h>
+
 #include "main.h"
 #include "io_process.h"
 #include "package_installer.h"
@@ -26,9 +29,6 @@
 #include "utils.h"
 #include "sfo.h"
 #include "sha1.h"
-
-#include "sysmodule_internal.h"
-#include "libpromoter/promoterutil.h"
 
 #include "resources/base_head_bin.h"
 

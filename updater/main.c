@@ -20,13 +20,13 @@
 #include <psp2/kernel/processmgr.h>
 #include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
+#include <psp2/sysmodule.h>
+#include <psp2/promoterutil.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../sysmodule_internal.h"
-#include "../libpromoter/promoterutil.h"
 
 #define TRANSFER_SIZE 64 * 1024
 
