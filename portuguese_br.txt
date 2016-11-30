@@ -1,4 +1,4 @@
-# VitaShell v1.42 language file - (Português - Brasil) Rev.(0008)
+# VitaShell v1.43 language file - (Português - Brasil) Rev.(0009)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -113,13 +113,16 @@ HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Habilitar homebrew inseguro"
 HENKAKU_ENABLE_VERSION_SPOOFING      = "Habilitar versão spoofing"
 HENKAKU_SPOOFED_VERSION              = "Versão Spoofed"
 HENKAKU_RESTORE_DEFAULT_SETTINGS     = "Restaurar configurações padrão"
+HENKAKU_RELOAD_CONFIG                = "Recarregar taiHEN config.txt"
+HENKAKU_RESTORE_DEFAULT_MESSAGE      = "As configurações padrão foram restauradas com êxito."
+HENKAKU_RELOAD_CONFIG_MESSAGE        = "taiHEN config.txt foi recarregado com êxito."
 HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Homebrews inseguros podem danificar seu dispositivo\permanentemente, se forem mal utilizados, mal configurados,\ou maliciosos.\\Tenha cuidado ao instalá-los."
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "Configurações principais"
 VITASHELL_SETTINGS_LANGUAGE          = "Linguagem"
 VITASHELL_SETTINGS_THEME             = "Tema"
-VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Desabilitar auto-update"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Desabilitar atualizações automáticas"
 VITASHELL_SETTINGS_POWER             = "Power"
 VITASHELL_SETTINGS_REBOOT            = "Reiniciar"
 VITASHELL_SETTINGS_POWEROFF          = "Desligar"
