@@ -21,7 +21,7 @@ LIBS = -lvorbisfile -lvorbis -logg -lftpvita -lvita2d -lpng -ljpeg -lz -lm -lc -
 	   -lSceCommonDialog_stub -lSceCtrl_stub -lSceDisplay_stub -lSceGxm_stub -lSceIme_stub \
 	   -lSceHttp_stub -lSceMusicExport_stub -lSceNet_stub -lSceNetCtl_stub -lSceShellSvc_stub \
 	   -lSceSsl_stub -lSceSysmodule_stub -lScePhotoExport_stub -lScePower_stub -lScePgf_stub \
-	   -lSceTouch_stub -ltaihen_stub libHENkaku_stub.a -lScePromoterUtil_stub.a
+	   -lSceTouch_stub -ltaihen_stub -lHENkaku_stub -lScePromoterUtil_stub
 
 PREFIX   = arm-vita-eabi
 CC       = $(PREFIX)-gcc
