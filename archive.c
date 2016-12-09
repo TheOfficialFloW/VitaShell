@@ -28,6 +28,7 @@ static unzFile uf = NULL;
 static FileList archive_list;
 
 int checkForUnsafeImports(void *buffer);
+char *uncompressBuffer(const char *hdr, const char *buffer);
 
 int archiveCheckFilesForUnsafeFself() {
 	if (!uf)
@@ -50,20 +51,33 @@ int archiveCheckFilesForUnsafeFself() {
 				char sce_header[0x84];
 				archiveFileRead(ARCHIVE_FD, sce_header, sizeof(sce_header));
 
-				// Until here we have read 0x88 bytes
-				// ELF header starts at header_len, so let's seek to there
-				uint64_t header_len = *(uint64_t *)(sce_header + 0xC);
+				uint64_t elf1_offset = *(uint64_t *)(sce_header + 0x3C);
 
 				int i;
-				for (i = 0; i < header_len - 0x88; i += sizeof(uint32_t)) {
+				// jump to elf1
+				// Until here we have read 0x88 bytes
+				for (i = 0; i < elf1_offset - 0x88; i += sizeof(uint32_t)) {
 					uint32_t dummy = 0;
 					archiveFileRead(ARCHIVE_FD, &dummy, sizeof(uint32_t));
 				}
+
+				// ELF header starts at header_len, so let's seek to there
+				uint64_t header_len = *(uint64_t *)(sce_header + 0xC);
+				char elf1_header[header_len - elf1_offset];
+				archiveFileRead(ARCHIVE_FD, elf1_header, header_len - elf1_offset);
 
 				// Check imports
 				char *buffer = malloc(archive_entry->size);
 				if (buffer) {
 					int size = archiveFileRead(ARCHIVE_FD, buffer, archive_entry->size);
+					if (buffer[0] == 0x78) {
+						char *uncompressed_buffer = uncompressBuffer(elf1_header, buffer);
+						if (uncompressed_buffer) {
+							free(buffer);
+							buffer = uncompressed_buffer;
+						}
+					}
+
 					int unsafe = checkForUnsafeImports(buffer);
 					free(buffer);
 
