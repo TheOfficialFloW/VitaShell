@@ -150,14 +150,8 @@ int checkForUnsafeImports(void *buffer) {
 	return 0; // Safe
 }
 
-char *uncompressBuffer(const char *hdr, const char *buffer) {
-	// 0xa0 ~ 0xa0 + sizeof(Elf32_Ehdr)
-	Elf32_Ehdr *ehdr = (Elf32_Ehdr *)hdr;
-	// ehdr + padding(uint32_t[3])
-	Elf32_Phdr *phdr = (Elf32_Phdr *)(hdr + sizeof(Elf32_Ehdr) + sizeof(uint32_t) * 3);
-	// phdr + sizeof(phdr) * phdr_num
-	segment_info *segment = (segment_info*)((char*)phdr + sizeof(Elf32_Phdr) * ehdr->e_phnum);
-
+char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const segment_info *segment,
+		       const char *buffer) {
 	if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
 	    ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
 	    ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
