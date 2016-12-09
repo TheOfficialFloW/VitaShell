@@ -37,7 +37,7 @@ int getSfoValue(void *buffer, char *name, uint32_t *value) {
 	int i;
 	for (i = 0; i < header->count; i++) {
 		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
-			*value = *(uint32_t *)(buffer + header->valofs + entries[i].dataofs);
+			*value = *(uint32_t *)((char*)buffer + header->valofs + entries[i].dataofs);
 			return 0;
 		}
 	}
@@ -54,9 +54,9 @@ int getSfoString(void *buffer, char *name, char *string, int length) {
 
 	int i;
 	for (i = 0; i < header->count; i++) {
-		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
+		if (strcmp((char*)buffer + header->keyofs + entries[i].nameofs, name) == 0) {
 			memset(string, 0, length);
-			strncpy(string, buffer + header->valofs + entries[i].dataofs, length);
+			strncpy(string, (char*)buffer + header->valofs + entries[i].dataofs, length);
 			string[length - 1] = '\0';
 			return 0;
 		}
@@ -74,8 +74,8 @@ int setSfoValue(void *buffer, char *name, uint32_t value) {
 
 	int i;
 	for (i = 0; i < header->count; i++) {
-		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
-			*(uint32_t *)(buffer + header->valofs + entries[i].dataofs) = value;
+		if (strcmp((char*)buffer + header->keyofs + entries[i].nameofs, name) == 0) {
+			*(uint32_t *)((char*)buffer + header->valofs + entries[i].dataofs) = value;
 			return 0;
 		}
 	}
@@ -92,8 +92,8 @@ int setSfoString(void *buffer, char *name, char *string) {
 
 	int i;
 	for (i = 0; i < header->count; i++) {
-		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
-			strcpy(buffer + header->valofs + entries[i].dataofs, string);
+		if (strcmp((char*)buffer + header->keyofs + entries[i].nameofs, name) == 0) {
+			strcpy((char*)buffer + header->valofs + entries[i].dataofs, string);
 			return 0;
 		}
 	}
@@ -167,12 +167,12 @@ int SFOReader(char *file) {
 
 			uint32_t color = (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR;
 
-	    	char *name = (char *)buffer + sfo_header->keyofs + entries->nameofs;
+	    	char *name = (char *)(buffer + sfo_header->keyofs + entries->nameofs);
 			pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, "%s", name);
 
 			char string[128];
 
-			void *data = (void *)buffer + sfo_header->valofs + entries->dataofs;
+			void *data = (void *)(buffer + sfo_header->valofs + entries->dataofs);
 			switch (entries->type) {
 				case PSF_TYPE_BIN:
 					break;
