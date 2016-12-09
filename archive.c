@@ -20,6 +20,7 @@
 #include "archive.h"
 #include "file.h"
 #include "utils.h"
+#include "elf.h"
 
 #include "minizip/unzip.h"
 
@@ -28,6 +29,8 @@ static unzFile uf = NULL;
 static FileList archive_list;
 
 int checkForUnsafeImports(void *buffer);
+char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const segment_info *segment,
+		       const char *buffer);
 
 int archiveCheckFilesForUnsafeFself() {
 	if (!uf)
@@ -50,20 +53,40 @@ int archiveCheckFilesForUnsafeFself() {
 				char sce_header[0x84];
 				archiveFileRead(ARCHIVE_FD, sce_header, sizeof(sce_header));
 
-				// Until here we have read 0x88 bytes
-				// ELF header starts at header_len, so let's seek to there
-				uint64_t header_len = *(uint64_t *)(sce_header + 0xC);
+				uint64_t elf1_offset = *(uint64_t *)(sce_header + 0x3C);
+				uint64_t phdr_offset = *(uint64_t *)(sce_header + 0x44);
+				uint64_t section_info_offset = *(uint64_t *)(sce_header + 0x54);
 
 				int i;
-				for (i = 0; i < header_len - 0x88; i += sizeof(uint32_t)) {
+				// jump to elf1
+				// Until here we have read 0x88 bytes
+				for (i = 0; i < elf1_offset - 0x88; i += sizeof(uint32_t)) {
 					uint32_t dummy = 0;
 					archiveFileRead(ARCHIVE_FD, &dummy, sizeof(uint32_t));
 				}
+
+				// ELF header starts at header_len, so let's seek to there
+				uint64_t header_len = *(uint64_t *)(sce_header + 0xC);
+				char elf1[header_len - elf1_offset];
+				archiveFileRead(ARCHIVE_FD, elf1, header_len - elf1_offset);
 
 				// Check imports
 				char *buffer = malloc(archive_entry->size);
 				if (buffer) {
 					int size = archiveFileRead(ARCHIVE_FD, buffer, archive_entry->size);
+					if (buffer[0] == 0x78) {
+						char *uncompressed_buffer = uncompressBuffer(
+							(Elf32_Ehdr*)elf1,
+							(Elf32_Phdr*)(elf1 + phdr_offset - elf1_offset),
+							(segment_info*)(elf1 + section_info_offset - elf1_offset),
+							buffer
+						);
+						if (uncompressed_buffer) {
+							free(buffer);
+							buffer = uncompressed_buffer;
+						}
+					}
+
 					int unsafe = checkForUnsafeImports(buffer);
 					free(buffer);
 

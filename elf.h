@@ -411,6 +411,12 @@ typedef struct {
 #define R_ARM_THM_MOVW_ABS_NC   47
 #define R_ARM_THM_MOVT_ABS      48
 
+typedef struct {
+	uint64_t offset;
+	uint64_t length;
+	uint64_t compression; // 1 = uncompressed, 2 = compressed
+	uint64_t encryption; // 1 = encrypted, 2 = plain
+} segment_info;
 
 /* Functions */
 

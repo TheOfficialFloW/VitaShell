@@ -19,6 +19,8 @@
 #include "main.h"
 #include "elf.h"
 
+#include <zlib.h>
+
 //! Module Information
 typedef struct {
 	uint16_t attr;	//!< Attribute
@@ -147,3 +149,47 @@ int checkForUnsafeImports(void *buffer) {
 
 	return 0; // Safe
 }
+
+char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const segment_info *segment,
+		       const char *buffer) {
+	if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
+	    ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
+	    ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
+	    ehdr->e_ident[EI_MAG3] != ELFMAG3) {
+		return NULL;
+	}
+
+	int i;
+	// sum all segment size
+	uint32_t total_sz = 0;
+	for (i = 0; i < ehdr->e_phnum; i++) {
+		total_sz += (phdr + i)->p_filesz;
+	}
+
+	char *out = malloc(total_sz);
+	if (out == NULL) {
+		return NULL;
+	}
+
+	// uncompress each segments
+	char *buf = out;
+	for (i = 0; i < ehdr->e_phnum; i++) {
+		uint64_t offset = (segment + i)->offset - segment->offset;
+		uint32_t size = (phdr + i)->p_filesz;
+
+		if ((segment + i)->compression == 1) {
+			memcpy(buf, buffer + offset, (segment + i)->length);
+			buf += size;
+			continue;
+		}
+		uLongf buf_len = size;
+		int ret = uncompress((Bytef*)buf, &buf_len, (const Bytef*)buffer + offset, (segment + i)->length);
+		if (ret != Z_OK) {
+			free(out);
+			return NULL;
+		}
+		buf += size;
+	}
+	return out;
+}
+
