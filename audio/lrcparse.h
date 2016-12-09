@@ -24,7 +24,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <psp2/types.h>
-#include <onigposix.h>
+#include <onigmoposix.h>
 #include "../file.h"
 
 #define MAX_LYRICSLINE 512
