@@ -112,8 +112,11 @@ HENKAKU_ENABLE_PSN_SPOOFING          = "Abilita spoofing PSN"
 HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Abilita homebrew non sicuri"
 HENKAKU_ENABLE_VERSION_SPOOFING      = "Abilita spoofing versione"
 HENKAKU_SPOOFED_VERSION              = "Versione spoofed"
-HENKAKU_RESTORE_DEFAULT_SETTINGS     = "Ripristina impostazioni predefinite"
-HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Gli homebrew non sicuri possono danneggiare il tuo dispositivo\permanentemente, se sono abusati, configurati male,\o malevoli.\\Fai attenzione quando li installi."
+HENKAKU_RESTORE_DEFAULT_SETTINGS     = "Ripristina impostazioni predefinite"
+HENKAKU_RELOAD_CONFIG                = "Ricarica il config.txt di taiHEN"
+HENKAKU_RESTORE_DEFAULT_MESSAGE      = "Le impostazioni predefinite sono state ripristinate."
+HENKAKU_RELOAD_CONFIG_MESSAGE        = "Il config.txt di taiHEN è stato ricaricato."
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Gli homebrew non sicuri possono danneggiare il tuo dispositivo\permanentemente, se sono abusati, configurati male,\o malevoli.\\Fai attenzione quando li installi."
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "Impostazioni principali"
