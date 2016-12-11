@@ -48,6 +48,8 @@
 	- Display battery percentage
 */
 
+int henkaku_reload_config();
+
 void taihenReloadConfig();
 void henkakuRestoreDefaultSettings();
 void rebootDevice();

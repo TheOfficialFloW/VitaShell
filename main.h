@@ -62,11 +62,11 @@
 #include <vita2d.h>
 #include <ftpvita.h>
 
+#include <taihen.h>
+
 #include "vitashell_config.h"
 
 #define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
-
-#define ENABLE_FILE_LOGGING 1
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0x01
@@ -213,7 +213,7 @@ extern VitaShellConfig vitashell_config;
 
 extern char henkaku_config_path[32];
 
-extern int is_molecular_shell;
+extern int is_safe_mode, is_molecular_shell;
 
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 

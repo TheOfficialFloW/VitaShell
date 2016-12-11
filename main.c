@@ -87,7 +87,7 @@ VitaShellConfig vitashell_config;
 
 char henkaku_config_path[32];
 
-int is_molecular_shell = 0;
+int is_safe_mode = 0, is_molecular_shell = 0;
 
 // Enter and cancel buttons
 int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
@@ -350,7 +350,7 @@ void drawShellInfo(char *path) {
 	if (version[3] == '0')
 		version[3] = '\0';
 
-	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
+	float x = pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
 
 	// Battery
 	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_texture_get_width(battery_image));
@@ -421,6 +421,11 @@ void drawShellInfo(char *path) {
 	path_first_line[i] = '\0';
 
 	strcpy(path_second_line, path + i);
+
+	// Add safe/unsafe mode
+	if (strcmp(path_first_line, HOME_PATH) == 0) {
+		sprintf(path_first_line, "%s (%s)", HOME_PATH, is_safe_mode ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
+	}
 
 	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
 	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
@@ -996,7 +1001,7 @@ void initFtp() {
 	for (i = 0; i < getNumberOfDevices(); i++) {
 		char **devices = getDevices();
 		if (devices[i]) {
-			if (is_molecular_shell && strcmp(devices[i], "ux0:") != 0)
+			if (is_safe_mode && strcmp(devices[i], "ux0:") != 0)
 				continue;
 
 			ftpvita_add_device(devices[i]);
@@ -1966,6 +1971,10 @@ int main(int argc, const char *argv[]) {
 	memset(titleid, 0, sizeof(titleid));
 	sceAppMgrAppParamGetString(sceKernelGetProcessId(), 12, titleid, sizeof(titleid));
 
+	// Allow writing to ux0:app/VITASHELL
+	sceAppMgrUmount("app0:");
+
+	// Is molecularShell
 	if (strcmp(titleid, "MLCL00001") == 0) {
 		// HENkaku config path (ux0:temp/app_work/MLCL00001/rec/config.bin)
 		char mount_point[16];
@@ -1974,10 +1983,11 @@ int main(int argc, const char *argv[]) {
 		sprintf(henkaku_config_path, "%s/config.bin", mount_point);
 
 		is_molecular_shell = 1;
-	} else {
-		// Allow writing to ux0:app/VITASHELL
-		sceAppMgrUmount("app0:");
 	}
+
+	// Is safe mode
+	if (sceIoDevctl("ux0:", 0x3001, NULL, 0, NULL, 0) == 0x80010030)
+		is_safe_mode = 1;
 
 	// No custom config, in case they are damaged or unuseable
 	readPad();

@@ -104,17 +104,19 @@ add_executable(VitaShell
 )
 
 target_link_libraries(VitaShell
+  ftpvita
+  vita2d
   vorbisfile
   vorbis
   ogg
-  ftpvita
-  vita2d
   png
   jpeg
   z
   m
   c
-  onig
+  onigmo
+  taihen_stub
+  HENkaku_stub
   SceAppMgr_stub
   SceAppUtil_stub
   SceAudio_stub
@@ -131,13 +133,11 @@ target_link_libraries(VitaShell
   SceShellSvc_stub
   SceSsl_stub
   SceSysmodule_stub
+  ScePgf_stub
   ScePhotoExport_stub
   ScePower_stub
-  ScePgf_stub
-  SceTouch_stub
-  taihen_stub
-  HENkaku_stub
   ScePromoterUtil_stub
+  SceTouch_stub
 )
 
 # Create Vita artifacts

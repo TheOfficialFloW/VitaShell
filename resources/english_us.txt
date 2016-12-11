@@ -129,6 +129,8 @@ VITASHELL_SETTINGS_POWEROFF          = "Power off"
 VITASHELL_SETTINGS_STANDBY           = "Standby"
 
 # Others
+SAFE_MODE                            = "SAFE MODE"
+UNSAFE_MODE                          = "UNSAFE MODE"
 PLEASE_WAIT                          = "Please wait..."
 SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"
 NO_SPACE_ERROR                       = "There is not enough free space on the memory\card.\At least %s more space is needed."
