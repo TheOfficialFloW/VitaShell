@@ -1,5 +1,0 @@
-/usr/local/vitasdk/vitashell/build/CMakeFiles/VitaShell.dir
-/usr/local/vitasdk/vitashell/build/CMakeFiles/edit_cache.dir
-/usr/local/vitasdk/vitashell/build/CMakeFiles/VitaShell.self.dir
-/usr/local/vitasdk/vitashell/build/CMakeFiles/VitaShell.vpk.dir
-/usr/local/vitasdk/vitashell/build/CMakeFiles/rebuild_cache.dir
