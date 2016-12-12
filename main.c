@@ -16,13 +16,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	TODO:
-	- Hex editor byte group size
-	- Duplicate when same location or same name. /lol to /lol - Backup. or overwrite question.
-	- Shortcuts
-	- CPU changement
-*/
 #include "main.h"
 #include "init.h"
 #include "io_process.h"

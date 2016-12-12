@@ -31,6 +31,8 @@ typedef struct {
 	int size;
 } DefaultFile;
 
+vita2d_pgf *loadSystemFonts();
+
 void initVitaShell();
 void finishVitaShell();
 

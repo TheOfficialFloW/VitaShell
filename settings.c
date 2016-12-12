@@ -48,6 +48,7 @@
 	- Display battery percentage
 */
 
+int taiReloadConfig();
 int henkaku_reload_config();
 
 void taihenReloadConfig();

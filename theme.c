@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "init.h"
 #include "file.h"
 #include "config.h"
 #include "theme.h"
@@ -313,12 +314,10 @@ void loadTheme() {
 			// Load colors config
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
 			readConfig(path, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
-
+			
 			// Font
-			// TheFloW: I am using a modified vita2dlib that doesn't have this function yet
-			//          and I'm too lazy to update mine. Will do it in the future.
-			// snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
- 			// font = vita2d_load_custom_pgf(path);
+			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
+ 			font = vita2d_load_custom_pgf(path);
 			
 			// Load theme
 			for (i = 0; i < N_THEME_IMAGES; i++) {
@@ -388,9 +387,9 @@ void loadTheme() {
 		}
 	}
 
-	// Load default font
+	// Load system fonts
 	if (!font)
-		font = vita2d_load_default_pgf();
+		font = loadSystemFonts();
 
 	// Font size cache
 	for (i = 0; i < 256; i++) {
