@@ -343,7 +343,7 @@ void drawShellInfo(char *path) {
 	if (version[3] == '0')
 		version[3] = '\0';
 
-	float x = pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
+	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
 
 	// Battery
 	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_texture_get_width(battery_image));
@@ -422,14 +422,6 @@ void drawShellInfo(char *path) {
 
 	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
 	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
-
-	char str[128];
-
-	// Show numbers of files and folders
-	// sprintf(str, "%d files and %d folders", file_list.files, file_list.folders);
-
-	// Draw on bottom left
-	// pgf_draw_textf(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), SCREEN_HEIGHT - SHELL_MARGIN_Y - FONT_Y_SPACE - 2.0f, LITEGRAY, FONT_SIZE, str);
 }
 
 enum MenuEntrys {
