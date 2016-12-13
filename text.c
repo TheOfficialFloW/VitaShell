@@ -16,7 +16,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "main.h"
+#include "main.h" 
 #include "context_menu.h"
 #include "archive.h"
 #include "file.h"
@@ -147,7 +147,6 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 	// Get line
 	int line_width = 0;
 	int count = 0;
-	int last_space = 0;
 
 	int i;
 	for (i = 0; i < MIN(size, MIN(size - offset, MAX_LINE_CHARACTERS - 1)); i++) {
@@ -160,11 +159,8 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 			break;
 		}
 
-		if (ch == ' ')
-      last_space = i;
 		// Tab
 		if (ch == '\t') {
-      last_space = i;
 			ch_width = TAB_SIZE * font_size_cache[' '];
 		} else {
 			ch_width = font_size_cache[(int)ch];
@@ -175,12 +171,8 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 		}
 
 		// Too long
-		if ((line_width + ch_width) >= (MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X - SPACE_LEFT_WIDTH)){
-            if(last_space != 0){
-								count = i = last_space + 1;
-            }
-            break;
-		}
+		if ((line_width + ch_width) >= (MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X))
+			break;
 
 		// Increase line width
 		line_width += ch_width;
@@ -221,7 +213,7 @@ static void updateTextEntries(TextEditorState *state) {
 		if (!entry) {
 			break;
 		}
-
+		
 		updateTextEntry(state, entry, i);
 
 		entry = entry->next;
@@ -250,10 +242,10 @@ static CopyEntry *copy_line(TextEditorState *state, int line_number) {
 		entry->line[length] = '\n';
 		length++;
 	}
-
+	
 	// Terminate line
 	state->copy_buffer[state->n_copied_lines].line[length] = '\0';
-
+	
 	state->n_copied_lines++;
 
 	return entry;
@@ -267,7 +259,7 @@ static void delete_line(TextEditorState *state, int line_number) {
 	int length = textReadLine(state->buffer, line_start, state->size, line);
 
 	// Remove line
-	memmove(&state->buffer[line_start], &state->buffer[line_start+length], state->size-line_start);
+	memmove(&state->buffer[line_start], &state->buffer[line_start+length], state->size-line_start);	
 	state->size -= length;
 	state->n_lines -= 1;
 
@@ -276,7 +268,7 @@ static void delete_line(TextEditorState *state, int line_number) {
 		state->size = 1;
 		state->n_lines = 1;
 		state->buffer[0] = '\n';
-	}
+	} 
 
 	if (state->base_pos + state->rel_pos >= state->n_lines) {
 		state->rel_pos = state->n_lines - state->base_pos - 1;
@@ -289,7 +281,7 @@ static void delete_line(TextEditorState *state, int line_number) {
 
 	state->changed = 1;
 	state->n_selections = 0;
-
+	
 	// Update entries
 	updateTextEntries(state);
 }
@@ -313,7 +305,7 @@ static void insert_line(TextEditorState *state, char *line, int pos) {
 			state->n_lines++;
 		}
 	}
-
+	
 	state->n_selections = 0;
 	state->changed = 1;
 	state->copy_reset = 1;
@@ -349,7 +341,7 @@ static void paste_lines(TextEditorState *state, int pos) {
 	}
 
 	state->n_lines += state->n_copied_lines;
-
+	
 	state->changed = 1;
 	state->copy_reset = 1;
 	state->n_selections = 0;
@@ -388,7 +380,7 @@ static int contextMenuEnterCallback(int pos, void *context) {
 
 			// Sort the selection list
 			qsort(state->selection_list, state->n_selections, sizeof(int), cmp);
-
+		
 			int i;
 			for (i = 0; i < state->n_selections; i++) {
 				copy_line(state, state->selection_list[i]);
@@ -486,7 +478,7 @@ static int search_thread(SceSize args, SearchParams *argp) {
 	TextEditorState *state = argp->state;
 	char *search_term = argp->search_term;
 	int search_term_length = strlen(search_term);
-	int *search_result_offsets = state->search_result_offsets;
+	int *search_result_offsets = state->search_result_offsets; 
 
 	state->search_running = 1;
 	state->n_search_results = 0;
@@ -520,7 +512,7 @@ static int search_thread(SceSize args, SearchParams *argp) {
 
 int textViewer(char *file) {
 	TextEditorState *s = malloc(sizeof(TextEditorState));
-	if (!s)
+	if (!s) 
 		return -1;
 
 	char *buffer_base = malloc(BIG_BUFFER_SIZE);
@@ -528,7 +520,7 @@ int textViewer(char *file) {
 		return -1;
 
     s->running = 1;
-	s->hex_viewer = 0;
+	s->hex_viewer = 0; 
 	s->n_copied_lines = 0;
 	s->copy_reset = 0;
 	s->modify_allowed = 1;
@@ -591,7 +583,7 @@ int textViewer(char *file) {
 
 		int length = textReadLine(s->buffer, s->offset_list[i], s->size, entry->line);
 		s->offset_list[i + 1] = s->offset_list[i] + length;
-
+		
 		textListAddEntry(&s->list, entry);
 	}
 
@@ -659,7 +651,7 @@ int textViewer(char *file) {
 				} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
 					if (s->offset_list[s->rel_pos + 1] < s->size) {
 						if ((s->rel_pos + 1) < MAX_POSITION) {
-							if (s->base_pos + s->rel_pos < s->n_lines - 1)
+							if (s->base_pos + s->rel_pos < s->n_lines - 1) 
 								s->rel_pos++;
 						} else {
 							if (s->offset_list[s->base_pos + s->rel_pos + 1] < s->size) {
@@ -695,13 +687,13 @@ int textViewer(char *file) {
 				if (s->n_search_results > 0) {
 
 					TextListEntry *entry = s->list.head;
-
+					
 					int i;
 					for (i = 0; i < s->rel_pos; i++)
 						entry = entry->next;
 
 					int entry_start_offset = s->offset_list[entry->line_number];
-					int entry_end_offset = s->offset_list[entry->line_number + 1];
+					int entry_end_offset = s->offset_list[entry->line_number + 1]; 
 
 					int target_offset = 0;
 
@@ -787,7 +779,7 @@ int textViewer(char *file) {
 								s->search_running = 0;
 								sceKernelWaitThreadEnd(s->search_thid, NULL, NULL);
 							}
-
+							
 							SearchParams search_params;
 							search_params.state = s;
 							strcpy(search_params.search_term, search_term);
@@ -805,12 +797,12 @@ int textViewer(char *file) {
 						s->search_term_input = 0;
 					}
 				}
-
+			
 				// buffer modifying actions
 				if (s->modify_allowed && !s->search_running) {
 					if(s->edit_line <= 0 && pressed_buttons & SCE_CTRL_ENTER) {
 						int line_start = s->offset_list[s->base_pos + s->rel_pos];
-
+						
 						char line[MAX_LINE_CHARACTERS];
 						textReadLine(s->buffer, line_start, s->size, line);
 
@@ -824,11 +816,11 @@ int textViewer(char *file) {
 
 						if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 							int line_start = s->offset_list[s->edit_line];
-
+							
 							char line[MAX_LINE_CHARACTERS];
 							int length = textReadLine(s->buffer, line_start, s->size, line);
 
-							// Don't count newline
+							// Don't count newline 
 							if (s->buffer[line_start + length - 1] == '\n') {
 								length--;
 							}
@@ -852,7 +844,7 @@ int textViewer(char *file) {
 									s->n_lines++;
 								}
 							}
-
+							
 							// Update entries
 							updateTextEntries(s);
 
@@ -867,7 +859,7 @@ int textViewer(char *file) {
 					// Delete line
 					if (pressed_buttons & SCE_CTRL_LEFT && s->n_copied_lines < MAX_COPY_BUFFER_SIZE) {
 						delete_line(s, s->base_pos + s->rel_pos);
-					}
+					} 
 
 					// Insert new line
 					if (pressed_buttons & SCE_CTRL_RIGHT) {
@@ -913,7 +905,7 @@ int textViewer(char *file) {
 					}
 
 					TextListEntry *entry = s->list.head;
-					for (i = 0; i < s->rel_pos; i++)
+					for (i = 0; i < s->rel_pos; i++) 
 						entry = entry->next;
 
 					entry->selected = line_selected;
@@ -954,10 +946,10 @@ int textViewer(char *file) {
 			int search_result_on_line = 0;
 
 			int entry_start_offset = s->offset_list[entry->line_number];
-			int entry_end_offset = entry_start_offset + line_lenght;
+			int entry_end_offset = entry_start_offset + line_lenght; 
 
 			if (s->n_search_results > 0) {
-				int j;
+				int j; 
 				for (j = 0; j < s->n_search_results; j++) {
 					int search_offset = s->search_result_offsets[j];
 					if (entry_start_offset <= search_offset && entry_end_offset >= search_offset) {
@@ -979,7 +971,7 @@ int textViewer(char *file) {
 			if (entry->selected) {
 				vita2d_draw_rectangle(x, START_Y + (i * FONT_Y_SPACE) + 3.0f, MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X, FONT_Y_SPACE, MARKED_COLOR);
 			}
-
+ 
 			while (*line) {
 
 				char *p = strchr(line, '\t');
@@ -1016,15 +1008,15 @@ int textViewer(char *file) {
 
 					x += width;
 					x += pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, FONT_SIZE, line);
-
+					
 					search_highlight[search_term_length] = tmp;
-					line += strlen(s->search_term);
+					line += strlen(s->search_term); 
 				}
 			}
 
 
 			entry = entry->next;
-		}
+		} 
 
 		// Draw context menu
 		drawContextMenu(&s->context_menu);
@@ -1047,7 +1039,7 @@ int textViewer(char *file) {
 
 	free(s);
 
-	free(buffer_base);
+	free(buffer_base); 
 
 	if (hex_viewer)
 		hexViewer(file);
