@@ -175,7 +175,7 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 		}
 
 		// Too long
-		if ((line_width + ch_width) >= (MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X)){
+		if ((line_width + ch_width) >= (MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X - SPACE_LEFT_WIDTH)){
 		  if(last_space != 0){ 
 		    count = i = last_space + 1;
 		  }
