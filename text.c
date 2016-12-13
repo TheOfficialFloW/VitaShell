@@ -147,6 +147,7 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 	// Get line
 	int line_width = 0;
 	int count = 0;
+	int last_space = 0;
 
 	int i;
 	for (i = 0; i < MIN(size, MIN(size - offset, MAX_LINE_CHARACTERS - 1)); i++) {
@@ -158,6 +159,9 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 			i++; // Skip it
 			break;
 		}
+		
+		if (ch == ' ')
+		  last_space = i;
 
 		// Tab
 		if (ch == '\t') {
@@ -171,9 +175,12 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 		}
 
 		// Too long
-		if ((line_width + ch_width) >= (MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X))
-			break;
-
+		if ((line_width + ch_width) >= (MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X)){
+		  if(last_space != 0){ 
+		    count = i = last_space + 1;
+		  }
+		  break;
+		}
 		// Increase line width
 		line_width += ch_width;
 
