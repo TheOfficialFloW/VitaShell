@@ -78,8 +78,6 @@ add_executable(VitaShell
   elf.c
   sha1.c
   list_dialog.c
-  UI2.c
-  touch_shell.c
   minizip/zip.c
   minizip/unzip.c
   minizip/ioapi.c

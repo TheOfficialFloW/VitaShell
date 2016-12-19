@@ -328,7 +328,6 @@ int installPackage(char *file) {
 
 	// Recursively clean up pkg directory
 	removePath(PACKAGE_DIR, NULL);
-	sceIoMkdir(PACKAGE_DIR, 0777);
 
 	// Open archive
 	res = archiveOpen(file);
@@ -379,7 +378,6 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
 	// Recursively clean up pkg directory
 	removePath(PACKAGE_DIR, NULL);
-	sceIoMkdir(PACKAGE_DIR, 0777);
 
 	res = sceIoGetstat(args->file, &stat);
 	if (res < 0) {
@@ -407,7 +405,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
 			// Team molecule's request: Full permission access warning
 			uint64_t authid = *(uint64_t *)(buffer + 0x80);
-			if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
+			if (authid != 0x2F00000000000002) {
 				closeWaitDialog();
 
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);

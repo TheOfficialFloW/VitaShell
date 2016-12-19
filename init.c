@@ -23,33 +23,7 @@
 #include "utils.h"
 
 INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
-/*
-INCLUDE_EXTERN_RESOURCE(vita_game_card_png);
-INCLUDE_EXTERN_RESOURCE(vita_game_card_storage_png);
-INCLUDE_EXTERN_RESOURCE(memory_card_png);
-INCLUDE_EXTERN_RESOURCE(os0_png);
-INCLUDE_EXTERN_RESOURCE(sa0_png);
-INCLUDE_EXTERN_RESOURCE(ur0_png);
-INCLUDE_EXTERN_RESOURCE(vd0_png);
-INCLUDE_EXTERN_RESOURCE(vs0_png);
-INCLUDE_EXTERN_RESOURCE(savedata0_png);
-INCLUDE_EXTERN_RESOURCE(pd0_png);
-INCLUDE_EXTERN_RESOURCE(app0_png);
-INCLUDE_EXTERN_RESOURCE(ud0_png);
 
-INCLUDE_EXTERN_RESOURCE(bg_wallpaper_png);
-INCLUDE_EXTERN_RESOURCE(folder_png);
-INCLUDE_EXTERN_RESOURCE(mark_png);
-INCLUDE_EXTERN_RESOURCE(run_file_png);
-INCLUDE_EXTERN_RESOURCE(image_file_png);
-INCLUDE_EXTERN_RESOURCE(unknown_file_png);
-INCLUDE_EXTERN_RESOURCE(music_file_png);
-INCLUDE_EXTERN_RESOURCE(zip_file_png);
-INCLUDE_EXTERN_RESOURCE(txt_file_png);
-INCLUDE_EXTERN_RESOURCE(music_file_png);
-INCLUDE_EXTERN_RESOURCE(title_bar_bg_png);
-INCLUDE_EXTERN_RESOURCE(updir_png);
-*/
 INCLUDE_EXTERN_RESOURCE(folder_icon_png);
 INCLUDE_EXTERN_RESOURCE(file_icon_png);
 INCLUDE_EXTERN_RESOURCE(archive_icon_png);
@@ -78,33 +52,7 @@ INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
 static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/language/english_us.txt", english_us_txt),
-/*
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/vita_game_card.png", vita_game_card_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/vita_game_card_storage.png", vita_game_card_storage_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/memory_card.png", memory_card_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/os0.png", os0_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/sa0.png", sa0_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/ur0.png", ur0_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/vd0.png", vd0_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/vs0.png", vs0_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/savedata0.png", savedata0_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/pd0.png", pd0_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/app0.png", app0_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/ud0.png", ud0_png),
 
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/bg_wallpaper.png", bg_wallpaper_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/folder.png", folder_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/mark.png", mark_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/run_file.png", run_file_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/image_file.png", image_file_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/unknown_file.png", unknown_file_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/music_file.png", music_file_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/zip_file.png", zip_file_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/txt_file.png", txt_file_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/music_file.png", music_file_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/title_bar_bg.png", title_bar_bg_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/updir.png", updir_png),
-*/
 	DEFAULT_FILE("ux0:VitaShell/theme/theme.txt", theme_txt),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/colors.txt", colors_txt),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", folder_icon_png),
@@ -126,6 +74,8 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", pause_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", fastforward_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png),
+	
+	DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt),
 };
 
 // System params
@@ -297,23 +247,18 @@ void initVitaShell() {
 	sceIoMkdir("ux0:VitaShell/theme", 0777);
 	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
 
+	sceIoMkdir("ux0:patch", 0777);
+	sceIoMkdir("ux0:patch/VITASHELL", 0777);
+	sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);
+	sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0777);
+
 	// Write default files if they don't exist
 	int i;
 	for (i = 0; i < (sizeof(default_files) / sizeof(DefaultFile)); i++) {
 		SceIoStat stat;
 		memset(&stat, 0, sizeof(stat));
-		if (sceIoGetstat(default_files[i].path, &stat) < 0)
+		if (sceIoGetstat(default_files[i].path, &stat) < 0 || (int)stat.st_size != default_files[i].size)
 			WriteFile(default_files[i].path, default_files[i].buffer, default_files[i].size);
-	}
-
-	// Write changeinfo.xml file to patch
-	memset(&stat, 0, sizeof(stat));
-	if (sceIoGetstat("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", &stat) < 0 || (int)stat.st_size != (int)&_binary_resources_changeinfo_txt_size) {
-		sceIoMkdir("ux0:patch", 0777);
-		sceIoMkdir("ux0:patch/VITASHELL", 0777);
-		sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);
-		sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0777);
-		WriteFile("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", (void *)&_binary_resources_changeinfo_txt_start, (int)&_binary_resources_changeinfo_txt_size);
 	}
 
 	// Delete VitaShell updater if available
