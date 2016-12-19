@@ -257,12 +257,6 @@ int makeHeadBin() {
 	uint32_t len;
 	uint32_t out;
 
-	// head.bin must not be present
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
-	if (sceIoGetstat(HEAD_BIN, &stat) >= 0)
-		return -1;
-
 	// Read param.sfo
 	void *sfo_buffer = NULL;
 	int res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
@@ -276,7 +270,7 @@ int makeHeadBin() {
 
 	// Enforce TITLE_ID format
 	if (strlen(titleid) != 9)
-		return -2;
+		return -1;
 
 	// Get content id
 	char contentid[48];
