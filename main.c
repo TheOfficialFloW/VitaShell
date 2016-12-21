@@ -38,7 +38,6 @@
 #include "utils.h"
 #include "sfo.h"
 #include "list_dialog.h"
-#include "UI2.h"
 
 #include "audio/vita_audio.h"
 
@@ -1605,7 +1604,6 @@ int fileBrowserMenuCtrl() {
 }
 
 int shellMain() {
-BEGIN_SHELL_UI:
 	// Position
 	memset(base_pos_list, 0, sizeof(base_pos_list));
 	memset(rel_pos_list, 0, sizeof(rel_pos_list));
@@ -1678,7 +1676,6 @@ BEGIN_SHELL_UI:
 	initSettingsMenu();
 
 	while (1) {
-		if (!Change_UI) {
 		readPad();
 
 		int refresh = REFRESH_MODE_NONE;
@@ -1884,10 +1881,6 @@ BEGIN_SHELL_UI:
 
 		// End drawing
 		endDrawing();
-		}
-		else {
-			break;
-		}
 	}
 
 	// Empty lists
@@ -1895,10 +1888,6 @@ BEGIN_SHELL_UI:
 	fileListEmpty(&mark_list);
 	fileListEmpty(&file_list);
 
-	if (Change_UI) {
-		UI2();
-		goto BEGIN_SHELL_UI;
-	}
 	return 0;
 }
 

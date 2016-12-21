@@ -25,33 +25,7 @@
 
 INCLUDE_EXTERN_RESOURCE(colors_txt);
 INCLUDE_EXTERN_RESOURCE(colors_txt_size);
-/*
-INCLUDE_EXTERN_RESOURCE(vita_game_card_png);
-INCLUDE_EXTERN_RESOURCE(vita_game_card_storage_png);
-INCLUDE_EXTERN_RESOURCE(memory_card_png);
-INCLUDE_EXTERN_RESOURCE(os0_png);
-INCLUDE_EXTERN_RESOURCE(sa0_png);
-INCLUDE_EXTERN_RESOURCE(ur0_png);
-INCLUDE_EXTERN_RESOURCE(vd0_png);
-INCLUDE_EXTERN_RESOURCE(vs0_png);
-INCLUDE_EXTERN_RESOURCE(savedata0_png);
-INCLUDE_EXTERN_RESOURCE(pd0_png);
-INCLUDE_EXTERN_RESOURCE(app0_png);
-INCLUDE_EXTERN_RESOURCE(ud0_png);
 
-INCLUDE_EXTERN_RESOURCE(bg_wallpaper_png);
-INCLUDE_EXTERN_RESOURCE(folder_png);
-INCLUDE_EXTERN_RESOURCE(mark_png);
-INCLUDE_EXTERN_RESOURCE(run_file_png);
-INCLUDE_EXTERN_RESOURCE(image_file_png);
-INCLUDE_EXTERN_RESOURCE(unknown_file_png);
-INCLUDE_EXTERN_RESOURCE(music_file_png);
-INCLUDE_EXTERN_RESOURCE(zip_file_png);
-INCLUDE_EXTERN_RESOURCE(txt_file_png);
-INCLUDE_EXTERN_RESOURCE(music_file_png);
-INCLUDE_EXTERN_RESOURCE(title_bar_bg_png);
-INCLUDE_EXTERN_RESOURCE(updir_png);
-*/
 INCLUDE_EXTERN_RESOURCE(folder_icon_png);
 INCLUDE_EXTERN_RESOURCE(file_icon_png);
 INCLUDE_EXTERN_RESOURCE(archive_icon_png);
@@ -135,15 +109,6 @@ int AUDIO_TIME_TOTAL;
 int AUDIO_TIME_BAR;
 int AUDIO_TIME_BAR_BG;
 
-//UI2 colors
-int ITEM_BORDER;
-int ITEM_BORDER_SELECT;
-int BACKGROUND_COLOR_TEXT_ITEM;
-int ALPHA_TITLEBAR;
-
-vita2d_texture *default_wallpaper = NULL, *game_card_storage_image = NULL, *game_card_image = NULL, *memory_card_image = NULL, *run_file_image = NULL, *img_file_image = NULL, *unknown_file_image = NULL, *sa0_image = NULL, *ur0_image = NULL, *vd0_image = NULL, *vs0_image = NULL, *savedata0_image = NULL, *pd0_image = NULL, *folder_image = NULL, *app0_image = NULL, *ud0_image = NULL, *mark_image = NULL, *music_image = NULL, *os0_image = NULL, *zip_file_image = NULL, *txt_file_image = NULL, *title_bar_bg_image = NULL, *updir_image = NULL ;
-
-
 vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
 			   *wifi_image = NULL, *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *settings_image = NULL, *battery_image = NULL,
 			   *battery_bar_red_image = NULL, *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
@@ -191,31 +156,6 @@ ThemeImage theme_images[] = {
 	{ "fastforward.png", &_binary_resources_fastforward_png_start, &fastforward_image },
 	{ "fastrewind.png", &_binary_resources_fastrewind_png_start, &fastrewind_image },
 	{ "wallpaper.png", NULL, &wallpaper_image },
-	/*
-	{ "bg_wallpaper.png", &_binary_resources_bg_wallpaper_png_start, &default_wallpaper },
-	{ "vita_game_card.png", &_binary_resources_vita_game_card_png_start, &game_card_image },
-	{ "vita_game_card_storage.png", &_binary_resources_vita_game_card_storage_png_start, &game_card_storage_image },
-	{ "memory_card.png", &_binary_resources_memory_card_png_start, &memory_card_image },
-	{ "os0.png", &_binary_resources_os0_png_start, &os0_image },
-	{ "sa0.png", &_binary_resources_sa0_png_start, &sa0_image },
-	{ "ur0.png", &_binary_resources_ur0_png_start, &ur0_image },
-	{ "vd0.png", &_binary_resources_vd0_png_start, &vd0_image },
-	{ "vs0.png", &_binary_resources_vs0_png_start, &vs0_image },
-	{ "savedata0.png", &_binary_resources_savedata0_png_start, &savedata0_image },
-	{ "pd0.png", &_binary_resources_pd0_png_start, &pd0_image },
-	{ "app0.png", &_binary_resources_app0_png_start, &app0_image },
-	{ "ud0.png", &_binary_resources_ud0_png_start, &ud0_image },
-	{ "folder.png", &_binary_resources_folder_png_start, &folder_image },
-	{ "mark.png", &_binary_resources_mark_png_start, &mark_image },
-	{ "run_file.png", &_binary_resources_run_file_png_start, &run_file_image },
-	{ "image_file.png", &_binary_resources_image_file_png_start, &img_file_image },
-	{ "unknown_file.png", &_binary_resources_unknown_file_png_start, &unknown_file_image },
-	{ "music_file.png", &_binary_resources_music_file_png_start, &music_image },
-	{ "zip_file.png", &_binary_resources_zip_file_png_start, &zip_file_image },
-	{ "txt_file.png", &_binary_resources_txt_file_png_start, &txt_file_image },
-	{ "title_bar_bg.png", &_binary_resources_title_bar_bg_png_start, &title_bar_bg_image },
-	{ "updir.png", &_binary_resources_updir_png_start, &updir_image },
-	*/
 };
 
 #define N_THEME_IMAGES (sizeof(theme_images) / sizeof(ThemeImage))
@@ -285,12 +225,6 @@ void loadTheme() {
 		COLOR_ENTRY(AUDIO_TIME_TOTAL),
 		COLOR_ENTRY(AUDIO_TIME_BAR),
 		COLOR_ENTRY(AUDIO_TIME_BAR_BG),
-
-		//UI2 colors
-		COLOR_ENTRY(ITEM_BORDER),
-		COLOR_ENTRY(ITEM_BORDER_SELECT),
-		COLOR_ENTRY(BACKGROUND_COLOR_TEXT_ITEM),
-		COLOR_ENTRY(ALPHA_TITLEBAR),
 	};
 
 	int i;

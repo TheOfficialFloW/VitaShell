@@ -62,9 +62,3 @@ AUDIO_TIME_SLASH             = 0xFFFFFFFF    # White
 AUDIO_TIME_TOTAL             = 0xFFFFFFFF    # White
 AUDIO_TIME_BAR               = 0xFFFF7F00    # Azure
 AUDIO_TIME_BAR_BG            = 0xFF7F7F7F    # Gray
-
-# UI2 colors
-ITEM_BORDER                  = 0xDDDDDDDD   # Gray
-ITEM_BORDER_SELECT           = 0xFF00FF00   # Green
-BACKGROUND_COLOR_TEXT_ITEM   = 0xFFFFFFFF   # White
-ALPHA_TITLEBAR               = 0xB4         # 180      
