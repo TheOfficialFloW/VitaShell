@@ -27,9 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-#define TRANSFER_SIZE 64 * 1024
-
 #define PACKAGE_DIR "ux0:data/pkg"
 #define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
 
@@ -60,32 +57,6 @@ int launchAppByUriExit(char *titleid) {
 	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
 
 	sceKernelExitProcess(0);
-
-	return 0;
-}
-
-int copyFile(char *src_path, char *dst_path) {
-	SceUID fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
-	if (fdsrc < 0)
-		return fdsrc;
-
-	SceUID fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	if (fddst < 0) {
-		sceIoClose(fdsrc);
-		return fddst;
-	}
-
-	void *buf = malloc(TRANSFER_SIZE);
-
-	int read;
-	while ((read = sceIoRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-		sceIoWrite(fddst, buf, read);
-	}
-
-	free(buf);
-
-	sceIoClose(fddst);
-	sceIoClose(fdsrc);
 
 	return 0;
 }
@@ -188,16 +159,6 @@ cleanup:
 int main(int argc, const char *argv[]) {
 	char *titleid = get_title_id(PACKAGE_DIR "/sce_sys/param.sfo");
 	if (titleid && strcmp(titleid, "VITASHELL") == 0) {
-		copyFile(PACKAGE_DIR "/eboot.bin", "ux0:app/MLCL00001/eboot.bin");
-
-		SceUID fd = sceIoOpen("ux0:app/MLCL00001/eboot.bin", SCE_O_WRONLY, 0777);
-		if (fd >= 0) {
-			char flag = 0x02;
-			sceIoLseek(fd, 0x80, SCE_SEEK_SET);
-			sceIoWrite(fd, &flag, sizeof(char));
-			sceIoClose(fd);
-		}
-
 		if (promote(PACKAGE_DIR) >= 0)
 			launchAppByUriExit("VITASHELL");
 	}

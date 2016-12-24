@@ -98,7 +98,7 @@ int archiveCheckFilesForUnsafeFself() {
 
 				// Check authid flag
 				uint64_t authid = *(uint64_t *)(sce_header + 0x7C);
-				if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {
+				if (authid != 0x2F00000000000002) {
 					archiveFileClose(ARCHIVE_FD);
 					return 1; // Unsafe
 				}
