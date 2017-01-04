@@ -19,6 +19,7 @@
 #include "main.h" 
 #include "context_menu.h"
 #include "archive.h"
+#include "archiveRAR.h"
 #include "file.h"
 #include "text.h"
 #include "hex.h"
@@ -531,7 +532,18 @@ int textViewer(char *file) {
 	s->edit_line = -1;
 
 	if (isInArchive()) {
-		s->size = ReadArchiveFile(file, buffer_base, BIG_BUFFER_SIZE);
+    enum FileTypes archiveType = getArchiveType();
+    switch(archiveType){
+      case FILE_TYPE_ZIP:
+        s->size = ReadArchiveFile(file, buffer_base, BIG_BUFFER_SIZE);
+        break;
+      case FILE_TYPE_RAR:
+        s->size = ReadArchiveRARFile(file,buffer_base,BIG_BUFFER_SIZE);
+        break;
+      default:
+        s->size = -1;
+        break;
+      }
 		s->modify_allowed = 0;
 	} else {
 		s->size = ReadFile(file, buffer_base, BIG_BUFFER_SIZE);

@@ -38,6 +38,7 @@
 #include "utils.h"
 #include "sfo.h"
 #include "list_dialog.h"
+#include "archiveRAR.h"
 
 #include "audio/vita_audio.h"
 
@@ -66,10 +67,13 @@ static int dir_level = 0;
 
 // Copy mode
 static int copy_mode = COPY_MODE_NORMAL;
+static int file_type = FILE_TYPE_UNKNOWN;
+static char archive_copy_path[MAX_PATH_LENGTH];
 
 // Archive
 int is_in_archive = 0;
 int dir_level_archive = -1;
+enum FileTypes archive_type = FILE_TYPE_ZIP;
 
 // FTP
 static char vita_ip[16];
@@ -102,6 +106,10 @@ void dirLevelUp() {
 	rel_pos = 0;
 }
 
+enum FileTypes getArchiveType(){
+    return archive_type;
+}
+
 int isInArchive() {
 	return is_in_archive;
 }
@@ -109,7 +117,11 @@ int isInArchive() {
 void dirUpCloseArchive() {
 	if (isInArchive() && dir_level_archive >= dir_level) {
 		is_in_archive = 0;
-		archiveClose();
+		enum FileTypes archiveType = getArchiveType();
+		if(archiveType == FILE_TYPE_RAR)
+            archiveRARClose();
+        else if(archiveType == FILE_TYPE_ZIP)
+            archiveClose();
 		dir_level_archive = -1;
 	}
 }
@@ -273,6 +285,7 @@ int handleFile(char *file, FileListEntry *entry) {
 		case FILE_TYPE_OGG:
 		case FILE_TYPE_VPK:
 		case FILE_TYPE_ZIP:
+		case FILE_TYPE_RAR:
 			if (isInArchive())
 				type = FILE_TYPE_UNKNOWN;
 
@@ -306,6 +319,9 @@ int handleFile(char *file, FileListEntry *entry) {
 		case FILE_TYPE_ZIP:
 			res = archiveOpen(file);
 			break;
+    case FILE_TYPE_RAR:
+      res = archiveRAROpen(file);
+      break;
 
 		case FILE_TYPE_SFO:
 			res = SFOReader(file);
@@ -723,6 +739,9 @@ int contextMenuEnterCallback(int pos, void* context) {
 			} else {
 				copy_mode = isInArchive() ? COPY_MODE_EXTRACT : COPY_MODE_NORMAL;
 			}
+			
+			file_type = getArchiveType();
+			strcpy(archive_copy_path,archive_path);
 
 			// Empty copy list at first
 			fileListEmpty(&copy_list);
@@ -1136,8 +1155,9 @@ int dialogSteps() {
 				CopyArguments args;
 				args.file_list = &file_list;
 				args.copy_list = &copy_list;
-				args.archive_path = archive_path;
+				args.archive_path = archive_copy_path;
 				args.copy_mode = copy_mode;
+				args.file_type = file_type;
 
 				dialog_step = DIALOG_STEP_COPYING;
 
@@ -1585,8 +1605,9 @@ int fileBrowserMenuCtrl() {
 			int type = handleFile(cur_file, file_entry);
 
 			// Archive mode
-			if (type == FILE_TYPE_ZIP) {
+			if ((type == FILE_TYPE_ZIP) | (type == FILE_TYPE_RAR)) {
 				is_in_archive = 1;
+				archive_type = type;
 				dir_level_archive = dir_level;
 
 				snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
@@ -1751,6 +1772,7 @@ int shellMain() {
 						
 					case FILE_TYPE_VPK:
 					case FILE_TYPE_ZIP:
+					case FILE_TYPE_RAR:
 						color = ARCHIVE_COLOR;
 						icon = archive_icon;
 						break;

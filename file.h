@@ -45,6 +45,7 @@ enum FileTypes {
 	FILE_TYPE_VPK,
 	FILE_TYPE_XML,
 	FILE_TYPE_ZIP,
+	FILE_TYPE_RAR,
 };
 
 enum FileSortFlags {

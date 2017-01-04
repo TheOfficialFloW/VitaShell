@@ -18,6 +18,7 @@
 
 #include "main.h"
 #include "archive.h"
+#include "archiveRAR.h"
 #include "init.h"
 #include "theme.h"
 #include "language.h"
@@ -185,7 +186,18 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	uint32_t buffer[0x88/4];
 
 	if (isInArchive()) {
-		size = ReadArchiveFile(path, buffer, sizeof(buffer));
+      enum FileTypes archiveType = getArchiveType();
+      switch(archiveType){
+        case FILE_TYPE_ZIP:
+          size = ReadArchiveFile(path, buffer, sizeof(buffer));
+          break;
+        case FILE_TYPE_RAR:
+          size = ReadArchiveRARFile(path,buffer,sizeof(buffer));
+          break;
+        default:
+          size = -1;
+          break;
+      }
 	} else {
 		size = ReadFile(path, buffer, sizeof(buffer));
 	}
@@ -256,6 +268,10 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 		case FILE_TYPE_ZIP:	
 			type = PROPERTY_TYPE_ZIP;
 			break;
+    
+    case FILE_TYPE_RAR:
+      type = PROPERTY_TYPE_RAR;
+      break;
 	}
 
 	width = copyStringLimited(property_type, language_container[type], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
