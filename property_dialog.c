@@ -268,10 +268,10 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 		case FILE_TYPE_ZIP:	
 			type = PROPERTY_TYPE_ZIP;
 			break;
-    
-    case FILE_TYPE_RAR:
-      type = PROPERTY_TYPE_RAR;
-      break;
+			
+		case FILE_TYPE_RAR:
+			type = PROPERTY_TYPE_RAR;
+			break;
 	}
 
 	width = copyStringLimited(property_type, language_container[type], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
