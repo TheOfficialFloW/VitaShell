@@ -19,8 +19,6 @@
 #include "main.h"
 #include "elf.h"
 
-#include <zlib.h>
-
 //! Module Information
 typedef struct {
 	uint16_t attr;	//!< Attribute

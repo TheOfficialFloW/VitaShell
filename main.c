@@ -37,14 +37,13 @@
 #include "language.h"
 #include "utils.h"
 #include "sfo.h"
+#include "coredump.h"
 #include "list_dialog.h"
 #include "archiveRAR.h"
 
 #include "audio/vita_audio.h"
 
-int _newlib_heap_size_user = 128 * 1024 * 1024;
-
-#define MAX_DIR_LEVELS 1024
+int _newlib_heap_size_user = 64 * 1024 * 1024;
 
 // Context menu
 static float ctx_menu_max_width = 0.0f, ctx_menu_more_max_width = 0.0f;
@@ -117,12 +116,14 @@ int isInArchive() {
 void dirUpCloseArchive() {
 	if (isInArchive() && dir_level_archive >= dir_level) {
 		is_in_archive = 0;
-	enum FileTypes archiveType = getArchiveType();
-	if(archiveType == FILE_TYPE_RAR)
-		archiveRARClose();
-	else if(archiveType == FILE_TYPE_ZIP)
-		archiveClose();
-	dir_level_archive = -1;
+		
+		enum FileTypes archiveType = getArchiveType();
+		if(archiveType == FILE_TYPE_RAR)
+			archiveRARClose();
+		else if(archiveType == FILE_TYPE_ZIP)
+			archiveClose();
+		
+		dir_level_archive = -1;
 	}
 }
 
@@ -281,11 +282,12 @@ int handleFile(char *file, FileListEntry *entry) {
 
 	int type = getFileType(file);
 	switch (type) {
+		case FILE_TYPE_PSP2DMP:
 		case FILE_TYPE_MP3:
 		case FILE_TYPE_OGG:
+		case FILE_TYPE_RAR:
 		case FILE_TYPE_VPK:
 		case FILE_TYPE_ZIP:
-		case FILE_TYPE_RAR:
 			if (isInArchive())
 				type = FILE_TYPE_UNKNOWN;
 
@@ -293,6 +295,10 @@ int handleFile(char *file, FileListEntry *entry) {
 	}
 
 	switch (type) {
+		case FILE_TYPE_PSP2DMP:
+			res = coredumpViewer(file);
+			break;
+			
 		case FILE_TYPE_INI:
 		case FILE_TYPE_TXT:
 		case FILE_TYPE_XML:
@@ -310,7 +316,15 @@ int handleFile(char *file, FileListEntry *entry) {
 		case FILE_TYPE_OGG:
 			res = audioPlayer(file, type, &file_list, entry, &base_pos, &rel_pos);
 			break;
-
+			
+		case FILE_TYPE_RAR:
+			res = archiveRAROpen(file);
+			break;
+			
+		case FILE_TYPE_SFO:
+			res = SFOReader(file);
+			break;
+			
 		case FILE_TYPE_VPK:
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
 			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
@@ -318,12 +332,6 @@ int handleFile(char *file, FileListEntry *entry) {
 			
 		case FILE_TYPE_ZIP:
 			res = archiveOpen(file);
-			break;
-		case FILE_TYPE_RAR:
-			res = archiveRAROpen(file);
-			break;
-		case FILE_TYPE_SFO:
-			res = SFOReader(file);
 			break;
 			
 		default:

@@ -198,7 +198,7 @@ int extractRARArchivePath(char *src, char *dst, FileProcessParam *param) {
 
 		SceUID fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 
-struct ExtractHeader header = {file:fddst,offset:0,memPtr:NULL,bufferSize:0,param:param};
+		struct ExtractHeader header = {file:fddst,offset:0,memPtr:NULL,bufferSize:0,param:param};
 
 		int result = extractRAR(filepath,src + (filePathLength + sizeof(char)),&header);
 		sceIoClose(fddst);

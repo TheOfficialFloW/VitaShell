@@ -59,6 +59,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <zlib.h>
+
 #include <vita2d.h>
 #include <ftpvita.h>
 
@@ -118,6 +120,11 @@
 #define HEX_OFFSET_X 147.0f
 #define HEX_CHAR_X (SCREEN_WIDTH - SHELL_MARGIN_X - 0x10 * FONT_X_SPACE)
 #define HEX_OFFSET_SPACE 34.0f
+
+// Coredump
+#define COREDUMP_INFO_X (SHELL_MARGIN_X + 160.0f)
+#define COREDUMP_REGISTER_NAME_SPACE 45.0f
+#define COREDUMP_REGISTER_SPACE 165.0f
 
 // Scroll bar
 #define SCROLL_BAR_X 0.0f

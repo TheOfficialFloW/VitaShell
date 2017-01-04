@@ -23,13 +23,11 @@
 #include "sha1.h"
 
 static char *devices[] = {
-	// "app0:",
 	"gro0:",
 	"grw0:",
 	"os0:",
 	"pd0:",
 	"sa0:",
-	// "savedata0:",
 	"tm0:",
 	"ud0:",
 	"ur0:",
@@ -599,6 +597,8 @@ typedef struct {
 } ExtensionType;
 
 static ExtensionType extension_types[] = {
+	{ ".PSP2DMP", FILE_TYPE_PSP2DMP },
+	{ ".TMP",  FILE_TYPE_PSP2DMP },
 	{ ".BMP",  FILE_TYPE_BMP },
 	{ ".INI",  FILE_TYPE_INI },
 	{ ".JPG",  FILE_TYPE_JPEG },
@@ -606,12 +606,12 @@ static ExtensionType extension_types[] = {
 	{ ".MP3",  FILE_TYPE_MP3 },
 	{ ".OGG",  FILE_TYPE_OGG },
 	{ ".PNG",  FILE_TYPE_PNG },
+	{ ".RAR",  FILE_TYPE_RAR },
 	{ ".SFO",  FILE_TYPE_SFO },
 	{ ".TXT",  FILE_TYPE_TXT },
 	{ ".VPK",  FILE_TYPE_VPK },
 	{ ".XML",  FILE_TYPE_XML },
 	{ ".ZIP",  FILE_TYPE_ZIP },
-	{ ".RAR",  FILE_TYPE_RAR },
 };
 
 int getFileType(char *file) {

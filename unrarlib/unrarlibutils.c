@@ -1,5 +1,13 @@
 #include "unrarlibutils.h"
 
+int getcwd() {
+	return 0;
+}
+
+int fsync() {
+	return 0;
+}
+
 static	void* rar_open(const char *filename, unsigned int om) {
 	struct RAROpenArchiveData arc_open;
 	arc_open.ArcName = (char*)filename;
