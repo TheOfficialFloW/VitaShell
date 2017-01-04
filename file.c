@@ -611,6 +611,7 @@ static ExtensionType extension_types[] = {
 	{ ".VPK",  FILE_TYPE_VPK },
 	{ ".XML",  FILE_TYPE_XML },
 	{ ".ZIP",  FILE_TYPE_ZIP },
+	{ ".RAR",  FILE_TYPE_RAR },
 };
 
 int getFileType(char *file) {
@@ -976,7 +977,11 @@ int fileListGetDirectoryEntries(FileList *list, char *path, int sort) {
 
 int fileListGetEntries(FileList *list, char *path, int sort) {
 	if (isInArchive()) {
-		return fileListGetArchiveEntries(list, path, sort);
+        enum FileTypes type = getArchiveType();
+        if(type == FILE_TYPE_ZIP)
+            return fileListGetArchiveEntries(list, path, sort);
+        else if(type == FILE_TYPE_RAR)
+            return fileListGetRARArchiveEntries(list,path,sort);
 	}
 
 	if (strcasecmp(path, HOME_PATH) == 0) {

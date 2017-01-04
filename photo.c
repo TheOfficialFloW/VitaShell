@@ -29,11 +29,22 @@ vita2d_texture *loadImage(char *file, int type, char *buffer) {
 	if (isInArchive()) {
 		int size = 0;
 
-		if (isInArchive()) {
-			size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
-		} else {
-			size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
-		}
+        if (isInArchive()) {
+			enum FileTypes archiveType = getArchiveType();
+			switch(archiveType){
+				case FILE_TYPE_ZIP:
+					size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
+					break;
+				case FILE_TYPE_RAR:
+					size = ReadArchiveRARFile(file,buffer,BIG_BUFFER_SIZE);
+					break;
+				default:
+					size = -1;
+					break;
+				}
+        } else {
+            size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
+        }
 
 		if (size <= 0) {
 			return NULL;

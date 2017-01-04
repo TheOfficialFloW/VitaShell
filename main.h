@@ -228,6 +228,7 @@ void drawScrollBar(int pos, int n);
 void drawShellInfo(char *path);
 
 int isInArchive();
+enum FileTypes getArchiveType();
 
 void ftpvita_PROM(ftpvita_client_info_t *client);
 void install_unassisted_sync(char *path);

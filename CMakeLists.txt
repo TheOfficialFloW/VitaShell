@@ -17,7 +17,7 @@ set(VITA_TITLEID  "VITASHELL")
 set(VITA_VERSION  "01.43")
 
 # Flags and includes
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -fno-lto")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2800000000000001")
@@ -100,6 +100,8 @@ add_executable(VitaShell
   libmad/stream.c
   libmad/synth.c
   libmad/timer.c
+  unrarlib/unrarlibutils.c
+  archiveRAR.c
 )
 
 target_link_libraries(VitaShell
@@ -137,6 +139,8 @@ target_link_libraries(VitaShell
   ScePower_stub
   ScePromoterUtil_stub
   SceTouch_stub
+  unrar
+  stdc++
 )
 
 # Create Vita artifacts
