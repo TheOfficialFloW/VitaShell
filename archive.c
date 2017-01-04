@@ -65,22 +65,19 @@ int archiveCheckFilesForUnsafeFself() {
 					archiveFileRead(ARCHIVE_FD, &dummy, sizeof(uint32_t));
 				}
 
-				// ELF header starts at header_len, so let's seek to there
-				uint64_t header_len = *(uint64_t *)(sce_header + 0xC);
-				char elf1[header_len - elf1_offset];
-				archiveFileRead(ARCHIVE_FD, elf1, header_len - elf1_offset);
-
 				// Check imports
 				char *buffer = malloc(archive_entry->size);
 				if (buffer) {
 					int size = archiveFileRead(ARCHIVE_FD, buffer, archive_entry->size);
-					if (buffer[0] == 0x78) {
-						char *uncompressed_buffer = uncompressBuffer(
-							(Elf32_Ehdr*)elf1,
-							(Elf32_Phdr*)(elf1 + phdr_offset - elf1_offset),
-							(segment_info*)(elf1 + section_info_offset - elf1_offset),
-							buffer
-						);
+
+					Elf32_Ehdr *elf1 = (Elf32_Ehdr*)buffer;
+					Elf32_Phdr *phdr = (Elf32_Phdr*)buffer + phdr_offset - elf1_offset;
+					segment_info *info = (segment_info*)(buffer + section_info_offset - elf1_offset);
+					char *segment = buffer + info->offset;
+
+					// zlib compress magic
+					if (segment[0] == 0x78) {
+						char *uncompressed_buffer = uncompressBuffer(elf1, phdr, info, segment);
 						if (uncompressed_buffer) {
 							free(buffer);
 							buffer = uncompressed_buffer;
