@@ -117,12 +117,12 @@ int isInArchive() {
 void dirUpCloseArchive() {
 	if (isInArchive() && dir_level_archive >= dir_level) {
 		is_in_archive = 0;
-		enum FileTypes archiveType = getArchiveType();
-		if(archiveType == FILE_TYPE_RAR)
-            archiveRARClose();
-		else if(archiveType == FILE_TYPE_ZIP)
-            archiveClose();
-		dir_level_archive = -1;
+	enum FileTypes archiveType = getArchiveType();
+	if(archiveType == FILE_TYPE_RAR)
+		archiveRARClose();
+	else if(archiveType == FILE_TYPE_ZIP)
+		archiveClose();
+	dir_level_archive = -1;
 	}
 }
 
