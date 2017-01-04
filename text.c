@@ -532,18 +532,18 @@ int textViewer(char *file) {
 	s->edit_line = -1;
 
 	if (isInArchive()) {
-    enum FileTypes archiveType = getArchiveType();
-    switch(archiveType){
-      case FILE_TYPE_ZIP:
-        s->size = ReadArchiveFile(file, buffer_base, BIG_BUFFER_SIZE);
-        break;
-      case FILE_TYPE_RAR:
-        s->size = ReadArchiveRARFile(file,buffer_base,BIG_BUFFER_SIZE);
-        break;
-      default:
-        s->size = -1;
-        break;
-      }
+		enum FileTypes archiveType = getArchiveType();
+		switch(archiveType){
+			case FILE_TYPE_ZIP:
+				s->size = ReadArchiveFile(file, buffer_base, BIG_BUFFER_SIZE);
+				break;
+			case FILE_TYPE_RAR:
+				s->size = ReadArchiveRARFile(file,buffer_base,BIG_BUFFER_SIZE);
+				break;
+			default:
+				s->size = -1;
+				break;
+			}
 		s->modify_allowed = 0;
 	} else {
 		s->size = ReadFile(file, buffer_base, BIG_BUFFER_SIZE);

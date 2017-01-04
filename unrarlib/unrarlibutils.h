@@ -16,26 +16,26 @@
 #define RARMAX_FILENAME 262
 
 
-typedef struct{
-    char* nodeName;
-    void* fatherPt;
-    void** childPt;
-    uint32_t childCount;
-    uint32_t maxCount;
-    struct RARHeaderData data;
-}ArchiveFileNode;
+typedef struct {
+	char* nodeName;
+	void* fatherPt;
+	void** childPt;
+	uint32_t childCount;
+	uint32_t maxCount;
+	struct RARHeaderData data;
+} ArchiveFileNode;
 
-struct filelayer{
-    uint32_t depth;
-    char name[RARMAX_HIERARCHY][RARMAX_FILENAME];
+struct filelayer {
+	uint32_t depth;
+	char name[RARMAX_HIERARCHY][RARMAX_FILENAME];
 };
 
-struct ExtractHeader{
-    SceUID file;
-    uint64_t offset;
-    char* memPtr;
-    uint64_t bufferSize;
-    FileProcessParam * param;
+struct ExtractHeader {
+	SceUID file;
+	uint64_t offset;
+	char* memPtr;
+	uint64_t bufferSize;
+	FileProcessParam * param;
 };
 
 
