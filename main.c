@@ -120,7 +120,7 @@ void dirUpCloseArchive() {
 		enum FileTypes archiveType = getArchiveType();
 		if(archiveType == FILE_TYPE_RAR)
             archiveRARClose();
-        else if(archiveType == FILE_TYPE_ZIP)
+		else if(archiveType == FILE_TYPE_ZIP)
             archiveClose();
 		dir_level_archive = -1;
 	}
@@ -319,10 +319,9 @@ int handleFile(char *file, FileListEntry *entry) {
 		case FILE_TYPE_ZIP:
 			res = archiveOpen(file);
 			break;
-    case FILE_TYPE_RAR:
-      res = archiveRAROpen(file);
-      break;
-
+		case FILE_TYPE_RAR:
+			res = archiveRAROpen(file);
+			break;
 		case FILE_TYPE_SFO:
 			res = SFOReader(file);
 			break;

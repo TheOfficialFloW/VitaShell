@@ -223,17 +223,17 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 	} else { // Copy
 		// Open archive, because when you copy from an archive, you leave the archive to paste
 		if (args->copy_mode == COPY_MODE_EXTRACT) {
-        int res = -1;
-        switch(args->file_type){
-        case FILE_TYPE_ZIP:
-          res = archiveOpen(args->archive_path);
-          break;
-        case FILE_TYPE_RAR:
-          res = archiveRAROpen(args->archive_path);
-          break;
-        default:
-          res = -1;
-        }
+			int res = -1;
+			switch(args->file_type){
+			case FILE_TYPE_ZIP:
+			  res = archiveOpen(args->archive_path);
+			  break;
+			case FILE_TYPE_RAR:
+			  res = archiveRAROpen(args->archive_path);
+			  break;
+			default:
+			  res = -1;
+			}
 			if (res < 0) {
 				closeWaitDialog();
 				errorDialog(res);
@@ -252,16 +252,16 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
-        switch(args->file_type){
-        case FILE_TYPE_ZIP:
-          getArchivePathInfo(src_path, &size, &folders, &files);
-          break;
-        case FILE_TYPE_RAR:
-          getRARArchivePathInfo(src_path,&size,&folders,&files);
-          break;
-        default:
-          break;
-        }
+			switch(args->file_type){
+			case FILE_TYPE_ZIP:
+			  getArchivePathInfo(src_path, &size, &folders, &files);
+			  break;
+			case FILE_TYPE_RAR:
+			  getRARArchivePathInfo(src_path,&size,&folders,&files);
+			  break;
+			default:
+			  break;
+			}
 			} else {
 				getPathInfo(src_path, &size, &folders, &files, NULL);
 			}
@@ -292,17 +292,17 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			param.cancelHandler = cancelHandler;
 
 			if (args->copy_mode == COPY_MODE_EXTRACT) {
-			  int res = -1;
-        switch(args->file_type){
-          case FILE_TYPE_ZIP:
-            res = extractArchivePath(src_path, dst_path, &param);
-            break;
-          case FILE_TYPE_RAR:
-            res = extractRARArchivePath(src_path,dst_path,&param);
-            break;
-          default:
-            break;
-        }
+			  	int res = -1;
+				switch(args->file_type){
+				  case FILE_TYPE_ZIP:
+				    res = extractArchivePath(src_path, dst_path, &param);
+				    break;
+				  case FILE_TYPE_RAR:
+				    res = extractRARArchivePath(src_path,dst_path,&param);
+				    break;
+				  default:
+				    break;
+				}
 				if (res <= 0) {
 					closeWaitDialog();
 					dialog_step = DIALOG_STEP_CANCELLED;
@@ -324,17 +324,17 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 		// Close archive
 		if (args->copy_mode == COPY_MODE_EXTRACT) {
-      int res = -1;
-      switch(args->file_type){
-      case FILE_TYPE_ZIP:
-        res = archiveClose();
-        break;
-      case FILE_TYPE_RAR:
-        res = archiveRARClose();
-        break;
-      default:
-        break;
-      }
+		      int res = -1;
+		      switch(args->file_type){
+		      case FILE_TYPE_ZIP:
+			res = archiveClose();
+			break;
+		      case FILE_TYPE_RAR:
+			res = archiveRARClose();
+			break;
+		      default:
+			break;
+		      }
 			if (res < 0) {
 				closeWaitDialog();
 				errorDialog(res);
