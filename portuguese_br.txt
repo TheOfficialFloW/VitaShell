@@ -1,4 +1,4 @@
-# VitaShell v1.43 language file - (Português - Brasil) Rev.(0009)
+# VitaShell v1.5 language file - (Português - Brasil) Rev.(0010)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -122,13 +122,23 @@ HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Homebrews inseguros podem danificar seu 
 VITASHELL_SETTINGS_MAIN              = "Configurações principais"
 VITASHELL_SETTINGS_LANGUAGE          = "Linguagem"
 VITASHELL_SETTINGS_THEME             = "Tema"
+VITASHELL_SETTINGS_SELECT_BUTTON     = "Botão SELECT"
 VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Desabilitar atualizações automáticas"
 VITASHELL_SETTINGS_POWER             = "Power"
 VITASHELL_SETTINGS_REBOOT            = "Reiniciar"
 VITASHELL_SETTINGS_POWEROFF          = "Desligar"
 VITASHELL_SETTINGS_STANDBY           = "Standby"
+VITASHELL_SETTINGS_SELECT_BUTTON_USB = "USB"
+VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
+
+# USB strings
+USB_CONNECTED                        = "USB conectado"
+USB_CONNECTION_PERMISSION            = "A conexão USB requer permissão estendida.\Por favor, primeiro ative 'Ativar homebrew inseguro'."
+USB_CONNECTION_NOT_AVAILABLE         = "A conexão USB não está disponível neste dispositivo."
 
 # Others
+SAFE_MODE                            = "MODO SEGURO"
+UNSAFE_MODE                          = "MODO ISEGURO"
 PLEASE_WAIT                          = "Por favor, aguarde..."
 SAVE_MODIFICATIONS                   = "Você deseja salvar as modificações?"
 NO_SPACE_ERROR                       = "Não há espaço livre suficiente na memória\cartão.\É necessário pelo menos mais %s de espaço livre."
