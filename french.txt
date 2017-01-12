@@ -59,7 +59,7 @@ EXPORT_MEDIA				= "Exporter vers média PsVita"
 SEARCH					= "Rechercher"
 
 # File browser properties strings
-PROPERTY_NAME				= "Name"
+PROPERTY_NAME				= "Nom"
 PROPERTY_TYPE				= "Type"
 PROPERTY_FSELF_MODE			= "Mode FSELF"
 PROPERTY_SIZE				= "Taille"
