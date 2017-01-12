@@ -1024,31 +1024,25 @@ void initFtp() {
 }
 
 void initUsb() {
-	if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
-		infoDialog(language_container[USB_CONNECTION_NOT_AVAILABLE]);
-	} else if (is_safe_mode) {
-		infoDialog(language_container[USB_CONNECTION_PERMISSION]);
-	} else {
-		char *path = "sdstor0:xmc-lp-ign-userext";
+	char *path = "sdstor0:xmc-lp-ign-userext";
 
-		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
+	SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
+	
+	if (fd < 0)
+		path = "sdstor0:int-lp-ign-userext";
+	else
+		sceIoClose(fd);
+
+	usbdevice_modid = startUsb("ux0:VitaShell/module/usbdevice.skprx", path, SCE_USBSTOR_VSTOR_TYPE_FAT);
+	if (usbdevice_modid >= 0) {
+		// Lock power timers
+		powerLock();
 		
-		if (fd < 0)
-			path = "sdstor0:int-lp-ign-userext";
-		else
-			sceIoClose(fd);
-
-		usbdevice_modid = startUsb("ux0:VitaShell/module/usbdevice.skprx", path, SCE_USBSTOR_VSTOR_TYPE_FAT);
-		if (usbdevice_modid >= 0) {
-			// Lock power timers
-			powerLock();
-			
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_CONNECTED]);
-			dialog_step = DIALOG_STEP_USB;
-		} else {
-			errorDialog(usbdevice_modid);
-		}
-	}	
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_CONNECTED]);
+		dialog_step = DIALOG_STEP_USB;
+	} else {
+		errorDialog(usbdevice_modid);
+	}
 }
 
 int dialogSteps() {
@@ -1575,14 +1569,20 @@ int fileBrowserMenuCtrl() {
 	// SELECT button
 	if (pressed_buttons & SCE_CTRL_SELECT) {
 		if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB) {
-			SceUdcdDeviceState state;
-			sceUdcdGetDeviceState(&state);
-			
-			if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
-				initUsb();
+			if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
+				infoDialog(language_container[USB_CONNECTION_NOT_AVAILABLE]);
+			} else if (is_safe_mode) {
+				infoDialog(language_container[USB_CONNECTION_PERMISSION]);
 			} else {
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
-				dialog_step = DIALOG_STEP_USB_WAIT;
+				SceUdcdDeviceState state;
+				sceUdcdGetDeviceState(&state);
+				
+				if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
+					initUsb();
+				} else {
+					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
+					dialog_step = DIALOG_STEP_USB_WAIT;
+				}
 			}
 		} else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP) {
 			// Init FTP
