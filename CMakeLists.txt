@@ -14,7 +14,7 @@ project(VitaShell)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 set(VITA_APP_NAME "VitaShell")
 set(VITA_TITLEID  "VITASHELL")
-set(VITA_VERSION  "01.43")
+set(VITA_VERSION  "01.50")
 
 # Flags and includes
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -fno-lto")
@@ -48,7 +48,7 @@ FUNCTION(ADD_RESOURCES out_var)
   SET(${out_var} "${result}" PARENT_SCOPE)
 ENDFUNCTION()
 
-file(GLOB res_files RELATIVE ${CMAKE_SOURCE_DIR} resources/*.png resources/*.txt resources/*.bin)
+file(GLOB res_files RELATIVE ${CMAKE_SOURCE_DIR} resources/*.png resources/*.txt resources/*.bin resources/*.skprx)
 add_resources(vitashell_res ${res_files})
 
 add_executable(VitaShell
@@ -117,6 +117,8 @@ target_link_libraries(VitaShell
   m
   c
   onigmo
+  unrar
+  stdc++
   taihen_stub
   HENkaku_stub
   SceAppMgr_stub
@@ -129,6 +131,7 @@ target_link_libraries(VitaShell
   SceGxm_stub
   SceIme_stub
   SceHttp_stub
+  SceMtpIfDriver_stub
   SceMusicExport_stub
   SceNet_stub
   SceNetCtl_stub
@@ -140,17 +143,28 @@ target_link_libraries(VitaShell
   ScePower_stub
   ScePromoterUtil_stub
   SceTouch_stub
-  unrar
-  stdc++
+  SceUdcd_stub
+  SceUsbstorVStorDriver_stub
+  SceVshBridge_stub
 )
 
 # Create Vita artifacts
-vita_create_self(VitaShell.self VitaShell UNSAFE)
-vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} VitaShell.self
+vita_create_self(eboot.bin VitaShell UNSAFE)
+vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} eboot.bin
   VERSION ${VITA_VERSION}
   NAME ${VITA_APP_NAME}
   FILE pkg/sce_sys/icon0.png sce_sys/icon0.png
   FILE pkg/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
   FILE pkg/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
   FILE pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+)
+
+add_custom_target(send
+	COMMAND curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/${VITA_TITLEID}/
+	DEPENDS eboot.bin
+)
+
+add_custom_target(copy
+	COMMAND cp eboot.bin F:/app/${VITA_TITLEID}/eboot.bin
+	DEPENDS eboot.bin
 )

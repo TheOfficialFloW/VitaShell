@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,7 +19,11 @@
 #ifndef __VITASHELL_CONFIGURATION_H__
 #define __VITASHELL_CONFIGURATION_H__
 
+#define SELECT_BUTTON_MODE_USB 0
+#define SELECT_BUTTON_MODE_FTP 1
+
 typedef struct {
+	int select_button;
 	int disable_autoupdate;
 } VitaShellConfig;
 

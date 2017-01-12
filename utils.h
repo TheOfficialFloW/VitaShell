@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -84,5 +84,8 @@ int debugPrintf(char *text, ...);
 int launchAppByUriExit(char *titleid);
 
 char *strcasestr(const char *haystack, const char *needle);
+
+SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type);
+int stopUsb(SceUID modid);
 
 #endif

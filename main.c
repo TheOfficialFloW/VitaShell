@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -68,6 +68,8 @@ static int dir_level = 0;
 static int copy_mode = COPY_MODE_NORMAL;
 static int file_type = FILE_TYPE_UNKNOWN;
 static char archive_copy_path[MAX_PATH_LENGTH];
+
+static SceUID usbdevice_modid = -1;
 
 // Archive
 int is_in_archive = 0;
@@ -1021,6 +1023,34 @@ void initFtp() {
 	ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);	
 }
 
+void initUsb() {
+	if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
+		infoDialog(language_container[USB_CONNECTION_NOT_AVAILABLE]);
+	} else if (is_safe_mode) {
+		infoDialog(language_container[USB_CONNECTION_PERMISSION]);
+	} else {
+		char *path = "sdstor0:xmc-lp-ign-userext";
+
+		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
+		
+		if (fd < 0)
+			path = "sdstor0:int-lp-ign-userext";
+		else
+			sceIoClose(fd);
+
+		usbdevice_modid = startUsb("ux0:VitaShell/module/usbdevice.skprx", path, SCE_USBSTOR_VSTOR_TYPE_FAT);
+		if (usbdevice_modid >= 0) {
+			// Lock power timers
+			powerLock();
+			
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_CONNECTED]);
+			dialog_step = DIALOG_STEP_USB;
+		} else {
+			errorDialog(usbdevice_modid);
+		}
+	}	
+}
+
 int dialogSteps() {
 	int refresh = REFRESH_MODE_NONE;
 
@@ -1151,6 +1181,46 @@ int dialogSteps() {
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				powerUnlock();
 				ftpvita_fini();
+				refresh = REFRESH_MODE_NORMAL;
+				dialog_step = DIALOG_STEP_NONE;
+			}
+
+			break;
+			
+		case DIALOG_STEP_USB_WAIT:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				SceUdcdDeviceState state;
+				sceUdcdGetDeviceState(&state);
+				
+				if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
+					sceMsgDialogClose();
+				}
+			} else {
+				if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+					dialog_step = DIALOG_STEP_NONE;
+
+					SceUdcdDeviceState state;
+					sceUdcdGetDeviceState(&state);
+					
+					if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
+						initUsb();
+					}
+				}
+			}
+			
+			break;
+			
+		case DIALOG_STEP_USB:
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				SceUdcdDeviceState state;
+				sceUdcdGetDeviceState(&state);
+				
+				if (state.cable & SCE_UDCD_STATUS_CABLE_DISCONNECTED) {
+					sceMsgDialogClose();
+				}
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				powerUnlock();
+				stopUsb(usbdevice_modid);
 				refresh = REFRESH_MODE_NORMAL;
 				dialog_step = DIALOG_STEP_NONE;
 			}
@@ -1502,26 +1572,38 @@ int fileBrowserMenuCtrl() {
 		refresh = 1;
 	}
 
-	// FTP
+	// SELECT button
 	if (pressed_buttons & SCE_CTRL_SELECT) {
-		// Init FTP
-		if (!ftpvita_is_initialized()) {
-			int res = ftpvita_init(vita_ip, &vita_port);
-			if (res < 0) {
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
-				dialog_step = DIALOG_STEP_FTP_WAIT;
+		if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB) {
+			SceUdcdDeviceState state;
+			sceUdcdGetDeviceState(&state);
+			
+			if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
+				initUsb();
 			} else {
-				initFtp();
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
+				dialog_step = DIALOG_STEP_USB_WAIT;
+			}
+		} else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP) {
+			// Init FTP
+			if (!ftpvita_is_initialized()) {
+				int res = ftpvita_init(vita_ip, &vita_port);
+				if (res < 0) {
+					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
+					dialog_step = DIALOG_STEP_FTP_WAIT;
+				} else {
+					initFtp();
+				}
+
+				// Lock power timers
+				powerLock();
 			}
 
-			// Lock power timers
-			powerLock();
-		}
-
-		// Dialog
-		if (ftpvita_is_initialized()) {
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
-			dialog_step = DIALOG_STEP_FTP;
+			// Dialog
+			if (ftpvita_is_initialized()) {
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
+				dialog_step = DIALOG_STEP_FTP;
+			}
 		}
 	}
 
@@ -1962,6 +2044,9 @@ int main(int argc, const char *argv[]) {
 
 	// Init SceShellUtil events
 	sceShellUtilInitEvents(0);
+
+	// Prevent automatic CMA connection
+	sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION);
 
 	// Init audio
 	vitaAudioInit(0x40);

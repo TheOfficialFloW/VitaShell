@@ -213,4 +213,11 @@
 - Fixed bug where you couldn't exit the application.<br>
     ]]>
   </changes>
+   <changes app_ver="01.50">
+    <![CDATA[
+- Added USB mass storage transfer support.<br>
+- Added RAR archive support (by Mayoshiroi).<br>
+- Added coredump viewer.<br>
+    ]]>
+  </changes>
 </changeinfo>

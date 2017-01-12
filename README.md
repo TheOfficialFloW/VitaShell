@@ -93,6 +93,11 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.50 ###
+- Added USB mass storage transfer support.
+- Added RAR archive support (by Mayoshiroi).
+- Added coredump viewer.
+
 ### Changelog 1.43 ###
 - Added taiHEN config.txt reload option available in molecularShell.
 - Changed default HENkaku spoofed version to 3.63.

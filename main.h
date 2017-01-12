@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include <psp2/libssl.h>
 #include <psp2/ime_dialog.h>
 #include <psp2/message_dialog.h>
+#include <psp2/mtpif.h>
 #include <psp2/musicexport.h>
 #include <psp2/photoexport.h>
 #include <psp2/pgf.h>
@@ -38,6 +39,8 @@
 #include <psp2/system_param.h>
 #include <psp2/touch.h>
 #include <psp2/types.h>
+#include <psp2/udcd.h>
+#include <psp2/usbstorvstor.h>
 #include <psp2/kernel/modulemgr.h>
 #include <psp2/kernel/processmgr.h>
 #include <psp2/io/devctl.h>
@@ -72,7 +75,7 @@
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0x01
-#define VITASHELL_VERSION_MINOR 0x43
+#define VITASHELL_VERSION_MINOR 0x50
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 
@@ -169,6 +172,9 @@ enum DialogSteps {
 
 	DIALOG_STEP_FTP_WAIT,
 	DIALOG_STEP_FTP,
+
+	DIALOG_STEP_USB_WAIT,
+	DIALOG_STEP_USB,
 
 	DIALOG_STEP_RENAME,
 	DIALOG_STEP_NEW_FOLDER,

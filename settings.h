@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ enum SettingsOptionType {
 	SETTINGS_OPTION_TYPE_INTEGER,
 	SETTINGS_OPTION_TYPE_STRING,
 	SETTINGS_OPTION_TYPE_CALLBACK,
+	SETTINGS_OPTION_TYPE_OPTIONS,
 };
 
 enum SettingsMenuStatus {
@@ -53,6 +54,8 @@ typedef struct {
 	int (* callback)();
 	char *string;
 	int size_string;
+	char **options;
+	int n_options;
 	int *value;
 } SettingsMenuOption;
 

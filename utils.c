@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -335,7 +335,81 @@ int launchAppByUriExit(char *titleid) {
 	return 0;
 }
 
-
 char *strcasestr(const char *haystack, const char *needle) {
 	return boyer_moore(haystack, needle); 
+}
+
+int vshIoUmount(int id, int a2, int a3, int a4);
+int _vshIoMount(int id, int a2, int permission, void *buf);
+
+int vshIoMount(int id, int a2, int permission, int a4, int a5, int a6) {
+	uint32_t buf[6];
+
+	buf[0] = a4;
+	buf[1] = a5;
+	buf[2] = a6;
+	buf[3] = 0;
+	buf[4] = 0;
+	buf[5] = 0;
+
+	return _vshIoMount(id, a2, permission, buf);
+}
+
+SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
+	int res;
+
+	// Load and start usbdevice module
+	SceUID modid = taiLoadStartKernelModule(usbDevicePath, 0, NULL, 0);
+	if (modid < 0)
+		return modid;
+
+	// Stop MTP driver
+	res = sceMtpIfStopDriver(1);
+	if (res < 0)
+		return res;
+
+	// Set device information
+	res = sceUsbstorVStorSetDeviceInfo("\"PS Vita\" MC", "1.00");
+	if (res < 0)
+		return res;
+
+	// Set image file path
+	res = sceUsbstorVStorSetImgFilePath(imgFilePath);
+	if (res < 0)
+		return res;
+
+	// Start USB storage
+	res = sceUsbstorVStorStart(type);
+	if (res < 0)
+		return res;
+
+	return modid;
+}
+
+int stopUsb(SceUID modid) {
+	int res;
+
+	// Stop USB storage
+	res = sceUsbstorVStorStop();
+	if (res < 0)
+		return res;
+
+	// Start MTP driver
+	res = sceMtpIfStartDriver(1);
+	if (res < 0)
+		return res;
+
+	// Stop and unload usbdevice module
+	res = taiStopUnloadKernelModule(modid, 0, NULL, 0, NULL, NULL);
+	if (res < 0)
+		return res;
+
+	// Remount
+	vshIoUmount(0x800, 0, 0, 0);
+	vshIoMount(0x800, 0, 0, 0, 0, 0);
+
+	// Trick
+	sceAppMgrLoadExec("app0:eboot.bin", NULL, 0);
+
+	return 0;
 }

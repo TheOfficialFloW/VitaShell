@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -66,29 +66,36 @@ static char spoofed_version[6];
 static SettingsMenuEntry *settings_menu_entries = NULL;
 static int n_settings_entries = 0;
 
+static char *select_button_options[2];
+
 static ConfigEntry settings_entries[] = {
-	{ "DISABLE_AUTOUPDATE", CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_autoupdate }
+	{ "SELECT_BUTTON", CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.select_button },
+	{ "DISABLE_AUTOUPDATE", CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_autoupdate },
 };
 
 SettingsMenuOption henkaku_settings[] = {
-	{ HENKAKU_ENABLE_PSN_SPOOFING,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &henkaku_config.use_psn_spoofing },
-	{ HENKAKU_ENABLE_UNSAFE_HOMEBREW,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &henkaku_config.allow_unsafe_hb },
-	{ HENKAKU_ENABLE_VERSION_SPOOFING,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &henkaku_config.use_spoofed_version },
-	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, NULL, spoofed_version, sizeof(spoofed_version) - 1, NULL },
-	{ HENKAKU_RESTORE_DEFAULT_SETTINGS,	SETTINGS_OPTION_TYPE_CALLBACK, (void *)henkakuRestoreDefaultSettings, NULL, 0, NULL },
-	{ HENKAKU_RELOAD_CONFIG,			SETTINGS_OPTION_TYPE_CALLBACK, (void *)taihenReloadConfig, NULL, 0, NULL },
+	{ HENKAKU_ENABLE_PSN_SPOOFING,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &henkaku_config.use_psn_spoofing },
+	{ HENKAKU_ENABLE_UNSAFE_HOMEBREW,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &henkaku_config.allow_unsafe_hb },
+	{ HENKAKU_ENABLE_VERSION_SPOOFING,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &henkaku_config.use_spoofed_version },
+	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, NULL, spoofed_version, sizeof(spoofed_version) - 1, NULL, 0, NULL },
+	{ HENKAKU_RESTORE_DEFAULT_SETTINGS,	SETTINGS_OPTION_TYPE_CALLBACK, (void *)henkakuRestoreDefaultSettings, NULL, 0, NULL, 0, NULL },
+	{ HENKAKU_RELOAD_CONFIG,			SETTINGS_OPTION_TYPE_CALLBACK, (void *)taihenReloadConfig, NULL, 0, NULL, 0, NULL },
 };
 
 SettingsMenuOption main_settings[] = {
-	// { VITASHELL_SETTINGS_LANGUAGE,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &language },
-	// { VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &theme },
-	{ VITASHELL_SETTINGS_NO_AUTO_UPDATE,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, &vitashell_config.disable_autoupdate },
+	// { VITASHELL_SETTINGS_LANGUAGE,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &language },
+	// { VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &theme },
+	
+	{ VITASHELL_SETTINGS_SELECT_BUTTON,		SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
+											select_button_options, sizeof(select_button_options) / sizeof(char **),
+											&vitashell_config.select_button },
+	{ VITASHELL_SETTINGS_NO_AUTO_UPDATE,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_autoupdate },
 };
 
 SettingsMenuOption power_settings[] = {
-	{ VITASHELL_SETTINGS_REBOOT,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)rebootDevice, NULL, 0, NULL },
-	{ VITASHELL_SETTINGS_POWEROFF,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)shutdownDevice, NULL, 0, NULL },
-	{ VITASHELL_SETTINGS_STANDBY,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)suspendDevice, NULL, 0, NULL },
+	{ VITASHELL_SETTINGS_REBOOT,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)rebootDevice, NULL, 0, NULL, 0, NULL },
+	{ VITASHELL_SETTINGS_POWEROFF,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)shutdownDevice, NULL, 0, NULL, 0, NULL },
+	{ VITASHELL_SETTINGS_STANDBY,		SETTINGS_OPTION_TYPE_CALLBACK, (void *)suspendDevice, NULL, 0, NULL, 0, NULL },
 };
 
 SettingsMenuEntry molecularshell_settings_menu_entries[] = {
@@ -165,6 +172,9 @@ void initSettingsMenu() {
 	int i;
 	for (i = 0; i < n_settings_entries; i++)
 		settings_menu.n_options += settings_menu_entries[i].n_options;
+
+	select_button_options[0] = language_container[VITASHELL_SETTINGS_SELECT_BUTTON_USB];
+	select_button_options[1] = language_container[VITASHELL_SETTINGS_SELECT_BUTTON_FTP];
 }
 
 void openSettingsMenu() {
@@ -293,10 +303,21 @@ void drawSettingsMenu() {
 				pgf_draw_text(ALIGN_RIGHT(SCREEN_HALF_WIDTH - 10.0f, x), y, SETTINGS_MENU_ITEM_COLOR, FONT_SIZE, language_container[options[j].name]);
 
 				// Option
-				if (options[j].type == SETTINGS_OPTION_TYPE_BOOLEAN) {
-					pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, *(options[j].value) ? language_container[ON] : language_container[OFF]);
-				} else if (options[j].type == SETTINGS_OPTION_TYPE_STRING) {
-					pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].string);
+				switch (options[j].type) {
+					case SETTINGS_OPTION_TYPE_BOOLEAN:
+						pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, *(options[j].value) ? language_container[ON] : language_container[OFF]);
+						break;
+
+					case SETTINGS_OPTION_TYPE_STRING:
+						pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].string);
+						break;
+
+					case SETTINGS_OPTION_TYPE_OPTIONS:
+					{
+						int value = *(options[j].value);
+						pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].options[value]);
+						break;
+					}
 				}
 			}
 
@@ -341,13 +362,36 @@ void settingsMenuCtrl() {
 				*(option->value) = !*(option->value);
 			}
 		} else {
-			if (option->type == SETTINGS_OPTION_TYPE_BOOLEAN) {
-				*(option->value) = !*(option->value);
-			} else if (option->type == SETTINGS_OPTION_TYPE_STRING) {
-				initImeDialog(language_container[option->name], option->string, option->size_string, SCE_IME_TYPE_EXTENDED_NUMBER, 0);
-				dialog_step = DIALOG_STEP_SETTINGS_STRING;
-			} else if (option->type == SETTINGS_OPTION_TYPE_CALLBACK) {
-				option->callback(&option);
+			switch (option->type) {
+				case SETTINGS_OPTION_TYPE_BOOLEAN:
+					*(option->value) = !*(option->value);
+					break;
+				
+				case SETTINGS_OPTION_TYPE_STRING:
+					initImeDialog(language_container[option->name], option->string, option->size_string, SCE_IME_TYPE_EXTENDED_NUMBER, 0);
+					dialog_step = DIALOG_STEP_SETTINGS_STRING;
+					break;
+					
+				case SETTINGS_OPTION_TYPE_CALLBACK:
+					option->callback(&option);
+					break;
+					
+				case SETTINGS_OPTION_TYPE_OPTIONS:
+				{
+					if (pressed_buttons & SCE_CTRL_LEFT) {
+						if (*(option->value) > 0)
+							(*(option->value))--;
+						else
+							*(option->value) = option->n_options-1;
+					} else if (pressed_buttons & (SCE_CTRL_ENTER | SCE_CTRL_RIGHT)) {
+						if (*(option->value) < option->n_options-1)
+							(*(option->value))++;
+						else
+							*(option->value) = 0;
+					}
+					
+					break;
+				}
 			}
 		}
 	}
@@ -358,12 +402,12 @@ void settingsMenuCtrl() {
 			settings_menu.option_sel--;
 		} else if (settings_menu.entry_sel > 0) {
 			settings_menu.entry_sel--;
-			settings_menu.option_sel = settings_menu_entries[settings_menu.entry_sel].n_options - 1;
+			settings_menu.option_sel = settings_menu_entries[settings_menu.entry_sel].n_options-1;
 		}
 	} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-		if (settings_menu.option_sel < settings_menu_entries[settings_menu.entry_sel].n_options - 1) {
+		if (settings_menu.option_sel < settings_menu_entries[settings_menu.entry_sel].n_options-1) {
 			settings_menu.option_sel++;
-		} else if (settings_menu.entry_sel < n_settings_entries - 1) {
+		} else if (settings_menu.entry_sel < n_settings_entries-1) {
 			settings_menu.entry_sel++;
 			settings_menu.option_sel = 0;
 		}

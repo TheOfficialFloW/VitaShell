@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -21,8 +21,6 @@
 #include "file.h"
 #include "package_installer.h"
 #include "utils.h"
-
-INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
 
 INCLUDE_EXTERN_RESOURCE(folder_icon_png);
 INCLUDE_EXTERN_RESOURCE(file_icon_png);
@@ -47,6 +45,10 @@ INCLUDE_EXTERN_RESOURCE(fastrewind_png);
 INCLUDE_EXTERN_RESOURCE(theme_txt);
 INCLUDE_EXTERN_RESOURCE(colors_txt);
 INCLUDE_EXTERN_RESOURCE(english_us_txt);
+
+INCLUDE_EXTERN_RESOURCE(usbdevice_skprx);
+
+INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
 
 #define DEFAULT_FILE(path, name) { path, (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size }
 
@@ -74,7 +76,9 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", pause_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", fastforward_png),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png),
-	
+
+	DEFAULT_FILE("ux0:VitaShell/module/usbdevice.skprx", usbdevice_skprx),
+
 	DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt),
 };
 
@@ -244,6 +248,7 @@ void initVitaShell() {
 	sceIoMkdir("ux0:VitaShell", 0777);
 	sceIoMkdir("ux0:VitaShell/internal", 0777);
 	sceIoMkdir("ux0:VitaShell/language", 0777);
+	sceIoMkdir("ux0:VitaShell/module", 0777);
 	sceIoMkdir("ux0:VitaShell/theme", 0777);
 	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
 
