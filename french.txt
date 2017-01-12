@@ -1,7 +1,13 @@
-﻿# VitaShell french translation by xy2_ 
- # Updated by Dragoon1010 (For VitaShell 1.5)
+# VitaShell french translation by xy2_ 
+# Updated by Dragoon1010 (For VitaShell 1.5)
 
 # General strings
+
+# VitaShell french translation by xy2_ 
+# Updated by Dragoon1010 (For VitaShell 1.43)
+
+# General strings
+
 ERROR					= "Erreur 0x%08X."
 OK					= "OK"
 YES					= "Oui"
@@ -13,6 +19,7 @@ FILE_					= "Fichier"
 FOLDER					= "Dossier"
 
 # Progress strings
+
 MOVING					= "Déplacement en cours..."
 COPYING					= "Copie en cours..."
 DELETING				= "Suppression en cours..."
@@ -24,6 +31,7 @@ COMPRESSING				= "Compression en cours..."
 HASHING					= "Hashage en cours..."
 
 # Audio player strings
+
 TITLE					= "Titre"
 ALBUM					= "Album"
 ARTIST					= "Artiste"
@@ -31,16 +39,19 @@ GENRE					= "Genre"
 YEAR					= "Année"
 
 # Hex editor strings
+
 OFFSET					= "Décalage"
 OPEN_HEX_EDITOR				= "Ouvrir l'éditeur héxadécimal"
 
 # Text editor strings
+
 EDIT_LINE				= "Editer la ligne"
 ENTER_SEARCH_TERM			= "Entrer un mot cle"
 CUT					= "Couper"
 INSERT_EMPTY_LINE			= "Insérer une ligne vide"
 
 # File browser context menu strings
+
 MORE					= "Plus..."
 MARK_ALL				= "Marquer tous"
 UNMARK_ALL				= "Dé-marquer tous"
@@ -49,6 +60,7 @@ COPY					= "Copier"
 PASTE					= "Coller"
 DELETE					= "Supprimer"
 RENAME					= "Renommer"
+COMPRESS				= "Compresser"
 NEW_FOLDER				= "Nouveau dossier"
 PROPERTIES				= "Propriétés"
 COMPRESS				= "Compresser"
@@ -59,6 +71,7 @@ EXPORT_MEDIA				= "Exporter vers média PsVita"
 SEARCH					= "Rechercher"
 
 # File browser properties strings
+
 PROPERTY_NAME				= "Nom"
 PROPERTY_TYPE				= "Type"
 PROPERTY_FSELF_MODE			= "Mode FSELF"
@@ -70,12 +83,18 @@ PROPERTY_CREATION_DATE			= "Date de création"
 PROPERTY_MODFICATION_DATE		= "Date de modification"
 PROPERTY_TYPE_BMP 			= "Image Bitmap"
 PROPERTY_TYPE_INI			= "Fichier de configuration"
-PROPERTY_TYPE_JPEG			= "JImage PEG"
+PROPERTY_TYPE_JPEG			= "Image PEG"
+PROPERTY_CREATION_DATE			= "Date de creation"
+PROPERTY_MODFICATION_DATE		= "Date de modification"
+PROPERTY_TYPE_BMP			= "Image Bitmap"
+PROPERTY_TYPE_INI			= "Fichier de configuration"
+PROPERTY_TYPE_JPEG			= "Image JPEG"
 PROPERTY_TYPE_MP3			= "Fichier audio MP3"
 PROPERTY_TYPE_OGG			= "Fichier audio OGG"
 PROPERTY_TYPE_PNG			= "Image PNG"
 PROPERTY_TYPE_SFO			= "Fichier SFO"
 PROPERTY_TYPE_TXT			= "Document texte"
+PROPERTY_TYPE_TXT			= "Document Texte"
 PROPERTY_TYPE_VPK			= "Paquet VPK"
 PROPERTY_TYPE_XML			= "Fichier XML"
 PROPERTY_TYPE_ZIP			= "Archive ZIP"
@@ -85,11 +104,19 @@ PROPERTY_FSELF_MODE_UNSAFE		= "Non sécurisé"
 PROPERTY_FSELF_MODE_SCE			= "Signé SCE"
 
 # File browser strings
+
+PROPERTY_FSELF_MODE_SAFE		= "Sans danger"
+PROPERTY_FSELF_MODE_UNSAFE		= "Dangeureux"
+PROPERTY_FSELF_MODE_SCE			= "Signé SCE"
+
+# File browser strings
+
 COPIED_FILE				= "Copie de %d fichiers."
 COPIED_FOLDER				= "Copie de %d dossiers."
 COPIED_FILES_FOLDERS			= "Copie de %d fichiers/dossiers."
 
 # Dialog questions
+
 DELETE_FILE_QUESTION			= "Voulez-vous vraiment supprimer ce fichier ?"
 DELETE_FOLDER_QUESTION			= "Voulez-vous vraiment supprimer ce dossier ?"
 DELETE_FILES_FOLDERS_QUESTION		= "Voulez-vous vraiment supprimer ces fichiers/dossiers ?"
@@ -108,6 +135,7 @@ INSTALL_BRICK_WARNING			= "Ce package utilise des fonctionnalitées pour monter/
 HASH_FILE_QUESTION			= "Le hashage SHA1 peut prendre un certain temps. Voulez vous continuer ?"
 
 # HENkaku settings strings
+
 HENKAKU_SETTINGS			= "Paramètres"
 HENKAKU_ENABLE_PSN_SPOOFING		= "Activer l'usurpation PSN (spoof)"
 HENKAKU_ENABLE_UNSAFE_HOMEBREW		= "Activer les homebrews non sécurisé"
@@ -120,6 +148,7 @@ HENKAKU_RELOAD_CONFIG_MESSAGE		= "le fichier config.txt de taiHEN a été correc
 HENKAKU_UNSAFE_HOMEBREW_MESSAGE		= "les homebrews non sécurisés peuvent endommager votre appareil de façon\permanente, si des fonctions sont cachées ou mal configurées.\\S'il vous plais, prenez des précautions en installant ceci."
 
 # VitaShell settings
+
 VITASHELL_SETTINGS_MAIN			= "Paramètres principaux"
 VITASHELL_SETTINGS_LANGUAGE		= "Langue"
 VITASHELL_SETTINGS_THEME		= "Theme"
@@ -133,6 +162,7 @@ VITASHELL_SETTINGS_SELECT_BUTTON_USB	= "USB"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP	= "FTP"
 
 # USB strings
+
 USB_CONNECTED				= "USB connecté"
 USB_CONNECTION_PERMISSION		= "La connection USB requiert des extensions de permission.\S'il vous plait, activez les 'homebrew non sécurisé' en premiers."
 USB_CONNECTION_NOT_AVAILABLE		= "La connection USB n'est pas disponible sur ce périphérique."
@@ -140,6 +170,37 @@ USB_CONNECTION_NOT_AVAILABLE		= "La connection USB n'est pas disponible sur ce p
 # Others
 SAFE_MODE				= "MODE SECURISE"
 UNSAFE_MODE				= "MODE NON SECURISE"
+INSTALL_QUESTION			= "Voulez-vous vraiment installer cette archive ?"
+INSTALL_WARNING				= "Cette application requiert des autorisations supplémentaires.\Elle pourrais avoir accès à vos informations personnelles.\Si vous ne l'avez pas obtenu de source sûr,\procédez avec précautions.\\Voulez vous tout de même l'installer ?"
+INSTALL_BRICK_WARNING			= "Cette application utilise des fonction qui remonte\ des partitions et peux potentiellement bricker votre console.\Si vous ne l'avez pas obtenu de source sûr,\procédez avec précautions.\\Voulez vous tout de même l'installer ?"
+HASH_FILE_QUESTION			= "Le hashage SHA1 peut prendre un certain temps. Voulez vous continuer ?"
+
+# HENkaku settings strings
+
+HENKAKU_SETTINGS			= "Paramètres HENkaku"
+HENKAKU_ENABLE_PSN_SPOOFING		= "Activer l'usurpation PSN"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW		= "Activer les homebrews non sécurisé"
+HENKAKU_ENABLE_VERSION_SPOOFING		= "Activer l'usurpation de version"
+HENKAKU_SPOOFED_VERSION			= "Version usurpé"
+HENKAKU_RESTORE_DEFAULT_SETTINGS	= "Restaurer les paramètres par défaut"
+HENKAKU_RELOAD_CONFIG			= "Recharger le fichier config.txt de taiHEN"
+HENKAKU_RESTORE_DEFAULT_MESSAGE		= "Les paramètres par défaut ont été restauré avec succès."
+HENKAKU_RELOAD_CONFIG_MESSAGE		= "Le fichier config.txt de taiHEN a été correctement rechargé."
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE		= "les homebrews non sécurisé peuvent endommager votre appareil, Si ils sont mal utilisés, mal configurés,\ou fonctionne d'une manière malveillantes.\\S'il vous plais, faites attention en utilisant cette option."
+
+# VitaShell settings
+
+VITASHELL_SETTINGS_MAIN			= "Paramètres principaux"
+VITASHELL_SETTINGS_LANGUAGE		= "Langue"
+VITASHELL_SETTINGS_THEME		= "Thème"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE	= "Désactiver les mises à jours auto"
+VITASHELL_SETTINGS_POWER		= "Alimentation"
+VITASHELL_SETTINGS_REBOOT		= "Redémarrer"
+VITASHELL_SETTINGS_POWEROFF		= "Eteindre"
+VITASHELL_SETTINGS_STANDBY		= "En veille"
+
+# Others
+
 PLEASE_WAIT				= "Veuillez patienter..."
 SAVE_MODIFICATIONS			= "Voulez vous sauvegarder les modifications ?"
 NO_SPACE_ERROR				= "Il n'y a plus d'espace libre sur la carte mémoire\mémoire interne.\%s supplémentaires sont nécessaires."
@@ -151,3 +212,4 @@ TOOLBOX					= "Boite à outils"
 SYSINFO_TITLE				= "Informations système"
 ARCHIVE_NAME				= "Nom de l'archive"
 COMPRESSION_LEVEL			= "Niveau de compression (0-9)"
+COMPRESSION_LEVEL			= "Niveau de compression (de 0 à 9)"

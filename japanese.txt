@@ -1,49 +1,158 @@
 # VitaShell language file
-# VitaShell ver.1.31対応版日本語言語ファイル 131b19 作者@Umineko19930417
+# VitaShell1.41対応版日本語言語ファイル 142b121
+# 作者 @Umineko19930417
+# お願い: http://2ch.net/ にて日本語言語ファイルを紹介する行為はお辞め下さい
 
 # General strings
 # 一般的な文字列
-ERROR				= "エラーコード:0x%08X"
-OK				= "OK"
-YES				= "はい"
-NO				= "いいえ"
-CANCEL				= "キャンセル"
-FOLDER				= "フォルダ"
+ERROR					= "エラーコード:0x%08X"
+OK					= "OK"
+YES					= "はい"
+NO					= "いいえ"
+CANCEL					= "キャンセル"
+ON					= "オン"
+OFF					= "オフ"
+FILE_					= "ファイル"
+FOLDER					= "フォルダ"
 
 # Progress strings
 # 進捗の文字列
-MOVING				= "移動中..."
-COPYING				= "コピー中..."
-DELETING			= "削除中..."
-EXPORTING			= "エクスポート中..."
-INSTALLING			= "インストール中..."
-DOWNLOADING			= "ダウンロード中..."
-EXTRACTING			= "吸い出し中..."
-COMPRESSING			= "圧縮中..."
-HASHING				= "ハッシュ計算中..."
+MOVING					= "移動中..."
+COPYING					= "コピー中..."
+DELETING				= "削除中..."
+EXPORTING				= "出力中..."
+INSTALLING				= "インストール中..."
+DOWNLOADING				= "ダウンロード中..."
+EXTRACTING				= "展開中..."
+COMPRESSING				= "圧縮中..."
+HASHING					= "SHA-1ハッシュ値を計算中..."
 
 # Audio player strings
 # オーディオプレイヤーの文字列
-TITLE				= "タイトル"
-ALBUM				= "アルバム"
-ARTIST				= "アーティスト"
-GENRE				= "ジャンル"
-YEAR				= "年"
+TITLE					= "タイトル"
+ALBUM					= "アルバム"
+ARTIST					= "アーティスト"
+GENRE					= "ジャンル"
+YEAR					= "年"
 
 # Hex editor strings
 # バイナリエディタの文字列
-OFFSET				= "オフセット"
-OPEN_HEX_EDITOR			= "バイナリエディタを開く"
+OFFSET					= "オフセット"
+OPEN_HEX_EDITOR				= "バイナリエディタを開く"
 
 # Text editor strings
 # テキストエディタの文字列
-EDIT_LINE			= "行編集"
-ENTER_SEARCH_TERM		= "検索用語を入力"
-CUT				= "切り取り"
-INSERT_EMPTY_LINE		= "空行を挿入"
+EDIT_LINE				= "行編集"
+ENTER_SEARCH_TERM			= "検索用語を入力"
+CUT					= "切り取り"
+INSERT_EMPTY_LINE			= "空行を挿入"
 
 # File browser context menu strings
-# ファイルブラウザーのコンテキストメニューの文字列
+# ファイルブラウザーコンテキストメニューの文字列
+MORE					= "その他"
+MARK_ALL				= "全選択"
+UNMARK_ALL				= "全選択の解除"
+MOVE					= "移動"
+COPY					= "コピー"
+PASTE					= "貼り付け"
+DELETE					= "削除"
+RENAME					= "名前変更"
+NEW_FOLDER				= "新しいフォルダ"
+PROPERTIES				= "プロパティ"
+COMPRESS				= "圧縮"
+INSTALL_ALL				= "全てをインストール"
+INSTALL_FOLDER				= "フォルダをインストール"
+CALCULATE_SHA1				= "SHA-1ハッシュ値を表示"
+EXPORT_MEDIA				= "メディアを出力"
+SEARCH					= "検索"
+
+# File browser properties strings
+# ファイルブラウザプロパティの文字列
+PROPERTY_NAME				= "名前"
+PROPERTY_TYPE				= "種類"
+PROPERTY_FSELF_MODE			= "FSELFモード"
+PROPERTY_SIZE				= "容量"
+PROPERTY_COMPRESSED_SIZE		= "圧縮容量"
+PROPERTY_CONTAINS			= "内容物"
+PROPERTY_CONTAINS_FILES_FOLDERS		= "%d ファイル / %d フォルダ"
+PROPERTY_CREATION_DATE			= "作成日時"
+PROPERTY_MODFICATION_DATE		= "更新日時"
+PROPERTY_TYPE_BMP			= "Bitmap画像"
+PROPERTY_TYPE_INI			= "ファイル構成"
+PROPERTY_TYPE_JPEG			= "JPEG画像"
+PROPERTY_TYPE_MP3			= "MP3音声ファイル"
+PROPERTY_TYPE_OGG			= "OGG音声ファイル"
+PROPERTY_TYPE_PNG			= "PNG画像"
+PROPERTY_TYPE_SFO			= "SFOファイル"
+PROPERTY_TYPE_TXT			= "テキスト文章"
+PROPERTY_TYPE_VPK			= "VPKパッケージ"
+PROPERTY_TYPE_XML			= "XMLファイル"
+PROPERTY_TYPE_ZIP			= "ZIP圧縮ファイル"
+PROPERTY_TYPE_FSELF			= "FSELFファイル"
+PROPERTY_FSELF_MODE_SAFE		= "安全"
+PROPERTY_FSELF_MODE_UNSAFE		= "危険"
+PROPERTY_FSELF_MODE_SCE			= "SCEの署名済"
+
+# File browser strings
+# ファイルブラウザーの文字列
+COPIED_FILE				= "%d個のファイルをコピーしました"
+COPIED_FOLDER				= "%d個のフォルダをコピーしました"
+COPIED_FILES_FOLDERS			  = "%d個のファイル/フォルダをコピーしました"
+
+# Dialog questions
+# ダイアログの質問
+DELETE_FILE_QUESTION			 = "このファイルを削除してもよろしいですか?"
+DELETE_FOLDER_QUESTION			   = "このフォルダを削除してもよろしいですか?"
+DELETE_FILES_FOLDERS_QUESTION		  = "これらのファイル/フォルダを削除してもよろしいですか?"
+EXPORT_FILE_QUESTION			 = "このファイルをメディアに出力してもよろしいですか?"
+EXPORT_FOLDER_QUESTION			  = "このフォルダをメディアに出力してもよろしいですか?"
+EXPORT_FILES_FOLDERS_QUESTION		  = "これらのファイル/フォルダをメディアに出力してもよろしいですか?"
+EXPORT_NO_MEDIA				= "出力が出来るメディアがありません"
+EXPORT_SONGS_INFO			= "%d個の歌を出力しました"
+EXPORT_PICTURES_INFO			  = "%d個の写真を出力しました"
+EXPORT_SONGS_PICTURES_INFO		   = "%d個の歌と%d個の写真を出力しました"
+INSTALL_ALL_QUESTION			 = "このフォルダの中にある、全てのパッケージをインストールしますか?"
+INSTALL_FOLDER_QUESTION			 = "このフォルダをインストールしますか?\\警告\インストール後にフォルダは削除されます"
+INSTALL_QUESTION			    = "このパッケージをインストールしますか?"
+INSTALL_WARNING				 = "このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します \信頼可能なソース以外から入手した場合のインストールは\自己判断で行って下さい\\インストールを続行しますか?"
+INSTALL_BRICK_WARNING			   = "このパッケージは、システム領域等に接続する機能が使用されており、\デバイスを破壊する危険性が含まれている可能性があります   \信頼可能なソース以外から入手した場合のインストールは  \自己判断で行って下さい\\インストールを続行しますか?"
+HASH_FILE_QUESTION			= "SHA-1ハッシュ値の計算には時間がかかる場合があります\\ハッシュ値の計算を続行しますか?"
+
+# HENkaku settings strings
+# 変革設定の文字列
+HENKAKU_SETTINGS			= "HENkaku設定"
+HENKAKU_ENABLE_PSN_SPOOFING		= "PSN偽装を有効"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW		   = "危険な自作アプリを有効"
+HENKAKU_ENABLE_VERSION_SPOOFING		= "バージョン偽装を有効"
+HENKAKU_SPOOFED_VERSION			= "バージョン偽装"
+HENKAKU_RESTORE_DEFAULT_SETTINGS	= "デフォルトの設定に戻す"
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE		   = "悪意が含まれていたり誤って設定されていた場合、  \危険な自作アプリはあなたのデバイスを永久的に破壊する事が出来ます\  \インストールをする時は注意して下さい"
+
+# VitaShell settings
+# Vitashellの設定
+VITASHELL_SETTINGS_MAIN			= "メインの設定"
+VITASHELL_SETTINGS_LANGUAG		= "言語"
+VITASHELL_SETTINGS_THEME		= "テーマ"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE	= "自動的な更新を無効"
+VITASHELL_SETTINGS_POWER		= "電源"
+VITASHELL_SETTINGS_REBOOT		= "再起動"
+VITASHELL_SETTINGS_POWEROFF		= "電源を切る"
+VITASHELL_SETTINGS_STANDBY		= "待機状態"
+
+# Others
+# その他
+PLEASE_WAIT				= "しばらくお待ち下さい..."
+SAVE_MODIFICATIONS			= "変更を保存しますか?"
+NO_SPACE_ERROR				= "メモリーカードに充分な空き容量がありません\あと%s以上の空き容量が必要です"
+WIFI_ERROR				= "Wi-Fiを有効にする必要があります"
+FTP_SERVER				   = "FTPサーバーを動作させます\ftp://%s:%i\ \OKを選択するとバックグラウンドで動作します   \キャンセルを選択すると接続を解除します"
+SYS_INFO				  = "システムソフトウェア: %s\モデル: 0x%08X  \MACアドレス: %s \IPアドレス: %s \メモリーカード: %s/%s \バッテリー容量: %d%%"
+UPDATE_QUESTION				= "VitaShell %sの更新が利用出来ます\\VitaShellの更新をしますか?"
+TOOLBOX					= "ツールボックス"
+SYSINFO_TITLE				= "システム情報"
+ARCHIVE_NAME				= "アーカイブ名"
+COMPRESSION_LEVEL			= "圧縮率 (0-9)"
+# ファイルブラウザーコンテキストメニューの文字列
 MORE				= "その他"
 MARK_ALL			= "全選択"
 UNMARK_ALL			= "全選択の解除"
@@ -51,47 +160,99 @@ MOVE				= "移動"
 COPY				= "コピー"
 PASTE				= "貼り付け"
 DELETE				= "削除"
-RENAME				= "リネーム"
+RENAME				= "名前変更"
 NEW_FOLDER			= "新しいフォルダ"
+PROPERTIES			= "プロパティ"
 COMPRESS			= "圧縮"
 INSTALL_ALL			= "全てをインストール"
-INSTALL_FOLDER		= "フォルダをインストール"
-CALCULATE_SHA1			= "SHA1の表示"
-EXPORT_MEDIA			= "メディアをエクスポート"
+INSTALL_FOLDER			= "フォルダをインストール"
+CALCULATE_SHA1			= "SHA-1ハッシュ値を表示"
+EXPORT_MEDIA			= "メディアを出力"
 SEARCH				= "検索"
 
+# File browser properties strings
+# ファイルブラウザプロパティの文字列
+PROPERTY_NAME			= "名前"
+PROPERTY_TYPE			= "種類"
+PROPERTY_FSELF_MODE			= "FSELFモード"
+PROPERTY_SIZE			= "容量"
+PROPERTY_COMPRESSED_SIZE           	 = "圧縮容量"
+PROPERTY_CONTAINS			= "内容物	"
+PROPERTY_CONTAINS_FILES_FOLDERS			= "%d ファイル / %d フォルダ"
+PROPERTY_CREATION_DATE			= "作成日時"
+PROPERTY_MODFICATION_DATE			= "更新日時"
+PROPERTY_TYPE_BMP			= "Bitmap画像"
+PROPERTY_TYPE_INI			= "ファイル構成"
+PROPERTY_TYPE_JPEG			= "JPEG画像"
+PROPERTY_TYPE_MP3			= "MP3音声ファイル"
+PROPERTY_TYPE_OGG			= "OGG音声ファイル"
+PROPERTY_TYPE_PNG			= "PNG画像"
+PROPERTY_TYPE_SFO			= "SFOファイル"
+PROPERTY_TYPE_TXT			= "テキスト文章"
+PROPERTY_TYPE_VPK			= "VPKパッケージ"
+PROPERTY_TYPE_XML			= "XMLファイル"
+PROPERTY_TYPE_ZIP			= "ZIP圧縮ファイル"
+PROPERTY_TYPE_FSELF			= "FSELFファイル"
+PROPERTY_FSELF_MODE_SAFE			= "安全"
+PROPERTY_FSELF_MODE_UNSAFE			= "危険"
+PROPERTY_FSELF_MODE_SCE				= "SCEの署名済"
+
 # File browser strings
-# ブラウザーの文字列
+# ファイルブラウザーの文字列
 COPIED_FILE			= "%d個のファイルをコピーしました"
 COPIED_FOLDER			= "%d個のフォルダをコピーしました"
-COPIED_FILES_FOLDERS		= "%d個のファイル/フォルダをコピーしました"
+COPIED_FILES_FOLDERS		 = "%d個のファイル/フォルダをコピーしました"
 
 # Dialog questions
 # ダイアログの質問
 DELETE_FILE_QUESTION		= "このファイルを削除してもよろしいですか?"
-DELETE_FOLDER_QUESTION		= "このフォルダを削除してもよろしいですか?"
-DELETE_FILES_FOLDERS_QUESTION	= "これらのファイル、フォルダを削除してもよろしいですか?"
-EXPORT_FILE_QUESTION		= "このファイルをメディアにエクスポートしてもよろしいですか?"
-EXPORT_FOLDER_QUESTION		= "このフォルダをメディアにエクスポートしてもよろしいですか?"
-EXPORT_FILES_FOLDERS_QUESTION	= "これらのファイル、フォルダをメディアにエクスポートしてもよろしいですか?"
-EXPORT_NO_MEDIA			= "エクスポートが出来るメディアがありません"
-EXPORT_SONGS_INFO		= "%d個の歌をエクスポートしました"
-EXPORT_PICTURES_INFO		= "%d個の写真をエクスポートしました"
-EXPORT_SONGS_PICTURES_INFO	= "%d個の歌と%d個の写真をエクスポートしました"
-INSTALL_ALL_QUESTION		= "このフォルダの中にある、全てのパッケージをインストールしますか?"
-INSTALL_FOLDER_QUESTION		= "このフォルダをインストールしますか?\警告: インストール後にフォルダを削除します!"
-INSTALL_QUESTION		= "このパッケージをインストールしますか?"
-INSTALL_WARNING			= "このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します\信頼できるソース以外から入手した場合、インストールは自己判断で行って下さい\\インストールを続行してもよろしいですか?"
-HASH_FILE_QUESTION		= "SHA1ハッシュの計算には時間がかかる場合があります\続けますか?"
+DELETE_FOLDER_QUESTION		  = "このフォルダを削除してもよろしいですか?"
+DELETE_FILES_FOLDERS_QUESTION	  = "これらのファイル/フォルダを削除してもよろしいですか?"
+EXPORT_FILE_QUESTION		= "このファイルをメディアに出力してもよろしいですか?"
+EXPORT_FOLDER_QUESTION		 = "このフォルダをメディアに出力してもよろしいですか?"
+EXPORT_FILES_FOLDERS_QUESTION	  = "これらのファイル/フォルダをメディアに出力してもよろしいですか?"
+EXPORT_NO_MEDIA			= "出力が出来るメディアがありません"
+EXPORT_SONGS_INFO		= "%d個の歌を出力しました"
+EXPORT_PICTURES_INFO		= "%d個の写真を出力しました"
+EXPORT_SONGS_PICTURES_INFO	  = "%d個の歌と%d個の写真を出力しました"
+INSTALL_ALL_QUESTION		 = "このフォルダの中にある、全てのパッケージをインストールしますか?"
+INSTALL_FOLDER_QUESTION		    = "このフォルダをインストールしますか?\\警告\インストール後にフォルダは削除されます"
+INSTALL_QUESTION		    = "このパッケージをインストールしますか?"
+INSTALL_WARNING			    = "このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します \信頼可能なソース以外から入手した場合のインストールは\自己判断で行って下さい\\インストールを続行しますか?"
+INSTALL_BRICK_WARNING			   = "このパッケージは、システム領域等に接続する機能が使用されており、\デバイスを破壊する危険性が含まれている可能性があります   \信頼可能なソース以外から入手した場合のインストールは  \自己判断で行って下さい\\インストールを続行しますか?"
+HASH_FILE_QUESTION		= "SHA-1ハッシュ値の計算には時間がかかる場合があります\\ハッシュ値の計算を続行しますか?"
+
+# HENkaku settings strings
+# 変革設定の文字列
+HENKAKU_SETTINGS			= "HENkaku設定"
+HENKAKU_ENABLE_PSN_SPOOFING			= "PSN偽装を有効"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW			   = "危険な自作アプリを有効"
+HENKAKU_ENABLE_VERSION_SPOOFING			= "バージョン偽装を有効"
+HENKAKU_SPOOFED_VERSION			= "バージョン偽装"
+HENKAKU_RESTORE_DEFAULT_SETTINGS			  = "デフォルトの設定に戻す"
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE			   = "悪意が含まれていたり誤って設定されていた場合、  \危険な自作アプリはあなたのデバイスを永久的に破壊する事が出来ます\  \インストールをする時は注意して下さい"
+
+# VitaShell settings
+# Vitashellの設定
+VITASHELL_SETTINGS_MAIN			= "メインの設定"
+VITASHELL_SETTINGS_LANGUAGE			= "言語"
+VITASHELL_SETTINGS_THEME			= "テーマ"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE			= "自動的な更新を無効"
+VITASHELL_SETTINGS_POWER			= "電源"
+VITASHELL_SETTINGS_REBOOT			= "再起動"
+VITASHELL_SETTINGS_POWEROFF			= "電源を切る"
+VITASHELL_SETTINGS_STANDBY			= "待機状態"
 
 # Others
-# 他
+# その他
 PLEASE_WAIT			= "しばらくお待ち下さい..."
 SAVE_MODIFICATIONS		= "変更を保存しますか?"
-NO_SPACE_ERROR			= "メモリーカードに充分な空き容量がありません\あと%s以上の空き容量が必要です"
+NO_SPACE_ERROR			   = "メモリーカードに充分な空き容量がありません\あと%s以上の空き容量が必要です"
 WIFI_ERROR			= "Wi-Fiを有効にする必要があります"
-FTP_SERVER			= "FTPサーバーを動作させます\ftp://%s:%i\\'OK'を選択するとバックグラウンドで動作します\'キャンセル'を選択すると接続を解除します"
-SYS_INFO			= "システムソフトウェア: %s\モデル: 0x%08X\MACアドレス: %s\IPアドレス: %s\メモリーカード: %s/%s\バッテリー容量: %d%%"
-UPDATE_QUESTION			= "VitaShellの%s更新が利用出来ます\\VitaShellの更新をしますか?"
+FTP_SERVER			   = "FTPサーバーを動作させます\ftp://%s:%i\\OKを選択するとバックグラウンドで動作します  \キャンセルを選択すると接続を解除します"
+SYS_INFO			  = "システムソフトウェア: %s\モデル: 0x%08X\MACアドレス: %s \IPアドレス: %s \メモリーカード: %s/%s \バッテリー容量: %d%%"
+UPDATE_QUESTION			= "VitaShell %sの更新が利用出来ます\\VitaShellの更新をしますか?"
 TOOLBOX				= "ツールボックス"
-SYSINFO_TITLE			= "システムインフォメーション"
+SYSINFO_TITLE			= "システム情報"
+ARCHIVE_NAME			= "アーカイブ名"
+COMPRESSION_LEVEL			= "圧縮率 (0-9)"

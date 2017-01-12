@@ -1,5 +1,5 @@
 # VitaShell chinese_t translation by jatalin
-# Updated For VitaShell 1.2 (09/21/16)
+# Updated For VitaShell 1.31 (10/19/16)
 
 # VitaShell language file
 
@@ -19,6 +19,7 @@ EXPORTING                            = "導出中..."
 INSTALLING                           = "安裝中..."
 DOWNLOADING                          = "下載中..."
 EXTRACTING                           = "提取中..."
+COMPRESSING                          = "壓縮中..."
 HASHING                              = "哈希直效驗中..."
 
 # Audio player strings
@@ -48,6 +49,7 @@ PASTE                                = "粘貼"
 DELETE                               = "刪除"
 RENAME                               = "重命名"
 NEW_FOLDER                           = "新建文件夾"
+COMPRESS                             = "壓縮"
 INSTALL_ALL                          = "全部安裝"
 CALCULATE_SHA1                       = "效驗SHA1直"
 EXPORT_MEDIA                         = "導出媒體文件"
@@ -70,6 +72,7 @@ EXPORT_SONGS_INFO                    = "已導出 %d 首歌曲。"
 EXPORT_PICTURES_INFO                 = "已導出 %d 張圖片。" 
 EXPORT_SONGS_PICTURES_INFO           = "已導出 %d 首歌曲 和 %d 張圖片。"
 INSTALL_ALL_QUESTION                 = "你想安裝此文件夾內所有應用嘛？"
+INSTALL_FOLDER_QUESTION              = "你想安裝此文件夾嘛？\警告：此操作將在完成安裝後\刪除此文件夾！"
 INSTALL_QUESTION                     = "你想安裝此應用嘛？"
 INSTALL_WARNING                      = "這個應用需要額外的權限。\這可能會獲取你的個人信息。\如果該應用來自不信任的來源，請慎重使用。\\你要繼續安裝嘛？"
 HASH_FILE_QUESTION                   = "SHA1哈希直效驗可能要花費較長時間。繼續效驗嘛?"
