@@ -121,15 +121,25 @@ HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Gli homebrew non sicuri possono danneg
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "Impostazioni principali"
 VITASHELL_SETTINGS_LANGUAGE          = "Language"
-VITASHELL_SETTINGS_THEME             = "Tema"
-VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Disattiva aggiornamento automatico"
+VITASHELL_SETTINGS_THEME             = "Tema"
+VITASHELL_SETTINGS_SELECT_BUTTON     = "Pulsante SELECT"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Disattiva aggiornamento automatico"
 VITASHELL_SETTINGS_POWER             = "Accensione"
 VITASHELL_SETTINGS_REBOOT            = "Riavvio"
 VITASHELL_SETTINGS_POWEROFF          = "Spegnimento"
-VITASHELL_SETTINGS_STANDBY           = "Standby"
+VITASHELL_SETTINGS_STANDBY           = "Standby"
+VITASHELL_SETTINGS_SELECT_BUTTON_USB = "USB"
+VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
+
+# USB strings
+USB_CONNECTED                        = "USB connessa"
+USB_CONNECTION_PERMISSION            = "La connessione USB richiede autorizzazioni estese.\Devi prima scegliere 'Abilita homebrew non sicuri'."
+USB_CONNECTION_NOT_AVAILABLE         = "La connessione USB non è disponibile su questo dispositivo."
 
 # Others
-PLEASE_WAIT                          = "Attendere prego..."
+SAFE_MODE                            = "MODALITÀ SICURA"
+UNSAFE_MODE                          = "MODALITÀ NON SICURA"
+PLEASE_WAIT                          = "Attendere prego..."
 SAVE_MODIFICATIONS                   = "Vuoi salvare le tue modifiche?"
 NO_SPACE_ERROR                       = "Non c'è abbastanza spazio libero nella\scheda di memoria.\Serve almeno %s di spazio in più."
 WIFI_ERROR			     = "Devi abilitare il Wi-Fi per fare questo."
