@@ -81,6 +81,7 @@ PROPERTY_TYPE_JPEG                   = "JPEG kép"
 PROPERTY_TYPE_MP3                    = "MP3 hangfájl"
 PROPERTY_TYPE_OGG                    = "OGG hangfájl"
 PROPERTY_TYPE_PNG                    = "PNG kép"
+PROPERTY_TYPE_RAR                    = "RAR archívum"
 PROPERTY_TYPE_SFO                    = "SFO fájl"
 PROPERTY_TYPE_TXT                    = "Szöveges dokumentum"
 PROPERTY_TYPE_VPK                    = "VPK csomag"
@@ -134,11 +135,20 @@ HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "A nem biztonságos homebrewek tönkreteh
 VITASHELL_SETTINGS_MAIN              = "Fő beállítások"
 VITASHELL_SETTINGS_LANGUAGE          = "Nyelv"
 VITASHELL_SETTINGS_THEME             = "Téma"
+VITASHELL_SETTINGS_SELECT_BUTTON     = "SELECT gomb"
 VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Automatikus frissítés kikapcsolása"
 VITASHELL_SETTINGS_POWER             = "Energiagazdálkodás"
 VITASHELL_SETTINGS_REBOOT            = "Újraindítás"
 VITASHELL_SETTINGS_POWEROFF          = "Kikapcsolás"
 VITASHELL_SETTINGS_STANDBY           = "Készenlét"
+VITASHELL_SETTINGS_SELECT_BUTTON_USB = "USB"
+VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
+# USB strings
+# USB szövegek
+USB_CONNECTED                        = "USB csatlakoztatva"
+USB_NOT_CONNECTED                    = "Csatlakoztassa ezt a rendszert egy PC számítógéppel USB kábel használatával."
+USB_CONNECTION_PERMISSION            = "Az USB csatlakozásnak szüksége van kiterjesztett engedélyekre.\Kérem aktiválja a 'Nem biztonságos homebrewek bekapcsolása' beállítást először."
+USB_CONNECTION_NOT_AVAILABLE         = "USB csatlakozás nem érhető el ezen az eszközön."
 
 # Others
 # Egyebek
