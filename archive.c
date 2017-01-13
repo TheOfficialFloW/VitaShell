@@ -71,21 +71,27 @@ int archiveCheckFilesForUnsafeFself() {
 					int size = archiveFileRead(ARCHIVE_FD, buffer, archive_entry->size);
 
 					Elf32_Ehdr *elf1 = (Elf32_Ehdr*)buffer;
-					Elf32_Phdr *phdr = (Elf32_Phdr*)buffer + phdr_offset - elf1_offset;
+					Elf32_Phdr *phdr = (Elf32_Phdr*)(buffer + phdr_offset - elf1_offset);
 					segment_info *info = (segment_info*)(buffer + section_info_offset - elf1_offset);
-					char *segment = buffer + info->offset;
+					// segment is elf2 section
+					char *segment = buffer + info->offset - elf1_offset;
 
 					// zlib compress magic
+					char *uncompressed_buffer = NULL;
 					if (segment[0] == 0x78) {
-						char *uncompressed_buffer = uncompressBuffer(elf1, phdr, info, segment);
+						// uncompressedBuffer will return elf2 section
+						uncompressed_buffer = uncompressBuffer(elf1, phdr, info, segment);
 						if (uncompressed_buffer) {
-							free(buffer);
-							buffer = uncompressed_buffer;
+							segment = uncompressed_buffer;
 						}
 					}
+					int unsafe = checkForUnsafeImports(segment);
 
-					int unsafe = checkForUnsafeImports(buffer);
+					if (uncompressed_buffer) {
+						free(uncompressed_buffer);
+					}
 					free(buffer);
+
 
 					if (unsafe) {
 						archiveFileClose(ARCHIVE_FD);
