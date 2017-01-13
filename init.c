@@ -262,7 +262,7 @@ void initVitaShell() {
 	for (i = 0; i < (sizeof(default_files) / sizeof(DefaultFile)); i++) {
 		SceIoStat stat;
 		memset(&stat, 0, sizeof(stat));
-		if (sceIoGetstat(default_files[i].path, &stat) < 0 || (int)stat.st_size != default_files[i].size)
+		if (sceIoGetstat(default_files[i].path, &stat) < 0)
 			WriteFile(default_files[i].path, default_files[i].buffer, default_files[i].size);
 	}
 
