@@ -220,4 +220,12 @@
 - Added coredump viewer.<br>
     ]]>
   </changes>
+   <changes app_ver="01.51">
+    <![CDATA[
+- Fixed bug where 'Please wait...' was shown instead of a specifc USB message.<br>
+- Fixed VPK installation crash.<br>
+- Fixed bug where 'theme.txt' was always resetted.<br>
+- Updated to newest libftpvita.<br>
+    ]]>
+  </changes>
 </changeinfo>

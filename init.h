@@ -29,6 +29,7 @@ typedef struct {
 	char *path;
 	void *buffer;
 	int size;
+	int replace;
 } DefaultFile;
 
 vita2d_pgf *loadSystemFonts();

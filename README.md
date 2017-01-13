@@ -95,6 +95,12 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.51 ###
+- Fixed bug where 'Please wait...' was shown instead of a specifc USB message.
+- Fixed VPK installation crash.
+- Fixed bug where 'theme.txt' was always resetted.
+- Updated to newest libftpvita.
+
 ### Changelog 1.50 ###
 - Added USB mass storage transfer support.
 - Added RAR archive support (by Mayoshiroi).

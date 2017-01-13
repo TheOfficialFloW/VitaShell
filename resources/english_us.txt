@@ -73,6 +73,7 @@ PROPERTY_TYPE_JPEG                   = "JPEG image"
 PROPERTY_TYPE_MP3                    = "MP3 audio file"
 PROPERTY_TYPE_OGG                    = "OGG audio file"
 PROPERTY_TYPE_PNG                    = "PNG image"
+PROPERTY_TYPE_RAR                    = "RAR archive"
 PROPERTY_TYPE_SFO                    = "SFO file"
 PROPERTY_TYPE_TXT                    = "Text document"
 PROPERTY_TYPE_VPK                    = "VPK package"
@@ -133,7 +134,8 @@ VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
 
 # USB strings
 USB_CONNECTED                        = "USB connected"
-USB_CONNECTION_PERMISSION            = "USB connection requires extended permission.\Please activate 'Enable unsafe homebrew' first."
+USB_NOT_CONNECTED                    = "Connect this system to a PC system using a USB cable."
+USB_CONNECTION_PERMISSION            = "USB connection requires extended permissions.\Please activate 'Enable unsafe homebrew' first."
 USB_CONNECTION_NOT_AVAILABLE         = "USB connection is not available on this device."
 
 # Others

@@ -43,7 +43,7 @@
 
 #include "audio/vita_audio.h"
 
-int _newlib_heap_size_user = 64 * 1024 * 1024;
+int _newlib_heap_size_user = 128 * 1024 * 1024;
 
 // Context menu
 static float ctx_menu_max_width = 0.0f, ctx_menu_more_max_width = 0.0f;
@@ -1580,7 +1580,7 @@ int fileBrowserMenuCtrl() {
 				if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
 					initUsb();
 				} else {
-					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
+					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_NOT_CONNECTED]);
 					dialog_step = DIALOG_STEP_USB_WAIT;
 				}
 			}
@@ -1859,9 +1859,9 @@ int shellMain() {
 						icon = image_icon;
 						break;
 						
+					case FILE_TYPE_RAR:
 					case FILE_TYPE_VPK:
 					case FILE_TYPE_ZIP:
-					case FILE_TYPE_RAR:
 						color = ARCHIVE_COLOR;
 						icon = archive_icon;
 						break;

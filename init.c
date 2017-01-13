@@ -50,36 +50,35 @@ INCLUDE_EXTERN_RESOURCE(usbdevice_skprx);
 
 INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
 
-#define DEFAULT_FILE(path, name) { path, (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size }
+#define DEFAULT_FILE(path, name, replace) { path, (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size, replace }
 
 static DefaultFile default_files[] = {
-	DEFAULT_FILE("ux0:VitaShell/language/english_us.txt", english_us_txt),
+	DEFAULT_FILE("ux0:VitaShell/language/english_us.txt", english_us_txt, 0),
 
-	DEFAULT_FILE("ux0:VitaShell/theme/theme.txt", theme_txt),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/colors.txt", colors_txt),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", folder_icon_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/file_icon.png", file_icon_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/archive_icon.png", archive_icon_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/image_icon.png", image_icon_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/audio_icon.png", audio_icon_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/sfo_icon.png", sfo_icon_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/text_icon.png", text_icon_png),
-	// DEFAULT_FILE("ux0:VitaShell/theme/Default/wifi.png", wifi_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", ftp_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery.png", battery_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_green.png", battery_bar_green_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_charge.png", battery_bar_charge_png),
+	DEFAULT_FILE("ux0:VitaShell/theme/theme.txt", theme_txt, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/colors.txt", colors_txt, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", folder_icon_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/file_icon.png", file_icon_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/archive_icon.png", archive_icon_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/image_icon.png", image_icon_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/audio_icon.png", audio_icon_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/sfo_icon.png", sfo_icon_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/text_icon.png", text_icon_png, 0),
+	// DEFAULT_FILE("ux0:VitaShell/theme/Default/wifi.png", wifi_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", ftp_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery.png", battery_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_green.png", battery_bar_green_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_charge.png", battery_bar_charge_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/cover.png", cover_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/play.png", play_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", pause_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", fastforward_png, 0),
+	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png, 0),
 
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/cover.png", cover_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/play.png", play_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", pause_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", fastforward_png),
-	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png),
+	DEFAULT_FILE("ux0:VitaShell/module/usbdevice.skprx", usbdevice_skprx, 1),
 
-	DEFAULT_FILE("ux0:VitaShell/module/usbdevice.skprx", usbdevice_skprx),
-
-	DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt),
+	DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt, 1),
 };
 
 // System params
@@ -262,7 +261,7 @@ void initVitaShell() {
 	for (i = 0; i < (sizeof(default_files) / sizeof(DefaultFile)); i++) {
 		SceIoStat stat;
 		memset(&stat, 0, sizeof(stat));
-		if (sceIoGetstat(default_files[i].path, &stat) < 0 || (int)stat.st_size != default_files[i].size)
+		if (sceIoGetstat(default_files[i].path, &stat) < 0 || (default_files[i].replace && (int)stat.st_size != default_files[i].size))
 			WriteFile(default_files[i].path, default_files[i].buffer, default_files[i].size);
 	}
 
