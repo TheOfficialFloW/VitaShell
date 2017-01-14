@@ -74,6 +74,7 @@ PROPERTY_TYPE_JPEG			= "JImage PEG"
 PROPERTY_TYPE_MP3			= "Fichier audio MP3"
 PROPERTY_TYPE_OGG			= "Fichier audio OGG"
 PROPERTY_TYPE_PNG			= "Image PNG"
+PROPERTY_TYPE_RAR			= "Archive RAR"
 PROPERTY_TYPE_SFO			= "Fichier SFO"
 PROPERTY_TYPE_TXT			= "Document texte"
 PROPERTY_TYPE_VPK			= "Paquet VPK"
@@ -110,7 +111,7 @@ HASH_FILE_QUESTION			= "Le hashage SHA1 peut prendre un certain temps. Voulez vo
 # HENkaku settings strings
 HENKAKU_SETTINGS			= "Paramètres"
 HENKAKU_ENABLE_PSN_SPOOFING		= "Activer l'usurpation PSN (spoof)"
-HENKAKU_ENABLE_UNSAFE_HOMEBREW		= "Activer les homebrews non securise"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW		= "Activer les homebrews non securisé"
 HENKAKU_ENABLE_VERSION_SPOOFING		= "Activer l'usurpation de version (spoof)"
 HENKAKU_SPOOFED_VERSION			= "version usurpe (spoof)"
 HENKAKU_RESTORE_DEFAULT_SETTINGS	= "Restore default settings"
@@ -133,7 +134,8 @@ VITASHELL_SETTINGS_SELECT_BUTTON_USB	= "USB"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP	= "FTP"
 
 # USB strings
-USB_CONNECTED				= "USB connecte"
+USB_CONNECTED				= "USB connecté"
+USB_NOT_CONNECTED			= "CConnecter un câble USB du PC au système Playstation."
 USB_CONNECTION_PERMISSION		= "La connection USB requiert des extensions de permission.\S'il vous plait, activez les 'homebrew non securise' en premiers."
 USB_CONNECTION_NOT_AVAILABLE		= "La connection USB n'est pas disponible sur ce peripherique."
 
