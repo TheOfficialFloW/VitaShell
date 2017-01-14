@@ -1,4 +1,4 @@
-# VitaShell v1.5 language file - (Português - Brasil) Rev.(0010)
+# VitaShell v1.51 language file - (Português - Brasil) Rev.(0011)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -73,6 +73,7 @@ PROPERTY_TYPE_JPEG                   = "Imagem JPEG"
 PROPERTY_TYPE_MP3                    = "Arquivo de áudio MP3"
 PROPERTY_TYPE_OGG                    = "Arquivo de áudio OGG"
 PROPERTY_TYPE_PNG                    = "Imagem PNG"
+PROPERTY_TYPE_RAR                    = "Arquivo RAR"
 PROPERTY_TYPE_SFO                    = "Arquivo SFO"
 PROPERTY_TYPE_TXT                    = "Documento de Texto"
 PROPERTY_TYPE_VPK                    = "Pacote VPK"
@@ -133,6 +134,7 @@ VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
 
 # USB strings
 USB_CONNECTED                        = "USB conectado"
+USB_NOT_CONNECTED                    = "Conecte este sistema a um PC usando um cabo USB."
 USB_CONNECTION_PERMISSION            = "A conexão USB requer permissão estendida.\Por favor, primeiro ative 'Ativar homebrew inseguro'."
 USB_CONNECTION_NOT_AVAILABLE         = "A conexão USB não está disponível neste dispositivo."
 
