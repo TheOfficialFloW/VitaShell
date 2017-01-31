@@ -154,9 +154,9 @@ vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} eboot.bin
   VERSION ${VITA_VERSION}
   NAME ${VITA_APP_NAME}
   FILE pkg/sce_sys/icon0.png sce_sys/icon0.png
-  FILE pkg/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
-  FILE pkg/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
-  FILE pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+       pkg/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
+       pkg/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
+       pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
 )
 
 add_custom_target(send
