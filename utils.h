@@ -47,6 +47,8 @@ enum {
 extern SceCtrlData pad;
 extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
 
+float easeOut(float x0, float x1, float a, float b);
+
 void startDrawing(vita2d_texture *bg);
 void endDrawing();
 

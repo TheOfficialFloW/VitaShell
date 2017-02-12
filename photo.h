@@ -30,7 +30,7 @@ enum PhotoModes {
 };
 
 #define ZOOM_MIN 0.1f
-#define ZOOM_MAX 1000.0f
+#define ZOOM_MAX 100.0f
 #define ZOOM_FACTOR 1.02f
 
 #define MOVE_DIVISION 7.0f

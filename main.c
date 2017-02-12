@@ -42,10 +42,11 @@
 
 #include "audio/vita_audio.h"
 
-int _newlib_heap_size_user = 128 * 1024 * 1024;
+/*
+	TODO: close apps before usb connection to avoid database corruption
+*/
 
-// Context menu
-static float ctx_menu_max_width = 0.0f, ctx_menu_more_max_width = 0.0f;
+int _newlib_heap_size_user = 128 * 1024 * 1024;
 
 // File lists
 static FileList file_list, mark_list, copy_list, install_list;
@@ -501,6 +502,51 @@ MenuEntry menu_more_entries[] = {
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
 
+static int contextMenuEnterCallback(int pos, void *context);
+static int contextMenuMoreEnterCallback(int pos, void *context);
+
+static ContextMenu context_menu_main = {
+	.parent = NULL,
+	.entries = menu_entries,
+	.n_entries = N_MENU_ENTRIES,
+	.max_width = 0.0f,
+	.callback = contextMenuEnterCallback,
+	.sel = -1,
+};
+
+static ContextMenu context_menu_more = {
+	.parent = &context_menu_main,
+	.entries = menu_more_entries,
+	.n_entries = N_MENU_MORE_ENTRIES,
+	.max_width = 0.0f,
+	.callback = contextMenuMoreEnterCallback,
+	.sel = -1,
+};
+
+static void initContextMenuWidth() {
+	int i;
+	for (i = 0; i < N_MENU_ENTRIES; i++) {
+		if (menu_entries[i].visibility != CTX_VISIBILITY_UNUSED)
+			context_menu_main.max_width = MAX(context_menu_main.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_entries[i].name]));
+
+		if (menu_entries[i].name == MARK_ALL) {
+			menu_entries[i].name = UNMARK_ALL;
+			i--;
+		}
+	}
+
+	context_menu_main.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	context_menu_main.max_width = MAX(context_menu_main.max_width, CONTEXT_MENU_MIN_WIDTH);
+
+	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
+		if (menu_more_entries[i].visibility != CTX_VISIBILITY_UNUSED)
+			context_menu_more.max_width = MAX(context_menu_more.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_more_entries[i].name]));
+	}
+
+	context_menu_more.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	context_menu_more.max_width = MAX(context_menu_more.max_width, CONTEXT_MENU_MORE_MIN_WIDTH);
+}
+
 static void setContextMenuVisibilities() {
 	int i;
 
@@ -569,13 +615,13 @@ static void setContextMenuVisibilities() {
 	// Go to first entry
 	for (i = 0; i < N_MENU_ENTRIES; i++) {
 		if (menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
-			setContextMenuPos(i);
+			context_menu_main.sel = i;
 			break;
 		}
 	}
 
 	if (i == N_MENU_ENTRIES)
-		setContextMenuPos(-1);
+		context_menu_main.sel = -1;
 }
 
 static void setContextMenuMoreVisibilities() {
@@ -646,60 +692,17 @@ static void setContextMenuMoreVisibilities() {
 	// Go to first entry
 	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
 		if (menu_more_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
-			setContextMenuMorePos(i);
+			context_menu_more.sel = i;
 			break;
 		}
 	}
 
 	if (i == N_MENU_MORE_ENTRIES)
-		setContextMenuMorePos(-1);
+		context_menu_more.sel = -1;
 }
-/*
-int listToolboxEnterCallback(int pos) {
-	switch (pos) {
-		case LIST_TOOLBOX_ENTRY_SYSINFO:
-		{
-			// System software version
-			SceKernelFwInfo param;
-			param.size = sizeof(SceKernelFwInfo);
-			sceKernelGetSystemSwVersion(&param);
 
-			// MAC address
-			SceNetEtherAddr mac;
-			sceNetGetMacAddress(&mac, 0);
-
-			char mac_string[32];
-			sprintf(mac_string, "%02X:%02X:%02X:%02X:%02X:%02X", mac.data[0], mac.data[1], mac.data[2], mac.data[3], mac.data[4], mac.data[5]);
-
-			// Get IP
-			char ip[16];
-
-			SceNetCtlInfo info;
-			if (sceNetCtlInetGetInfo(SCE_NETCTL_INFO_GET_IP_ADDRESS, &info) < 0) {
-				strcpy(ip, "-");
-			} else {
-				strcpy(ip, info.ip_address);
-			}
-
-			// Memory card
-			uint64_t free_size = 0, max_size = 0;
-			sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
-
-			char free_size_string[16], max_size_string[16];
-			getSizeString(free_size_string, free_size);
-			getSizeString(max_size_string, max_size);
-
-			// System information dialog
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[SYS_INFO], param.versionString, sceKernelGetModel(), mac_string, ip, free_size_string, max_size_string, scePowerGetBatteryLifePercent());
-			dialog_step = DIALOG_STEP_SYSTEM;
-		}
-	}
-
-	return LIST_DIALOG_CLOSE;
-}
-*/
-static int contextMenuEnterCallback(int pos, void *context) {
-	switch (pos) {
+static int contextMenuEnterCallback(int sel, void *context) {
+	switch (sel) {
 		case MENU_ENTRY_MARK_UNMARK_ALL:
 		{
 			int on_marked_entry = 0;
@@ -734,7 +737,7 @@ static int contextMenuEnterCallback(int pos, void *context) {
 		case MENU_ENTRY_COPY:
 		{
 			// Mode
-			if (pos == MENU_ENTRY_MOVE) {
+			if (sel == MENU_ENTRY_MOVE) {
 				copy_mode = COPY_MODE_MOVE;
 			} else {
 				copy_mode = isInArchive() ? COPY_MODE_EXTRACT : COPY_MODE_NORMAL;
@@ -876,6 +879,7 @@ static int contextMenuEnterCallback(int pos, void *context) {
 		
 		case MENU_ENTRY_MORE:
 		{
+			setContextMenu(&context_menu_more);
 			setContextMenuMoreVisibilities();
 			return CONTEXT_MENU_MORE_OPENING;
 		}
@@ -884,8 +888,8 @@ static int contextMenuEnterCallback(int pos, void *context) {
 	return CONTEXT_MENU_CLOSING;
 }
 
-static int contextMenuMoreEnterCallback(int pos, void *context) {
-	switch (pos) {
+static int contextMenuMoreEnterCallback(int sel, void *context) {
+	switch (sel) {
 		case MENU_MORE_ENTRY_COMPRESS:
 		{
 			char path[MAX_NAME_LENGTH];
@@ -1624,6 +1628,7 @@ static int fileBrowserMenuCtrl() {
 		// Context menu trigger
 		if (pressed_buttons & SCE_CTRL_TRIANGLE) {
 			if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
+				setContextMenu(&context_menu_main);
 				setContextMenuVisibilities();
 				setContextMenuMode(CONTEXT_MENU_OPENING);
 			}
@@ -1762,17 +1767,6 @@ static int shellMain() {
 	// Refresh file list
 	refreshFileList();
 
-	// Init context menu param
-	ContextMenu context_menu;
-	context_menu.menu_entries = menu_entries;
-	context_menu.n_menu_entries = N_MENU_ENTRIES;
-	context_menu.menu_more_entries = menu_more_entries;
-	context_menu.n_menu_more_entries = N_MENU_MORE_ENTRIES;
-	context_menu.menu_max_width = ctx_menu_max_width;
-	context_menu.menu_more_max_width = ctx_menu_more_max_width;
-	context_menu.menuEnterCallback = contextMenuEnterCallback;
-	context_menu.menuMoreEnterCallback = contextMenuMoreEnterCallback;
-
 	// Init settings menu
 	initSettingsMenu();
 
@@ -1788,7 +1782,7 @@ static int shellMain() {
 			if (getSettingsMenuStatus() != SETTINGS_MENU_CLOSED) {
 				settingsMenuCtrl();
 			} else if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
-				contextMenuCtrl(&context_menu);
+				contextMenuCtrl();
 			} else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
 				propertyDialogCtrl();
 			} else {
@@ -1971,7 +1965,7 @@ static int shellMain() {
 		drawSettingsMenu();
 
 		// Draw context menu
-		drawContextMenu(&context_menu);
+		drawContextMenu();
 
 		// Draw property dialog
 		drawPropertyDialog();
@@ -1986,30 +1980,6 @@ static int shellMain() {
 	fileListEmpty(&file_list);
 
 	return 0;
-}
-
-static void initContextMenuWidth() {
-	int i;
-	for (i = 0; i < N_MENU_ENTRIES; i++) {
-		if (menu_entries[i].visibility != CTX_VISIBILITY_UNUSED)
-			ctx_menu_max_width = MAX(ctx_menu_max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_entries[i].name]));
-
-		if (menu_entries[i].name == MARK_ALL) {
-			menu_entries[i].name = UNMARK_ALL;
-			i--;
-		}
-	}
-
-	ctx_menu_max_width += 2.0f * CONTEXT_MENU_MARGIN;
-	ctx_menu_max_width = MAX(ctx_menu_max_width, CONTEXT_MENU_MIN_WIDTH);
-
-	for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-		if (menu_more_entries[i].visibility != CTX_VISIBILITY_UNUSED)
-			ctx_menu_more_max_width = MAX(ctx_menu_more_max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_more_entries[i].name]));
-	}
-
-	ctx_menu_more_max_width += 2.0f * CONTEXT_MENU_MARGIN;
-	ctx_menu_more_max_width = MAX(ctx_menu_more_max_width, CONTEXT_MENU_MORE_MIN_WIDTH);
 }
 
 void ftpvita_PROM(ftpvita_client_info_t *client) {

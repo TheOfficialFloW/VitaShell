@@ -99,6 +99,7 @@ Be sure you pull request your customized design or language file there.
 - Made control smoother.
 - Removed battery icon in status bar for PSTV.
 - Fixed text editor bugs.
+- Fixed bug where USB cable wasn't recognized.
 - Fixed bug where VitaShell left to livearea after deleting the updater.
 - Improved property dialog animation.
 

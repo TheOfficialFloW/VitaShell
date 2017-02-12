@@ -34,6 +34,11 @@ static int net_init = -1;
 
 static int lock_power = 0;
 
+float easeOut(float x0, float x1, float a, float b) {
+	float dx = (x1 - x0);
+	return ((dx * a) > b) ? (dx * a) : dx;
+}
+
 void startDrawing(vita2d_texture *bg) {
 	vita2d_start_drawing();
 	vita2d_set_clear_color(BACKGROUND_COLOR);

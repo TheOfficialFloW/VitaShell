@@ -29,8 +29,6 @@
 #include "ime_dialog.h"
 #include "message_dialog.h"
 
-float text_ctx_menu_max_width = 0.0f;
-
 enum TextMenuEntrys {
 	TEXT_MENU_ENTRY_MARK_UNMARK_ALL,
 	TEXT_MENU_ENTRY_EMPTY_1,
@@ -51,12 +49,25 @@ MenuEntry text_menu_entries[] = {
 	{ CUT, 0, CTX_VISIBILITY_INVISIBLE },
 	{ COPY, 0, CTX_VISIBILITY_INVISIBLE },
 	{ PASTE, 0, CTX_VISIBILITY_INVISIBLE },
-	{ DELETE, 0, CTX_VISIBILITY_INVISIBLE },
+	{ DELETE, 0, CTX_VISIBILITY_VISIBLE },
 	{ INSERT_EMPTY_LINE, 0, CTX_VISIBILITY_VISIBLE },
 	{ -1, 0, CTX_VISIBILITY_UNUSED },
 	{ SEARCH, 0, CTX_VISIBILITY_VISIBLE },
 	{ -1, 0, CTX_VISIBILITY_UNUSED },
 	{ OPEN_HEX_EDITOR, 0, CTX_VISIBILITY_VISIBLE },
+};
+
+#define N_TEXT_MENU_ENTRIES (sizeof(text_menu_entries) / sizeof(MenuEntry))
+
+static int contextMenuEnterCallback(int pos, void *context);
+
+static ContextMenu context_menu_text = {
+	.parent = NULL,
+	.entries = text_menu_entries,
+	.n_entries = N_TEXT_MENU_ENTRIES,
+	.max_width = 0.0f,
+	.callback = contextMenuEnterCallback,
+	.sel = -1,
 };
 
 typedef struct TextEditorState {
@@ -71,7 +82,6 @@ typedef struct TextEditorState {
 	int n_copied_lines;
 	int copy_reset;
 	int modify_allowed;
-	ContextMenu context_menu;
 	CopyEntry copy_buffer[MAX_COPY_BUFFER_SIZE];
 	TextList list;
 	int changed;
@@ -97,17 +107,15 @@ typedef struct CountParams {
 	TextEditorState *state;
 } CountParams;
 
-#define N_TEXT_MENU_ENTRIES (sizeof(text_menu_entries) / sizeof(MenuEntry))
-
 void initTextContextMenuWidth() {
 	int i;
 	for (i = 0; i < N_TEXT_MENU_ENTRIES; i++) {
 		if (text_menu_entries[i].visibility != CTX_VISIBILITY_UNUSED)
-			text_ctx_menu_max_width = MAX(text_ctx_menu_max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[text_menu_entries[i].name]));
+			context_menu_text.max_width = MAX(context_menu_text.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[text_menu_entries[i].name]));
 	}
 
-	text_ctx_menu_max_width += 2.0f * CONTEXT_MENU_MARGIN;
-	text_ctx_menu_max_width = MAX(text_ctx_menu_max_width, CONTEXT_MENU_MIN_WIDTH);
+	context_menu_text.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	context_menu_text.max_width = MAX(context_menu_text.max_width, CONTEXT_MENU_MIN_WIDTH);
 }
 
 static void textListAddEntry(TextList *list, TextListEntry *entry) {
@@ -354,12 +362,10 @@ static int cmp (const void * a, const void * b) {
    return ( *(int*)a - *(int*)b );
 }
 
-static int contextMenuEnterCallback(int pos, void *context) {
+static int contextMenuEnterCallback(int sel, void *context) {
 	TextEditorState *state = (TextEditorState*) context;
 
-	// debugPrintf("ContextMenu Callback: %i\n", pos);
-
-	switch (pos) {
+	switch (sel) {
 		case TEXT_MENU_ENTRY_SEARCH:
 			initImeDialog(language_container[ENTER_SEARCH_TERM], "", MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, 0);
 			state->search_term_input = 1;
@@ -430,29 +436,25 @@ static int contextMenuEnterCallback(int pos, void *context) {
 }
 
 static void setContextMenuVisibilities(TextEditorState *state) {
-	MenuEntry *menu_entries = state->context_menu.menu_entries;
-
 	// Cut & Copy & Unmark only visible when at least one line is selected
-	menu_entries[TEXT_MENU_ENTRY_MARK_UNMARK_ALL].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
-	menu_entries[TEXT_MENU_ENTRY_CUT].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
-	menu_entries[TEXT_MENU_ENTRY_COPY].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	text_menu_entries[TEXT_MENU_ENTRY_MARK_UNMARK_ALL].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	text_menu_entries[TEXT_MENU_ENTRY_CUT].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	text_menu_entries[TEXT_MENU_ENTRY_COPY].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
 
 	// Paste only visible when at least one line is in copy buffer
-	menu_entries[TEXT_MENU_ENTRY_PASTE].visibility = state->n_copied_lines == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	text_menu_entries[TEXT_MENU_ENTRY_PASTE].visibility = state->n_copied_lines == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
 	
-	menu_entries[TEXT_MENU_ENTRY_DELETE].visibility = state->n_copied_lines == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
-
 	// Go to first entry
 	int i;
 	for (i = 0; i < N_TEXT_MENU_ENTRIES; i++) {
-		if (menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
-			setContextMenuPos(i);
+		if (text_menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+			context_menu_text.sel = i;
 			break;
 		}
 	}
 
 	if (i == N_TEXT_MENU_ENTRIES)
-		setContextMenuPos(-1);
+		context_menu_text.sel = -1;
 }
 
 static int count_lines_thread(SceSize args, CountParams *params) {
@@ -576,14 +578,8 @@ int textViewer(const char *file) {
 	s->n_selections = 0;
 	memset(&s->list, 0, sizeof(TextList));
 
-
 	// Init context menu param
-	s->context_menu.menu_entries = text_menu_entries;
-	s->context_menu.n_menu_entries = N_TEXT_MENU_ENTRIES;
-	s->context_menu.menu_max_width = text_ctx_menu_max_width;
-	s->context_menu.context = s;
-	s->context_menu.menuEnterCallback = contextMenuEnterCallback;
-	//context_menu.menuMoreEnterCallback = contextMenuMoreEnterCallback;
+	context_menu_text.context = s;
 
 	int i;
 	for (i = 0; i < MAX_ENTRIES; i++) {
@@ -607,7 +603,6 @@ int textViewer(const char *file) {
 	s->edit_line = -1;
 	s->changed = 0;
 
-
 	s->search_term_input = 0;
 	s->search_thid = 0;
 	s->n_search_results = 0;
@@ -620,11 +615,12 @@ int textViewer(const char *file) {
 				break;
 			
 			if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
-				contextMenuCtrl(&s->context_menu);
+				contextMenuCtrl();
 			} else {
 				// Context menu trigger
 				if (pressed_buttons & SCE_CTRL_TRIANGLE) {
 					if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
+						setContextMenu(&context_menu_text);
 						setContextMenuVisibilities(s);
 						setContextMenuMode(CONTEXT_MENU_OPENING);
 					}
@@ -1028,7 +1024,7 @@ int textViewer(const char *file) {
 		} 
 
 		// Draw context menu
-		drawContextMenu(&s->context_menu);
+		drawContextMenu();
 
 		// End drawing
 		endDrawing();

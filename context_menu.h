@@ -34,16 +34,14 @@ typedef struct {
 	int visibility;
 } MenuEntry;
 
-typedef struct {
-	MenuEntry *menu_entries;
-	int n_menu_entries;
-	MenuEntry *menu_more_entries;
-	int n_menu_more_entries;
-	float menu_max_width;
-	float menu_more_max_width;
-	int (* menuEnterCallback)(int pos, void *context);
-	int (* menuMoreEnterCallback)(int pos, void *context);
+typedef struct ContextMenu {
+	struct ContextMenu *parent;
+	MenuEntry *entries;
+	int n_entries;
+	float max_width;
+	int (* callback)(int pos, void *context);
 	void *context;
+	int sel;
 } ContextMenu;
 
 enum ContextMenuModes {
@@ -57,14 +55,12 @@ enum ContextMenuModes {
 	CONTEXT_MENU_MORE_OPENING = 6,
 };
 
-int getContextMenuPos();
-void setContextMenuPos(int pos);
-int getContextMenuMorePos();
-void setContextMenuMorePos(int pos);
 int getContextMenuMode();
 void setContextMenuMode(int mode);
 
-void drawContextMenu(ContextMenu *ctx);
-void contextMenuCtrl(ContextMenu *ctx);
+void setContextMenu(ContextMenu *ctx);
+
+void drawContextMenu();
+void contextMenuCtrl();
 
 #endif

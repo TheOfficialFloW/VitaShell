@@ -111,11 +111,6 @@ SettingsMenuEntry vitashell_settings_menu_entries[] = {
 
 static SettingsMenu settings_menu;
 
-static float easeOut(float x0, float x1, float a) {
-	float dx = (x1 - x0);
-	return ((dx * a) > 0.01f) ? (dx * a) : dx;
-}
-
 void loadSettingsConfig() {
 	// Load settings config file
 	memset(&vitashell_config, 0, sizeof(VitaShellConfig));
@@ -257,7 +252,7 @@ void drawSettingsMenu() {
 	// Closing settings menu
 	if (settings_menu.status == SETTINGS_MENU_CLOSING) {
 		if (settings_menu.cur_pos > 0.0f) {
-			settings_menu.cur_pos -= easeOut(0.0f, settings_menu.cur_pos, 0.25f);
+			settings_menu.cur_pos -= easeOut(0.0f, settings_menu.cur_pos, 0.25f, 0.01f);
 		} else {
 			settings_menu.status = SETTINGS_MENU_CLOSED;
 		}
@@ -266,7 +261,7 @@ void drawSettingsMenu() {
 	// Opening settings menu
 	if (settings_menu.status == SETTINGS_MENU_OPENING) {
 		if (settings_menu.cur_pos < SCREEN_HEIGHT) {
-			settings_menu.cur_pos += easeOut(settings_menu.cur_pos, SCREEN_HEIGHT, 0.25f);
+			settings_menu.cur_pos += easeOut(settings_menu.cur_pos, SCREEN_HEIGHT, 0.25f, 0.01f);
 		} else {
 			settings_menu.status = SETTINGS_MENU_OPENED;
 		}

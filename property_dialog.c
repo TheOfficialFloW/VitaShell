@@ -389,11 +389,6 @@ void propertyDialogCtrl() {
 	}
 }
 
-static float easeOut(float x0, float x1, float a) {
-	float dx = (x1 - x0);
-	return ((dx * a) > 0.01f) ? (dx * a) : dx;
-}
-
 void drawPropertyDialog() {
 	if (property_dialog.status == PROPERTY_DIALOG_CLOSED)
 		return;
@@ -410,7 +405,7 @@ void drawPropertyDialog() {
 	// Easing out
 	if (property_dialog.status == PROPERTY_DIALOG_CLOSING) {
 		if (property_dialog.scale > 0.0f) {
-			property_dialog.scale -= easeOut(0.0f, property_dialog.scale, 0.25f);
+			property_dialog.scale -= easeOut(0.0f, property_dialog.scale, 0.25f, 0.01f);
 		} else {
 			property_dialog.status = PROPERTY_DIALOG_CLOSED;
 		}
@@ -418,7 +413,7 @@ void drawPropertyDialog() {
 
 	if (property_dialog.status == PROPERTY_DIALOG_OPENING) {
 		if (property_dialog.scale < 1.0f) {
-			property_dialog.scale += easeOut(property_dialog.scale, 1.0f, 0.25f);
+			property_dialog.scale += easeOut(property_dialog.scale, 1.0f, 0.25f, 0.01f);
 		} else {
 			property_dialog.status = PROPERTY_DIALOG_OPENED;
 		}

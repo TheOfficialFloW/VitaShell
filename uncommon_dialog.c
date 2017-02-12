@@ -232,11 +232,6 @@ int sceMsgDialogProgressBarSetValue(SceMsgDialogProgressBarTarget target, SceUIn
 	return 0;
 }
 
-static float easeOut(float x0, float x1, float a) {
-	float dx = (x1 - x0);
-	return ((dx * a) > 0.01f) ? (dx * a) : dx;
-}
-
 int drawUncommonDialog() {
 	if (uncommon_dialog.status == SCE_COMMON_DIALOG_STATUS_NONE)
 		return 0;
@@ -251,7 +246,7 @@ int drawUncommonDialog() {
 	// Easing out
 	if (uncommon_dialog.dialog_status == UNCOMMON_DIALOG_CLOSING) {
 		if (uncommon_dialog.scale > 0.0f) {
-			uncommon_dialog.scale -= easeOut(0.0f, uncommon_dialog.scale, 0.25f);
+			uncommon_dialog.scale -= easeOut(0.0f, uncommon_dialog.scale, 0.25f, 0.01f);
 		} else {
 			uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSED;
 			uncommon_dialog.status = SCE_COMMON_DIALOG_STATUS_FINISHED;
@@ -260,7 +255,7 @@ int drawUncommonDialog() {
 
 	if (uncommon_dialog.dialog_status == UNCOMMON_DIALOG_OPENING) {
 		if (uncommon_dialog.scale < 1.0f) {
-			uncommon_dialog.scale += easeOut(uncommon_dialog.scale, 1.0f, 0.25f);
+			uncommon_dialog.scale += easeOut(uncommon_dialog.scale, 1.0f, 0.25f, 0.01f);
 		} else {
 			uncommon_dialog.dialog_status = UNCOMMON_DIALOG_OPENED;
 		}
