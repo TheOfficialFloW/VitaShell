@@ -117,7 +117,7 @@ int archiveCheckFilesForUnsafeFself() {
 	return 0; // Safe
 }
 
-int fileListGetArchiveEntries(FileList *list, char *path, int sort) {
+int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 	int res;
 
 	if (!uf)
@@ -130,7 +130,7 @@ int fileListGetArchiveEntries(FileList *list, char *path, int sort) {
 	entry->type = FILE_TYPE_UNKNOWN;
 	fileListAddEntry(list, entry, sort);
 
-	char *archive_path = path + archive_path_start;
+	const char *archive_path = path + archive_path_start;
 	int name_length = strlen(archive_path);
 
 	FileListEntry *archive_entry = archive_list.head;
@@ -187,7 +187,7 @@ int fileListGetArchiveEntries(FileList *list, char *path, int sort) {
 	return 0;
 }
 
-int getArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
+int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
 	if (!uf)
 		return -1;
 
@@ -227,7 +227,7 @@ int getArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *
 	return 0;
 }
 
-int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
+int extractArchivePath(const char *src, const char *dst, FileProcessParam *param) {
 	if (!uf)
 		return -1;
 
@@ -311,13 +311,6 @@ int extractArchivePath(char *src, char *dst, FileProcessParam *param) {
 				break;
 
 			int written = sceIoWrite(fddst, buf, read);
-			if (written == SCE_ERROR_ERRNO_ENODEV) {
-				fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT, 0777);
-				if (fddst >= 0) {
-					sceIoLseek(fddst, seek, SCE_SEEK_SET);
-					written = sceIoWrite(fddst, buf, read);
-				}
-			}
 
 			if (written < 0) {
 				free(buf);
@@ -438,7 +431,7 @@ int archiveFileClose(SceUID fd) {
 	return unzCloseCurrentFile(uf);
 }
 
-int ReadArchiveFile(char *file, void *buf, int size) {
+int ReadArchiveFile(const char *file, void *buf, int size) {
 	SceUID fd = archiveFileOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
@@ -460,7 +453,7 @@ int archiveClose() {
 	return 0;
 }
 
-int archiveOpen(char *file) {
+int archiveOpen(const char *file) {
 	// Start position of the archive path
 	archive_path_start = strlen(file) + 1;
 

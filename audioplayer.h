@@ -19,6 +19,6 @@
 #ifndef __AUDIOPLAYER_H__
 #define __AUDIOPLAYER_H__
 
-int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos);
+int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos);
 
 #endif

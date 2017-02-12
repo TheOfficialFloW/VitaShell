@@ -20,7 +20,7 @@
 #include "file.h"
 #include "config.h"
 
-void trim(char *str) {
+static void trim(char *str) {
 	int len = strlen(str);
 	int i;
 
@@ -33,7 +33,7 @@ void trim(char *str) {
 	}
 }
 
-int GetLine(char *buf, int size, char *str) {
+static int GetLine(char *buf, int size, char *str) {
 	uint8_t ch = 0;
 	int n = 0;
 	int i = 0;
@@ -63,15 +63,15 @@ int GetLine(char *buf, int size, char *str) {
 	return i;
 }
 
-int getDecimal(char *str) {
+static int getDecimal(const char *str) {
 	return strtol(str, NULL, 0);
 }
 
-int getHexdecimal(char *str) {
+static int getHexdecimal(const char *str) {
 	return strtoul(str, NULL, 16);
 }
 
-int getBoolean(char *str) {
+static int getBoolean(const char *str) {
 	if (strcasecmp(str, "false") == 0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no") == 0)
 		return 0;
 
@@ -81,7 +81,7 @@ int getBoolean(char *str) {
 	return -1;
 }
 
-char *getString(char *str) {
+static char *getString(const char *str) {
 	if (str[0] != '"')
 		return NULL;
 
@@ -104,7 +104,7 @@ char *getString(char *str) {
 	return out;
 }
 
-int readEntry(char *line, ConfigEntry *entries, int n_entries) {
+static int readEntry(const char *line, ConfigEntry *entries, int n_entries) {
 	// Trim at beginning
 	while (*line == ' ' || *line == '\t')
 		line++;
@@ -215,7 +215,7 @@ int readConfigBuffer(void *buffer, int size, ConfigEntry *entries, int n_entries
 	return 0;
 }
 
-int readConfig(char *path, ConfigEntry *entries, int n_entries) {
+int readConfig(const char *path, ConfigEntry *entries, int n_entries) {
 	void *buffer = NULL;
 	int size = allocateReadFile(path, &buffer);
 	if (size < 0)
@@ -228,7 +228,7 @@ int readConfig(char *path, ConfigEntry *entries, int n_entries) {
 	return 0;
 }
 
-int writeEntry(SceUID fd, ConfigEntry *entry) {
+static int writeEntry(SceUID fd, ConfigEntry *entry) {
     int result;
     if ((result = sceIoWrite(fd, entry->name, strlen(entry->name))) < 0)
         return result;
@@ -275,7 +275,7 @@ int writeEntry(SceUID fd, ConfigEntry *entry) {
     return 0;
 }
 
-int writeConfig(char *path, ConfigEntry *entries, int n_entries) {
+int writeConfig(const char *path, ConfigEntry *entries, int n_entries) {
     SceUID fd = sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
     if (fd < 0)
         return fd;

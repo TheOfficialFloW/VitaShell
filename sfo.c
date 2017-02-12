@@ -28,7 +28,7 @@
 #include "utils.h"
 #include "sfo.h"
 
-int getSfoValue(void *buffer, char *name, uint32_t *value) {
+int getSfoValue(void *buffer, const char *name, uint32_t *value) {
 	SfoHeader *header = (SfoHeader *)buffer;
 	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
@@ -46,7 +46,7 @@ int getSfoValue(void *buffer, char *name, uint32_t *value) {
 	return -2;
 }
 
-int getSfoString(void *buffer, char *name, char *string, int length) {
+int getSfoString(void *buffer, const char *name, char *string, int length) {
 	SfoHeader *header = (SfoHeader *)buffer;
 	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
@@ -66,7 +66,7 @@ int getSfoString(void *buffer, char *name, char *string, int length) {
 	return -2;
 }
 
-int setSfoValue(void *buffer, char *name, uint32_t value) {
+int setSfoValue(void *buffer, const char *name, uint32_t value) {
 	SfoHeader *header = (SfoHeader *)buffer;
 	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
@@ -84,7 +84,7 @@ int setSfoValue(void *buffer, char *name, uint32_t value) {
 	return -2;
 }
 
-int setSfoString(void *buffer, char *name, char *string) {
+int setSfoString(void *buffer, const char *name, const char *string) {
 	SfoHeader *header = (SfoHeader *)buffer;
 	SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
@@ -102,7 +102,7 @@ int setSfoString(void *buffer, char *name, char *string) {
 	return -2;
 }
 
-int SFOReader(char *file) {
+int SFOReader(const char *file) {
 	uint8_t *buffer = malloc(BIG_BUFFER_SIZE);
 	if (!buffer)
 		return -1;

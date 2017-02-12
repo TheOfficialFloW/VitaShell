@@ -23,7 +23,7 @@
 #include "theme.h"
 #include "utils.h"
 
-vita2d_texture *loadImage(char *file, int type, char *buffer) {
+static vita2d_texture *loadImage(const char *file, int type, char *buffer) {
 	vita2d_texture *tex = NULL;
 
 	if (isInArchive()) {
@@ -86,11 +86,11 @@ vita2d_texture *loadImage(char *file, int type, char *buffer) {
 	return tex;
 }
 
-int isHorizontal(float rad) {
+static int isHorizontal(float rad) {
 	return ((int)sinf(rad) == 0) ? 1 : 0;
 }
 
-void photoMode(float *zoom, float width, float height, float rad, int mode) {
+static void photoMode(float *zoom, float width, float height, float rad, int mode) {
 	int horizontal = isHorizontal(rad);
 	float h = (horizontal ? height : width);
 	float w = (horizontal ? width : height);
@@ -124,7 +124,7 @@ void photoMode(float *zoom, float width, float height, float rad, int mode) {
 	}
 }
 
-int getNextZoomMode(float *zoom, float width, float height, float rad, int mode) {
+static int getNextZoomMode(float *zoom, float width, float height, float rad, int mode) {
 	float next_zoom = ZOOM_MAX, smallest_zoom = ZOOM_MAX;;
 	int next_mode = MODE_ORIGINAL, smallest_mode = MODE_ORIGINAL;
 
@@ -162,7 +162,7 @@ int getNextZoomMode(float *zoom, float width, float height, float rad, int mode)
 	return next_mode;
 }
 
-void resetImageInfo(vita2d_texture *tex, float *width, float *height, float *x, float *y, float *rad, float *zoom, int *mode, uint64_t *time) {
+static void resetImageInfo(vita2d_texture *tex, float *width, float *height, float *x, float *y, float *rad, float *zoom, int *mode, uint64_t *time) {
 	*width = vita2d_texture_get_width(tex);
 	*height = vita2d_texture_get_height(tex);
 
@@ -178,7 +178,7 @@ void resetImageInfo(vita2d_texture *tex, float *width, float *height, float *x, 
 	*time = 0;
 }
 
-int photoViewer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
+int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
 	char *buffer = malloc(BIG_BUFFER_SIZE);
 	if (!buffer)
 		return -1;

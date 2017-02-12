@@ -8,7 +8,7 @@ int fsync() {
 	return 0;
 }
 
-static	void* rar_open(const char *filename, unsigned int om) {
+static	void *rar_open(const char *filename, unsigned int om) {
 	struct RAROpenArchiveData arc_open;
 	arc_open.ArcName = (char*)filename;
 	arc_open.OpenMode = om;
@@ -20,9 +20,9 @@ static	void* rar_open(const char *filename, unsigned int om) {
 	return rar_file;
 }
 
-ArchiveFileNode* createNode(const char* name) {
-	ArchiveFileNode* node = malloc(sizeof(ArchiveFileNode));
-	node->nodeName = malloc((strlen(name) + 2) * sizeof(char));
+ArchiveFileNode *createNode(const char *name) {
+	ArchiveFileNode *node = malloc(sizeof(ArchiveFileNode));
+	node->nodeName = malloc((strlen(name) + 2)  *sizeof(char));
 	strcpy(node->nodeName, name);
 	node->childCount = 0;
 	node->childPt = NULL;
@@ -31,14 +31,14 @@ ArchiveFileNode* createNode(const char* name) {
 	return node;
 }
 
-void add_node(ArchiveFileNode* father,ArchiveFileNode* child) {
+void add_node(ArchiveFileNode *father, ArchiveFileNode *child) {
 	uint32_t count = father->childCount;
 	if( (count + 1) > father->maxCount ) {
 		if(father->maxCount == 0) {
 			father->maxCount = 16;
-			father->childPt = malloc(16 * sizeof(void*));
+			father->childPt = malloc(16  *sizeof(void*));
 		} else {
-			void* n_ptr = realloc((void*)father->childPt,2 * father->maxCount * sizeof(void*));
+			void *n_ptr = realloc((void*)father->childPt,2  *father->maxCount  *sizeof(void*));
 			if(n_ptr) {
 				father->childPt = n_ptr;
 				father->maxCount *= 2;
@@ -51,12 +51,12 @@ void add_node(ArchiveFileNode* father,ArchiveFileNode* child) {
 	child->fatherPt = father;
 }
 
-ArchiveFileNode* getChildNodeByName(ArchiveFileNode* node,char* name) {
+ArchiveFileNode *getChildNodeByName(ArchiveFileNode *node, const char *name) {
 	if(node->childCount <= 0 )
 		return NULL;
 	uint32_t i;
 	for(i = 0; i < node->childCount; i++) {
-		ArchiveFileNode* _n = (ArchiveFileNode*)(node->childPt[i]);
+		ArchiveFileNode *_n = (ArchiveFileNode*)(node->childPt[i]);
 		if(strcmp(_n->nodeName,name) == 0) {
 			return _n;
 		}
@@ -64,12 +64,12 @@ ArchiveFileNode* getChildNodeByName(ArchiveFileNode* node,char* name) {
 	return NULL;
 }
 
-void free_node(ArchiveFileNode* node) {
+void free_node(ArchiveFileNode *node) {
 	uint32_t count = node->childCount;
 	int i = 0;
 
 	for(; i < count; i++) {
-		ArchiveFileNode* _n = (ArchiveFileNode*)(node->childPt[i]);
+		ArchiveFileNode *_n = (ArchiveFileNode*)(node->childPt[i]);
 		free_node(_n);
 	}
 	if(node->childPt != NULL) {
@@ -81,8 +81,8 @@ void free_node(ArchiveFileNode* node) {
 	free(node);
 }
 
-void parse_path(const char* name, struct filelayer* layer) {
-	char* p;
+void parse_path(const char *name, struct filelayer *layer) {
+	char *p;
 	char _name[RARMAX_FILENAME];
 	strcpy(_name, name);
 	uint32_t depth = 0;
@@ -97,8 +97,8 @@ void parse_path(const char* name, struct filelayer* layer) {
 	strcpy(&(layer->name[depth][0]), _name);
 }
 
-ArchiveFileNode* openRARFile(char* filename) {
-	ArchiveFileNode* root = createNode("root");
+ArchiveFileNode *openRARFile(const char *filename) {
+	ArchiveFileNode *root = createNode("root");
 	HANDLE RARFile = rar_open(filename,RAR_OM_LIST);
 	if(!RARFile) {
 		free_node(root);
@@ -109,17 +109,17 @@ ArchiveFileNode* openRARFile(char* filename) {
 	while (!RARReadHeader(RARFile, &data)) {
 		struct filelayer layer = {0};
 		parse_path(data.FileName,&layer);
-		ArchiveFileNode* _up = root;
+		ArchiveFileNode *_up = root;
 		int i = layer.depth;
 		for(; i > 0; i--) {
-			ArchiveFileNode* father = getChildNodeByName(_up, &(layer.name[i][0]));
+			ArchiveFileNode *father = getChildNodeByName(_up, &(layer.name[i][0]));
 			if(!father) {
 				father = createNode(&(layer.name[i][0]));
 				add_node(_up,father);
 			}
 			_up = father;
 		}
-		ArchiveFileNode* filenode = getChildNodeByName(_up,&(layer.name[0][0]));
+		ArchiveFileNode *filenode = getChildNodeByName(_up,&(layer.name[0][0]));
 
 		if(!filenode) {
 			filenode = createNode(&(layer.name[0][0]));
@@ -135,7 +135,7 @@ ArchiveFileNode* openRARFile(char* filename) {
 	return root;
 }
 
-int extractToMem(struct ExtractHeader* header,char* extractBuffer,uint64_t bufferSize) {
+int extractToMem(struct ExtractHeader *header, char *extractBuffer, uint64_t bufferSize) {
 	if(header->offset >= header->bufferSize)
 		return -1;
 
@@ -147,11 +147,11 @@ int extractToMem(struct ExtractHeader* header,char* extractBuffer,uint64_t buffe
 	return 1;
 }
 
-int extractToFile(struct ExtractHeader* header,char* extractBuffer,uint64_t bufferSize) {
+int extractToFile(struct ExtractHeader *header, char *extractBuffer, uint64_t bufferSize) {
 	if(!header->file)
 		return -1;
 
-	FileProcessParam* param = header->param;
+	FileProcessParam *param = header->param;
 	if (param) {
 		if (param->value)
 			(*param->value) += bufferSize;
@@ -173,7 +173,7 @@ int extractToFile(struct ExtractHeader* header,char* extractBuffer,uint64_t buff
 }
 
 static int CALLBACK rarCallback(UINT msg,LPARAM UserData,LPARAM P1,LPARAM P2) {
-	struct ExtractHeader* header;
+	struct ExtractHeader *header;
 	int rtn = 1;
 	switch(msg) {
 	case UCM_CHANGEVOLUME:
@@ -195,7 +195,7 @@ static int CALLBACK rarCallback(UINT msg,LPARAM UserData,LPARAM P1,LPARAM P2) {
 	return rtn;
 }
 
-int extractRAR(char* path,char* filename,struct ExtractHeader* header) {
+int extractRAR(const char *path, const char *filename, struct ExtractHeader *header) {
 
 	HANDLE RARFile = rar_open(path,RAR_OM_EXTRACT);
 	if(!RARFile)
@@ -224,11 +224,11 @@ int extractRAR(char* path,char* filename,struct ExtractHeader* header) {
 	return rtn;
 }
 
-ArchiveFileNode* getFileNodeFromFilePath(ArchiveFileNode* root,const char* filepath) {
+ArchiveFileNode *getFileNodeFromFilePath(ArchiveFileNode *root,const char *filepath) {
 	struct filelayer layer = {0};
 	parse_path(filepath,&layer);
 	int i = layer.depth;
-	ArchiveFileNode* _up = root;
+	ArchiveFileNode *_up = root;
 
 	for(; i > 0; i--) {
 		_up = getChildNodeByName(_up, &(layer.name[i][0]));
@@ -239,12 +239,12 @@ ArchiveFileNode* getFileNodeFromFilePath(ArchiveFileNode* root,const char* filep
 	return getChildNodeByName(_up,&(layer.name[0][0]));
 }
 
-int getRARArchiveNodeInfo(ArchiveFileNode* root, uint64_t *size, uint32_t *folders, uint32_t *files) {
+int getRARArchiveNodeInfo(ArchiveFileNode *root, uint64_t *size, uint32_t *folders, uint32_t *files) {
 	if(root->childCount > 0) {
 		uint32_t count = root->childCount;
 		int i = 0;
 		for(; i < count; i++) {
-			ArchiveFileNode* _n = (ArchiveFileNode*)(root->childPt[i]);
+			ArchiveFileNode *_n = (ArchiveFileNode*)(root->childPt[i]);
 			getRARArchiveNodeInfo(_n,size,folders,files);
 		}
 	}
@@ -261,7 +261,7 @@ int getRARArchiveNodeInfo(ArchiveFileNode* root, uint64_t *size, uint32_t *folde
 	return 1;
 }
 
-ArchiveFileNode* getFloderNodeFromPath(ArchiveFileNode* root,const char* path) {
+ArchiveFileNode *getFloderNodeFromPath(ArchiveFileNode *root,const char *path) {
 	uint32_t pathlen = strlen(path);
 	char temp[pathlen];
 	strcpy(temp,path);
@@ -270,6 +270,6 @@ ArchiveFileNode* getFloderNodeFromPath(ArchiveFileNode* root,const char* path) {
 }
 
 
-void closeRARFile(ArchiveFileNode* root) {
+void closeRARFile(ArchiveFileNode *root) {
 	free_node(root);
 }

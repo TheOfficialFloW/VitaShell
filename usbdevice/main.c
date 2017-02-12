@@ -27,8 +27,7 @@
 static tai_hook_ref_t ksceIoOpenRef;
 static tai_hook_ref_t ksceIoReadRef;
 
-static SceUID uids[1];
-static int hooks[2];
+static SceUID hooks[3];
 
 static int first = 1;
 
@@ -65,25 +64,25 @@ int module_start(SceSize args, void *argp) {
 		// Remove image path limitation
 		char zero[0x6E];
 		memset(zero, 0, 0x6E);
-		uids[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0x1738, zero, 0x6E);
+		hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0x1738, zero, 0x6E);
 
 		// Add patches to support exFAT
-		hooks[0] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoOpenRef, "SceUsbstorVStorDriver", 0x40FD29C7, 0x75192972, ksceIoOpenPatched);
-		hooks[1] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoReadRef, "SceUsbstorVStorDriver", 0x40FD29C7, 0xE17EFC03, ksceIoReadPatched);
+		hooks[1] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoOpenRef, "SceUsbstorVStorDriver", 0x40FD29C7, 0x75192972, ksceIoOpenPatched);
+		hooks[2] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoReadRef, "SceUsbstorVStorDriver", 0x40FD29C7, 0xE17EFC03, ksceIoReadPatched);
 	}
 
 	return SCE_KERNEL_START_SUCCESS;
 }
 
 int module_stop(SceSize args, void *argp) {
+	if (hooks[2] >= 0)
+		taiHookReleaseForKernel(hooks[2], ksceIoReadRef);
+
 	if (hooks[1] >= 0)
-		taiHookReleaseForKernel(hooks[1], ksceIoReadRef);
+		taiHookReleaseForKernel(hooks[1], ksceIoOpenRef);
 
 	if (hooks[0] >= 0)
-		taiHookReleaseForKernel(hooks[0], ksceIoOpenRef);
-
-	if (uids[0] >= 0)
-		taiInjectReleaseForKernel(uids[0]);
+		taiInjectReleaseForKernel(hooks[0]);
 
 	return SCE_KERNEL_STOP_SUCCESS;
 }

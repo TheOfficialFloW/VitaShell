@@ -31,93 +31,156 @@
 #define VITASHELL_UPDATE_FILE "ux0:VitaShell/internal/VitaShell.vpk"
 #define VITASHELL_VERSION_FILE "ux0:VitaShell/internal/version.bin"
 
+#define VITASHELL_USER_AGENT "VitaShell/1.00 libhttp/1.1"
+
 extern unsigned char _binary_resources_updater_eboot_bin_start;
 extern unsigned char _binary_resources_updater_eboot_bin_size;
 extern unsigned char _binary_resources_updater_param_bin_start;
 extern unsigned char _binary_resources_updater_param_bin_size;
 
-int getDownloadFileSize(char *src, uint64_t *size) {
-	int tpl = sceHttpCreateTemplate("VitaShell/1.00 libhttp/1.1", SCE_HTTP_VERSION_1_1, 1);
-	if (tpl < 0)
-		return tpl;
+int getDownloadFileSize(const char *src, uint64_t *size) {
+	int res;
+	int statusCode;
+	int tmplId = -1, connId = -1, reqId = -1;
 
-	int conn = sceHttpCreateConnectionWithURL(tpl, src, 0);
-	if (conn < 0)
-		return conn;
-
-	int req = sceHttpCreateRequestWithURL(conn, SCE_HTTP_METHOD_GET, src, 0);
-	if (req < 0)
-		return req;
-
-	int res = sceHttpSendRequest(req, NULL, 0);
+	res = sceHttpCreateTemplate(VITASHELL_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE);
 	if (res < 0)
-		return res;
+		goto ERROR_EXIT;
 
-	sceHttpGetResponseContentLength(req, size);
+	tmplId = res;
 
-	sceHttpDeleteRequest(req);
-	sceHttpDeleteConnection(conn);
-	sceHttpDeleteTemplate(tpl);
+	res = sceHttpCreateConnectionWithURL(tmplId, src, SCE_TRUE);
+	if (res < 0)
+		goto ERROR_EXIT;
 
-	return 0;
+	connId = res;
+
+	res = sceHttpCreateRequestWithURL(connId, SCE_HTTP_METHOD_GET, src, 0);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	reqId = res;
+
+	res = sceHttpSendRequest(reqId, NULL, 0);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	res = sceHttpGetStatusCode(reqId, &statusCode);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	if (statusCode == 200) {
+		res = sceHttpGetResponseContentLength(reqId, size);
+	}
+
+ERROR_EXIT:
+	if (reqId >= 0)
+		sceHttpDeleteRequest(reqId);
+
+	if (connId >= 0)
+		sceHttpDeleteConnection(connId);
+
+	if (tmplId >= 0)
+		sceHttpDeleteTemplate(tmplId);
+
+	return res;
 }
 
-int downloadFile(char *src, char *dst, uint64_t *value, uint64_t max, void (* SetProgress)(uint64_t value, uint64_t max), int (* cancelHandler)()) {
+int downloadFile(const char *src, const char *dst, FileProcessParam *param) {
+	int res;
+	int statusCode;
+	int tmplId = -1, connId = -1, reqId = -1;
+	SceUID fd = -1;
 	int ret = 1;
 
-	int tpl = sceHttpCreateTemplate("VitaShell/1.00 libhttp/1.1", SCE_HTTP_VERSION_1_1, 1);
-	if (tpl < 0)
-		return tpl;
-
-	int conn = sceHttpCreateConnectionWithURL(tpl, src, 0);
-	if (conn < 0)
-		return conn;
-
-	int req = sceHttpCreateRequestWithURL(conn, SCE_HTTP_METHOD_GET, src, 0);
-	if (req < 0)
-		return req;
-
-	int res = sceHttpSendRequest(req, NULL, 0);
+	res = sceHttpCreateTemplate(VITASHELL_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE);
 	if (res < 0)
-		return res;
+		goto ERROR_EXIT;
 
-	SceUID fd = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	if (fd < 0)
-		return fd;
+	tmplId = res;
 
-	uint8_t buf[4096];
+	res = sceHttpCreateConnectionWithURL(tmplId, src, SCE_TRUE);
+	if (res < 0)
+		goto ERROR_EXIT;
 
-	int read;
-	while ((read = sceHttpReadData(req, buf, sizeof(buf))) > 0) {
-		int res = sceIoWrite(fd, buf, read);
-		if (res < 0) {
-			ret = res;
-			break;
-		}
+	connId = res;
 
-		if (value)
-			(*value) += read;
+	res = sceHttpCreateRequestWithURL(connId, SCE_HTTP_METHOD_GET, src, 0);
+	if (res < 0)
+		goto ERROR_EXIT;
 
-		if (SetProgress)
-			SetProgress(value ? *value : 0, max);
+	reqId = res;
 
-		if (cancelHandler && cancelHandler()) {
-			sceIoClose(fd);
-			ret = 0;
-			break;
+	res = sceHttpSendRequest(reqId, NULL, 0);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	res = sceHttpGetStatusCode(reqId, &statusCode);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	if (statusCode == 200) {		
+		res = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+		if (res < 0)
+			goto ERROR_EXIT;
+
+		fd = res;
+
+		uint8_t buf[4096];
+
+		while (1) {
+			int read = sceHttpReadData(reqId, buf, sizeof(buf));
+			
+			if (read < 0) {
+				res = read;
+				break;
+			}
+			
+			if (read == 0)
+				break;
+
+			int written = sceIoWrite(fd, buf, read);
+			
+			if (written < 0) {
+				res = written;
+				break;
+			}
+
+			if (param) {
+				if (param->value)
+					(*param->value) += read;
+
+				if (param->SetProgress)
+					param->SetProgress(param->value ? *param->value : 0, param->max);
+
+				if (param->cancelHandler && param->cancelHandler()) {
+					ret = 0;
+					break;
+				}
+			}
 		}
 	}
 
-	sceIoClose(fd);
+ERROR_EXIT:
+	if (fd >= 0)
+		sceIoClose(fd);
 
-	sceHttpDeleteRequest(req);
-	sceHttpDeleteConnection(conn);
-	sceHttpDeleteTemplate(tpl);
+	if (reqId >= 0)
+		sceHttpDeleteRequest(reqId);
+
+	if (connId >= 0)
+		sceHttpDeleteConnection(connId);
+
+	if (tmplId >= 0)
+		sceHttpDeleteTemplate(tmplId);
+
+	if (res < 0)
+		return res;
 
 	return ret;
 }
 
-int downloadProcess(char *version_string) {
+static int downloadProcess(char *version_string) {
 	SceUID thid = -1;
 
 	// Lock power timers
@@ -140,7 +203,14 @@ int downloadProcess(char *version_string) {
 
 	// Download
 	uint64_t value = 0;
-	int res = downloadFile(url, VITASHELL_UPDATE_FILE, &value, size, SetProgress, cancelHandler);
+	
+	FileProcessParam param;
+	param.value = &value;
+	param.max = size;
+	param.SetProgress = SetProgress;
+	param.cancelHandler = cancelHandler;
+
+	int res = downloadFile(url, VITASHELL_UPDATE_FILE, &param);
 	if (res <= 0) {
 		closeWaitDialog();
 		dialog_step = DIALOG_STEP_CANCELLED;
@@ -171,8 +241,8 @@ int network_update_thread(SceSize args, void *argp) {
 	sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
 
 	uint64_t size = 0;
-	if (getDownloadFileSize(BASE_ADDRESS VERSION_URL, &size) == 0 && size == sizeof(uint32_t)) {
-		int res = downloadFile(BASE_ADDRESS VERSION_URL, VITASHELL_VERSION_FILE, NULL, 0, NULL, NULL);
+	if (getDownloadFileSize(BASE_ADDRESS VERSION_URL, &size) >= 0 && size == sizeof(uint32_t)) {
+		int res = downloadFile(BASE_ADDRESS VERSION_URL, VITASHELL_VERSION_FILE, NULL);
 		if (res <= 0)
 			goto EXIT;
 

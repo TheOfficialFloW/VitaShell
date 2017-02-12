@@ -26,7 +26,8 @@
 #include "property_dialog.h"
 
 typedef struct {
-	int dialog_status;
+	int status;
+	int reset;
 	float info_x;
 	float x;
 	float y;
@@ -38,10 +39,11 @@ typedef struct {
 static PropertyDialog property_dialog;
 
 static char property_name[128], property_type[32], property_fself_mode[16];
-static char property_size[16], property_compressed_size[16], property_contains[32];
+static char property_size[16], property_size_new[16];
+static char property_compressed_size[16];
+static char property_contains[64], property_contains_new[64];
 static char property_creation_date[64], property_modification_date[64];
 
-#define PROPERTY_DIALOG_ENTRY_MIN_WIDTH 240
 #define PROPERTY_DIALOG_ENTRY_MAX_WIDTH 580
 
 typedef struct {
@@ -84,28 +86,24 @@ enum PropertyEntries {
 #define N_PROPERTIES_ENTRIES (sizeof(property_entries) / sizeof(PropertyEntry))
 
 int getPropertyDialogStatus() {
-	return property_dialog.dialog_status;
+	return property_dialog.status;
 }
 
-int copyStringLimited(char *out, char *in, int limit) {
-	int line_width = 0;
+static int copyStringLimited(char *out, char *in, int limit) {
+	int width = 0;
 
-	int j;
-	for (j = 0; j < strlen(in); j++) {
-		char ch_width = font_size_cache[(int)in[j]];
+	strcpy(out, in);
 
-		// Too long
-		if ((line_width + ch_width) >= limit)
+	int len = strlen(out)-1;
+	while (len > 0) {
+		width = vita2d_pgf_text_width(font, FONT_SIZE, out);
+		if (width > limit)
+			out[len--] = '\0';
+		else
 			break;
-
-		// Increase line width
-		line_width += ch_width;
 	}
 
-	strncpy(out, in, j);
-	out[j] = '\0';
-
-	return line_width;
+	return width;
 }
 
 typedef struct {
@@ -115,11 +113,11 @@ typedef struct {
 SceUID info_thid = -1;
 int info_done = 0;
 
-int propertyCancelHandler() {
+static int propertyCancelHandler() {
 	return info_done;
 }
 
-int info_thread(SceSize args_size, InfoArguments *args) {
+static int info_thread(SceSize args_size, InfoArguments *args) {
 	uint64_t size = 0;
 	uint32_t folders = 0, files = 0;
 
@@ -130,11 +128,30 @@ int info_thread(SceSize args_size, InfoArguments *args) {
 	if (folders > 0)
 		folders--;
 
-	getSizeString(property_size, size);
+	getSizeString(property_size_new, size);
 
-	snprintf(property_contains, sizeof(property_contains), language_container[PROPERTY_CONTAINS_FILES_FOLDERS], files, folders);
+	snprintf(property_contains_new, sizeof(property_contains_new), language_container[PROPERTY_CONTAINS_FILES_FOLDERS], files, folders);
+
+	property_dialog.reset = 1;
 
 	return sceKernelExitDeleteThread(0);
+}
+
+static void resetWidth() {
+	int width = 0, max_width = 0;
+	
+	width = copyStringLimited(property_size, property_size_new, PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+	if (width > max_width)
+		max_width = width;
+
+	width = copyStringLimited(property_contains, property_contains_new, PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+	if (width > max_width)
+		max_width = width;
+
+	if (property_dialog.width < property_dialog.info_x + max_width + 2.0f * SHELL_MARGIN_X) {
+		property_dialog.width = property_dialog.info_x + max_width + 2.0f * SHELL_MARGIN_X;
+		property_dialog.x = ALIGN_CENTER(SCREEN_WIDTH, property_dialog.width);
+	}	
 }
 
 int initPropertyDialog(char *path, FileListEntry *entry) {
@@ -143,7 +160,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	memset(&property_dialog, 0, sizeof(PropertyDialog));
 
 	// Opening status
-	property_dialog.dialog_status = PROPERTY_DIALOG_OPENING;
+	property_dialog.status = PROPERTY_DIALOG_OPENING;
 
 	// Get info x
 	property_dialog.info_x = 0.0f;
@@ -165,8 +182,6 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 
 	// Entries
 	int width = 0, max_width = 0;
-
-	char *p;
 
 	// Name
 	char name[128];
@@ -342,7 +357,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	}
 
 	// Width and height
-	property_dialog.width = property_dialog.info_x + (float)MAX(max_width, PROPERTY_DIALOG_ENTRY_MIN_WIDTH);
+	property_dialog.width = property_dialog.info_x + max_width;
 	property_dialog.height = FONT_Y_SPACE * j;
 
 	// For buttons
@@ -370,7 +385,7 @@ void propertyDialogCtrl() {
 	if (pressed_buttons & SCE_CTRL_ENTER) {
 		info_done = 1;
 		sceKernelWaitThreadEnd(info_thid, NULL, NULL);
-		property_dialog.dialog_status = PROPERTY_DIALOG_CLOSING;
+		property_dialog.status = PROPERTY_DIALOG_CLOSING;
 	}
 }
 
@@ -380,7 +395,7 @@ static float easeOut(float x0, float x1, float a) {
 }
 
 void drawPropertyDialog() {
-	if (property_dialog.dialog_status == PROPERTY_DIALOG_CLOSED)
+	if (property_dialog.status == PROPERTY_DIALOG_CLOSED)
 		return;
 
 	// Dialog background
@@ -393,23 +408,45 @@ void drawPropertyDialog() {
 														0.0f, dialog_width / 2.0f, dialog_height / 2.0f);
 
 	// Easing out
-	if (property_dialog.dialog_status == PROPERTY_DIALOG_CLOSING) {
+	if (property_dialog.status == PROPERTY_DIALOG_CLOSING) {
 		if (property_dialog.scale > 0.0f) {
 			property_dialog.scale -= easeOut(0.0f, property_dialog.scale, 0.25f);
 		} else {
-			property_dialog.dialog_status = PROPERTY_DIALOG_CLOSED;
+			property_dialog.status = PROPERTY_DIALOG_CLOSED;
 		}
 	}
 
-	if (property_dialog.dialog_status == PROPERTY_DIALOG_OPENING) {
+	if (property_dialog.status == PROPERTY_DIALOG_OPENING) {
 		if (property_dialog.scale < 1.0f) {
 			property_dialog.scale += easeOut(property_dialog.scale, 1.0f, 0.25f);
 		} else {
-			property_dialog.dialog_status = PROPERTY_DIALOG_OPENED;
+			property_dialog.status = PROPERTY_DIALOG_OPENED;
 		}
 	}
 
-	if (property_dialog.dialog_status == PROPERTY_DIALOG_OPENED) {
+	if (property_dialog.reset > 0) {
+		if (property_dialog.reset == 1) {
+			if (property_dialog.status == PROPERTY_DIALOG_OPENED) {
+				property_dialog.status = PROPERTY_DIALOG_CLOSING;
+				property_dialog.reset++;
+			} else {
+				resetWidth();
+				property_dialog.reset = 0;
+			}
+		} else if (property_dialog.reset == 2) {
+			if (property_dialog.status == PROPERTY_DIALOG_CLOSED) {
+				resetWidth();
+				property_dialog.status = PROPERTY_DIALOG_OPENING;
+				property_dialog.reset++;
+			}
+		} else if (property_dialog.reset == 3) {
+			if (property_dialog.status == PROPERTY_DIALOG_OPENED) {
+				property_dialog.reset = 0;
+			}
+		}
+	}
+
+	if (property_dialog.status == PROPERTY_DIALOG_OPENED) {
 		float string_y = property_dialog.y + SHELL_MARGIN_Y - 2.0f;
 
 		int i;

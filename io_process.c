@@ -362,7 +362,7 @@ EXIT:
 	return sceKernelExitDeleteThread(0);
 }
 
-int mediaPathHandler(char *path) {
+static int mediaPathHandler(const char *path) {
 	// Avoid export-ception
 	if (strncasecmp(path, "ux0:music/", 10) == 0 || strncasecmp(path, "ux0:picture/", 12) == 0) {
 		return 1;
@@ -389,7 +389,7 @@ int mediaPathHandler(char *path) {
 	return 1;
 }
 
-void musicExportProgress(void *data, int progress) {
+static void musicExportProgress(void *data, int progress) {
 	uint32_t *args = (uint32_t *)data;
 
 	uint32_t *value = (uint32_t *)args[1];
@@ -406,7 +406,7 @@ void musicExportProgress(void *data, int progress) {
 	}
 }
 
-int exportMedia(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam *process_param) {
+static int exportMedia(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam *process_param) {
 	static char buf[64 * 1024];
 	char out[MAX_PATH_LENGTH];
 

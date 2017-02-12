@@ -48,13 +48,12 @@ extern SceCtrlData pad;
 extern uint32_t old_buttons, current_buttons, pressed_buttons, hold_buttons, hold2_buttons, released_buttons;
 
 void startDrawing(vita2d_texture *bg);
-void drawingWallpaperUI2(vita2d_texture *bg,float x, float y, float tex_x, float tex_y, float tex_w, float tex_h);
 void endDrawing();
 
 void closeWaitDialog();
 
 void errorDialog(int error);
-void infoDialog(char *msg, ...);
+void infoDialog(const char *msg, ...);
 
 int checkMemoryCardFreeSpace(uint64_t size);
 
@@ -65,7 +64,7 @@ void powerUnlock();
 void readPad();
 int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time);
 
-int hasEndSlash(char *path);
+int hasEndSlash(const char *path);
 int removeEndSlash(char *path);
 int addEndSlash(char *path);
 
@@ -77,11 +76,9 @@ void convertLocalTimeToUtc(SceDateTime *time_utc, SceDateTime *time_local);
 void getDateString(char *string, int date_format, SceDateTime *time);
 void getTimeString(char *string, int time_format, SceDateTime *time);
 
-int randomNumber(int low, int high);
+int debugPrintf(const char *text, ...);
 
-int debugPrintf(char *text, ...);
-
-int launchAppByUriExit(char *titleid);
+int launchAppByUriExit(const char *titleid);
 
 char *strcasestr(const char *haystack, const char *needle);
 

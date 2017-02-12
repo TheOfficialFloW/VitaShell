@@ -19,6 +19,6 @@
 #ifndef __COREDUMP_H__
 #define __COREDUMP_H__
 
-int coredumpViewer(char *file);
+int coredumpViewer(const char *file);
 
 #endif

@@ -27,7 +27,7 @@
 
 #define MESSAGE_DIALOG_PROGRESS_BAR 5
 
-int initMessageDialog(int type, char *msg, ...);
+int initMessageDialog(int type, const char *msg, ...);
 int isMessageDialogRunning();
 int updateMessageDialog();
 

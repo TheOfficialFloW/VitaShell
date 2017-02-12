@@ -51,11 +51,11 @@
 int taiReloadConfig();
 int henkaku_reload_config();
 
-void taihenReloadConfig();
-void henkakuRestoreDefaultSettings();
-void rebootDevice();
-void shutdownDevice();
-void suspendDevice();
+static void taihenReloadConfig();
+static void henkakuRestoreDefaultSettings();
+static void rebootDevice();
+static void shutdownDevice();
+static void suspendDevice();
 
 static int changed = 0;
 
@@ -127,22 +127,22 @@ void saveSettingsConfig() {
 	writeConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries) / sizeof(ConfigEntry));
 }
 
-void rebootDevice() {
+static void rebootDevice() {
 	closeSettingsMenu();
 	scePowerRequestColdReset();
 }
 
-void shutdownDevice() {
+static void shutdownDevice() {
 	closeSettingsMenu();
 	scePowerRequestStandby();
 }
 
-void suspendDevice() {
+static void suspendDevice() {
 	closeSettingsMenu();
 	scePowerRequestSuspend();
 }
 
-void henkakuRestoreDefaultSettings() {
+static void henkakuRestoreDefaultSettings() {
 	memset(&henkaku_config, 0, sizeof(HENkakuConfig));
 	henkaku_config.use_psn_spoofing = 1;
 	henkaku_config.use_spoofed_version = 1;
@@ -152,7 +152,7 @@ void henkakuRestoreDefaultSettings() {
 	infoDialog(language_container[HENKAKU_RESTORE_DEFAULT_MESSAGE]);
 }
 
-void taihenReloadConfig() {
+static void taihenReloadConfig() {
 	taiReloadConfig();
 	infoDialog(language_container[HENKAKU_RELOAD_CONFIG_MESSAGE]);
 }

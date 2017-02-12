@@ -29,7 +29,6 @@ INCLUDE_EXTERN_RESOURCE(image_icon_png);
 INCLUDE_EXTERN_RESOURCE(audio_icon_png);
 INCLUDE_EXTERN_RESOURCE(sfo_icon_png);
 INCLUDE_EXTERN_RESOURCE(text_icon_png);
-INCLUDE_EXTERN_RESOURCE(wifi_png);
 INCLUDE_EXTERN_RESOURCE(ftp_png);
 INCLUDE_EXTERN_RESOURCE(battery_png);
 INCLUDE_EXTERN_RESOURCE(battery_bar_red_png);
@@ -47,6 +46,8 @@ INCLUDE_EXTERN_RESOURCE(colors_txt);
 INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
 INCLUDE_EXTERN_RESOURCE(usbdevice_skprx);
+// INCLUDE_EXTERN_RESOURCE(kernel_skprx);
+// INCLUDE_EXTERN_RESOURCE(umass_skprx);
 
 INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
 
@@ -64,7 +65,6 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/audio_icon.png", audio_icon_png, 0),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/sfo_icon.png", sfo_icon_png, 0),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/text_icon.png", text_icon_png, 0),
-	// DEFAULT_FILE("ux0:VitaShell/theme/Default/wifi.png", wifi_png, 0),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", ftp_png, 0),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery.png", battery_png, 0),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/battery_bar_red.png", battery_bar_red_png, 0),
@@ -77,6 +77,8 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png, 0),
 
 	DEFAULT_FILE("ux0:VitaShell/module/usbdevice.skprx", usbdevice_skprx, 1),
+	// DEFAULT_FILE("ux0:VitaShell/module/kernel.skprx", kernel_skprx, 1),
+	// DEFAULT_FILE("ux0:VitaShell/module/umass.skprx", umass_skprx, 1),
 
 	DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt, 1),
 };
@@ -124,7 +126,7 @@ void finishSceAppUtil() {
 	sceAppUtilShutdown();
 }
 
-int isKoreanChar(unsigned int c) {
+static int isKoreanChar(unsigned int c) {
     unsigned short ch = c;
 
     // hangul compatibility jamo block
@@ -145,7 +147,7 @@ int isKoreanChar(unsigned int c) {
     return 0;
 }
 
-int isLatinChar(unsigned int c) {
+static int isLatinChar(unsigned int c) {
     unsigned short ch = c;
 
     // basic latin block + latin-1 supplement block
@@ -205,20 +207,9 @@ void finishNet() {
 }
 
 void initVitaShell() {
-	SceIoStat stat;
-
-	// Init random number generator
-	srand(time(NULL));
-
 	// Set sampling mode
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 
-	// Enable front touchscreen
-	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
-
-	// Enable back touchscreen
-	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
-	
 	// Load modules
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
@@ -266,6 +257,7 @@ void initVitaShell() {
 	}
 
 	// Delete VitaShell updater if available
+	SceIoStat stat;
 	memset(&stat, 0, sizeof(SceIoStat));
 	if (sceIoGetstat("ux0:app/VSUPDATER", &stat) >= 0) {
 		deleteApp("VSUPDATER");

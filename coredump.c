@@ -118,7 +118,7 @@ static char *regnames[] = { "a1", "a2", "a3", "a4",
 							"v5", "v6", "v7", "v8",
 							"ip", "sp", "lr", "pc" };
 
-char *getCauseName(int cause) {
+static char *getCauseName(int cause) {
 	switch (cause) {
 		case 0x30002:
 			return "Undefined instruction exception";
@@ -136,7 +136,7 @@ char *getCauseName(int cause) {
 	return "Unknown cause";
 }
 
-int decompressGzip(uint8_t *dst, int size_dst, uint8_t *src, int size_src) {
+static int decompressGzip(uint8_t *dst, int size_dst, uint8_t *src, int size_src) {
 	z_stream z;
 	memset(&z, 0, sizeof(z_stream));
 
@@ -157,7 +157,7 @@ int decompressGzip(uint8_t *dst, int size_dst, uint8_t *src, int size_src) {
 	return z.total_out;
 }
 
-int coredumpViewer(char *file) {
+int coredumpViewer(const char *file) {
 	void *buffer = malloc(BIG_BUFFER_SIZE);
 	if (!buffer)
 		return -1;

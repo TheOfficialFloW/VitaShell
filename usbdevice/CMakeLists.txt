@@ -25,3 +25,8 @@ target_link_libraries(usbdevice
 )
 
 vita_create_self(usbdevice.skprx usbdevice CONFIG exports.yml UNSAFE)
+
+add_custom_target(install
+	COMMAND cp usbdevice.skprx ../../resources/usbdevice.skprx
+	DEPENDS usbdevice.skprx
+)

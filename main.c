@@ -38,7 +38,6 @@
 #include "utils.h"
 #include "sfo.h"
 #include "coredump.h"
-#include "list_dialog.h"
 #include "archiveRAR.h"
 
 #include "audio/vita_audio.h"
@@ -72,8 +71,8 @@ static char archive_copy_path[MAX_PATH_LENGTH];
 static SceUID usbdevice_modid = -1;
 
 // Archive
-int is_in_archive = 0;
-int dir_level_archive = -1;
+static int is_in_archive = 0;
+static int dir_level_archive = -1;
 enum FileTypes archive_type = FILE_TYPE_ZIP;
 
 // FTP
@@ -91,8 +90,6 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 
 // Dialog step
 volatile int dialog_step = DIALOG_STEP_NONE;
-
-static List toolbox_list;
 
 // Use custom config
 int use_custom_config = 1;
@@ -129,7 +126,7 @@ void dirUpCloseArchive() {
 	}
 }
 
-void dirUp() {
+static void dirUp() {
 	removeEndSlash(file_list.path);
 
 	char *p;
@@ -159,7 +156,7 @@ DIR_UP_RETURN:
 	dirUpCloseArchive();
 }
 
-void setFocusOnFilename(char *name) {
+static void setFocusOnFilename(const char *name) {
 	int name_pos = fileListGetNumberByName(&file_list, name);
 	if (name_pos < file_list.length) {
 		while (1) {
@@ -192,7 +189,7 @@ void setFocusOnFilename(char *name) {
 	}
 }
 
-int refreshFileList() {
+static int refreshFileList() {
 	int ret = 0, res = 0;
 
 	do {
@@ -230,7 +227,7 @@ int refreshFileList() {
 	return ret;
 }
 
-void refreshMarkList() {
+static void refreshMarkList() {
 	FileListEntry *entry = mark_list.head;
 
 	int length = mark_list.length;
@@ -254,7 +251,7 @@ void refreshMarkList() {
 	}
 }
 
-void refreshCopyList() {
+static void refreshCopyList() {
 	FileListEntry *entry = copy_list.head;
 
 	int length = copy_list.length;
@@ -279,7 +276,7 @@ void refreshCopyList() {
 	}
 }
 
-int handleFile(char *file, FileListEntry *entry) {
+static int handleFile(const char *file, FileListEntry *entry) {
 	int res = 0;
 
 	int type = getFileType(file);
@@ -360,7 +357,7 @@ void drawScrollBar(int pos, int n) {
 	}
 }
 
-void drawShellInfo(char *path) {
+void drawShellInfo(const char *path) {
 	// Title
 	char version[8];
 	sprintf(version, "%X.%02X", VITASHELL_VERSION_MAJOR, VITASHELL_VERSION_MINOR);
@@ -369,23 +366,30 @@ void drawShellInfo(char *path) {
 
 	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
 
+	// Status bar
+	float x = SCREEN_WIDTH - SHELL_MARGIN_X;
+
 	// Battery
-	float battery_x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_texture_get_width(battery_image));
-	vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y + 3.0f);
+	if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
+		float battery_x = ALIGN_RIGHT(x, vita2d_texture_get_width(battery_image));
+		vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y + 3.0f);
 
-	vita2d_texture *battery_bar_image = battery_bar_green_image;
+		vita2d_texture *battery_bar_image = battery_bar_green_image;
 
-	if (scePowerIsLowBattery() && !scePowerIsBatteryCharging()) {
-		battery_bar_image = battery_bar_red_image;
-	} 
+		if (scePowerIsLowBattery() && !scePowerIsBatteryCharging()) {
+			battery_bar_image = battery_bar_red_image;
+		} 
 
-	float percent = scePowerGetBatteryLifePercent() / 100.0f;
+		float percent = scePowerGetBatteryLifePercent() / 100.0f;
 
-	float width = vita2d_texture_get_width(battery_bar_image);
-	vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
+		float width = vita2d_texture_get_width(battery_bar_image);
+		vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
 
-	if (scePowerIsBatteryCharging()) {
-		vita2d_draw_texture(battery_bar_charge_image, battery_x + 3.0f, SHELL_MARGIN_Y + 5.0f);
+		if (scePowerIsBatteryCharging()) {
+			vita2d_draw_texture(battery_bar_charge_image, battery_x + 3.0f, SHELL_MARGIN_Y + 5.0f);
+		}
+
+		x = battery_x - STATUS_BAR_SPACE_X;
 	}
 
 	// Date & time
@@ -400,21 +404,18 @@ void drawShellInfo(char *path) {
 
 	char string[64];
 	sprintf(string, "%s  %s", date_string, time_string);
-	float date_time_x = ALIGN_RIGHT(battery_x - 12.0f, vita2d_pgf_text_width(font, FONT_SIZE, string));
+	float date_time_x = ALIGN_RIGHT(x, vita2d_pgf_text_width(font, FONT_SIZE, string));
 	pgf_draw_text(date_time_x, SHELL_MARGIN_Y, DATE_TIME_COLOR, FONT_SIZE, string);
 
-	// WIFI
-/*
-	// TheFloW: Not really neccessary
-	int state = 0;
-	sceNetCtlInetGetState(&state);
-	if (state == 3)
-		vita2d_draw_texture(wifi_image, date_time_x - 60.0f, SHELL_MARGIN_Y + 3.0f);
-*/
+	x = date_time_x - STATUS_BAR_SPACE_X;
 
 	// FTP
-	if (ftpvita_is_initialized())
-		vita2d_draw_texture(ftp_image, date_time_x - 30.0f, SHELL_MARGIN_Y + 3.0f);
+	if (ftpvita_is_initialized()) {
+		float ftp_x = ALIGN_RIGHT(x, vita2d_texture_get_width(ftp_image));
+		vita2d_draw_texture(ftp_image, ftp_x, SHELL_MARGIN_Y + 3.0f);
+		
+		x = ftp_x - STATUS_BAR_SPACE_X;
+	}
 
 	// TODO: make this more elegant
 	// Path
@@ -500,17 +501,7 @@ MenuEntry menu_more_entries[] = {
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
 
-enum ListToolboxEntrys {
-	LIST_TOOLBOX_ENTRY_SYSINFO,
-};
-
-ListEntry list_toolbox_entries[] = {
-	{ SYSINFO_TITLE },
-};
-
-#define N_LIST_TOOLBOX_ENTRIES (sizeof(list_toolbox_entries) / sizeof(ListEntry))
-
-void setContextMenuVisibilities() {
+static void setContextMenuVisibilities() {
 	int i;
 
 	// All visible
@@ -587,7 +578,7 @@ void setContextMenuVisibilities() {
 		setContextMenuPos(-1);
 }
 
-void setContextMenuMoreVisibilities() {
+static void setContextMenuMoreVisibilities() {
 	int i;
 
 	// All visible
@@ -663,7 +654,7 @@ void setContextMenuMoreVisibilities() {
 	if (i == N_MENU_MORE_ENTRIES)
 		setContextMenuMorePos(-1);
 }
-
+/*
 int listToolboxEnterCallback(int pos) {
 	switch (pos) {
 		case LIST_TOOLBOX_ENTRY_SYSINFO:
@@ -706,8 +697,8 @@ int listToolboxEnterCallback(int pos) {
 
 	return LIST_DIALOG_CLOSE;
 }
-
-int contextMenuEnterCallback(int pos, void* context) {
+*/
+static int contextMenuEnterCallback(int pos, void *context) {
 	switch (pos) {
 		case MENU_ENTRY_MARK_UNMARK_ALL:
 		{
@@ -893,7 +884,7 @@ int contextMenuEnterCallback(int pos, void* context) {
 	return CONTEXT_MENU_CLOSING;
 }
 
-int contextMenuMoreEnterCallback(int pos, void* context) {
+static int contextMenuMoreEnterCallback(int pos, void *context) {
 	switch (pos) {
 		case MENU_MORE_ENTRY_COMPRESS:
 		{
@@ -1007,7 +998,7 @@ int contextMenuMoreEnterCallback(int pos, void* context) {
 	return CONTEXT_MENU_CLOSING;
 }
 
-void initFtp() {
+static void initFtp() {
 	// Add all the current mountpoints to ftpvita
 	int i;
 	for (i = 0; i < getNumberOfDevices(); i++) {
@@ -1023,7 +1014,7 @@ void initFtp() {
 	ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);	
 }
 
-void initUsb() {
+static void initUsb() {
 	char *path = "sdstor0:xmc-lp-ign-userext";
 
 	SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
@@ -1045,7 +1036,7 @@ void initUsb() {
 	}
 }
 
-int dialogSteps() {
+static int dialogSteps() {
 	int refresh = REFRESH_MODE_NONE;
 
 	int msg_result = updateMessageDialog();
@@ -1186,7 +1177,7 @@ int dialogSteps() {
 				SceUdcdDeviceState state;
 				sceUdcdGetDeviceState(&state);
 				
-				if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
+				if (state.cable & SCE_UDCD_STATUS_CABLE_CONNECTED) {
 					sceMsgDialogClose();
 				}
 			} else {
@@ -1196,7 +1187,7 @@ int dialogSteps() {
 					SceUdcdDeviceState state;
 					sceUdcdGetDeviceState(&state);
 					
-					if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
+					if (state.cable & SCE_UDCD_STATUS_CABLE_CONNECTED) {
 						initUsb();
 					}
 				}
@@ -1527,7 +1518,7 @@ int dialogSteps() {
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *string = (char *)getImeDialogInputTextUTF8();
 				if (string[0] != '\0') {
-					strcpy(getImeDialogInitialText(), string);
+					strcpy((char *)getImeDialogInitialText(), string);
 				}
 
 				dialog_step = DIALOG_STEP_NONE;
@@ -1546,7 +1537,7 @@ int dialogSteps() {
 	return refresh;
 }
 
-int fileBrowserMenuCtrl() {
+static int fileBrowserMenuCtrl() {
 	int refresh = 0;
 
 	// Settings menu
@@ -1577,7 +1568,7 @@ int fileBrowserMenuCtrl() {
 				SceUdcdDeviceState state;
 				sceUdcdGetDeviceState(&state);
 				
-				if (state.connection & SCE_UDCD_STATUS_CONNECTION_ESTABLISHED) {
+				if (state.cable & SCE_UDCD_STATUS_CABLE_CONNECTED) {
 					initUsb();
 				} else {
 					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_NOT_CONNECTED]);
@@ -1713,7 +1704,7 @@ int fileBrowserMenuCtrl() {
 	return refresh;
 }
 
-int shellMain() {
+static int shellMain() {
 	// Position
 	memset(base_pos_list, 0, sizeof(base_pos_list));
 	memset(rel_pos_list, 0, sizeof(rel_pos_list));
@@ -1800,8 +1791,6 @@ int shellMain() {
 				contextMenuCtrl(&context_menu);
 			} else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
 				propertyDialogCtrl();
-			} else if (getListDialogMode() != LIST_DIALOG_CLOSE) {
-				listDialogCtrl();
 			} else {
 				refresh = fileBrowserMenuCtrl();
 			}
@@ -1984,9 +1973,6 @@ int shellMain() {
 		// Draw context menu
 		drawContextMenu(&context_menu);
 
-		// Draw list dialog
-		drawListDialog();
-
 		// Draw property dialog
 		drawPropertyDialog();
 
@@ -2002,7 +1988,7 @@ int shellMain() {
 	return 0;
 }
 
-void initContextMenuWidth() {
+static void initContextMenuWidth() {
 	int i;
 	for (i = 0; i < N_MENU_ENTRIES; i++) {
 		if (menu_entries[i].visibility != CTX_VISIBILITY_UNUSED)
@@ -2053,6 +2039,9 @@ int main(int argc, const char *argv[]) {
 
 	// Init VitaShell
 	initVitaShell();
+
+	// Load kernel module
+	// taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
 
 	// Get titleid
 	char titleid[12];

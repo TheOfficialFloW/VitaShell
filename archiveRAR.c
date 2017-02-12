@@ -5,7 +5,7 @@ static ArchiveFileNode* root = NULL;
 static int32_t filePathLength = -1;
 
 
-int archiveRAROpen(char *file) {
+int archiveRAROpen(const char *file) {
 	root = openRARFile(file);
 	if(!root) {
 		return -1;
@@ -14,7 +14,7 @@ int archiveRAROpen(char *file) {
 	return 1;
 }
 
-int fileListGetRARArchiveEntries(FileList *list, char *path, int sort) {
+int fileListGetRARArchiveEntries(FileList *list, const char *path, int sort) {
 	if(!root)
 		return -1;
 
@@ -59,7 +59,7 @@ int fileListGetRARArchiveEntries(FileList *list, char *path, int sort) {
 	return 1;
 }
 
-int ReadArchiveRARFile(char *file, void *buf, int size) {
+int ReadArchiveRARFile(const char *file, void *buf, int size) {
 	if(filePathLength < 0)
 		return -1;
 
@@ -97,7 +97,7 @@ int archiveRARFileGetstat(const char *file, SceIoStat *stat) {
 	return 1;
 }
 
-int getRARArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
+int getRARArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
 	if(!root)
 		return -1;
 
@@ -137,7 +137,7 @@ int getRARArchivePathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_
 	return 0;
 }
 
-int extractRARArchivePath(char *src, char *dst, FileProcessParam *param) {
+int extractRARArchivePath(const char *src, const char *dst, FileProcessParam *param) {
 	if(!root)
 		return -1;
 
@@ -200,7 +200,7 @@ int extractRARArchivePath(char *src, char *dst, FileProcessParam *param) {
 
 		struct ExtractHeader header = {file:fddst,offset:0,memPtr:NULL,bufferSize:0,param:param};
 
-		int result = extractRAR(filepath,src + (filePathLength + sizeof(char)),&header);
+		int result = extractRAR(filepath, (const char *)(src + (filePathLength + sizeof(char))), &header);
 		sceIoClose(fddst);
 
 		return result;

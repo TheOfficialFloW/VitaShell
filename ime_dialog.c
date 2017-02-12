@@ -23,13 +23,13 @@
 static int ime_dialog_running = 0;
 static int ime_dialog_option = 0;
 
-static char *ime_initial_text = NULL;
+static const char *ime_initial_text = NULL;
 static uint16_t ime_title_utf16[SCE_IME_DIALOG_MAX_TITLE_LENGTH];
 static uint16_t ime_initial_text_utf16[SCE_IME_DIALOG_MAX_TEXT_LENGTH];
 static uint16_t ime_input_text_utf16[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
 static uint8_t ime_input_text_utf8[SCE_IME_DIALOG_MAX_TEXT_LENGTH + 1];
 
-void utf16_to_utf8(uint16_t *src, uint8_t *dst) {
+static void utf16_to_utf8(const uint16_t *src, uint8_t *dst) {
 	int i;
 	for (i = 0; src[i]; i++) {
 		if ((src[i] & 0xFF80) == 0) {
@@ -53,7 +53,7 @@ void utf16_to_utf8(uint16_t *src, uint8_t *dst) {
 	*dst = '\0';
 }
 
-void utf8_to_utf16(uint8_t *src, uint16_t *dst) {
+static void utf8_to_utf16(const uint8_t *src, uint16_t *dst) {
 	int i;
 	for (i = 0; src[i];) {
 		if ((src[i] & 0xE0) == 0xE0) {
@@ -71,7 +71,7 @@ void utf8_to_utf16(uint8_t *src, uint16_t *dst) {
 	*dst = '\0';
 }
 
-int initImeDialog(char *title, char *initial_text, int max_text_length, int type, int option) {
+int initImeDialog(const char *title, const char *initial_text, int max_text_length, int type, int option) {
 	if (ime_dialog_running)
 		return -1;
 
@@ -116,7 +116,7 @@ uint8_t *getImeDialogInputTextUTF8() {
 	return ime_input_text_utf8;
 }
 
-char *getImeDialogInitialText() {
+const char *getImeDialogInitialText() {
 	return ime_initial_text;
 }
 

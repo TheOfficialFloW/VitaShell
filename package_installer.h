@@ -28,12 +28,12 @@ typedef struct {
 	char *file;
 } InstallArguments;
 
-int promoteApp(char *path);
-int deleteApp(char *titleid);
+int promoteApp(const char *path);
+int deleteApp(const char *titleid);
 
 int makeHeadBin();
 
-int installPackage(char *file);
+int installPackage(const char *file);
 int install_thread(SceSize args_size, InstallArguments *args);
 
 #endif

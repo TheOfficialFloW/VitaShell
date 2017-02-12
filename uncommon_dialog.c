@@ -40,7 +40,7 @@ typedef struct {
 
 static UncommonDialog uncommon_dialog;
 
-void calculateDialogBoxSize() {
+static void calculateDialogBoxSize() {
 	int len = strlen(uncommon_dialog.msg);
 	char *string = uncommon_dialog.msg;
 

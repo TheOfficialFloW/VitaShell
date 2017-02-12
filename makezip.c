@@ -24,7 +24,7 @@
 
 #include "minizip/zip.h"
 
-void convertToZipTime(SceDateTime *time, tm_zip *tmzip) {
+static void convertToZipTime(SceDateTime *time, tm_zip *tmzip) {
 	SceDateTime time_local;
 	convertUtcToLocalTime(&time_local, time);
 
@@ -36,7 +36,7 @@ void convertToZipTime(SceDateTime *time, tm_zip *tmzip) {
 	tmzip->tm_year = time_local.year;
 }
 
-int zipAddFile(zipFile zf, char *path, int filename_start, int level, FileProcessParam *param) {
+static int zipAddFile(zipFile zf, const char *path, int filename_start, int level, FileProcessParam *param) {
 	int res;
 
 	// Get file stat
@@ -82,13 +82,6 @@ int zipAddFile(zipFile zf, char *path, int filename_start, int level, FileProces
 
 	while (1) {
 		int read = sceIoRead(fd, buf, TRANSFER_SIZE);
-		if (read == SCE_ERROR_ERRNO_ENODEV) {
-			fd = sceIoOpen(path, SCE_O_RDONLY, 0);
-			if (fd >= 0) {
-				sceIoLseek(fd, seek, SCE_SEEK_SET);
-				read = sceIoRead(fd, buf, TRANSFER_SIZE);
-			}
-		}
 
 		if (read < 0) {
 			free(buf);
@@ -140,7 +133,7 @@ int zipAddFile(zipFile zf, char *path, int filename_start, int level, FileProces
 	return 1;
 }
 
-int zipAddFolder(zipFile zf, char *path, int filename_start, int level, FileProcessParam *param) {
+static int zipAddFolder(zipFile zf, const char *path, int filename_start, int level, FileProcessParam *param) {
 	int res;
 
 	// Get file stat
@@ -188,7 +181,7 @@ int zipAddFolder(zipFile zf, char *path, int filename_start, int level, FileProc
 	return 1;
 }
 
-int zipAddPath(zipFile zf, char *path, int filename_start, int level, FileProcessParam *param) {
+static int zipAddPath(zipFile zf, const char *path, int filename_start, int level, FileProcessParam *param) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int ret = zipAddFolder(zf, path, filename_start, level, param);
@@ -232,7 +225,7 @@ int zipAddPath(zipFile zf, char *path, int filename_start, int level, FileProces
 	return 1;
 }
 
-int makeZip(char *zip_file, char *src_path, int filename_start, int level, int append, FileProcessParam *param) {
+int makeZip(const char *zip_file, const char *src_path, int filename_start, int level, int append, FileProcessParam *param) {
 	zipFile zf = zipOpen64(zip_file, append);
 	if (zf == NULL)
 		return -1;

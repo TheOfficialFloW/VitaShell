@@ -17,9 +17,9 @@
 
 
 typedef struct {
-	char* nodeName;
-	void* fatherPt;
-	void** childPt;
+	char *nodeName;
+	void *fatherPt;
+	void* *childPt;
 	uint32_t childCount;
 	uint32_t maxCount;
 	struct RARHeaderData data;
@@ -33,20 +33,20 @@ struct filelayer {
 struct ExtractHeader {
 	SceUID file;
 	uint64_t offset;
-	char* memPtr;
+	char *memPtr;
 	uint64_t bufferSize;
-	FileProcessParam * param;
+	FileProcessParam  *param;
 };
 
 
-ArchiveFileNode* openRARFile(char* filename);//returns the number of files in the rar document archive
-void closeRARFile(ArchiveFileNode* root);
-ArchiveFileNode* createNode(const char* name);
-ArchiveFileNode* getChildNodeByName(ArchiveFileNode* node,char* name);
-int extractRAR(char* path,char* filename,struct ExtractHeader* header);
-ArchiveFileNode* getFileNodeFromFilePath(ArchiveFileNode* root, const char* filepath);
-int getRARArchiveNodeInfo(ArchiveFileNode* root, uint64_t *size, uint32_t *folders, uint32_t *files);
-void free_node(ArchiveFileNode* node);
-ArchiveFileNode* getFloderNodeFromPath(ArchiveFileNode* root,const char* path);
+ArchiveFileNode *openRARFile(const char *filename);//returns the number of files in the rar document archive
+void closeRARFile(ArchiveFileNode *root);
+ArchiveFileNode *createNode(const char *name);
+ArchiveFileNode *getChildNodeByName(ArchiveFileNode *node, const char *name);
+int extractRAR(const char *path, const char *filename, struct ExtractHeader *header);
+ArchiveFileNode *getFileNodeFromFilePath(ArchiveFileNode *root, const char *filepath);
+int getRARArchiveNodeInfo(ArchiveFileNode *root, uint64_t *size, uint32_t *folders, uint32_t *files);
+void free_node(ArchiveFileNode *node);
+ArchiveFileNode *getFloderNodeFromPath(ArchiveFileNode *root, const char *path);
 
 #endif // UNRARLIBUTILS_H_INC

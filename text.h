@@ -50,6 +50,6 @@ typedef struct CopyEntry {
 
 void initTextContextMenuWidth();
 
-int textViewer(char *file);
+int textViewer(const char *file);
 
 #endif

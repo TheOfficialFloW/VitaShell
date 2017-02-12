@@ -24,7 +24,7 @@ static int message_dialog_type = -1;
 
 static char message_string[512];
 
-int initMessageDialog(int type, char *msg, ...) {
+int initMessageDialog(int type, const char *msg, ...) {
 	if (message_dialog_running)
 		return -1;
 

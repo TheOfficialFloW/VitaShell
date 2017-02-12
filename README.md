@@ -95,6 +95,13 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.60 ###
+- Made control smoother.
+- Removed battery icon in status bar for PSTV.
+- Fixed text editor bugs.
+- Fixed bug where VitaShell left to livearea after deleting the updater.
+- Improved property dialog animation.
+
 ### Changelog 1.51 ###
 - Fixed bug where 'Please wait...' was shown instead of a specifc USB message.
 - Fixed VPK installation crash.

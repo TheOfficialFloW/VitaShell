@@ -38,7 +38,7 @@ static char *devices[] = {
 
 #define N_DEVICES (sizeof(devices) / sizeof(char **))
 
-int allocateReadFile(char *file, void **buffer) {
+int allocateReadFile(const char *file, void **buffer) {
 	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
@@ -58,7 +58,7 @@ int allocateReadFile(char *file, void **buffer) {
 	return read;
 }
 
-int ReadFile(char *file, void *buf, int size) {
+int ReadFile(const char *file, void *buf, int size) {
 	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
@@ -69,7 +69,7 @@ int ReadFile(char *file, void *buf, int size) {
 	return read;
 }
 
-int WriteFile(char *file, void *buf, int size) {
+int WriteFile(const char *file, const void *buf, int size) {
 	SceUID fd = sceIoOpen(file, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	if (fd < 0)
 		return fd;
@@ -80,9 +80,9 @@ int WriteFile(char *file, void *buf, int size) {
 	return written;
 }
 
-int getFileSize(char *pInputFileName)
+int getFileSize(const char *file)
 {
-	SceUID fd = sceIoOpen(pInputFileName, SCE_O_RDONLY, 0);
+	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
 
@@ -92,7 +92,7 @@ int getFileSize(char *pInputFileName)
 	return fileSize;
 }
 
-int changePathPermissions(char *path, int perms) {
+int changePathPermissions(const char *path, int perms) {
 	SceIoStat stat;
 	memset(&stat, 0, sizeof(SceIoStat));
 	int res = sceIoGetstat(path, &stat);
@@ -104,31 +104,22 @@ int changePathPermissions(char *path, int perms) {
 	return sceIoChstat(path, &stat, 1);	
 }
 
-int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param) {
+int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param) {
 	// Set up SHA1 context
 	SHA1_CTX ctx;
 	sha1_init(&ctx);
 
 	// Open the file to read, else return the error
-	SceUID fd = sceIoOpen(pInputFileName, SCE_O_RDONLY, 0);
+	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
 
 	// Open up the buffer for copying data into
 	void *buf = malloc(TRANSFER_SIZE);
 
-	uint64_t seek = 0;
-
 	// Actually take the SHA1 sum
 	while (1) {
 		int read = sceIoRead(fd, buf, TRANSFER_SIZE);
-		if (read == SCE_ERROR_ERRNO_ENODEV) {
-			fd = sceIoOpen(pInputFileName, SCE_O_RDONLY, 0);
-			if (fd >= 0) {
-				sceIoLseek(fd, seek, SCE_SEEK_SET);
-				read = sceIoRead(fd, buf, TRANSFER_SIZE);
-			}
-		}
 
 		if (read < 0) {
 			free(buf);
@@ -140,8 +131,6 @@ int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param
 			break;
 
 		sha1_update(&ctx, buf, read);
-
-		seek += read;
 
 		if (param) {
 			// Defined in io_process.c, check to make sure pointer isn't null before incrementing
@@ -177,7 +166,7 @@ int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param
 	return 1;
 }
 
-int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(char *path)) {
+int getPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path)) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
@@ -241,7 +230,7 @@ int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files, 
 	return 1;
 }
 
-int removePath(char *path, FileProcessParam *param) {
+int removePath(const char *path, FileProcessParam *param) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
@@ -327,7 +316,7 @@ int removePath(char *path, FileProcessParam *param) {
 	return 1;
 }
 
-int copyFile(char *src_path, char *dst_path, FileProcessParam *param) {
+int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param) {
 	// The source and destination paths are identical
 	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
@@ -351,17 +340,8 @@ int copyFile(char *src_path, char *dst_path, FileProcessParam *param) {
 
 	void *buf = malloc(TRANSFER_SIZE);
 
-	uint64_t seek = 0;
-
 	while (1) {
 		int read = sceIoRead(fdsrc, buf, TRANSFER_SIZE);
-		if (read == SCE_ERROR_ERRNO_ENODEV) {
-			fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
-			if (fdsrc >= 0) {
-				sceIoLseek(fdsrc, seek, SCE_SEEK_SET);
-				read = sceIoRead(fdsrc, buf, TRANSFER_SIZE);
-			}
-		}
 
 		if (read < 0) {
 			free(buf);
@@ -376,13 +356,6 @@ int copyFile(char *src_path, char *dst_path, FileProcessParam *param) {
 			break;
 
 		int written = sceIoWrite(fddst, buf, read);
-		if (written == SCE_ERROR_ERRNO_ENODEV) {
-			fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT, 0777);
-			if (fddst >= 0) {
-				sceIoLseek(fddst, seek, SCE_SEEK_SET);
-				written = sceIoWrite(fddst, buf, read);
-			}
-		}
 
 		if (written < 0) {
 			free(buf);
@@ -392,8 +365,6 @@ int copyFile(char *src_path, char *dst_path, FileProcessParam *param) {
 
 			return written;
 		}
-
-		seek += written;
 
 		if (param) {
 			if (param->value)
@@ -421,7 +392,7 @@ int copyFile(char *src_path, char *dst_path, FileProcessParam *param) {
 	return 1;
 }
 
-int copyPath(char *src_path, char *dst_path, FileProcessParam *param) {
+int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param) {
 	// The source and destination paths are identical
 	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
@@ -494,7 +465,7 @@ int copyPath(char *src_path, char *dst_path, FileProcessParam *param) {
 	return 1;
 }
 
-int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param) {
+int movePath(const char *src_path, const char *dst_path, int flags, FileProcessParam *param) {
 	// The source and destination paths are identical
 	if (strcasecmp(src_path, dst_path) == 0) {
 		return -1;
@@ -614,7 +585,7 @@ static ExtensionType extension_types[] = {
 	{ ".ZIP",  FILE_TYPE_ZIP },
 };
 
-int getFileType(char *file) {
+int getFileType(const char *file) {
 	char *p = strrchr(file, '.');
 	if (p) {
 		int i;
@@ -636,7 +607,7 @@ char **getDevices() {
 	return devices;
 }
 
-FileListEntry *fileListFindEntry(FileList *list, char *name) {
+FileListEntry *fileListFindEntry(FileList *list, const char *name) {
 	FileListEntry *entry = list->head;
 
 	int name_length = strlen(name);
@@ -665,7 +636,7 @@ FileListEntry *fileListGetNthEntry(FileList *list, int n) {
 	return entry;
 }
 
-int fileListGetNumberByName(FileList *list, char *name) {
+int fileListGetNumberByName(FileList *list, const char *name) {
 	FileListEntry *entry = list->head;
 
 	int name_length = strlen(name);
@@ -828,7 +799,7 @@ int fileListRemoveEntry(FileList *list, FileListEntry *entry) {
 	return 0;
 }
 
-int fileListRemoveEntryByName(FileList *list, char *name) {
+int fileListRemoveEntryByName(FileList *list, const char *name) {
 	FileListEntry *entry = list->head;
 	FileListEntry *previous = NULL;
 
@@ -925,7 +896,7 @@ int fileListGetDeviceEntries(FileList *list) {
 	return 0;
 }
 
-int fileListGetDirectoryEntries(FileList *list, char *path, int sort) {
+int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd < 0)
 		return dfd;
@@ -975,7 +946,7 @@ int fileListGetDirectoryEntries(FileList *list, char *path, int sort) {
 	return 0;
 }
 
-int fileListGetEntries(FileList *list, char *path, int sort) {
+int fileListGetEntries(FileList *list, const char *path, int sort) {
 	if (isInArchive()) {
         enum FileTypes type = getArchiveType();
         if(type == FILE_TYPE_ZIP)

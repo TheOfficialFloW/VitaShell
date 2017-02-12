@@ -32,7 +32,7 @@
 
 #include "resources/base_head_bin.h"
 
-void loadScePaf() {
+static void loadScePaf() {
 	uint32_t ptr[0x100] = { 0 };
 	ptr[0] = 0;
 	ptr[1] = (uint32_t)&ptr[0];
@@ -40,7 +40,7 @@ void loadScePaf() {
 	sceSysmoduleLoadModuleInternalWithArg(0x80000008, sizeof(scepaf_argp), scepaf_argp, ptr);
 }
 
-int patchRetailContents() {
+static int patchRetailContents() {
 	int res;
 	
 	SceIoStat stat;
@@ -60,7 +60,7 @@ int patchRetailContents() {
 	return 0;
 }
 
-int restoreRetailContents(char *titleid) {
+static int restoreRetailContents(const char *titleid) {
 	int res;
 	char src_path[128], dst_path[128];
 
@@ -79,7 +79,7 @@ int restoreRetailContents(char *titleid) {
 	return 0;
 }
 
-int promoteUpdate(char *path, char *titleid, char *category, void *sfo_buffer, int sfo_size) {
+int promoteUpdate(const char *path, const char *titleid, const char *category, void *sfo_buffer, int sfo_size) {
 	int res;
 
 	// Update installation
@@ -110,7 +110,7 @@ int promoteUpdate(char *path, char *titleid, char *category, void *sfo_buffer, i
 	return 0;
 }
 
-int promoteApp(char *path) {
+int promoteApp(const char *path) {
 	int res;
 
 	// Read param.sfo
@@ -159,8 +159,8 @@ int promoteApp(char *path) {
 		sceKernelDelayThread(100 * 1000);
 	} while (state);
 
-	int result = 0;
-	res = scePromoterUtilityGetResult(&result);
+	int ret = 0;
+	res = scePromoterUtilityGetResult(&ret);
 	if (res < 0)
 		return res;
 
@@ -177,14 +177,14 @@ int promoteApp(char *path) {
 		restoreRetailContents(titleid);
 
 	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
-	return result == 0x80870005 ? 0 : result;
+	return ret == 0x80870005 ? 0 : ret;
 }
 
-int deleteApp(char *titleid) {
+int deleteApp(const char *titleid) {
 	int res;
 
-	res = sceAppMgrDestroyAppByName(titleid);
-	if (res < 0 && res != 0x80802012)
+	res = sceAppMgrDestroyOtherApp();
+	if (res < 0)
 		return res;
 
 	loadScePaf();
@@ -207,11 +207,11 @@ int deleteApp(char *titleid) {
 		if (res < 0)
 			return res;
 
-		sceKernelDelayThread(100 * 1000);
+		sceKernelDelayThread(300 * 1000);
 	} while (state);
 
-	int result = 0;
-	res = scePromoterUtilityGetResult(&result);
+	int ret = 0;
+	res = scePromoterUtilityGetResult(&ret);
 	if (res < 0)
 		return res;
 
@@ -223,10 +223,10 @@ int deleteApp(char *titleid) {
 	if (res < 0)
 		return res;
 
-	return 0;
+	return ret;
 }
 
-void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
+static void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
 	SHA1_CTX ctx;
 	uint8_t sha1[20];
 	uint8_t buf[64];
@@ -317,7 +317,7 @@ int makeHeadBin() {
 	return 0;
 }
 
-int installPackage(char *file) {
+int installPackage(const char *file) {
 	int res;
 
 	// Recursively clean up pkg directory

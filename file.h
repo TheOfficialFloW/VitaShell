@@ -100,33 +100,33 @@ typedef struct {
 	int folders;
 } FileList;
 
-int allocateReadFile(char *file, void **buffer);
-int ReadFile(char *file, void *buf, int size);
-int WriteFile(char *file, void *buf, int size);
+int allocateReadFile(const char *file, void **buffer);
+int ReadFile(const char *file, void *buf, int size);
+int WriteFile(const char *file, const void *buf, int size);
 
-int getFileSize(char *pInputFileName);
-int getFileSha1(char *pInputFileName, uint8_t *pSha1Out, FileProcessParam *param);
-int getPathInfo(char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(char *path));
-int removePath(char *path, FileProcessParam *param);
-int copyFile(char *src_path, char *dst_path, FileProcessParam *param);
-int copyPath(char *src_path, char *dst_path, FileProcessParam *param);
-int movePath(char *src_path, char *dst_path, int flags, FileProcessParam *param);
+int getFileSize(const char *file);
+int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param);
+int getPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path));
+int removePath(const char *path, FileProcessParam *param);
+int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param);
+int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param);
+int movePath(const char *src_path, const char *dst_path, int flags, FileProcessParam *param);
 
-int getFileType(char *file);
+int getFileType(const char *file);
 
 int getNumberOfDevices();
 char **getDevices();
 
-FileListEntry *fileListFindEntry(FileList *list, char *name);
+FileListEntry *fileListFindEntry(FileList *list, const char *name);
 FileListEntry *fileListGetNthEntry(FileList *list, int n);
-int fileListGetNumberByName(FileList *list, char *name);
+int fileListGetNumberByName(FileList *list, const char *name);
 
 void fileListAddEntry(FileList *list, FileListEntry *entry, int sort);
 int fileListRemoveEntry(FileList *list, FileListEntry *entry);
-int fileListRemoveEntryByName(FileList *list, char *name);
+int fileListRemoveEntryByName(FileList *list, const char *name);
 
 void fileListEmpty(FileList *list);
 
-int fileListGetEntries(FileList *list, char *path, int sort);
+int fileListGetEntries(FileList *list, const char *path, int sort);
 
 #endif

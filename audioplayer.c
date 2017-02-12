@@ -55,7 +55,7 @@ float getCenteroffset(float sx,float ex,char* string){
 * @param[out] lyricsIndex set 0
 * @return Lyrics pointer , NULL is fail
 */
-Lyrics* loadLyricsFile(char* path,uint64_t* totalms,uint32_t* lyricsIndex){
+Lyrics* loadLyricsFile(const char *path, uint64_t *totalms, uint32_t *lyricsIndex){
     size_t pathlength = strlen(path);
     *totalms = *lyricsIndex = 0;
 
@@ -85,7 +85,7 @@ Lyrics* loadLyricsFile(char* path,uint64_t* totalms,uint32_t* lyricsIndex){
 * @param[in] lrcSpaceX Designated area starting point x
 * @param[in] lrcSpaceX Designated area starting point y
 */
-void drawLyrics(Lyrics* lyrics,char* cur_time_string,uint64_t* totalms,uint32_t* lyricsIndex,float lrcSpaceX,float lrcSpaceY){
+void drawLyrics(Lyrics* lyrics, const char *cur_time_string, uint64_t* totalms, uint32_t* lyricsIndex, float lrcSpaceX, float lrcSpaceY){
     if(!lyrics)
         return;
 
@@ -120,7 +120,7 @@ void drawLyrics(Lyrics* lyrics,char* cur_time_string,uint64_t* totalms,uint32_t*
     }
 }
 
-void shortenString(char *out, char *in, int width) {
+void shortenString(char *out, const char *in, int width) {
 	strcpy(out, in);
 
 	int i;
@@ -132,7 +132,7 @@ void shortenString(char *out, char *in, int width) {
 	}
 }
 
-vita2d_texture *getAlternativeCoverImage(char *file) {
+vita2d_texture *getAlternativeCoverImage(const char *file) {
 	SceIoStat stat;
 	char path[128];
 
@@ -160,7 +160,7 @@ vita2d_texture *getAlternativeCoverImage(char *file) {
 	return NULL;
 }
 
-void getAudioInfo(char *file) {
+void getAudioInfo(const char *file) {
 	char *buffer = NULL;
 
 	fileinfo = getInfoFunct();
@@ -209,7 +209,7 @@ void getAudioInfo(char *file) {
 		tex = getAlternativeCoverImage(file);
 }
 
-int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
+int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
 	static int speed_list[] = { -7, -3, -1, 0, 1, 3, 7 };
 	#define N_SPEED (sizeof(speed_list) / sizeof(int))
 
@@ -220,7 +220,7 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 	setAudioFunctions(type);
 
 	initFunct(0);
-	loadFunct(file);
+	loadFunct((char *)file);
 	playFunct();
 
 	getAudioInfo(file);
@@ -293,7 +293,7 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
                 lrcParseClose(lyrics);
 				endFunct();
 				initFunct(0);
-				loadFunct(file);
+				loadFunct((char *)file);
 				playFunct();
 
 				getAudioInfo(file);
@@ -349,7 +349,7 @@ int audioPlayer(char *file, int type, FileList *list, FileListEntry *entry, int 
 							setAudioFunctions(type);
 
 							initFunct(0);
-							loadFunct(file);
+							loadFunct((char *)file);
 							playFunct();
 
 							getAudioInfo(file);

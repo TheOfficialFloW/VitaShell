@@ -159,9 +159,10 @@ cleanup:
 int main(int argc, const char *argv[]) {
 	char *titleid = get_title_id(PACKAGE_DIR "/sce_sys/param.sfo");
 	if (titleid && strcmp(titleid, "VITASHELL") == 0) {
-		if (promote(PACKAGE_DIR) >= 0)
-			launchAppByUriExit("VITASHELL");
+		promote(PACKAGE_DIR);
 	}
 
-	return sceKernelExitProcess(0);
+	launchAppByUriExit("VITASHELL");
+
+	return 0;
 }

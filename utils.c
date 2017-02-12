@@ -46,14 +46,6 @@ void startDrawing(vita2d_texture *bg) {
 	}
 }
 
-void drawingWallpaperUI2(vita2d_texture *bg,float x, float y, float tex_x, float tex_y, float tex_w, float tex_h) {
-  	if (wallpaper_image) {
-		vita2d_draw_texture_part(wallpaper_image, x, y, tex_x, tex_y, tex_w, tex_h);
-	} else if (bg) {
-		vita2d_draw_texture_part(bg, x, y, tex_x, tex_y, tex_w, tex_h);
-	}
-}
-
 void endDrawing() {
 	drawUncommonDialog();
 	vita2d_end_drawing();
@@ -77,7 +69,7 @@ void errorDialog(int error) {
 	}
 }
 
-void infoDialog(char *msg, ...) {
+void infoDialog(const char *msg, ...) {
 	va_list list;
 	char string[512];
 
@@ -106,7 +98,7 @@ int checkMemoryCardFreeSpace(uint64_t size) {
 	return 0;
 }
 
-int power_tick_thread(SceSize args, void *argp) {
+static int power_tick_thread(SceSize args, void *argp) {
 	while (1) {
 		if (lock_power > 0) {
 			sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_AUTO_SUSPEND);
@@ -170,13 +162,15 @@ void readPad() {
 		pad.buttons |= SCE_CTRL_RIGHT_ANALOG_RIGHT;
 	}
 
+	old_buttons = current_buttons;
 	current_buttons = pad.buttons;
 	pressed_buttons = current_buttons & ~old_buttons;
-	hold_buttons = pressed_buttons;
-	hold2_buttons = pressed_buttons;
 	released_buttons = ~current_buttons & old_buttons;
 
-	if (old_buttons == current_buttons) {
+	hold_buttons = pressed_buttons;
+	hold2_buttons = pressed_buttons;
+
+	if (old_buttons & current_buttons) {
 		hold_n++;
 		if (hold_n >= 10) {
 			hold_buttons = current_buttons;
@@ -191,7 +185,6 @@ void readPad() {
 	} else {
 		hold_n = 0;
 		hold2_n = 0;
-		old_buttons = current_buttons;
 	}
 }
 
@@ -212,7 +205,7 @@ int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time) {
 	return 0;
 }
 
-int hasEndSlash(char *path) {
+int hasEndSlash(const char *path) {
 	return path[strlen(path) - 1] == '/';
 }
 
@@ -300,11 +293,7 @@ void getTimeString(char *string, int time_format, SceDateTime *time) {
 	}
 }
 
-int randomNumber(int low, int high) {
-   return rand() % (high - low + 1) + low;
-}
-
-int debugPrintf(char *text, ...) {
+int debugPrintf(const char *text, ...) {
 	va_list list;
 	char string[512];
 
@@ -321,7 +310,7 @@ int debugPrintf(char *text, ...) {
 	return 0;
 }
 
-int launchAppByUriExit(char *titleid) {
+int launchAppByUriExit(const char *titleid) {
 	char uri[32];
 	sprintf(uri, "psgm:play?titleid=%s", titleid);
 

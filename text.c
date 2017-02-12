@@ -52,7 +52,7 @@ MenuEntry text_menu_entries[] = {
 	{ COPY, 0, CTX_VISIBILITY_INVISIBLE },
 	{ PASTE, 0, CTX_VISIBILITY_INVISIBLE },
 	{ DELETE, 0, CTX_VISIBILITY_INVISIBLE },
-	{ INSERT_EMPTY_LINE, 0, CTX_VISIBILITY_INVISIBLE },
+	{ INSERT_EMPTY_LINE, 0, CTX_VISIBILITY_VISIBLE },
 	{ -1, 0, CTX_VISIBILITY_UNUSED },
 	{ SEARCH, 0, CTX_VISIBILITY_VISIBLE },
 	{ -1, 0, CTX_VISIBILITY_UNUSED },
@@ -75,7 +75,6 @@ typedef struct TextEditorState {
 	CopyEntry copy_buffer[MAX_COPY_BUFFER_SIZE];
 	TextList list;
 	int changed;
-	int save_question;
 	int edit_line;
 	char search_term[MAX_LINE_CHARACTERS];
 	int search_result_offsets[MAX_SEARCH_RESULTS];
@@ -370,11 +369,8 @@ static int contextMenuEnterCallback(int pos, void *context) {
 			state->hex_viewer = 1;
 			if (state->changed) {
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SAVE_MODIFICATIONS]);
-				state->save_question = 1;
-			} else {
-				state->running = 0;
 			}
-			return CONTEXT_MENU_CLOSED;
+			break;
 
 		case TEXT_MENU_ENTRY_COPY:
 			state->n_copied_lines = 0;
@@ -443,6 +439,8 @@ static void setContextMenuVisibilities(TextEditorState *state) {
 
 	// Paste only visible when at least one line is in copy buffer
 	menu_entries[TEXT_MENU_ENTRY_PASTE].visibility = state->n_copied_lines == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	
+	menu_entries[TEXT_MENU_ENTRY_DELETE].visibility = state->n_copied_lines == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
 
 	// Go to first entry
 	int i;
@@ -511,7 +509,7 @@ static int search_thread(SceSize args, SearchParams *argp) {
 	return sceKernelExitDeleteThread(0);
 }
 
-int textViewer(char *file) {
+int textViewer(const char *file) {
 	TextEditorState *s = malloc(sizeof(TextEditorState));
 	if (!s) 
 		return -1;
@@ -608,7 +606,6 @@ int textViewer(char *file) {
 
 	s->edit_line = -1;
 	s->changed = 0;
-	s->save_question = 0;
 
 
 	s->search_term_input = 0;
@@ -618,7 +615,10 @@ int textViewer(char *file) {
 	while (s->running) {
 		readPad();
 
-		if (!s->save_question) {
+		if (!isImeDialogRunning() && !isMessageDialogRunning()) {
+			if (getContextMenuMode() == CONTEXT_MENU_CLOSED && s->hex_viewer == 1)
+				break;
+			
 			if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
 				contextMenuCtrl(&s->context_menu);
 			} else {
@@ -775,40 +775,6 @@ int textViewer(char *file) {
 						updateTextEntries(s);
 					}
 				}
-
-				if (s->search_term_input) {
-					int ime_result = updateImeDialog();
-
-					if (ime_result == IME_DIALOG_RESULT_FINISHED) {
-						char *search_term = (char *)getImeDialogInputTextUTF8();
-
-						int length = strlen(search_term);
-
-						if (length >= MIN_SEARCH_TERM_LENGTH) {
-
-							// kill old search if it is already running
-							if (s->search_running) {
-								s->search_running = 0;
-								sceKernelWaitThreadEnd(s->search_thid, NULL, NULL);
-							}
-							
-							SearchParams search_params;
-							search_params.state = s;
-							strcpy(search_params.search_term, search_term);
-
-							strcpy(s->search_term, search_term);
-
-							s->search_thid = sceKernelCreateThread("search_thread", (SceKernelThreadEntry)search_thread, 0x10000100, 0x10000, 0, 0x70000, NULL);
-							if (s->search_thid >= 0)
-								sceKernelStartThread(s->search_thid, sizeof(SearchParams), &search_params);
-						}
-
-						s->search_term_input = 0;
-
-					} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-						s->search_term_input = 0;
-					}
-				}
 			
 				// buffer modifying actions
 				if (s->modify_allowed && !s->search_running) {
@@ -821,51 +787,6 @@ int textViewer(char *file) {
 						initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, SCE_IME_OPTION_MULTILINE);
 
 						s->edit_line = s->base_pos + s->rel_pos;
-					}
-
-					if (s->edit_line >= 0) {
-						int ime_result = updateImeDialog();
-
-						if (ime_result == IME_DIALOG_RESULT_FINISHED) {
-							int line_start = s->offset_list[s->edit_line];
-							
-							char line[MAX_LINE_CHARACTERS];
-							int length = textReadLine(s->buffer, line_start, s->size, line);
-
-							// Don't count newline 
-							if (s->buffer[line_start + length - 1] == '\n') {
-								length--;
-							}
-
-							char *new_line = (char *)getImeDialogInputTextUTF8();
-							int new_length = strlen(new_line);
-
-							// Move data if size has changed
-							if (new_length != length) {
-								memmove(&s->buffer[line_start+new_length], &s->buffer[line_start+length], s->size-line_start-length);
-								s->size += (new_length - length);
-							}
-
-							// Copy new line into buffer
-							memcpy(&s->buffer[line_start], new_line, new_length);
-
-							// Add new lines to n_lines
-							int i;
-							for (i = 0; i < new_length; i++) {
-								if (new_line[i] == '\n') {
-									s->n_lines++;
-								}
-							}
-							
-							// Update entries
-							updateTextEntries(s);
-
-							s->edit_line = -1;
-							s->changed = 1;
-
-						} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-							s->edit_line = -1;
-						}
 					}
 
 					// Delete line
@@ -886,7 +807,6 @@ int textViewer(char *file) {
 					} else {
 						if (s->changed) {
 							initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SAVE_MODIFICATIONS]);
-							s->save_question = 1;
 						} else {
 							s->hex_viewer = 0;
 							break;
@@ -935,6 +855,83 @@ int textViewer(char *file) {
 				break;
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				break;
+			}
+	
+			int ime_result = updateImeDialog();
+
+			if (s->search_term_input) {
+				if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+					char *search_term = (char *)getImeDialogInputTextUTF8();
+
+					int length = strlen(search_term);
+
+					if (length >= MIN_SEARCH_TERM_LENGTH) {
+
+						// kill old search if it is already running
+						if (s->search_running) {
+							s->search_running = 0;
+							sceKernelWaitThreadEnd(s->search_thid, NULL, NULL);
+						}
+						
+						SearchParams search_params;
+						search_params.state = s;
+						strcpy(search_params.search_term, search_term);
+
+						strcpy(s->search_term, search_term);
+
+						s->search_thid = sceKernelCreateThread("search_thread", (SceKernelThreadEntry)search_thread, 0x10000100, 0x10000, 0, 0x70000, NULL);
+						if (s->search_thid >= 0)
+							sceKernelStartThread(s->search_thid, sizeof(SearchParams), &search_params);
+					}
+
+					s->search_term_input = 0;
+
+				} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+					s->search_term_input = 0;
+				}
+			}
+
+			if (s->edit_line >= 0) {
+				if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+					int line_start = s->offset_list[s->edit_line];
+					
+					char line[MAX_LINE_CHARACTERS];
+					int length = textReadLine(s->buffer, line_start, s->size, line);
+
+					// Don't count newline 
+					if (s->buffer[line_start + length - 1] == '\n') {
+						length--;
+					}
+
+					char *new_line = (char *)getImeDialogInputTextUTF8();
+					int new_length = strlen(new_line);
+
+					// Move data if size has changed
+					if (new_length != length) {
+						memmove(&s->buffer[line_start+new_length], &s->buffer[line_start+length], s->size-line_start-length);
+						s->size += (new_length - length);
+					}
+
+					// Copy new line into buffer
+					memcpy(&s->buffer[line_start], new_line, new_length);
+
+					// Add new lines to n_lines
+					int i;
+					for (i = 0; i < new_length; i++) {
+						if (new_line[i] == '\n') {
+							s->n_lines++;
+						}
+					}
+					
+					// Update entries
+					updateTextEntries(s);
+
+					s->edit_line = -1;
+					s->changed = 1;
+
+				} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+					s->edit_line = -1;
+				}
 			}
 		}
 

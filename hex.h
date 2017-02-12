@@ -38,6 +38,6 @@ typedef struct {
 	int length;
 } HexList;
 
-int hexViewer(char *file);
+int hexViewer(const char *file);
 
 #endif

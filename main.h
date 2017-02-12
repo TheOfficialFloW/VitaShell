@@ -75,7 +75,7 @@
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0x01
-#define VITASHELL_VERSION_MINOR 0x51
+#define VITASHELL_VERSION_MINOR 0x60
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 
@@ -118,6 +118,8 @@
 #define START_Y (SHELL_MARGIN_Y + 3.0f * FONT_Y_SPACE)
 
 #define MAX_WIDTH (SCREEN_WIDTH - (2.0f * SHELL_MARGIN_X))
+
+#define STATUS_BAR_SPACE_X 12.0f
 
 // Hex
 #define HEX_OFFSET_X 147.0f
@@ -234,16 +236,13 @@ extern volatile int dialog_step;
 
 extern int use_custom_config;
 
-extern int is_in_archive;
-extern int dir_level_archive;
-
 void drawScrollBar(int pos, int n);
-void drawShellInfo(char *path);
+void drawShellInfo(const char *path);
 
 int isInArchive();
 enum FileTypes getArchiveType();
 
 void ftpvita_PROM(ftpvita_client_info_t *client);
-void install_unassisted_sync(char *path);
+void install_unassisted_sync(const char *path);
 
 #endif

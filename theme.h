@@ -83,7 +83,7 @@ extern int AUDIO_TIME_BAR;
 extern int AUDIO_TIME_BAR_BG;
 
 extern vita2d_texture *folder_icon, *file_icon, *archive_icon, *image_icon, *audio_icon, *sfo_icon, *text_icon,
-					  *wifi_image, *ftp_image, *dialog_image, *context_image, *context_more_image, *settings_image, *battery_image,
+					  *ftp_image, *dialog_image, *context_image, *context_more_image, *settings_image, *battery_image,
 					  *battery_bar_red_image, *battery_bar_green_image, *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image,
 					  *bg_photo_image, *bg_audio_image, *cover_image, *play_image, *pause_image, *fastforward_image, *fastrewind_image;
 

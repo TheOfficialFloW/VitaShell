@@ -26,7 +26,7 @@
 #include "language.h"
 #include "utils.h"
 
-void hexListAddEntry(HexList *list, HexListEntry *entry) {
+static void hexListAddEntry(HexList *list, HexListEntry *entry) {
 	entry->next = NULL;
 	entry->previous = NULL;
 
@@ -43,7 +43,7 @@ void hexListAddEntry(HexList *list, HexListEntry *entry) {
 	list->length++;
 }
 
-void hexListEmpty(HexList *list) {
+static void hexListEmpty(HexList *list) {
 	HexListEntry *entry = list->head;
 
 	while (entry) {
@@ -57,7 +57,7 @@ void hexListEmpty(HexList *list) {
 	list->length = 0;
 }
 
-HexListEntry *hexListGetNthEntry(HexList *list, int n) {
+static HexListEntry *hexListGetNthEntry(HexList *list, int n) {
 	HexListEntry *entry = list->head;
 
 	while (n > 0 && entry) {
@@ -71,7 +71,7 @@ HexListEntry *hexListGetNthEntry(HexList *list, int n) {
 	return entry;
 }
 
-int hexViewer(char *file) {
+int hexViewer(const char *file) {
 	int text_viewer = 0;
 
 	uint8_t *buffer = malloc(BIG_BUFFER_SIZE);
@@ -109,7 +109,6 @@ int hexViewer(char *file) {
 	}
 
 	int changed = 0;
-	int save_question = 0;
 
 	int base_pos = 0, rel_pos = 0;
 	uint8_t nibble_pos = 0;
@@ -127,7 +126,7 @@ int hexViewer(char *file) {
 	while (1) {
 		readPad();
 
-		if (!save_question) {
+		if (!isMessageDialogRunning()) {
 			if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
 				if (rel_pos > 0) {
 					rel_pos -= 0x10;
@@ -251,7 +250,6 @@ int hexViewer(char *file) {
 
 				if (changed) {
 					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[SAVE_MODIFICATIONS]);
-					save_question = 1;
 				} else {
 					break;
 				}

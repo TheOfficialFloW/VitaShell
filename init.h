@@ -26,7 +26,7 @@
 extern int language, enter_button, date_format, time_format;
 
 typedef struct {
-	char *path;
+	const char *path;
 	void *buffer;
 	int size;
 	int replace;
