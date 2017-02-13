@@ -96,6 +96,7 @@ Be sure you pull request your customized design or language file there.
 * Everybody who contributed on vitasdk
 
 ### Changelog 1.60 ###
+- Added 'Sort by' option to context menu (R trigger combo removed).
 - Made control smoother.
 - Removed battery icon in status bar for PSTV.
 - Fixed text editor bugs.

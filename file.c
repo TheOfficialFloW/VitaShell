@@ -30,6 +30,7 @@ static char *devices[] = {
 	"sa0:",
 	"tm0:",
 	"ud0:",
+	"uma0:",
 	"ur0:",
 	"ux0:",
 	"vd0:",
@@ -80,8 +81,7 @@ int WriteFile(const char *file, const void *buf, int size) {
 	return written;
 }
 
-int getFileSize(const char *file)
-{
+int getFileSize(const char *file) {
 	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
 	if (fd < 0)
 		return fd;
@@ -327,7 +327,14 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
 	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
 		return -2;
 	}
+/*
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
 
+	int res = sceIoGetstat(src_path, &stat);
+	if (res < 0)
+		return res;
+*/
 	SceUID fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
 	if (fdsrc < 0)
 		return fdsrc;
@@ -403,7 +410,14 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
 	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
 		return -2;
 	}
+/*
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
 
+	int res = sceIoGetstat(src_path, &stat);
+	if (res < 0)
+		return res;
+*/
 	SceUID dfd = sceIoDopen(src_path);
 	if (dfd >= 0) {
 		int ret = sceIoMkdir(dst_path, 0777);

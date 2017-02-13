@@ -97,10 +97,7 @@ void drawContextMenu() {
 
 		int i;
 		for (i = 0; i < ctx->n_entries; i++) {
-			if (ctx->entries[i].visibility == CTX_VISIBILITY_UNUSED)
-				continue;
-
-			float y = START_Y + (i * FONT_Y_SPACE);
+			float y = START_Y + (ctx->entries[i].pos * FONT_Y_SPACE);
 
 			uint32_t color = CONTEXT_MENU_TEXT_COLOR;
 
@@ -110,7 +107,7 @@ void drawContextMenu() {
 				}
 			}
 
-			if (ctx->entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
+			if (ctx->entries[i].visibility == CTX_INVISIBLE)
 				color = INVISIBLE_COLOR;
 
 			// Draw entry text
@@ -131,10 +128,7 @@ void drawContextMenu() {
 
 		if (ctx_menu_mode == CONTEXT_MENU_MORE_CLOSING || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
 			for (i = 0; i < cur_ctx->n_entries; i++) {
-				if (cur_ctx->entries[i].visibility == CTX_VISIBILITY_UNUSED)
-					continue;
-
-				float y = START_Y + ((ctx->sel + i) * FONT_Y_SPACE);
+				float y = START_Y + (cur_ctx->entries[i].pos * FONT_Y_SPACE);
 
 				uint32_t color = CONTEXT_MENU_TEXT_COLOR;
 
@@ -144,11 +138,11 @@ void drawContextMenu() {
 					}
 				}
 
-				if (cur_ctx->entries[i].visibility == CTX_VISIBILITY_INVISIBLE)
+				if (cur_ctx->entries[i].visibility == CTX_INVISIBLE)
 					color = INVISIBLE_COLOR;
 
 				// Draw entry text
-				pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + cur_ctx->max_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[cur_ctx->entries[i].name]);
+				pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + ctx->max_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[cur_ctx->entries[i].name]);
 			}
 		}
 	}
@@ -162,7 +156,7 @@ void contextMenuCtrl() {
 		if (ctx_menu_mode == CONTEXT_MENU_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
 			int i;
 			for (i = cur_ctx->n_entries - 1; i >= 0; i--) {
-				if (cur_ctx->entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+				if (cur_ctx->entries[i].visibility == CTX_VISIBLE) {
 					if (i < cur_ctx->sel) {
 						cur_ctx->sel = i;
 						break;
@@ -174,7 +168,7 @@ void contextMenuCtrl() {
 		if (ctx_menu_mode == CONTEXT_MENU_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
 			int i;
 			for (i = 0; i < cur_ctx->n_entries; i++) {
-				if (cur_ctx->entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+				if (cur_ctx->entries[i].visibility == CTX_VISIBLE) {
 					if (i > cur_ctx->sel) {
 						cur_ctx->sel = i;
 						break;

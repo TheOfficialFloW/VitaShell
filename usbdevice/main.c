@@ -31,12 +31,12 @@ static SceUID hooks[3];
 
 static int first = 1;
 
-SceUID ksceIoOpenPatched(const char *file, int flags, SceMode mode) {
+static SceUID ksceIoOpenPatched(const char *file, int flags, SceMode mode) {
 	first = 1;
 	return TAI_CONTINUE(SceUID, ksceIoOpenRef, file, flags, mode);
 }
 
-int ksceIoReadPatched(SceUID fd, void *data, SceSize size) {
+static int ksceIoReadPatched(SceUID fd, void *data, SceSize size) {
 	int res = TAI_CONTINUE(int, ksceIoReadRef, fd, data, size);
 
 	if (first) {

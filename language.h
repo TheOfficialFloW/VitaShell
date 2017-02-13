@@ -56,11 +56,15 @@ enum LanguageContainer {
 	// Text editor strings
 	EDIT_LINE,
 	ENTER_SEARCH_TERM,
-	CUT,
-	INSERT_EMPTY_LINE,
 
-	// File browser context menu strings
-	MORE,
+	// Context menu strings
+	MOUNT_UMA0,
+	MOUNT_USB_UX0,
+	UMOUNT_USB_UX0,
+	SORT_BY,
+	BY_NAME,
+	BY_SIZE,
+	BY_DATE,
 	MARK_ALL,
 	UNMARK_ALL,
 	MOVE,
@@ -70,11 +74,14 @@ enum LanguageContainer {
 	RENAME,
 	NEW_FOLDER,
 	PROPERTIES,
+	MORE,
 	COMPRESS,
 	INSTALL_ALL,
 	INSTALL_FOLDER,
 	CALCULATE_SHA1,
 	EXPORT_MEDIA,
+	CUT,
+	INSERT_EMPTY_LINE,
 	SEARCH,
 
 	// File browser properties strings
@@ -157,6 +164,10 @@ enum LanguageContainer {
 	USB_NOT_CONNECTED,
 	USB_CONNECTION_PERMISSION,
 	USB_CONNECTION_NOT_AVAILABLE,
+	USB_WAIT_ATTACH,
+	USB_UMA0_MOUNTED,
+	USB_UX0_MOUNTED,
+	USB_UX0_UMOUNTED,
 
 	// Others
 	SAFE_MODE,

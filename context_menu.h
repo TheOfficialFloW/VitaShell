@@ -23,13 +23,13 @@
 #define LEFT_ARROW "\xE2\x97\x80"
 
 enum ContextMenuVisibilities {
-	CTX_VISIBILITY_UNUSED,
-	CTX_VISIBILITY_INVISIBLE,
-	CTX_VISIBILITY_VISIBLE,
+	CTX_INVISIBLE,
+	CTX_VISIBLE,
 };
 
 typedef struct {
 	int name;
+	int pos;
 	int more;
 	int visibility;
 } MenuEntry;

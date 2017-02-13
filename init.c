@@ -22,6 +22,8 @@
 #include "package_installer.h"
 #include "utils.h"
 
+#include "audio/vita_audio.h"
+
 INCLUDE_EXTERN_RESOURCE(folder_icon_png);
 INCLUDE_EXTERN_RESOURCE(file_icon_png);
 INCLUDE_EXTERN_RESOURCE(archive_icon_png);
@@ -207,6 +209,38 @@ void finishNet() {
 }
 
 void initVitaShell() {
+	// Set CPU to 444mhz
+	scePowerSetArmClockFrequency(444);
+
+	// Init SceShellUtil events
+	sceShellUtilInitEvents(0);
+
+	// Prevent automatic CMA connection
+	sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION);
+
+	// Get titleid
+	char titleid[12];
+	memset(titleid, 0, sizeof(titleid));
+	sceAppMgrAppParamGetString(sceKernelGetProcessId(), 12, titleid, sizeof(titleid));
+
+	// Allow writing to ux0:app/VITASHELL
+	sceAppMgrUmount("app0:");
+
+	// Is molecularShell
+	if (strcmp(titleid, "MLCL00001") == 0) {
+		// HENkaku config path (ux0:temp/app_work/MLCL00001/rec/config.bin)
+		char mount_point[16];
+		memset(mount_point, 0, sizeof(mount_point));
+		sceAppMgrWorkDirMountById(207, titleid, mount_point);
+		sprintf(henkaku_config_path, "%s/config.bin", mount_point);
+
+		is_molecular_shell = 1;
+	}
+
+	// Is safe mode
+	if (sceIoDevctl("ux0:", 0x3001, NULL, 0, NULL, 0) == 0x80010030)
+		is_safe_mode = 1;
+
 	// Set sampling mode
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 
@@ -225,6 +259,12 @@ void initVitaShell() {
 
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
+
+	// Load kernel module
+	// taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
+
+	// Init audio
+	vitaAudioInit(0x40);
 
 	// Init
 	initSceAppUtil();
@@ -269,6 +309,9 @@ void finishVitaShell() {
 	finishNet();
 	finishVita2dLib();
 	finishSceAppUtil();
+	
+	// Shutdown audio
+	vitaAudioShutdown();
 	
 	// Unload modules
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) == SCE_SYSMODULE_LOADED)

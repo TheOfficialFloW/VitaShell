@@ -31,30 +31,24 @@
 
 enum TextMenuEntrys {
 	TEXT_MENU_ENTRY_MARK_UNMARK_ALL,
-	TEXT_MENU_ENTRY_EMPTY_1,
 	TEXT_MENU_ENTRY_CUT,
 	TEXT_MENU_ENTRY_COPY,
 	TEXT_MENU_ENTRY_PASTE,
 	TEXT_MENU_ENTRY_DELETE,
 	TEXT_MENU_ENTRY_INSERT_EMPTY_LINE,
-	TEXT_MENU_ENTRY_EMPTY_2,
 	TEXT_MENU_ENTRY_SEARCH,
-	TEXT_MENU_ENTRY_EMPTY_3,
 	TEXT_MENU_ENTRY_HEX_EDITOR,
 };
 
 MenuEntry text_menu_entries[] = {
-	{ UNMARK_ALL, 0, CTX_VISIBILITY_INVISIBLE },
-	{ -1, 0, CTX_VISIBILITY_UNUSED },
-	{ CUT, 0, CTX_VISIBILITY_INVISIBLE },
-	{ COPY, 0, CTX_VISIBILITY_INVISIBLE },
-	{ PASTE, 0, CTX_VISIBILITY_INVISIBLE },
-	{ DELETE, 0, CTX_VISIBILITY_VISIBLE },
-	{ INSERT_EMPTY_LINE, 0, CTX_VISIBILITY_VISIBLE },
-	{ -1, 0, CTX_VISIBILITY_UNUSED },
-	{ SEARCH, 0, CTX_VISIBILITY_VISIBLE },
-	{ -1, 0, CTX_VISIBILITY_UNUSED },
-	{ OPEN_HEX_EDITOR, 0, CTX_VISIBILITY_VISIBLE },
+	{ UNMARK_ALL,        0, 0, CTX_INVISIBLE },
+	{ CUT,               2, 0, CTX_INVISIBLE },
+	{ COPY,              3, 0, CTX_INVISIBLE },
+	{ PASTE,             4, 0, CTX_INVISIBLE },
+	{ DELETE,            6, 0, CTX_VISIBLE },
+	{ INSERT_EMPTY_LINE, 7, 0, CTX_VISIBLE },
+	{ SEARCH,            9, 0, CTX_VISIBLE },
+	{ OPEN_HEX_EDITOR,  11, 0, CTX_VISIBLE },
 };
 
 #define N_TEXT_MENU_ENTRIES (sizeof(text_menu_entries) / sizeof(MenuEntry))
@@ -110,8 +104,7 @@ typedef struct CountParams {
 void initTextContextMenuWidth() {
 	int i;
 	for (i = 0; i < N_TEXT_MENU_ENTRIES; i++) {
-		if (text_menu_entries[i].visibility != CTX_VISIBILITY_UNUSED)
-			context_menu_text.max_width = MAX(context_menu_text.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[text_menu_entries[i].name]));
+		context_menu_text.max_width = MAX(context_menu_text.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[text_menu_entries[i].name]));
 	}
 
 	context_menu_text.max_width += 2.0f * CONTEXT_MENU_MARGIN;
@@ -437,17 +430,17 @@ static int contextMenuEnterCallback(int sel, void *context) {
 
 static void setContextMenuVisibilities(TextEditorState *state) {
 	// Cut & Copy & Unmark only visible when at least one line is selected
-	text_menu_entries[TEXT_MENU_ENTRY_MARK_UNMARK_ALL].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
-	text_menu_entries[TEXT_MENU_ENTRY_CUT].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
-	text_menu_entries[TEXT_MENU_ENTRY_COPY].visibility = state->n_selections == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	text_menu_entries[TEXT_MENU_ENTRY_MARK_UNMARK_ALL].visibility = state->n_selections == 0 ? CTX_INVISIBLE : CTX_VISIBLE;
+	text_menu_entries[TEXT_MENU_ENTRY_CUT].visibility = state->n_selections == 0 ? CTX_INVISIBLE : CTX_VISIBLE;
+	text_menu_entries[TEXT_MENU_ENTRY_COPY].visibility = state->n_selections == 0 ? CTX_INVISIBLE : CTX_VISIBLE;
 
 	// Paste only visible when at least one line is in copy buffer
-	text_menu_entries[TEXT_MENU_ENTRY_PASTE].visibility = state->n_copied_lines == 0 ? CTX_VISIBILITY_INVISIBLE : CTX_VISIBILITY_VISIBLE;
+	text_menu_entries[TEXT_MENU_ENTRY_PASTE].visibility = state->n_copied_lines == 0 ? CTX_INVISIBLE : CTX_VISIBLE;
 	
 	// Go to first entry
 	int i;
 	for (i = 0; i < N_TEXT_MENU_ENTRIES; i++) {
-		if (text_menu_entries[i].visibility == CTX_VISIBILITY_VISIBLE) {
+		if (text_menu_entries[i].visibility == CTX_VISIBLE) {
 			context_menu_text.sel = i;
 			break;
 		}
@@ -842,7 +835,7 @@ int textViewer(const char *file) {
 		} else {
 			int msg_result = updateMessageDialog();
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
-				SceUID fd = sceIoOpen(file, SCE_O_WRONLY|SCE_O_TRUNC, 0777);
+				SceUID fd = sceIoOpen(file, SCE_O_WRONLY | SCE_O_TRUNC, 0777);
 				if (fd >= 0) {
 					sceIoWrite(fd, buffer_base, has_utf8_bom ? s->size + sizeof(utf8_bom) : s->size);
 					sceIoClose(fd);

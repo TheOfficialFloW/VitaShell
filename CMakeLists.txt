@@ -55,6 +55,7 @@ add_executable(VitaShell
   ${vitashell_res}
   main.c
   init.c
+  usb.c
   io_process.c
   makezip.c
   package_installer.c
@@ -120,6 +121,7 @@ target_link_libraries(VitaShell
   stdc++
   taihen_stub
   HENkaku_stub
+  VitaShellKernel_stub_weak
   SceAppMgr_stub
   SceAppUtil_stub
   SceAudio_stub
@@ -159,11 +161,11 @@ vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} eboot.bin
 )
 
 add_custom_target(send
-	COMMAND curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/${VITA_TITLEID}/
-	DEPENDS eboot.bin
+  COMMAND curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/${VITA_TITLEID}/
+  DEPENDS eboot.bin
 )
 
 add_custom_target(copy
-	COMMAND cp eboot.bin F:/app/${VITA_TITLEID}/eboot.bin
-	DEPENDS eboot.bin
+  COMMAND cp eboot.bin F:/app/${VITA_TITLEID}/eboot.bin
+  DEPENDS eboot.bin
 )

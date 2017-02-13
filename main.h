@@ -69,6 +69,8 @@
 
 #include <taihen.h>
 
+#include <vitashell_kernel.h>
+
 #include "vitashell_config.h"
 
 #define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
@@ -137,7 +139,6 @@
 #define SCROLL_BAR_MIN_HEIGHT 4.0f
 
 // Context menu
-#define CONTEXT_MENU_MORE_MIN_WIDTH 200.0f
 #define CONTEXT_MENU_MIN_WIDTH 180.0f
 #define CONTEXT_MENU_MARGIN 20.0f
 #define CONTEXT_MENU_VELOCITY 10.0f
@@ -171,6 +172,8 @@ enum DialogSteps {
 	DIALOG_STEP_ERROR,
 	DIALOG_STEP_INFO,
 	DIALOG_STEP_SYSTEM,
+
+	DIALOG_STEP_USB_ATTACH_WAIT,
 
 	DIALOG_STEP_FTP_WAIT,
 	DIALOG_STEP_FTP,
