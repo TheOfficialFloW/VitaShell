@@ -32,14 +32,6 @@
 
 #include "resources/base_head_bin.h"
 
-static void loadScePaf() {
-	uint32_t ptr[0x100] = { 0 };
-	ptr[0] = 0;
-	ptr[1] = (uint32_t)&ptr[0];
-	uint32_t scepaf_argp[] = { 0x400000, 0xEA60, 0x40000, 0, 0 };
-	sceSysmoduleLoadModuleInternalWithArg(0x80000008, sizeof(scepaf_argp), scepaf_argp, ptr);
-}
-
 static int patchRetailContents() {
 	int res;
 	
@@ -136,12 +128,6 @@ int promoteApp(const char *path) {
 	// Patch to use retail contents so the game is not shown as test version
 	int patch_retail_contents = patchRetailContents();
 
-	loadScePaf();
-
-	res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
-	if (res < 0)
-		return res;
-
 	res = scePromoterUtilityInit();
 	if (res < 0)
 		return res;
@@ -168,10 +154,6 @@ int promoteApp(const char *path) {
 	if (res < 0)
 		return res;
 
-	res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
-	if (res < 0)
-		return res;
-
 	// Restore
 	if (patch_retail_contents >= 0)
 		restoreRetailContents(titleid);
@@ -184,12 +166,6 @@ int deleteApp(const char *titleid) {
 	int res;
 
 	res = sceAppMgrDestroyOtherApp();
-	if (res < 0)
-		return res;
-
-	loadScePaf();
-
-	res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
 	if (res < 0)
 		return res;
 
@@ -216,10 +192,6 @@ int deleteApp(const char *titleid) {
 		return res;
 
 	res = scePromoterUtilityExit();
-	if (res < 0)
-		return res;
-
-	res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
 	if (res < 0)
 		return res;
 

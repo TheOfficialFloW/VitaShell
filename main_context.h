@@ -16,29 +16,20 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __INIT_H__
-#define __INIT_H__
+#ifndef __MAIN_CONTEXT_H__
+#define __MAIN_CONTEXT_H__
 
-#include "file.h"
+#include "context_menu.h"
 
-#define NET_INIT_SIZE 1 * 1024 * 1024
+extern ContextMenu context_menu_home;
+extern ContextMenu context_menu_main;
+extern ContextMenu context_menu_sort;
+extern ContextMenu context_menu_more;
 
-extern char henkaku_config_path[32];
-
-extern int is_safe_mode, is_molecular_shell;
-
-extern int language, enter_button, date_format, time_format;
-
-typedef struct {
-	const char *path;
-	void *buffer;
-	int size;
-	int replace;
-} DefaultFile;
-
-vita2d_pgf *loadSystemFonts();
-
-void initVitaShell();
-void finishVitaShell();
+void initContextMenuWidth();
+void setContextMenuHomeVisibilities();
+void setContextMenuMainVisibilities();
+void setContextMenuSortVisibilities();
+void setContextMenuMoreVisibilities();
 
 #endif

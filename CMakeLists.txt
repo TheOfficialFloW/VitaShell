@@ -54,6 +54,7 @@ add_resources(vitashell_res ${res_files})
 add_executable(VitaShell
   ${vitashell_res}
   main.c
+  main_context.c
   init.c
   usb.c
   io_process.c

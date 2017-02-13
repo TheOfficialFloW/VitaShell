@@ -71,6 +71,7 @@
 
 #include <vitashell_kernel.h>
 
+#include "file.h"
 #include "vitashell_config.h"
 
 #define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
@@ -224,14 +225,19 @@ enum DialogSteps {
 	DIALOG_STEP_SETTINGS_STRING,
 };
 
+extern FileList file_list, mark_list, copy_list, install_list;
+
+extern char cur_file[MAX_PATH_LENGTH];
+extern char archive_copy_path[MAX_PATH_LENGTH];
+extern char archive_path[MAX_PATH_LENGTH];
+
+extern int base_pos, rel_pos;
+extern int sort_mode, copy_mode, file_type;
+
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
 extern VitaShellConfig vitashell_config;
-
-extern char henkaku_config_path[32];
-
-extern int is_safe_mode, is_molecular_shell;
 
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
@@ -245,7 +251,8 @@ void drawShellInfo(const char *path);
 int isInArchive();
 enum FileTypes getArchiveType();
 
+int refreshFileList();
+
 void ftpvita_PROM(ftpvita_client_info_t *client);
-void install_unassisted_sync(const char *path);
 
 #endif

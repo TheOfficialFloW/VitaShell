@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "init.h"
 #include "archive.h"
 #include "file.h"
 #include "utils.h"

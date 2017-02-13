@@ -85,10 +85,14 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt, 1),
 };
 
+char henkaku_config_path[32];
+
+int is_safe_mode = 0, is_molecular_shell = 0;
+
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
 
-void initSceAppUtil() {
+static void initSceAppUtil() {
 	// Init SceAppUtil
 	SceAppUtilInitParam init_param;
 	SceAppUtilBootParam boot_param;
@@ -119,7 +123,7 @@ void initSceAppUtil() {
 	sceCommonDialogSetConfigParam(&config);
 }
 
-void finishSceAppUtil() {
+static void finishSceAppUtil() {
 	// Unmount
 	sceAppUtilPhotoUmount();
 	sceAppUtilMusicUmount();
@@ -132,17 +136,17 @@ static int isKoreanChar(unsigned int c) {
     unsigned short ch = c;
 
     // hangul compatibility jamo block
-    if (0x3130 <= ch && ch <= 0x318f) {
+    if (0x3130 <= ch && ch <= 0x318F) {
         return 1;
     }
 
     // hangul syllables block
-    if (0xac00 <= ch && ch <= 0xd7af) {
+    if (0xAC00 <= ch && ch <= 0xD7AF) {
         return 1;
     }
 
     // korean won sign
-    if (ch == 0xffe6) {
+    if (ch == 0xFFE6) {
         return 1;
     }
 
@@ -153,12 +157,12 @@ static int isLatinChar(unsigned int c) {
     unsigned short ch = c;
 
     // basic latin block + latin-1 supplement block
-    if (ch <= 0x00ff) {
+    if (ch <= 0x00FF) {
         return 1;
     }
 
     // cyrillic block
-    if (0x0400 <= ch && ch <= 0x04ff) {
+    if (0x0400 <= ch && ch <= 0x04FF) {
         return 1;
     }
 
@@ -175,18 +179,18 @@ vita2d_pgf *loadSystemFonts() {
     return vita2d_load_system_pgf(3, configs);
 }
 
-void initVita2dLib() {
+static void initVita2dLib() {
 	vita2d_init();
 }
 
-void finishVita2dLib() {
+static void finishVita2dLib() {
 	vita2d_free_pgf(font);
 	vita2d_fini();
 
 	font = NULL;
 }
 
-void initNet() {
+static void initNet() {
 	static char memory[16 * 1024];
 
 	SceNetInitParam param;
@@ -201,11 +205,32 @@ void initNet() {
 	sceHttpInit(40 * 1024);
 }
 
-void finishNet() {
+static void finishNet() {
 	sceSslTerm();
 	sceHttpTerm();
 	sceNetCtlTerm();
 	sceNetTerm();	
+}
+
+static void loadScePaf() {
+	static uint32_t scepaf_argp[] = {
+		0x00400000,
+		0x0000EA60,
+		0x00040000,
+		0x00000000,
+		0x00000001,
+		0x00000000
+	};
+
+	uint32_t result = 0xDEADBEEF;
+
+	uint32_t buf[4];
+	buf[0] = 0;
+	buf[1] = (uint32_t)&result;
+	buf[2] = 0;
+	buf[3] = 0;
+
+	sceSysmoduleLoadModuleInternalWithArg(0x80000008, sizeof(scepaf_argp), scepaf_argp, buf);
 }
 
 void initVitaShell() {
@@ -253,20 +278,14 @@ void initVitaShell() {
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 
 	// Load modules
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF) != SCE_SYSMODULE_LOADED)
-		sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
+	loadScePaf();
 
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PHOTO_EXPORT) != SCE_SYSMODULE_LOADED)
-		sceSysmoduleLoadModule(SCE_SYSMODULE_PHOTO_EXPORT);
-
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_MUSIC_EXPORT) != SCE_SYSMODULE_LOADED)
-		sceSysmoduleLoadModule(SCE_SYSMODULE_MUSIC_EXPORT);
-
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) != SCE_SYSMODULE_LOADED)
-		sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
-
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) != SCE_SYSMODULE_LOADED)
-		sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
+	sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_PHOTO_EXPORT);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_MUSIC_EXPORT);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
 
 	// Init audio
 	vitaAudioInit(0x40);
@@ -319,18 +338,10 @@ void finishVitaShell() {
 	vitaAudioShutdown();
 	
 	// Unload modules
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) == SCE_SYSMODULE_LOADED)
-		sceSysmoduleUnloadModule(SCE_SYSMODULE_HTTPS);
-
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_NET) == SCE_SYSMODULE_LOADED)
-		sceSysmoduleUnloadModule(SCE_SYSMODULE_NET);
-
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PHOTO_EXPORT) == SCE_SYSMODULE_LOADED)
-		sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
-
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_MUSIC_EXPORT) == SCE_SYSMODULE_LOADED)
-		sceSysmoduleUnloadModule(SCE_SYSMODULE_MUSIC_EXPORT);
-
-	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_PGF) == SCE_SYSMODULE_LOADED)
-		sceSysmoduleUnloadModule(SCE_SYSMODULE_PGF);
+	sceSysmoduleUnloadModule(SCE_SYSMODULE_HTTPS);
+	sceSysmoduleUnloadModule(SCE_SYSMODULE_NET);
+	sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
+	sceSysmoduleUnloadModule(SCE_SYSMODULE_MUSIC_EXPORT);
+	sceSysmoduleUnloadModule(SCE_SYSMODULE_PGF);
+	sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
 }
