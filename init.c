@@ -209,6 +209,14 @@ void finishNet() {
 }
 
 void initVitaShell() {
+	// Load kernel module
+	SceUID modid = taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
+	if (modid >= 0) {
+		// Trick
+		const char * const argv[] = { "restart", NULL };
+		sceAppMgrLoadExec("app0:eboot.bin", NULL, NULL);
+	}
+
 	// Set CPU to 444mhz
 	scePowerSetArmClockFrequency(444);
 
@@ -259,9 +267,6 @@ void initVitaShell() {
 
 	if (sceSysmoduleIsLoaded(SCE_SYSMODULE_HTTPS) != SCE_SYSMODULE_LOADED)
 		sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
-
-	// Load kernel module
-	// taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
 
 	// Init audio
 	vitaAudioInit(0x40);

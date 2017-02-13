@@ -41,10 +41,6 @@
 #include "coredump.h"
 #include "archiveRAR.h"
 
-/*
-	TODO: close apps before usb connection to avoid database corruption
-*/
-
 int _newlib_heap_size_user = 128 * 1024 * 1024;
 
 // File lists

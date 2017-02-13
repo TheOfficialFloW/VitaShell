@@ -21,7 +21,21 @@
 #include "file.h"
 #include "utils.h"
 
+int remount_thread(SceSize args, void *argp) {
+	remount(0x800);
+	return sceKernelExitDeleteThread(0);
+}
+
+void remountRelaunch(char * const argv[]) {
+	SceUID thid = sceKernelCreateThread("remount_thread", (SceKernelThreadEntry)remount_thread, 0x40, 0x1000, 0, 0, NULL);
+	if (thid >= 0)
+		sceKernelStartThread(thid, 0, NULL);	
+	
+	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
+}
+
 int mountUsbUx0() {
+	// Destroy other apps
 	sceAppMgrDestroyOtherApp();
 
 	// Create dirs
@@ -62,41 +76,35 @@ int mountUsbUx0() {
 	// Redirect ux0: to uma0:
 	redirectUx0();
 
-	// Change to lowest priority
-	sceKernelChangeThreadPriority(sceKernelGetThreadId(), 191);
-
 	// Mount USB ux0:
 	vshIoUmount(0xF00, 0, 0, 0);
-	remount(0x800);
-
-	// Trick
+	
+	// Remount and relaunch
 	char * const argv[] = { "mount", NULL };
-	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
+	remountRelaunch(argv);
 
 	return 0;
 }
 
 int umountUsbUx0() {
+	// Destroy other apps
 	sceAppMgrDestroyOtherApp();
 
 	// Restore ux0: patch
 	unredirectUx0();
 
-	// Change to lowest priority
-	sceKernelChangeThreadPriority(sceKernelGetThreadId(), 191);
-
-	// Remount ux0:
-	remount(0x800);
-
-	// Trick
+	// Remount and relaunch
 	char * const argv[] = { "umount", NULL };
-	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
+	remountRelaunch(argv);
 
 	return 0;
 }
 
 SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
 	int res;
+
+	// Destroy other apps
+	sceAppMgrDestroyOtherApp();
 
 	// Load and start usbdevice module
 	SceUID modid = taiLoadStartKernelModule(usbDevicePath, 0, NULL, 0);
@@ -144,15 +152,9 @@ int stopUsb(SceUID modid) {
 	if (res < 0)
 		return res;
 
-	// Change to lowest priority
-	sceKernelChangeThreadPriority(sceKernelGetThreadId(), 191);
-
-	// Remount
-	remount(0x800);
-
-	// Trick
-	const char * const argv[] = { "restart", NULL };
-	sceAppMgrLoadExec("app0:eboot.bin", NULL, NULL);
+	// Remount and relaunch
+	char * const argv[] = { "restart", NULL };
+	remountRelaunch(argv);
 
 	return 0;
 }
