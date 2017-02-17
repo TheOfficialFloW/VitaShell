@@ -1,3 +1,4 @@
+﻿# VitaShell language file
 
 # General strings
 ERROR                                = "오류가 발생했습니다. 0x%08X."
