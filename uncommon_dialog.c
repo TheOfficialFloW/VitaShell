@@ -49,7 +49,7 @@ static void calculateDialogBoxSize() {
 	uncommon_dialog.height = 0.0f;
 
 	int i;
-	for (i = 0; i < len + 1; i++) {
+	for (i = 0; i < len+1; i++) {
 		if (uncommon_dialog.msg[i] == '\n') {
 			uncommon_dialog.msg[i] = '\0';
 
@@ -110,7 +110,7 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
 			if (!param->userMsgParam || !param->userMsgParam->msg)
 				return -1;
 
-			strncpy(uncommon_dialog.msg, (char *)param->userMsgParam->msg, sizeof(uncommon_dialog.msg) - 1);
+			strncpy(uncommon_dialog.msg, (char *)param->userMsgParam->msg, sizeof(uncommon_dialog.msg)-1);
 			uncommon_dialog.buttonType = param->userMsgParam->buttonType;
 			break;
 		}
@@ -120,7 +120,7 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
 			if (!param->progBarParam || !param->progBarParam->msg)
 				return -1;
 
-			strncpy(uncommon_dialog.msg, (char *)param->progBarParam->msg, sizeof(uncommon_dialog.msg) - 1);
+			strncpy(uncommon_dialog.msg, (char *)param->progBarParam->msg, sizeof(uncommon_dialog.msg)-1);
 			uncommon_dialog.buttonType = SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL;
 			break;
 		}
@@ -220,7 +220,7 @@ int sceMsgDialogGetResult(SceMsgDialogResult *result) {
 }
 
 int sceMsgDialogProgressBarSetMsg(SceMsgDialogProgressBarTarget target, const SceChar8 *barMsg) {
-	strncpy(uncommon_dialog.msg, (char *)barMsg, sizeof(uncommon_dialog.msg) - 1);
+	strncpy(uncommon_dialog.msg, (char *)barMsg, sizeof(uncommon_dialog.msg)-1);
 	return 0;
 }
 
@@ -269,7 +269,7 @@ int drawUncommonDialog() {
 		char *string = uncommon_dialog.msg;
 
 		int i;
-		for (i = 0; i < len + 1; i++) {
+		for (i = 0; i < len+1; i++) {
 			if (uncommon_dialog.msg[i] == '\n') {
 				uncommon_dialog.msg[i] = '\0';
 				pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, string);

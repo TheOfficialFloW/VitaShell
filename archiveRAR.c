@@ -80,7 +80,7 @@ int archiveRARFileGetstat(const char *file, SceIoStat *stat) {
 	const char* p = file + (filePathLength + sizeof(char));
 	uint32_t p_length = strlen(p);
 
-	if(p[p_length - 1] == '/')
+	if(p[p_length-1] == '/')
 		return -1;
 
 	ArchiveFileNode* filenode = getFileNodeFromFilePath(root,p);
@@ -111,7 +111,7 @@ int getRARArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, u
 		FileListEntry *entry = list.head->next; // Ignore ..
 
 		int i;
-		for (i = 0; i < list.length - 1; i++) {
+		for (i = 0; i < list.length-1; i++) {
 			char *new_path = malloc(strlen(path) + strlen(entry->name) + 2);
 			snprintf(new_path, MAX_PATH_LENGTH, "%s%s", path, entry->name);
 
@@ -170,7 +170,7 @@ int extractRARArchivePath(const char *src, const char *dst, FileProcessParam *pa
 		FileListEntry *entry = list.head->next; // Ignore ..
 
 		int i;
-		for (i = 0; i < list.length - 1; i++) {
+		for (i = 0; i < list.length-1; i++) {
 			char *src_path = malloc(strlen(src) + strlen(entry->name) + 2);
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", src, entry->name);
 

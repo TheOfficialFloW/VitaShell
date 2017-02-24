@@ -42,6 +42,11 @@
 #include "archiveRAR.h"
 #include "usb.h"
 
+/*
+	TODO:
+	- Theme manager
+*/
+
 int _newlib_heap_size_user = 128 * 1024 * 1024;
 
 // Dialog step
@@ -153,7 +158,7 @@ static void dirUp() {
 
 	p = strrchr(file_list.path, ':');
 	if (p) {
-		if (strlen(file_list.path) - ((p + 1) - file_list.path) > 0) {
+		if (strlen(file_list.path) - ((p+1) - file_list.path) > 0) {
 			p[1] = '\0';
 			dir_level--;
 			goto DIR_UP_RETURN;
@@ -173,7 +178,7 @@ static void setFocusOnFilename(const char *name) {
 	int name_pos = fileListGetNumberByName(&file_list, name);
 	if (name_pos < file_list.length) {
 		while (1) {
-			int index = base_pos + rel_pos;
+			int index = base_pos+rel_pos;
 			if (index == name_pos)
 				break;
 
@@ -188,11 +193,11 @@ static void setFocusOnFilename(const char *name) {
 			}
 
 			if (index < name_pos) {
-				if ((rel_pos + 1) < file_list.length) {
-					if ((rel_pos + 1) < MAX_POSITION) {
+				if ((rel_pos+1) < file_list.length) {
+					if ((rel_pos+1) < MAX_POSITION) {
 						rel_pos++;
 					} else {
-						if ((base_pos + rel_pos + 1) < file_list.length) {
+						if ((base_pos+rel_pos+1) < file_list.length) {
 							base_pos++;
 						}
 					}
@@ -217,7 +222,7 @@ int refreshFileList() {
 	} while (res < 0);
 
 	// Correct position after deleting the latest entry of the file list
-	while ((base_pos + rel_pos) >= file_list.length) {
+	while ((base_pos+rel_pos) >= file_list.length) {
 		if (base_pos > 0) {
 			base_pos--;
 		} else {
@@ -229,7 +234,7 @@ int refreshFileList() {
 
 	// Correct position after deleting an entry while the scrollbar is on the bottom
 	if (file_list.length >= MAX_POSITION) {
-		while ((base_pos + MAX_POSITION - 1) >= file_list.length) {
+		while ((base_pos+MAX_POSITION-1) >= file_list.length) {
 			if (base_pos > 0) {
 				base_pos--;
 				rel_pos++;
@@ -386,7 +391,7 @@ void drawShellInfo(const char *path) {
 	// Battery
 	if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
 		float battery_x = ALIGN_RIGHT(x, vita2d_texture_get_width(battery_image));
-		vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y + 3.0f);
+		vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y+3.0f);
 
 		vita2d_texture *battery_bar_image = battery_bar_green_image;
 
@@ -397,10 +402,10 @@ void drawShellInfo(const char *path) {
 		float percent = scePowerGetBatteryLifePercent() / 100.0f;
 
 		float width = vita2d_texture_get_width(battery_bar_image);
-		vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
+		vita2d_draw_texture_part(battery_bar_image, battery_x+3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
 
 		if (scePowerIsBatteryCharging()) {
-			vita2d_draw_texture(battery_bar_charge_image, battery_x + 3.0f, SHELL_MARGIN_Y + 5.0f);
+			vita2d_draw_texture(battery_bar_charge_image, battery_x+3.0f, SHELL_MARGIN_Y+5.0f);
 		}
 
 		x = battery_x - STATUS_BAR_SPACE_X;
@@ -426,7 +431,7 @@ void drawShellInfo(const char *path) {
 	// FTP
 	if (ftpvita_is_initialized()) {
 		float ftp_x = ALIGN_RIGHT(x, vita2d_texture_get_width(ftp_image));
-		vita2d_draw_texture(ftp_image, ftp_x, SHELL_MARGIN_Y + 3.0f);
+		vita2d_draw_texture(ftp_image, ftp_x, SHELL_MARGIN_Y+3.0f);
 		
 		x = ftp_x - STATUS_BAR_SPACE_X;
 	}
@@ -440,7 +445,7 @@ void drawShellInfo(const char *path) {
 		char ch_width = font_size_cache[(int)path[i]];
 
 		// Too long
-		if ((line_width + ch_width) >= MAX_WIDTH)
+		if ((line_width+ch_width) >= MAX_WIDTH)
 			break;
 
 		// Increase line width
@@ -452,7 +457,7 @@ void drawShellInfo(const char *path) {
 	strncpy(path_first_line, path, i);
 	path_first_line[i] = '\0';
 
-	strcpy(path_second_line, path + i);
+	strcpy(path_second_line, path+i);
 
 	// Add safe/unsafe mode
 	if (strcmp(path_first_line, HOME_PATH) == 0) {
@@ -460,7 +465,7 @@ void drawShellInfo(const char *path) {
 	}
 
 	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
-	pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
+	pgf_draw_text(SHELL_MARGIN_X, PATH_Y+FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
 }
 
 static void initFtp() {
@@ -525,7 +530,7 @@ static int dialogSteps() {
 			
 		case DIALOG_STEP_DELETED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 				// Empty mark list if on marked entry
 				if (fileListFindEntry(&mark_list, file_entry->name)) {
@@ -540,7 +545,7 @@ static int dialogSteps() {
 			
 		case DIALOG_STEP_COMPRESSED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 				// Empty mark list if on marked entry
 				if (fileListFindEntry(&mark_list, file_entry->name)) {
@@ -736,7 +741,7 @@ static int dialogSteps() {
 				DeleteArguments args;
 				args.file_list = &file_list;
 				args.mark_list = &mark_list;
-				args.index = base_pos + rel_pos;
+				args.index = base_pos+rel_pos;
 
 				setDialogStep(DIALOG_STEP_DELETING);
 
@@ -762,7 +767,7 @@ static int dialogSteps() {
 				ExportArguments args;
 				args.file_list = &file_list;
 				args.mark_list = &mark_list;
-				args.index = base_pos + rel_pos;
+				args.index = base_pos+rel_pos;
 
 				setDialogStep(DIALOG_STEP_EXPORTING);
 
@@ -779,7 +784,7 @@ static int dialogSteps() {
 				if (name[0] == '\0') {
 					setDialogStep(DIALOG_STEP_NONE);
 				} else {
-					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 					char old_name[MAX_NAME_LENGTH];
 					strcpy(old_name, file_entry->name);
@@ -860,7 +865,7 @@ static int dialogSteps() {
 					CompressArguments args;
 					args.file_list = &file_list;
 					args.mark_list = &mark_list;
-					args.index = base_pos + rel_pos;
+					args.index = base_pos+rel_pos;
 					args.level = atoi(level);
 					args.path = cur_file;
 
@@ -892,7 +897,7 @@ static int dialogSteps() {
 		case DIALOG_STEP_HASH_CONFIRMED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				// User has confirmed desire to hash, get requested file entry
-				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 				// Place the full file path in cur_file
 				snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
@@ -1079,27 +1084,33 @@ static int fileBrowserMenuCtrl() {
 
 	// Move
 	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+		int old_pos = base_pos+rel_pos;
+		
 		if (rel_pos > 0) {
-			scroll_count = 0;
 			rel_pos--;
 		} else {
 			if (base_pos > 0) {
-				scroll_count = 0;
 				base_pos--;
 			}
 		}
+
+		if (old_pos != base_pos+rel_pos)
+			scroll_count = 0;
 	} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-		if ((rel_pos + 1) < file_list.length) {
-			if ((rel_pos + 1) < MAX_POSITION) {
-				scroll_count = 0;
+		int old_pos = base_pos+rel_pos;
+
+		if ((rel_pos+1) < file_list.length) {
+			if ((rel_pos+1) < MAX_POSITION) {
 				rel_pos++;
 			} else {
-				if ((base_pos + rel_pos + 1) < file_list.length) {
-					scroll_count = 0;
+				if ((base_pos+rel_pos+1) < file_list.length) {
 					base_pos++;
 				}
 			}
 		}
+
+		if (old_pos != base_pos+rel_pos)
+			scroll_count = 0;
 	}
 
 	// Context menu trigger
@@ -1123,7 +1134,7 @@ static int fileBrowserMenuCtrl() {
 	if (dir_level > 0) {
 		// Mark entry
 		if (pressed_buttons & SCE_CTRL_SQUARE) {
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 			if (strcmp(file_entry->name, DIR_UP) != 0) {
 				if (!fileListFindEntry(&mark_list, file_entry->name)) {
 					FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
@@ -1140,7 +1151,7 @@ static int fileBrowserMenuCtrl() {
 			scroll_count = 0;
 			fileListEmpty(&mark_list);
 			dirUp();
-			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path)+1);
 			refreshFileList();
 		}
 	}
@@ -1152,7 +1163,7 @@ static int fileBrowserMenuCtrl() {
 		fileListEmpty(&mark_list);
 
 		// Handle file or folder
-		FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+		FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 		if (file_entry->is_folder) {
 			if (strcmp(file_entry->name, DIR_UP) == 0) {
 				dirUp();
@@ -1169,7 +1180,7 @@ static int fileBrowserMenuCtrl() {
 			}
 
 			// Save last dir
-			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path)+1);
 
 			// Open folder
 			int res = refreshFileList();
@@ -1226,10 +1237,10 @@ static int shellMain() {
 	memset(&stat, 0, sizeof(SceIoStat));
 	if (sceIoGetstat(lastdir, &stat) >= 0) {
 		int i;
-		for (i = 0; i < strlen(lastdir) + 1; i++) {
+		for (i = 0; i < strlen(lastdir)+1; i++) {
 			if (lastdir[i] == ':' || lastdir[i] == '/') {
-				char ch = lastdir[i + 1];
-				lastdir[i + 1] = '\0';
+				char ch = lastdir[i+1];
+				lastdir[i+1] = '\0';
 
 				char ch2 = lastdir[i];
 				lastdir[i] = '\0';
@@ -1238,16 +1249,16 @@ static int shellMain() {
 				if (!p)
 					p = strrchr(lastdir, ':');
 				if (!p)
-					p = lastdir - 1;
+					p = lastdir-1;
 
 				lastdir[i] = ch2;
 
 				refreshFileList();
-				setFocusOnFilename(p + 1);
+				setFocusOnFilename(p+1);
 
 				strcpy(file_list.path, lastdir);
 
-				lastdir[i + 1] = ch;
+				lastdir[i+1] = ch;
 
 				dirLevelUp();
 			}
@@ -1313,7 +1324,7 @@ static int shellMain() {
 		FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos);
 
 		int i;
-		for (i = 0; i < MAX_ENTRIES && (base_pos + i) < file_list.length; i++) {
+		for (i = 0; i < MAX_ENTRIES && (base_pos+i) < file_list.length; i++) {
 			uint32_t color = FILE_COLOR;
 			float y = START_Y + (i * FONT_Y_SPACE);
 

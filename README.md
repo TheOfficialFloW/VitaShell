@@ -8,33 +8,34 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=total%2ecinderella
 
 ### Customization ###
 You can customize those files:
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/colors.txt'**: All colors adjustable
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_browser.png'**: Background for file browser
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_hexeditor.png'**: Background for hex editor
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_texteditor.png'**: Background for text editor
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_photoviewer.png'**: Background for photo viewer
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/bg_audioplayer.png'**: Background for audio player
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/wallpaper.png'**: Wallpaper
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/context.png'**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/context_more.png'**: Context menu more image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery.png'**: Battery border icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_green.png'**: Green battery bar
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_red.png'**: Red battery bar
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/battery_bar_charge.png'**: Charging battery bar
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/ftp.png'**: Ftp icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/audio_icon.png'**: Audio icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/archive_icon.png'**: Archive icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/file_icon.png'**: File icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/folder_icon.png'**: Folder icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/image_icon.png'**: Image icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/sfo_icon.png'**: SFO icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/text_icon.png'**: Text icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/cover.png'**: Default album cover
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/play.png'**: Play icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/pause.png'**: Pause icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/fastforward.png'**: Fastforward icon
-- **'ux0:VitaShell/theme/YOUR_THEME_NAME/fastrewind.png'**: Fastrewind icon
+- **'colors.txt'**: All colors adjustable
+- **'bg_browser.png'**: Background for file browser
+- **'bg_hexeditor.png'**: Background for hex editor
+- **'bg_texteditor.png'**: Background for text editor
+- **'bg_photoviewer.png'**: Background for photo viewer
+- **'bg_audioplayer.png'**: Background for audio player
+- **'settings.png'**: Background for settings
+- **'wallpaper.png'**: Wallpaper
+- **'dialog.png'**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
+- **'context.png'**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
+- **'context_more.png'**: Context menu more image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
+- **'battery.png'**: Battery border icon
+- **'battery_bar_green.png'**: Green battery bar
+- **'battery_bar_red.png'**: Red battery bar
+- **'battery_bar_charge.png'**: Charging battery bar
+- **'ftp.png'**: Ftp icon
+- **'audio_icon.png'**: Audio icon
+- **'archive_icon.png'**: Archive icon
+- **'file_icon.png'**: File icon
+- **'folder_icon.png'**: Folder icon
+- **'image_icon.png'**: Image icon
+- **'sfo_icon.png'**: SFO icon
+- **'text_icon.png'**: Text icon
+- **'cover.png'**: Default album cover
+- **'play.png'**: Play icon
+- **'pause.png'**: Pause icon
+- **'fastforward.png'**: Fastforward icon
+- **'fastrewind.png'**: Fastrewind icon
 
 
 **Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
@@ -96,6 +97,7 @@ Be sure you pull request your customized design or language file there.
 * Everybody who contributed on vitasdk
 
 ### Changelog 1.60 ###
+- Added scrolling text for long filenames.
 - Added 'Sort by' option to context menu (R trigger combo removed).
 - Made control smoother.
 - Removed battery icon in status bar for PSTV.

@@ -58,7 +58,7 @@ int getSfoString(void *buffer, const char *name, char *string, int length) {
 		if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
 			memset(string, 0, length);
 			strncpy(string, buffer + header->valofs + entries[i].dataofs, length);
-			string[length - 1] = '\0';
+			string[length-1] = '\0';
 			return 0;
 		}
 	}
@@ -153,11 +153,11 @@ int SFOReader(const char *file) {
 				}
 			}
 		} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-			if ((rel_pos + 1) < sfo_header->count) {
-				if ((rel_pos + 1) < MAX_POSITION) {
+			if ((rel_pos+1) < sfo_header->count) {
+				if ((rel_pos+1) < MAX_POSITION) {
 					rel_pos++;
 				} else {
-					if ((base_pos + rel_pos + 1) < sfo_header->count) {
+					if ((base_pos+rel_pos+1) < sfo_header->count) {
 						base_pos++;
 					}
 				}

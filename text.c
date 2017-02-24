@@ -150,7 +150,7 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 	int count = 0;
 
 	int i;
-	for (i = 0; i < MIN(size, MIN(size - offset, MAX_LINE_CHARACTERS - 1)); i++) {
+	for (i = 0; i < MIN(size, MIN(size - offset, MAX_LINE_CHARACTERS-1)); i++) {
 		char ch = buffer[offset + i];
 		char ch_width = 0;
 
@@ -239,7 +239,7 @@ static CopyEntry *copy_line(TextEditorState *state, int line_number) {
 	memcpy(entry->line, &state->buffer[line_start], length);
 
 	// Make sure line end with a newline
-	if (entry->line[length - 1] != '\n') {
+	if (entry->line[length-1] != '\n') {
 		entry->line[length] = '\n';
 		length++;
 	}
@@ -392,13 +392,13 @@ static int contextMenuEnterCallback(int sel, void *context) {
 			qsort(state->selection_list, state->n_selections, sizeof(int), cmp);
 
 			// Cut the lines in reversed order to not break the offsets
-			for (i = state->n_selections - 1; i >= 0; i--) {
+			for (i = state->n_selections-1; i >= 0; i--) {
 				cut_line(state, state->selection_list[i]);
 			}
 
 			// Reverse the order of the copied lines
 			int j;
-			for (i = 0, j = state->n_selections - 1; i < j; i++, j--) {
+			for (i = 0, j = state->n_selections-1; i < j; i++, j--) {
 				CopyEntry tmp = state->copy_buffer[i];
 				state->copy_buffer[j] = state->copy_buffer[i];
 				state->copy_buffer[i] = tmp;
@@ -756,7 +756,7 @@ int textViewer(const char *file) {
 							s->base_pos = s->base_pos + MAX_ENTRIES;
 							if (s->base_pos >=  s->n_lines - MAX_POSITION) {
 								s->base_pos = MAX(s->n_lines - MAX_POSITION, 0);
-								s->rel_pos = MIN(MAX_POSITION - 1, s->n_lines-1);
+								s->rel_pos = MIN(MAX_POSITION-1, s->n_lines-1);
 							}
 						}
 

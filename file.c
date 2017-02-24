@@ -325,7 +325,7 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
+	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len-1] == '/')) {
 		return -2;
 	}
 /*
@@ -408,7 +408,7 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
+	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len-1] == '/')) {
 		return -2;
 	}
 /*

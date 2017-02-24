@@ -130,7 +130,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 	entry->type = FILE_TYPE_UNKNOWN;
 	fileListAddEntry(list, entry, sort);
 
-	const char *archive_path = path + archive_path_start;
+	const char *archive_path = path+archive_path_start;
 	int name_length = strlen(archive_path);
 
 	FileListEntry *archive_entry = archive_list.head;
@@ -138,13 +138,13 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 	int i;
 	for (i = 0; i < archive_list.length; i++) {
 		if (archive_entry->name_length >= name_length && strncasecmp(archive_entry->name, archive_path, name_length) == 0) { // Needs a / at end
-			char *p = strchr(archive_entry->name + name_length, '/'); // it's a sub-directory if it has got a slash
+			char *p = strchr(archive_entry->name+name_length, '/'); // it's a sub-directory if it has got a slash
 
 			if (p)
 				*p = '\0';
 
 			char name[MAX_PATH_LENGTH];
-			strcpy(name, archive_entry->name + name_length);
+			strcpy(name, archive_entry->name+name_length);
 			if (p) {
 				addEndSlash(name);
 			}
@@ -152,7 +152,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 			if (strlen(name) > 0 && !fileListFindEntry(list, name)) {
 				FileListEntry *entry = malloc(sizeof(FileListEntry));
 
-				strcpy(entry->name, archive_entry->name + name_length);
+				strcpy(entry->name, archive_entry->name+name_length);
 
 				if (p) {
 					addEndSlash(entry->name);
@@ -201,7 +201,7 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
 		FileListEntry *entry = list.head->next; // Ignore ..
 
 		int i;
-		for (i = 0; i < list.length - 1; i++) {
+		for (i = 0; i < list.length-1; i++) {
 			char *new_path = malloc(strlen(path) + strlen(entry->name) + 2);
 			snprintf(new_path, MAX_PATH_LENGTH, "%s%s", path, entry->name);
 
@@ -260,7 +260,7 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
 		FileListEntry *entry = list.head->next; // Ignore ..
 
 		int i;
-		for (i = 0; i < list.length - 1; i++) {
+		for (i = 0; i < list.length-1; i++) {
 			char *src_path = malloc(strlen(src) + strlen(entry->name) + 2);
 			snprintf(src_path, MAX_PATH_LENGTH, "%s%s", src, entry->name);
 
@@ -354,11 +354,11 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
 	if (!uf)
 		return -1;
 
-	const char *archive_path = file + archive_path_start;
+	const char *archive_path = file+archive_path_start;
 	int name_length = strlen(archive_path);
 
 	// Is directory
-	if (archive_path[name_length - 1] == '/')
+	if (archive_path[name_length-1] == '/')
 		return -1;
 
 	FileListEntry *archive_entry = archive_list.head;
@@ -391,7 +391,7 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
 	if (!uf)
 		return -1;
 
-	const char *archive_path = file + archive_path_start;	
+	const char *archive_path = file+archive_path_start;	
 	int name_length = strlen(archive_path);
 
 	FileListEntry *archive_entry = archive_list.head;
@@ -455,7 +455,7 @@ int archiveClose() {
 
 int archiveOpen(const char *file) {
 	// Start position of the archive path
-	archive_path_start = strlen(file) + 1;
+	archive_path_start = strlen(file)+1;
 
 	// Close previous zip file first
 	if (uf)

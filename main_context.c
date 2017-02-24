@@ -279,7 +279,7 @@ void setContextMenuMainVisibilities() {
 	}
 
 	// Mark/Unmark all text
-	if (mark_list.length == (file_list.length - 1)) { // All marked
+	if (mark_list.length == (file_list.length-1)) { // All marked
 		menu_main_entries[MENU_MAIN_ENTRY_MARK_UNMARK_ALL].name = UNMARK_ALL;
 	} else { // Not all marked yet
 		// On marked entry
@@ -460,11 +460,11 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 			fileListEmpty(&mark_list);
 
 			// Mark all if not all entries are marked yet and we are not focusing on a marked entry
-			if (length != (file_list.length - 1) && !on_marked_entry) {
+			if (length != (file_list.length-1) && !on_marked_entry) {
 				FileListEntry *file_entry = file_list.head->next; // Ignore '..'
 
 				int i;
-				for (i = 0; i < file_list.length - 1; i++) {
+				for (i = 0; i < file_list.length-1; i++) {
 					FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
 					memcpy(mark_entry, file_entry, sizeof(FileListEntry));
 					fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
@@ -677,8 +677,8 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 				if (!p)
 					p = strrchr(file_list.path, ':');
 
-				if (strlen(p + 1) > 0) {
-					strcpy(path, p + 1);
+				if (strlen(p+1) > 0) {
+					strcpy(path, p+1);
 				} else {
 					strncpy(path, file_list.path, p - file_list.path);
 					path[p - file_list.path] = '\0';
@@ -713,7 +713,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 			FileListEntry *file_entry = file_list.head->next; // Ignore '..'
 
 			int i;
-			for (i = 0; i < file_list.length - 1; i++) {
+			for (i = 0; i < file_list.length-1; i++) {
 				char path[MAX_PATH_LENGTH];
 				snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 

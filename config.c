@@ -85,14 +85,14 @@ static char *getString(const char *str) {
 	if (str[0] != '"')
 		return NULL;
 
-	char *p = strchr(str + 1, '"');
+	char *p = strchr(str+1, '"');
 	if (!p)
 		return NULL;
 
-	int len = p - (str + 1);
+	int len = p - (str+1);
 
-	char *out = malloc(len + 1);
-	strncpy(out, str + 1, len);
+	char *out = malloc(len+1);
+	strncpy(out, str+1, len);
 	out[len] = '\0';
 
 	int i;
@@ -130,8 +130,8 @@ static int readEntry(const char *line, ConfigEntry *entries, int n_entries) {
 	// Name of entry
 	char name[MAX_CONFIG_NAME_LENGTH];
 	int len = p - line;
-	if (len > MAX_CONFIG_NAME_LENGTH - 1)
-		len = MAX_CONFIG_NAME_LENGTH - 1;
+	if (len > MAX_CONFIG_NAME_LENGTH-1)
+		len = MAX_CONFIG_NAME_LENGTH-1;
 	strncpy(name, line, len);
 	name[len] = '\0';
 
@@ -140,7 +140,7 @@ static int readEntry(const char *line, ConfigEntry *entries, int n_entries) {
 	// debugPrintf("NAME: %s\n", name);
 
 	// String of entry
-	char *string = p + 1;
+	char *string = p+1;
 
 	// Trim at beginning
 	while (*string == ' ' || *string == '\t')
@@ -282,7 +282,7 @@ int writeConfig(const char *path, ConfigEntry *entries, int n_entries) {
 
     int i;
     for (i = 0; i < n_entries; i++) {
-        int result = writeEntry(fd, entries + i);
+        int result = writeEntry(fd, entries+i);
         if (result != 0) {
             return result;
         }

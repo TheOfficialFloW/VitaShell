@@ -326,11 +326,11 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
 							}
 						}
 					} else {
-						if ((*rel_pos + 1) < list->length) {
-							if ((*rel_pos + 1) < MAX_POSITION) {
+						if ((*rel_pos+1) < list->length) {
+							if ((*rel_pos+1) < MAX_POSITION) {
 								(*rel_pos)++;
 							} else {
-								if ((*base_pos + *rel_pos + 1) < list->length) {
+								if ((*base_pos+*rel_pos+1) < list->length) {
 									(*base_pos)++;
 								}
 							}

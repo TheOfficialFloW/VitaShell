@@ -38,11 +38,14 @@ typedef struct {
 
 static PropertyDialog property_dialog;
 
-static char property_name[128], property_type[32], property_fself_mode[16];
+static char property_name[256], property_type[32], property_fself_mode[16];
 static char property_size[16], property_size_new[16];
 static char property_compressed_size[16];
 static char property_contains[64], property_contains_new[64];
 static char property_creation_date[64], property_modification_date[64];
+
+static int scroll_count = 0;
+static float scroll_x = 0;
 
 #define PROPERTY_DIALOG_ENTRY_MAX_WIDTH 580
 
@@ -90,20 +93,9 @@ int getPropertyDialogStatus() {
 }
 
 static int copyStringLimited(char *out, char *in, int limit) {
-	int width = 0;
-
 	strcpy(out, in);
-
-	int len = strlen(out)-1;
-	while (len > 0) {
-		width = vita2d_pgf_text_width(font, FONT_SIZE, out);
-		if (width > limit)
-			out[len--] = '\0';
-		else
-			break;
-	}
-
-	return width;
+	int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, out);
+	return width < limit ? width : limit;
 }
 
 typedef struct {
@@ -122,7 +114,7 @@ static int info_thread(SceSize args_size, InfoArguments *args) {
 	uint32_t folders = 0, files = 0;
 
 	info_done = 0;
-	int res = getPathInfo(args->path, &size, &folders, &files, propertyCancelHandler);
+	getPathInfo(args->path, &size, &folders, &files, propertyCancelHandler);
 	info_done = 1;
 
 	if (folders > 0)
@@ -157,6 +149,9 @@ static void resetWidth() {
 int initPropertyDialog(char *path, FileListEntry *entry) {
 	int i;
 
+	scroll_count = 0;
+	scroll_x = 0;
+
 	memset(&property_dialog, 0, sizeof(PropertyDialog));
 
 	// Opening status
@@ -184,15 +179,9 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	int width = 0, max_width = 0;
 
 	// Name
-	char name[128];
-	strcpy(name, entry->name);
-	
+	strcpy(property_name, entry->name);
 	if (entry->is_folder)
-		removeEndSlash(name);
-
-	width = copyStringLimited(property_name, name, PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
-	if (width > max_width)
-		max_width = width;
+		removeEndSlash(property_name);
 
 	// Type
 	int type = entry->is_folder ? FOLDER : FILE_;
@@ -449,8 +438,39 @@ void drawPropertyDialog() {
 			if (property_entries[i].visibility == PROPERTY_ENTRY_VISIBLE) {
 				pgf_draw_text(property_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, language_container[property_entries[i].name]);
 
-				if (property_entries[i].entry != NULL)
-					pgf_draw_text(property_dialog.x + SHELL_MARGIN_X + property_dialog.info_x, string_y, DIALOG_COLOR, FONT_SIZE, property_entries[i].entry);
+				if (property_entries[i].entry != NULL) {
+					uint32_t color = DIALOG_COLOR;
+					
+					float x = property_dialog.x + SHELL_MARGIN_X + property_dialog.info_x;
+					float max_width = property_dialog.width-property_dialog.info_x-2*SHELL_MARGIN_X;
+
+					vita2d_enable_clipping();
+					vita2d_set_clip_rectangle(x+1.0f, string_y, x+1.0f+max_width, string_y+FONT_Y_SPACE);
+					
+					if (property_entries[i].name == PROPERTY_NAME) {
+						int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, property_entries[i].entry);
+						if (width >= max_width) {
+							if (scroll_count < 60) {
+								scroll_x = x;
+							} else if (scroll_count < width+90) {
+								scroll_x--;
+							} else if (scroll_count < width+120) {
+								color = (color & 0x00FFFFFF) | ((((color >> 24) * (scroll_count-width-90)) / 30) << 24); // fade-in in 0.5s
+								scroll_x = x;
+							} else {
+								scroll_count = 0;
+							}
+							
+							scroll_count++;
+							
+							x = scroll_x;
+						}
+					}
+					
+					pgf_draw_text(x, string_y, color, FONT_SIZE, property_entries[i].entry);
+
+					vita2d_disable_clipping();
+				}
 			}
 
 			if (property_entries[i].visibility != PROPERTY_ENTRY_INVISIBLE)

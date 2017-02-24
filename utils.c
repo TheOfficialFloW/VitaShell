@@ -35,7 +35,7 @@ static int net_init = -1;
 static int lock_power = 0;
 
 float easeOut(float x0, float x1, float a, float b) {
-	float dx = (x1 - x0);
+	float dx = (x1-x0);
 	return ((dx * a) > b) ? (dx * a) : dx;
 }
 
@@ -143,27 +143,27 @@ void readPad() {
 	memset(&pad, 0, sizeof(SceCtrlData));
 	sceCtrlPeekBufferPositive(0, &pad, 1);
 
-	if (pad.ly < ANALOG_CENTER - ANALOG_THRESHOLD) {
+	if (pad.ly < ANALOG_CENTER-ANALOG_THRESHOLD) {
 		pad.buttons |= SCE_CTRL_LEFT_ANALOG_UP;
-	} else if (pad.ly > ANALOG_CENTER + ANALOG_THRESHOLD) {
+	} else if (pad.ly > ANALOG_CENTER+ANALOG_THRESHOLD) {
 		pad.buttons |= SCE_CTRL_LEFT_ANALOG_DOWN;
 	}
 
-	if (pad.lx < ANALOG_CENTER - ANALOG_THRESHOLD) {
+	if (pad.lx < ANALOG_CENTER-ANALOG_THRESHOLD) {
 		pad.buttons |= SCE_CTRL_LEFT_ANALOG_LEFT;
-	} else if (pad.lx > ANALOG_CENTER + ANALOG_THRESHOLD) {
+	} else if (pad.lx > ANALOG_CENTER+ANALOG_THRESHOLD) {
 		pad.buttons |= SCE_CTRL_LEFT_ANALOG_RIGHT;
 	}
 
-	if (pad.ry < ANALOG_CENTER - ANALOG_THRESHOLD) {
+	if (pad.ry < ANALOG_CENTER-ANALOG_THRESHOLD) {
 		pad.buttons |= SCE_CTRL_RIGHT_ANALOG_UP;
-	} else if (pad.ry > ANALOG_CENTER + ANALOG_THRESHOLD) {
+	} else if (pad.ry > ANALOG_CENTER+ANALOG_THRESHOLD) {
 		pad.buttons |= SCE_CTRL_RIGHT_ANALOG_DOWN;
 	}
 
-	if (pad.rx < ANALOG_CENTER - ANALOG_THRESHOLD) {
+	if (pad.rx < ANALOG_CENTER-ANALOG_THRESHOLD) {
 		pad.buttons |= SCE_CTRL_RIGHT_ANALOG_LEFT;
-	} else if (pad.rx > ANALOG_CENTER + ANALOG_THRESHOLD) {
+	} else if (pad.rx > ANALOG_CENTER+ANALOG_THRESHOLD) {
 		pad.buttons |= SCE_CTRL_RIGHT_ANALOG_RIGHT;
 	}
 
@@ -212,14 +212,14 @@ int holdButtons(SceCtrlData *pad, uint32_t buttons, uint64_t time) {
 }
 
 int hasEndSlash(const char *path) {
-	return path[strlen(path) - 1] == '/';
+	return path[strlen(path)-1] == '/';
 }
 
 int removeEndSlash(char *path) {
 	int len = strlen(path);
 
-	if (path[len - 1] == '/') {
-		path[len - 1] = '\0';
+	if (path[len-1] == '/') {
+		path[len-1] = '\0';
 		return 1;
 	}
 
@@ -228,8 +228,8 @@ int removeEndSlash(char *path) {
 
 int addEndSlash(char *path) {
 	int len = strlen(path);
-	if (len < MAX_PATH_LENGTH - 2) {
-		if (path[len - 1] != '/') {
+	if (len < MAX_PATH_LENGTH-2) {
+		if (path[len-1] != '/') {
 			strcat(path, "/");
 			return 1;
 		}
@@ -290,7 +290,7 @@ void getTimeString(char *string, int time_format, SceDateTime *time) {
 
 	switch(time_format) {
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
-			sprintf(string, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour - 12) : ((time_local.hour == 0) ? 12 : time_local.hour), time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
+			sprintf(string, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour-12) : ((time_local.hour == 0) ? 12 : time_local.hour), time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
 			break;
 
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_24HR:
