@@ -82,6 +82,10 @@ static SceUID usbdevice_modid = -1;
 
 static SceKernelLwMutexWork dialog_mutex;
 
+// Scrolling filename
+static int scroll_count = 0;
+static float scroll_x = FILE_X;
+
 VitaShellConfig vitashell_config;
 
 // Enter and cancel buttons
@@ -289,6 +293,7 @@ static int handleFile(const char *file, FileListEntry *entry) {
 	int res = 0;
 
 	int type = getFileType(file);
+
 	switch (type) {
 		case FILE_TYPE_PSP2DMP:
 		case FILE_TYPE_MP3:
@@ -1075,18 +1080,22 @@ static int fileBrowserMenuCtrl() {
 	// Move
 	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
 		if (rel_pos > 0) {
+			scroll_count = 0;
 			rel_pos--;
 		} else {
 			if (base_pos > 0) {
+				scroll_count = 0;
 				base_pos--;
 			}
 		}
 	} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
 		if ((rel_pos + 1) < file_list.length) {
 			if ((rel_pos + 1) < MAX_POSITION) {
+				scroll_count = 0;
 				rel_pos++;
 			} else {
 				if ((base_pos + rel_pos + 1) < file_list.length) {
+					scroll_count = 0;
 					base_pos++;
 				}
 			}
@@ -1128,6 +1137,7 @@ static int fileBrowserMenuCtrl() {
 
 		// Back
 		if (pressed_buttons & SCE_CTRL_CANCEL) {
+			scroll_count = 0;
 			fileListEmpty(&mark_list);
 			dirUp();
 			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
@@ -1137,6 +1147,8 @@ static int fileBrowserMenuCtrl() {
 
 	// Handle
 	if (pressed_buttons & SCE_CTRL_ENTER) {
+		scroll_count = 0;
+
 		fileListEmpty(&mark_list);
 
 		// Handle file or folder
@@ -1354,7 +1366,7 @@ static int shellMain() {
 
 			// Draw icon
 			if (icon)
-				vita2d_draw_texture(icon, SHELL_MARGIN_X, y + 3.0f);
+				vita2d_draw_texture(icon, SHELL_MARGIN_X, y+3.0f);
 
 			// Current position
 			if (i == rel_pos)
@@ -1362,36 +1374,37 @@ static int shellMain() {
 
 			// Marked
 			if (fileListFindEntry(&mark_list, file_entry->name))
-				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
+				vita2d_draw_rectangle(SHELL_MARGIN_X, y+3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
 
-			// File name
-			int length = strlen(file_entry->name);
-			int line_width = 0;
-
-			int j;
-			for (j = 0; j < length; j++) {
-				char ch_width = font_size_cache[(int)file_entry->name[j]];
-
-				// Too long
-				if ((line_width + ch_width) >= MAX_NAME_WIDTH)
-					break;
-
-				// Increase line width
-				line_width += ch_width;
+			// Draw file name
+			vita2d_enable_clipping();
+			vita2d_set_clip_rectangle(FILE_X+1.0f, y, FILE_X+1.0f+MAX_NAME_WIDTH, y+FONT_Y_SPACE);
+			
+			float x = FILE_X;
+			
+			if (i == rel_pos) {
+				int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, file_entry->name);
+				if (width >= MAX_NAME_WIDTH) {
+					if (scroll_count < 60) {
+						scroll_x = x;
+					} else if (scroll_count < width+90) {
+						scroll_x--;
+					} else if (scroll_count < width+120) {
+						color = (color & 0x00FFFFFF) | ((((color >> 24) * (scroll_count-width-90)) / 30) << 24); // fade-in in 0.5s
+						scroll_x = x;
+					} else {
+						scroll_count = 0;
+					}
+					
+					scroll_count++;
+					
+					x = scroll_x;
+				}
 			}
+			
+			pgf_draw_text(x, y, color, FONT_SIZE, file_entry->name);
 
-			char ch = 0;
-
-			if (j != length) {
-				ch = file_entry->name[j];
-				file_entry->name[j] = '\0';
-			}
-
-			// Draw shortened file name
-			pgf_draw_text(SHELL_MARGIN_X + 26.0f, y, color, FONT_SIZE, file_entry->name);
-
-			if (j != length)
-				file_entry->name[j] = ch;
+			vita2d_disable_clipping();
 
 			// File information
 			if (strcmp(file_entry->name, DIR_UP) != 0) {

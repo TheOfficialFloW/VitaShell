@@ -176,17 +176,18 @@ void readPad() {
 	hold2_buttons = pressed_buttons;
 
 	if (old_buttons & current_buttons) {
-		hold_n++;
 		if (hold_n >= 10) {
 			hold_buttons = current_buttons;
 			hold_n = 6;
 		}
 
-		hold2_n++;
 		if (hold2_n >= 10) {
 			hold2_buttons = current_buttons;
 			hold2_n = 10;
 		}
+
+		hold_n++;
+		hold2_n++;
 	} else {
 		hold_n = 0;
 		hold2_n = 0;

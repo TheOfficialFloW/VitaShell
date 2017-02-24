@@ -145,6 +145,7 @@
 #define CONTEXT_MENU_VELOCITY 10.0f
 
 // File browser
+#define FILE_X (SHELL_MARGIN_X+26.0f)
 #define MARK_WIDTH (SCREEN_WIDTH - 2.0f * SHELL_MARGIN_X)
 #define INFORMATION_X 680.0f
 #define MAX_NAME_WIDTH 500.0f

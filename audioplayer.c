@@ -172,6 +172,7 @@ void getAudioInfo(const char *file) {
 	shortenString(year, fileinfo->year[0] == '\0' ? "-" : fileinfo->year, 390);
 
 	if (tex) {
+		vita2d_wait_rendering_done();
 		vita2d_free_texture(tex);
 		tex = NULL;
 	}
@@ -449,6 +450,7 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
 	}
 
 	if (tex) {
+		vita2d_wait_rendering_done();
 		vita2d_free_texture(tex);
 		tex = NULL;
 	}
