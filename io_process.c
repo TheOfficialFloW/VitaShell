@@ -140,7 +140,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 		int res = removePath(path, &param);
 		if (res <= 0) {
 			closeWaitDialog();
-			dialog_step = DIALOG_STEP_CANCELLED;
+			setDialogStep(DIALOG_STEP_CANCELLED);
 			errorDialog(res);
 			goto EXIT;
 		}
@@ -155,7 +155,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 	// Close
 	sceMsgDialogClose();
 
-	dialog_step = DIALOG_STEP_DELETED;
+	setDialogStep(DIALOG_STEP_DELETED);
 
 EXIT:
 	if (mark_entry_one)
@@ -205,7 +205,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 			if (cancelHandler()) {
 				closeWaitDialog();
-				dialog_step = DIALOG_STEP_CANCELLED;
+				setDialogStep(DIALOG_STEP_CANCELLED);
 				goto EXIT;
 			}
 
@@ -219,7 +219,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		// Close
 		sceMsgDialogClose();
 
-		dialog_step = DIALOG_STEP_MOVED;
+		setDialogStep(DIALOG_STEP_MOVED);
 	} else { // Copy
 		// Open archive, because when you copy from an archive, you leave the archive to paste
 		if (args->copy_mode == COPY_MODE_EXTRACT) {
@@ -305,7 +305,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 					}
 				if (res <= 0) {
 					closeWaitDialog();
-					dialog_step = DIALOG_STEP_CANCELLED;
+					setDialogStep(DIALOG_STEP_CANCELLED);
 					errorDialog(res);
 					goto EXIT;
 				}
@@ -313,7 +313,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 				int res = copyPath(src_path, dst_path, &param);
 				if (res <= 0) {
 					closeWaitDialog();
-					dialog_step = DIALOG_STEP_CANCELLED;
+					setDialogStep(DIALOG_STEP_CANCELLED);
 					errorDialog(res);
 					goto EXIT;
 				}
@@ -349,7 +349,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		// Close
 		sceMsgDialogClose();
 
-		dialog_step = DIALOG_STEP_COPIED;
+		setDialogStep(DIALOG_STEP_COPIED);
 	}
 
 EXIT:
@@ -584,7 +584,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 		int res = exportPath(path, &songs, &pictures, &param);
 		if (res <= 0) {
 			closeWaitDialog();
-			dialog_step = DIALOG_STEP_CANCELLED;
+			setDialogStep(DIALOG_STEP_CANCELLED);
 			errorDialog(res);
 			goto EXIT;
 		}
@@ -650,7 +650,7 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 	if (res <= 0) {
 		// SHA1 Didn't complete successfully, or was cancelled
 		closeWaitDialog();
-		dialog_step = DIALOG_STEP_CANCELLED;
+		setDialogStep(DIALOG_STEP_CANCELLED);
 		errorDialog(res);
 		goto EXIT;
 	}

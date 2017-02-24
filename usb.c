@@ -21,7 +21,7 @@
 #include "file.h"
 #include "utils.h"
 
-int remount_thread(SceSize args, void *argp) {
+static int remount_thread(SceSize args, void *argp) {
 	remount(0x800);
 	return sceKernelExitDeleteThread(0);
 }
@@ -29,7 +29,7 @@ int remount_thread(SceSize args, void *argp) {
 void remountRelaunch(char * const argv[]) {
 	SceUID thid = sceKernelCreateThread("remount_thread", (SceKernelThreadEntry)remount_thread, 0x40, 0x1000, 0, 0, NULL);
 	if (thid >= 0)
-		sceKernelStartThread(thid, 0, NULL);	
+		sceKernelStartThread(thid, 0, NULL);
 	
 	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
 }

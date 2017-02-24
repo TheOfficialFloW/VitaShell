@@ -70,7 +70,7 @@ void closeWaitDialog() {
 void errorDialog(int error) {
 	if (error < 0) {
 		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[ERROR], error);
-		dialog_step = DIALOG_STEP_ERROR;
+		setDialogStep(DIALOG_STEP_ERROR);
 	}
 }
 
@@ -83,7 +83,7 @@ void infoDialog(const char *msg, ...) {
 	va_end(list);
 
 	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, string);
-	dialog_step = DIALOG_STEP_INFO;
+	setDialogStep(DIALOG_STEP_INFO);
 }
 
 int checkMemoryCardFreeSpace(uint64_t size) {
@@ -346,10 +346,8 @@ int vshIoMount(int id, const char *path, int permission, int a4, int a5, int a6)
 	return _vshIoMount(id, path, permission, buf);
 }
 
-int remount(int id) {
-	int res = vshIoUmount(id, 0, 0, 0);
-	if (res < 0 && res != 0x80010002)
-		return res;
-
-	return vshIoMount(id, NULL, 0, 0, 0, 0);
+void remount(int id) {
+	vshIoUmount(id, 0, 0, 0);
+	vshIoUmount(id, 1, 0, 0);
+	vshIoMount(id, NULL, 0, 0, 0, 0);
 }

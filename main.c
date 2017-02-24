@@ -40,8 +40,12 @@
 #include "sfo.h"
 #include "coredump.h"
 #include "archiveRAR.h"
+#include "usb.h"
 
 int _newlib_heap_size_user = 128 * 1024 * 1024;
+
+// Dialog step
+static volatile int dialog_step = DIALOG_STEP_NONE;
 
 // File lists
 FileList file_list, mark_list, copy_list, install_list;
@@ -56,8 +60,8 @@ static char focus_name[MAX_NAME_LENGTH], compress_name[MAX_NAME_LENGTH];
 
 // Position
 int base_pos = 0, rel_pos = 0;
-static int base_pos_list[MAX_DIR_LEVELS];
-static int rel_pos_list[MAX_DIR_LEVELS];
+static char base_pos_list[MAX_DIR_LEVELS];
+static char rel_pos_list[MAX_DIR_LEVELS];
 static int dir_level = 0;
 
 // Modes
@@ -67,7 +71,7 @@ int file_type = FILE_TYPE_UNKNOWN;
 
 // Archive
 static int is_in_archive = 0;
-static int dir_level_archive = -1;
+static char dir_level_archive = -1;
 enum FileTypes archive_type = FILE_TYPE_ZIP;
 
 // FTP
@@ -76,20 +80,32 @@ static unsigned short int vita_port;
 
 static SceUID usbdevice_modid = -1;
 
+static SceKernelLwMutexWork dialog_mutex;
+
 VitaShellConfig vitashell_config;
 
 // Enter and cancel buttons
 int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 
-// Dialog step
-volatile int dialog_step = DIALOG_STEP_NONE;
-
 // Use custom config
 int use_custom_config = 1;
 
+int getDialogStep() {
+	sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
+	int step = dialog_step;
+	sceKernelUnlockLwMutex(&dialog_mutex, 1);
+	return step;
+}
+
+void setDialogStep(int step) {
+	sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
+	dialog_step = step;
+	sceKernelUnlockLwMutex(&dialog_mutex, 1);
+}
+
 void dirLevelUp() {
-	base_pos_list[dir_level] = base_pos;
-	rel_pos_list[dir_level] = rel_pos;
+	base_pos_list[dir_level] = (char)base_pos;
+	rel_pos_list[dir_level] = (char)rel_pos;
 	dir_level++;
 	base_pos_list[dir_level] = 0;
 	rel_pos_list[dir_level] = 0;
@@ -144,8 +160,8 @@ static void dirUp() {
 	dir_level = 0;
 
 DIR_UP_RETURN:
-	base_pos = base_pos_list[dir_level];
-	rel_pos = rel_pos_list[dir_level];
+	base_pos = (int)base_pos_list[dir_level];
+	rel_pos = (int)rel_pos_list[dir_level];
 	dirUpCloseArchive();
 }
 
@@ -319,7 +335,7 @@ static int handleFile(const char *file, FileListEntry *entry) {
 			
 		case FILE_TYPE_VPK:
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
-			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
+			setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
 			break;
 			
 		case FILE_TYPE_ZIP:
@@ -474,7 +490,7 @@ static void initUsb() {
 		powerLock();
 		
 		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_CONNECTED]);
-		dialog_step = DIALOG_STEP_USB;
+		setDialogStep(DIALOG_STEP_USB);
 	} else {
 		errorDialog(usbdevice_modid);
 	}
@@ -486,20 +502,20 @@ static int dialogSteps() {
 	int msg_result = updateMessageDialog();
 	int ime_result = updateImeDialog();
 
-	switch (dialog_step) {
+	switch (getDialogStep()) {
 		// Without refresh
 		case DIALOG_STEP_ERROR:
 		case DIALOG_STEP_INFO:
 		case DIALOG_STEP_SYSTEM:
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
 			
 		case DIALOG_STEP_CANCELLED:
 			refresh = REFRESH_MODE_NORMAL;
-			dialog_step = DIALOG_STEP_NONE;
+			setDialogStep(DIALOG_STEP_NONE);
 			break;
 			
 		case DIALOG_STEP_DELETED:
@@ -512,7 +528,7 @@ static int dialogSteps() {
 				}
 
 				refresh = REFRESH_MODE_NORMAL;
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -539,7 +555,7 @@ static int dialogSteps() {
 				strcpy(focus_name, name);
 
 				refresh = REFRESH_MODE_SETFOCUS;
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -567,11 +583,11 @@ static int dialogSteps() {
 				strcpy(focus_name, copy_list.head->name);
 
 				// Empty copy list when moved
-				if (dialog_step == DIALOG_STEP_MOVED)
+				if (getDialogStep() == DIALOG_STEP_MOVED)
 					fileListEmpty(&copy_list);
 
 				refresh = REFRESH_MODE_SETFOCUS;
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -585,7 +601,7 @@ static int dialogSteps() {
 				}
 			} else {
 				if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-					dialog_step = DIALOG_STEP_NONE;
+					setDialogStep(DIALOG_STEP_NONE);
 					
 					SceUID fd = sceIoOpen("sdstor0:uma-lp-act-entire", SCE_O_RDONLY, 0);
 					if (fd >= 0) {
@@ -615,12 +631,12 @@ static int dialogSteps() {
 				}
 			} else {
 				if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-					dialog_step = DIALOG_STEP_NONE;
+					setDialogStep(DIALOG_STEP_NONE);
 
 					// Dialog
 					if (ftpvita_is_initialized()) {
 						initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
-						dialog_step = DIALOG_STEP_FTP;
+						setDialogStep(DIALOG_STEP_FTP);
 					} else {
 						powerUnlock();
 					}
@@ -632,12 +648,12 @@ static int dialogSteps() {
 		case DIALOG_STEP_FTP:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				refresh = REFRESH_MODE_NORMAL;
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				powerUnlock();
 				ftpvita_fini();
 				refresh = REFRESH_MODE_NORMAL;
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -652,7 +668,7 @@ static int dialogSteps() {
 				}
 			} else {
 				if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-					dialog_step = DIALOG_STEP_NONE;
+					setDialogStep(DIALOG_STEP_NONE);
 
 					SceUdcdDeviceState state;
 					sceUdcdGetDeviceState(&state);
@@ -677,7 +693,7 @@ static int dialogSteps() {
 				powerUnlock();
 				stopUsb(usbdevice_modid);
 				refresh = REFRESH_MODE_NORMAL;
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -691,7 +707,7 @@ static int dialogSteps() {
 				args.copy_mode = copy_mode;
 				args.file_type = file_type;
 
-				dialog_step = DIALOG_STEP_COPYING;
+				setDialogStep(DIALOG_STEP_COPYING);
 
 				SceUID thid = sceKernelCreateThread("copy_thread", (SceKernelThreadEntry)copy_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
@@ -703,9 +719,9 @@ static int dialogSteps() {
 		case DIALOG_STEP_DELETE_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DELETING]);
-				dialog_step = DIALOG_STEP_DELETE_CONFIRMED;
+				setDialogStep(DIALOG_STEP_DELETE_CONFIRMED);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -717,7 +733,7 @@ static int dialogSteps() {
 				args.mark_list = &mark_list;
 				args.index = base_pos + rel_pos;
 
-				dialog_step = DIALOG_STEP_DELETING;
+				setDialogStep(DIALOG_STEP_DELETING);
 
 				SceUID thid = sceKernelCreateThread("delete_thread", (SceKernelThreadEntry)delete_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
@@ -729,9 +745,9 @@ static int dialogSteps() {
 		case DIALOG_STEP_EXPORT_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[EXPORTING]);
-				dialog_step = DIALOG_STEP_EXPORT_CONFIRMED;
+				setDialogStep(DIALOG_STEP_EXPORT_CONFIRMED);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -743,7 +759,7 @@ static int dialogSteps() {
 				args.mark_list = &mark_list;
 				args.index = base_pos + rel_pos;
 
-				dialog_step = DIALOG_STEP_EXPORTING;
+				setDialogStep(DIALOG_STEP_EXPORTING);
 
 				SceUID thid = sceKernelCreateThread("export_thread", (SceKernelThreadEntry)export_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
@@ -756,7 +772,7 @@ static int dialogSteps() {
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (name[0] == '\0') {
-					dialog_step = DIALOG_STEP_NONE;
+					setDialogStep(DIALOG_STEP_NONE);
 				} else {
 					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 
@@ -765,7 +781,7 @@ static int dialogSteps() {
 					removeEndSlash(old_name);
 
 					if (strcasecmp(old_name, name) == 0) { // No change
-						dialog_step = DIALOG_STEP_NONE;
+						setDialogStep(DIALOG_STEP_NONE);
 					} else {
 						char old_path[MAX_PATH_LENGTH];
 						char new_path[MAX_PATH_LENGTH];
@@ -778,12 +794,12 @@ static int dialogSteps() {
 							errorDialog(res);
 						} else {
 							refresh = REFRESH_MODE_NORMAL;
-							dialog_step = DIALOG_STEP_NONE;
+							setDialogStep(DIALOG_STEP_NONE);
 						}
 					}
 				}
 			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -792,7 +808,7 @@ static int dialogSteps() {
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (name[0] == '\0') {
-					dialog_step = DIALOG_STEP_NONE;
+					setDialogStep(DIALOG_STEP_NONE);
 				} else {
 					char path[MAX_PATH_LENGTH];
 					snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
@@ -802,11 +818,11 @@ static int dialogSteps() {
 						errorDialog(res);
 					} else {
 						refresh = REFRESH_MODE_NORMAL;
-						dialog_step = DIALOG_STEP_NONE;
+						setDialogStep(DIALOG_STEP_NONE);
 					}
 				}
 			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -815,15 +831,15 @@ static int dialogSteps() {
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (name[0] == '\0') {
-					dialog_step = DIALOG_STEP_NONE;
+					setDialogStep(DIALOG_STEP_NONE);
 				} else {
 					strcpy(compress_name, name);
 
 					initImeDialog(language_container[COMPRESSION_LEVEL], "6", 1, SCE_IME_TYPE_NUMBER, 0);
-					dialog_step = DIALOG_STEP_COMPRESS_LEVEL;
+					setDialogStep(DIALOG_STEP_COMPRESS_LEVEL);
 				}
 			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 			
 			break;
@@ -832,7 +848,7 @@ static int dialogSteps() {
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *level = (char *)getImeDialogInputTextUTF8();
 				if (level[0] == '\0') {
-					dialog_step = DIALOG_STEP_NONE;
+					setDialogStep(DIALOG_STEP_NONE);
 				} else {
 					snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, compress_name);
 
@@ -844,14 +860,14 @@ static int dialogSteps() {
 					args.path = cur_file;
 
 					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[COMPRESSING]);
-					dialog_step = DIALOG_STEP_COMPRESSING;
+					setDialogStep(DIALOG_STEP_COMPRESSING);
 
 					SceUID thid = sceKernelCreateThread("compress_thread", (SceKernelThreadEntry)compress_thread, 0x40, 0x100000, 0, 0, NULL);
 					if (thid >= 0)
 						sceKernelStartThread(thid, sizeof(CompressArguments), &args);
 				}
 			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 			
 			break;
@@ -860,10 +876,10 @@ static int dialogSteps() {
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				// Throw up the progress bar, enter hashing state
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[HASHING]);
-				dialog_step = DIALOG_STEP_HASH_CONFIRMED;
+				setDialogStep(DIALOG_STEP_HASH_CONFIRMED);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				// Quit
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -879,7 +895,7 @@ static int dialogSteps() {
 				HashArguments args;
 				args.file_path = cur_file;
 
-				dialog_step = DIALOG_STEP_HASHING;
+				setDialogStep(DIALOG_STEP_HASHING);
 
 				// Create a thread to run out actual sum
 				SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x100000, 0, 0, NULL);
@@ -892,9 +908,9 @@ static int dialogSteps() {
 		case DIALOG_STEP_INSTALL_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
-				dialog_step = DIALOG_STEP_INSTALL_CONFIRMED;
+				setDialogStep(DIALOG_STEP_INSTALL_CONFIRMED);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -917,7 +933,7 @@ static int dialogSteps() {
 					args.file = cur_file;
 				}
 
-				dialog_step = DIALOG_STEP_INSTALLING;
+				setDialogStep(DIALOG_STEP_INSTALLING);
 
 				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
@@ -928,9 +944,9 @@ static int dialogSteps() {
 			
 		case DIALOG_STEP_INSTALL_WARNING:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
-				dialog_step = DIALOG_STEP_INSTALL_WARNING_AGREED;
+				setDialogStep(DIALOG_STEP_INSTALL_WARNING_AGREED);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
-				dialog_step = DIALOG_STEP_CANCELLED;
+				setDialogStep(DIALOG_STEP_CANCELLED);
 			}
 
 			break;
@@ -939,11 +955,11 @@ static int dialogSteps() {
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				if (install_list.length > 0) {
 					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
-					dialog_step = DIALOG_STEP_INSTALL_CONFIRMED;
+					setDialogStep(DIALOG_STEP_INSTALL_CONFIRMED);
 					break;
 				}
 
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 				refresh = REFRESH_MODE_NORMAL;
 			}
 
@@ -952,16 +968,16 @@ static int dialogSteps() {
 		case DIALOG_STEP_UPDATE_QUESTION:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DOWNLOADING]);
-				dialog_step = DIALOG_STEP_DOWNLOADING;
+				setDialogStep(DIALOG_STEP_DOWNLOADING);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 			
 		case DIALOG_STEP_DOWNLOADED:
 			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
 
-				dialog_step = DIALOG_STEP_EXTRACTING;
+				setDialogStep(DIALOG_STEP_EXTRACTING);
 
 				SceUID thid = sceKernelCreateThread("update_extract_thread", (SceKernelThreadEntry)update_extract_thread, 0x40, 0x100000, 0, 0, NULL);
 				if (thid >= 0)
@@ -973,13 +989,13 @@ static int dialogSteps() {
 		case DIALOG_STEP_SETTINGS_AGREEMENT:
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				settingsAgree();
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				settingsDisagree();
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				settingsAgree();
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 			
 			break;
@@ -991,16 +1007,16 @@ static int dialogSteps() {
 					strcpy((char *)getImeDialogInitialText(), string);
 				}
 
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			} else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
-				dialog_step = DIALOG_STEP_NONE;
+				setDialogStep(DIALOG_STEP_NONE);
 			}
 			
 			break;
 			
 		case DIALOG_STEP_EXTRACTED:
 			launchAppByUriExit("VSUPDATER");
-			dialog_step = DIALOG_STEP_NONE;
+			setDialogStep(DIALOG_STEP_NONE);
 			break;
 	}
 
@@ -1030,7 +1046,7 @@ static int fileBrowserMenuCtrl() {
 					initUsb();
 				} else {
 					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_NOT_CONNECTED]);
-					dialog_step = DIALOG_STEP_USB_WAIT;
+					setDialogStep(DIALOG_STEP_USB_WAIT);
 				}
 			}
 		} else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP) {
@@ -1039,7 +1055,7 @@ static int fileBrowserMenuCtrl() {
 				int res = ftpvita_init(vita_ip, &vita_port);
 				if (res < 0) {
 					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
-					dialog_step = DIALOG_STEP_FTP_WAIT;
+					setDialogStep(DIALOG_STEP_FTP_WAIT);
 				} else {
 					initFtp();
 				}
@@ -1051,7 +1067,7 @@ static int fileBrowserMenuCtrl() {
 			// Dialog
 			if (ftpvita_is_initialized()) {
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
-				dialog_step = DIALOG_STEP_FTP;
+				setDialogStep(DIALOG_STEP_FTP);
 			}
 		}
 	}
@@ -1238,7 +1254,7 @@ static int shellMain() {
 		int refresh = REFRESH_MODE_NONE;
 
 		// Control
-		if (dialog_step != DIALOG_STEP_NONE) {
+		if (getDialogStep() != DIALOG_STEP_NONE) {
 			refresh = dialogSteps();
 		} else {
 			if (getSettingsMenuStatus() != SETTINGS_MENU_CLOSED) {
@@ -1457,6 +1473,9 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
 }
 
 int main(int argc, const char *argv[]) {
+	// Create mutex
+	sceKernelCreateLwMutex(&dialog_mutex, "dialog_mutex", 2, 0, NULL);
+
 	// Init VitaShell
 	initVitaShell();
 

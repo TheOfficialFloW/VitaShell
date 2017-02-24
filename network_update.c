@@ -213,7 +213,7 @@ static int downloadProcess(char *version_string) {
 	int res = downloadFile(url, VITASHELL_UPDATE_FILE, &param);
 	if (res <= 0) {
 		closeWaitDialog();
-		dialog_step = DIALOG_STEP_CANCELLED;
+		setDialogStep(DIALOG_STEP_CANCELLED);
 		errorDialog(res);
 		goto EXIT;
 	}
@@ -225,7 +225,7 @@ static int downloadProcess(char *version_string) {
 	// Close
 	sceMsgDialogClose();
 
-	dialog_step = DIALOG_STEP_DOWNLOADED;
+	setDialogStep(DIALOG_STEP_DOWNLOADED);
 
 EXIT:
 	if (thid >= 0)
@@ -252,7 +252,7 @@ int network_update_thread(SceSize args, void *argp) {
 		sceIoRemove(VITASHELL_VERSION_FILE);
 
 		// Only show update question if no dialog is running
-		if (dialog_step == DIALOG_STEP_NONE) {
+		if (getDialogStep() == DIALOG_STEP_NONE) {
 			// New update available
 			if (version > VITASHELL_VERSION) {
 				int major = (version >> 0x18) & 0xFF;
@@ -265,15 +265,15 @@ int network_update_thread(SceSize args, void *argp) {
 
 				// Update question
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[UPDATE_QUESTION], version_string);
-				dialog_step = DIALOG_STEP_UPDATE_QUESTION;
+				setDialogStep(DIALOG_STEP_UPDATE_QUESTION);
 
 				// Wait for response
-				while (dialog_step == DIALOG_STEP_UPDATE_QUESTION) {
+				while (getDialogStep() == DIALOG_STEP_UPDATE_QUESTION) {
 					sceKernelDelayThread(10 * 1000);
 				}
 
 				// No
-				if (dialog_step == DIALOG_STEP_NONE) {
+				if (getDialogStep() == DIALOG_STEP_NONE) {
 					goto EXIT;
 				}
 
@@ -354,7 +354,7 @@ int update_extract_thread(SceSize args, void *argp) {
 	res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
 	if (res <= 0) {
 		closeWaitDialog();
-		dialog_step = DIALOG_STEP_CANCELLED;
+		setDialogStep(DIALOG_STEP_CANCELLED);
 		errorDialog(res);
 		goto EXIT;
 	}
@@ -377,7 +377,7 @@ int update_extract_thread(SceSize args, void *argp) {
 	// Close
 	sceMsgDialogClose();
 
-	dialog_step = DIALOG_STEP_EXTRACTED;
+	setDialogStep(DIALOG_STEP_EXTRACTED);
 
 EXIT:
 	if (thid >= 0)

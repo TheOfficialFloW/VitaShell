@@ -307,7 +307,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 		int res = makeZip(args->path, path, strlen(args->file_list->path), args->level, i == 0 ? APPEND_STATUS_CREATE : APPEND_STATUS_ADDINZIP, &param);
 		if (res <= 0) {
 			closeWaitDialog();
-			dialog_step = DIALOG_STEP_CANCELLED;
+			setDialogStep(DIALOG_STEP_CANCELLED);
 			errorDialog(res);
 			goto EXIT;
 		}
@@ -322,7 +322,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 	// Close
 	sceMsgDialogClose();
 
-	dialog_step = DIALOG_STEP_COMPRESSED;
+	setDialogStep(DIALOG_STEP_COMPRESSED);
 
 EXIT:
 	if (mark_entry_one)

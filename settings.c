@@ -352,7 +352,7 @@ void settingsMenuCtrl() {
 		if (option->name == HENKAKU_ENABLE_UNSAFE_HOMEBREW) {
 			if (*(option->value) == 0) {
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[HENKAKU_UNSAFE_HOMEBREW_MESSAGE]);
-				dialog_step = DIALOG_STEP_SETTINGS_AGREEMENT;
+				setDialogStep(DIALOG_STEP_SETTINGS_AGREEMENT);
 			} else {
 				*(option->value) = !*(option->value);
 			}
@@ -364,7 +364,7 @@ void settingsMenuCtrl() {
 				
 				case SETTINGS_OPTION_TYPE_STRING:
 					initImeDialog(language_container[option->name], option->string, option->size_string, SCE_IME_TYPE_EXTENDED_NUMBER, 0);
-					dialog_step = DIALOG_STEP_SETTINGS_STRING;
+					setDialogStep(DIALOG_STEP_SETTINGS_STRING);
 					break;
 					
 				case SETTINGS_OPTION_TYPE_CALLBACK:

@@ -22,6 +22,7 @@
 #include "context_menu.h"
 #include "file.h"
 #include "language.h"
+#include "property_dialog.h"
 #include "message_dialog.h"
 #include "ime_dialog.h"
 #include "utils.h"
@@ -422,7 +423,7 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 				refreshFileList();
 			} else {
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_WAIT_ATTACH]);
-				dialog_step = DIALOG_STEP_USB_ATTACH_WAIT;
+				setDialogStep(DIALOG_STEP_USB_ATTACH_WAIT);
 			}
 			
 			break;
@@ -550,7 +551,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 			}
 
 			initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[copy_text]);
-			dialog_step = DIALOG_STEP_PASTE;
+			setDialogStep(DIALOG_STEP_PASTE);
 			break;
 		}
 
@@ -568,7 +569,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 			}
 
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
-			dialog_step = DIALOG_STEP_DELETE_QUESTION;
+			setDialogStep(DIALOG_STEP_DELETE_QUESTION);
 			break;
 		}
 		
@@ -582,7 +583,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 
 			initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
 
-			dialog_step = DIALOG_STEP_RENAME;
+			setDialogStep(DIALOG_STEP_RENAME);
 			break;
 		}
 		
@@ -617,7 +618,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 			}
 
 			initImeDialog(language_container[NEW_FOLDER], path + strlen(file_list.path), MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
-			dialog_step = DIALOG_STEP_NEW_FOLDER;
+			setDialogStep(DIALOG_STEP_NEW_FOLDER);
 			break;
 		}
 		
@@ -700,7 +701,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 			strcat(path, ".zip");
 
 			initImeDialog(language_container[ARCHIVE_NAME], path, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
-			dialog_step = DIALOG_STEP_COMPRESS_NAME;
+			setDialogStep(DIALOG_STEP_COMPRESS_NAME);
 			break;
 		}
 		
@@ -730,7 +731,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 			strcpy(install_list.path, file_list.path);
 
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_ALL_QUESTION]);
-			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
+			setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
 			
 			break;
 		}
@@ -740,7 +741,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
 			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
-			dialog_step = DIALOG_STEP_INSTALL_QUESTION;
+			setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
 			break;
 		}
 		
@@ -758,7 +759,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 			}
 
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
-			dialog_step = DIALOG_STEP_EXPORT_QUESTION;
+			setDialogStep(DIALOG_STEP_EXPORT_QUESTION);
 			break;
 		}
 		
@@ -766,7 +767,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 		{
 			// Ensure user wants to actually take the hash
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[HASH_FILE_QUESTION]);
-			dialog_step = DIALOG_STEP_HASH_QUESTION;
+			setDialogStep(DIALOG_STEP_HASH_QUESTION);
 			break;
 		}
 	}

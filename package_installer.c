@@ -375,29 +375,29 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 				closeWaitDialog();
 
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
-				dialog_step = DIALOG_STEP_INSTALL_WARNING;
+				setDialogStep(DIALOG_STEP_INSTALL_WARNING);
 
 				// Wait for response
-				while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
+				while (getDialogStep() == DIALOG_STEP_INSTALL_WARNING) {
 					sceKernelDelayThread(10 * 1000);
 				}
 
 				// Cancelled
-				if (dialog_step == DIALOG_STEP_CANCELLED) {
+				if (getDialogStep() == DIALOG_STEP_CANCELLED) {
 					closeWaitDialog();
 					goto EXIT;
 				}
 
 				// Init again
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
-				dialog_step = DIALOG_STEP_INSTALLING;
+				setDialogStep(DIALOG_STEP_INSTALLING);
 			}
 		}
 
 		res = sceIoRename(args->file, PACKAGE_DIR);
 		if (res < 0) {
 			closeWaitDialog();
-			dialog_step = DIALOG_STEP_CANCELLED;
+			setDialogStep(DIALOG_STEP_CANCELLED);
 			errorDialog(res);
 			goto EXIT;
 		}
@@ -419,7 +419,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		// So terminate now
 		if (cancelHandler()) {
 			closeWaitDialog();
-			dialog_step = DIALOG_STEP_CANCELLED;
+			setDialogStep(DIALOG_STEP_CANCELLED);
 			goto EXIT;
 		}
 
@@ -437,22 +437,22 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 			closeWaitDialog();
 
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[unsafe == 2 ? INSTALL_BRICK_WARNING : INSTALL_WARNING]);
-			dialog_step = DIALOG_STEP_INSTALL_WARNING;
+			setDialogStep(DIALOG_STEP_INSTALL_WARNING);
 
 			// Wait for response
-			while (dialog_step == DIALOG_STEP_INSTALL_WARNING) {
+			while (getDialogStep() == DIALOG_STEP_INSTALL_WARNING) {
 				sceKernelDelayThread(10 * 1000);
 			}
 
 			// Cancelled
-			if (dialog_step == DIALOG_STEP_CANCELLED) {
+			if (getDialogStep() == DIALOG_STEP_CANCELLED) {
 				closeWaitDialog();
 				goto EXIT;
 			}
 
 			// Init again
 			initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
-			dialog_step = DIALOG_STEP_INSTALLING;
+			setDialogStep(DIALOG_STEP_INSTALLING);
 		}
 
 		// Src path
@@ -484,7 +484,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
 		if (res <= 0) {
 			closeWaitDialog();
-			dialog_step = DIALOG_STEP_CANCELLED;
+			setDialogStep(DIALOG_STEP_CANCELLED);
 			errorDialog(res);
 			goto EXIT;
 		}
@@ -525,7 +525,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 	// Close
 	sceMsgDialogClose();
 
-	dialog_step = DIALOG_STEP_INSTALLED;
+	setDialogStep(DIALOG_STEP_INSTALLED);
 
 EXIT:
 	if (thid >= 0)

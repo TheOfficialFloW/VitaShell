@@ -241,9 +241,10 @@ extern VitaShellConfig vitashell_config;
 
 extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
-extern volatile int dialog_step;
-
 extern int use_custom_config;
+
+int getDialogStep();
+void setDialogStep(int step);
 
 void drawScrollBar(int pos, int n);
 void drawShellInfo(const char *path);
