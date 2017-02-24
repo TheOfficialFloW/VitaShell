@@ -337,7 +337,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 		float w = horizontal ? SCREEN_HALF_WIDTH : SCREEN_HALF_HEIGHT;
 		float h = horizontal ? SCREEN_HALF_HEIGHT : SCREEN_HALF_WIDTH;
 
-		if ((zoom * width) > 2.0f * w) {
+		if ((zoom * width) > 2.0f*w) {
 			if (x < (w / zoom)) {
 				x = w / zoom;
 			} else if (x > (width - w / zoom)) {
@@ -347,7 +347,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 			x = width / 2.0f;
 		}
 
-		if ((zoom * height) > 2.0f * h) {
+		if ((zoom * height) > 2.0f*h) {
 			if (y < (h / zoom)) {
 				y = h / zoom;
 			} else if (y > (height - h / zoom)) {

@@ -140,8 +140,8 @@ static void resetWidth() {
 	if (width > max_width)
 		max_width = width;
 
-	if (property_dialog.width < property_dialog.info_x + max_width + 2.0f * SHELL_MARGIN_X) {
-		property_dialog.width = property_dialog.info_x + max_width + 2.0f * SHELL_MARGIN_X;
+	if (property_dialog.width < property_dialog.info_x + max_width + 2.0f*SHELL_MARGIN_X) {
+		property_dialog.width = property_dialog.info_x + max_width + 2.0f*SHELL_MARGIN_X;
 		property_dialog.x = ALIGN_CENTER(SCREEN_WIDTH, property_dialog.width);
 	}	
 }
@@ -173,7 +173,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	}
 
 	// Extend
-	property_dialog.info_x += 2.0f * SHELL_MARGIN_X;
+	property_dialog.info_x += 2.0f*SHELL_MARGIN_X;
 
 	// Entries
 	int width = 0, max_width = 0;
@@ -350,11 +350,11 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	property_dialog.height = FONT_Y_SPACE * j;
 
 	// For buttons
-	property_dialog.height += 2.0f * FONT_Y_SPACE;
+	property_dialog.height += 2.0f*FONT_Y_SPACE;
 
 	// Margin
-	property_dialog.width += 2.0f * SHELL_MARGIN_X;
-	property_dialog.height += 2.0f * SHELL_MARGIN_Y;
+	property_dialog.width += 2.0f*SHELL_MARGIN_X;
+	property_dialog.height += 2.0f*SHELL_MARGIN_Y;
 
 	// Position
 	property_dialog.x = ALIGN_CENTER(SCREEN_WIDTH, property_dialog.width);

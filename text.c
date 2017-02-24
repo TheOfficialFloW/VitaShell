@@ -107,7 +107,7 @@ void initTextContextMenuWidth() {
 		context_menu_text.max_width = MAX(context_menu_text.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[text_menu_entries[i].name]));
 	}
 
-	context_menu_text.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	context_menu_text.max_width += 2.0f*CONTEXT_MENU_MARGIN;
 	context_menu_text.max_width = MAX(context_menu_text.max_width, CONTEXT_MENU_MIN_WIDTH);
 }
 

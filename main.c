@@ -45,6 +45,7 @@
 /*
 	TODO:
 	- Theme manager
+	- Show KB/s in progress bar
 */
 
 int _newlib_heap_size_user = 128 * 1024 * 1024;
@@ -367,12 +368,12 @@ static int handleFile(const char *file, FileListEntry *entry) {
 
 void drawScrollBar(int pos, int n) {
 	if (n > MAX_POSITION) {
-		vita2d_draw_rectangle(SCROLL_BAR_X, START_Y, SCROLL_BAR_WIDTH, MAX_ENTRIES * FONT_Y_SPACE, SCROLL_BAR_BG_COLOR);
+		vita2d_draw_rectangle(SCROLL_BAR_X, START_Y, SCROLL_BAR_WIDTH, MAX_ENTRIES*FONT_Y_SPACE, SCROLL_BAR_BG_COLOR);
 
-		float y = START_Y + ((pos * FONT_Y_SPACE) / (n * FONT_Y_SPACE)) * (MAX_ENTRIES * FONT_Y_SPACE);
-		float height = ((MAX_POSITION * FONT_Y_SPACE) / (n * FONT_Y_SPACE)) * (MAX_ENTRIES * FONT_Y_SPACE);
+		float y = START_Y + ((pos * FONT_Y_SPACE) / (n*FONT_Y_SPACE)) * (MAX_ENTRIES*FONT_Y_SPACE);
+		float height = ((MAX_POSITION * FONT_Y_SPACE) / (n*FONT_Y_SPACE)) * (MAX_ENTRIES*FONT_Y_SPACE);
 
-		vita2d_draw_rectangle(SCROLL_BAR_X, MIN(y, (START_Y + MAX_ENTRIES * FONT_Y_SPACE - height)), SCROLL_BAR_WIDTH, MAX(height, SCROLL_BAR_MIN_HEIGHT), SCROLL_BAR_COLOR);
+		vita2d_draw_rectangle(SCROLL_BAR_X, MIN(y, (START_Y + MAX_ENTRIES*FONT_Y_SPACE - height)), SCROLL_BAR_WIDTH, MAX(height, SCROLL_BAR_MIN_HEIGHT), SCROLL_BAR_COLOR);
 	}
 }
 
@@ -399,10 +400,10 @@ void drawShellInfo(const char *path) {
 			battery_bar_image = battery_bar_red_image;
 		} 
 
-		float percent = scePowerGetBatteryLifePercent() / 100.0f;
+		float percent = scePowerGetBatteryLifePercent()/100.0f;
 
 		float width = vita2d_texture_get_width(battery_bar_image);
-		vita2d_draw_texture_part(battery_bar_image, battery_x+3.0f + (1.0f - percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width, vita2d_texture_get_height(battery_bar_image));
+		vita2d_draw_texture_part(battery_bar_image, battery_x+3.0f + (1.0f-percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f-percent) * width, 0.0f, percent*width, vita2d_texture_get_height(battery_bar_image));
 
 		if (scePowerIsBatteryCharging()) {
 			vita2d_draw_texture(battery_bar_charge_image, battery_x+3.0f, SHELL_MARGIN_Y+5.0f);

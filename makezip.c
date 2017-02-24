@@ -56,7 +56,7 @@ static int zipAddFile(zipFile zf, const char *path, int filename_start, int leve
 
 	// Open new file in zip
 	char filename[MAX_PATH_LENGTH];
-	strcpy(filename, path + filename_start);
+	strcpy(filename, path+filename_start);
 
 	res = zipOpenNewFileInZip3_64(zf, filename, &zi,
 				NULL, 0, NULL, 0, NULL,
@@ -150,7 +150,7 @@ static int zipAddFolder(zipFile zf, const char *path, int filename_start, int le
 
 	// Open new file in zip
 	char filename[MAX_PATH_LENGTH];
-	strcpy(filename, path + filename_start);
+	strcpy(filename, path+filename_start);
 	addEndSlash(filename);
 
 	res = zipOpenNewFileInZip3_64(zf, filename, &zi,

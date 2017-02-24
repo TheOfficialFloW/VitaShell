@@ -151,7 +151,7 @@ void initContextMenuWidth() {
 		context_menu_home.max_width = MAX(context_menu_home.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_home_entries[i].name]));
 	}
 
-	context_menu_home.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	context_menu_home.max_width += 2.0f*CONTEXT_MENU_MARGIN;
 	context_menu_home.max_width = MAX(context_menu_home.max_width, CONTEXT_MENU_MIN_WIDTH);
 
 	// Main
@@ -164,7 +164,7 @@ void initContextMenuWidth() {
 		}
 	}
 
-	context_menu_main.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	context_menu_main.max_width += 2.0f*CONTEXT_MENU_MARGIN;
 	context_menu_main.max_width = MAX(context_menu_main.max_width, CONTEXT_MENU_MIN_WIDTH);
 
 	// Sort
@@ -172,7 +172,7 @@ void initContextMenuWidth() {
 		context_menu_sort.max_width = MAX(context_menu_sort.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_sort_entries[i].name]));
 	}
 
-	context_menu_sort.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	context_menu_sort.max_width += 2.0f*CONTEXT_MENU_MARGIN;
 	context_menu_sort.max_width = MAX(context_menu_sort.max_width, CONTEXT_MENU_MIN_WIDTH);
 
 	// More
@@ -180,7 +180,7 @@ void initContextMenuWidth() {
 		context_menu_more.max_width = MAX(context_menu_more.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_more_entries[i].name]));
 	}
 
-	context_menu_more.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+	context_menu_more.max_width += 2.0f*CONTEXT_MENU_MARGIN;
 	context_menu_more.max_width = MAX(context_menu_more.max_width, CONTEXT_MENU_MIN_WIDTH);
 }
 
@@ -234,7 +234,7 @@ void setContextMenuMainVisibilities() {
 			menu_main_entries[i].visibility = CTX_VISIBLE;
 	}
 
-	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
@@ -340,7 +340,7 @@ void setContextMenuMoreVisibilities() {
 			menu_more_entries[i].visibility = CTX_VISIBLE;
 	}
 
-	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
@@ -452,7 +452,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 			int on_marked_entry = 0;
 			int length = mark_list.length;
 
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 			if (fileListFindEntry(&mark_list, file_entry->name))
 				on_marked_entry = 1;
 
@@ -493,7 +493,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 			// Empty copy list at first
 			fileListEmpty(&copy_list);
 
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 			// Paths
 			if (fileListFindEntry(&mark_list, file_entry->name)) { // On marked entry
@@ -559,7 +559,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 		{
 			char *message;
 
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 			// On marked entry
 			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
@@ -575,7 +575,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 		
 		case MENU_MAIN_ENTRY_RENAME:
 		{
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 			char name[MAX_NAME_LENGTH];
 			strcpy(name, file_entry->name);
@@ -589,7 +589,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 		
 		case MENU_MAIN_ENTRY_PROPERTIES:
 		{
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 			initPropertyDialog(cur_file, file_entry);
 
@@ -667,7 +667,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 		{
 			char path[MAX_NAME_LENGTH];
 
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 			// On marked entry
 			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
@@ -691,9 +691,9 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 				if (!p)
 					p = strrchr(file_entry->name, '/');
 				if (!p)
-					p = file_entry->name + strlen(file_entry->name);
+					p = file_entry->name+strlen(file_entry->name);
 
-				strncpy(path, file_entry->name, p - file_entry->name);
+				strncpy(path, file_entry->name, p-file_entry->name);
 				path[p - file_entry->name] = '\0';
 			}
 
@@ -738,7 +738,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 
 		case MENU_MORE_ENTRY_INSTALL_FOLDER:
 		{
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
 			setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
@@ -749,7 +749,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 		{
 			char *message;
 
-			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
 			// On marked entry
 			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {

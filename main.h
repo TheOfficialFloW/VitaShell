@@ -101,26 +101,26 @@
 #define FONT_Y_SPACE 23.0f
 
 #define pgf_draw_text(x, y, color, scale, text) \
-	vita2d_pgf_draw_text(font, x, (y) + 20, color, scale, text)
+	vita2d_pgf_draw_text(font, x, (y)+20, color, scale, text)
 
 #define pgf_draw_textf(x, y, color, scale, ...) \
-	vita2d_pgf_draw_textf(font, x, (y) + 20, color, scale, __VA_ARGS__)
+	vita2d_pgf_draw_textf(font, x, (y)+20, color, scale, __VA_ARGS__)
 
 // Screen
 #define SCREEN_WIDTH 960
 #define SCREEN_HEIGHT 544
-#define SCREEN_HALF_WIDTH (SCREEN_WIDTH / 2)
-#define SCREEN_HALF_HEIGHT (SCREEN_HEIGHT / 2)
+#define SCREEN_HALF_WIDTH (SCREEN_WIDTH/2)
+#define SCREEN_HALF_HEIGHT (SCREEN_HEIGHT/2)
 
 // Main
 #define SHELL_MARGIN_X 20.0f
 #define SHELL_MARGIN_Y 18.0f
 
-#define PATH_Y (SHELL_MARGIN_Y + 1.0f * FONT_Y_SPACE)
+#define PATH_Y (SHELL_MARGIN_Y + 1.0f*FONT_Y_SPACE)
 
-#define START_Y (SHELL_MARGIN_Y + 3.0f * FONT_Y_SPACE)
+#define START_Y (SHELL_MARGIN_Y + 3.0f*FONT_Y_SPACE)
 
-#define MAX_WIDTH (SCREEN_WIDTH - (2.0f * SHELL_MARGIN_X))
+#define MAX_WIDTH (SCREEN_WIDTH - 2.0f*SHELL_MARGIN_X)
 
 #define STATUS_BAR_SPACE_X 12.0f
 
@@ -146,7 +146,7 @@
 
 // File browser
 #define FILE_X (SHELL_MARGIN_X+26.0f)
-#define MARK_WIDTH (SCREEN_WIDTH - 2.0f * SHELL_MARGIN_X)
+#define MARK_WIDTH (SCREEN_WIDTH - 2.0f*SHELL_MARGIN_X)
 #define INFORMATION_X 680.0f
 #define MAX_NAME_WIDTH 500.0f
 

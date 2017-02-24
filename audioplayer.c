@@ -389,7 +389,7 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
 		}
 
 		// Info
-		float x = 2.0f * SHELL_MARGIN_X + cover_size;
+		float x = 2.0f*SHELL_MARGIN_X + cover_size;
 
 		pgf_draw_text(x, START_Y + (0 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[TITLE]);
 		pgf_draw_text(x, START_Y + (1 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[ALBUM]);
