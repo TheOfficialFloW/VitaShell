@@ -45,8 +45,8 @@ static int update_thread(SceSize args_size, UpdateArguments *args) {
 		// Show KB/s
 		if (args->show_kbs) {
 			cur_micros = sceKernelGetProcessTimeWide();
-			if (cur_micros >= (last_micros + 1000 * 1000)) {
-				delta_micros = cur_micros - last_micros;
+			if (cur_micros >= (last_micros + 1000*1000)) {
+				delta_micros = cur_micros-last_micros;
 				last_micros = cur_micros;
 				kbs = (double)(current_value-previous_value) / 1024.0f;
 				previous_value = current_value;
@@ -401,7 +401,7 @@ static void musicExportProgress(void *data, int progress) {
 	FileProcessParam *param = (FileProcessParam *)args[2];
 	if (param) {
 		if (param->value)
-			(*param->value) += (*value - old_value);
+			(*param->value) += (*value-old_value);
 
 		if (param->SetProgress)
 			param->SetProgress(param->value ? *param->value : 0, param->max);

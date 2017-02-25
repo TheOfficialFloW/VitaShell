@@ -150,7 +150,7 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 	int count = 0;
 
 	int i;
-	for (i = 0; i < MIN(size, MIN(size - offset, MAX_LINE_CHARACTERS-1)); i++) {
+	for (i = 0; i < MIN(size, MIN(size-offset, MAX_LINE_CHARACTERS-1)); i++) {
 		char ch = buffer[offset + i];
 		char ch_width = 0;
 
@@ -172,7 +172,7 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 		}
 
 		// Too long
-		if ((line_width + ch_width) >= (MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X))
+		if ((line_width+ch_width) >= (MAX_WIDTH-TEXT_START_X+SHELL_MARGIN_X))
 			break;
 
 		// Increase line width
@@ -191,7 +191,7 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
 }
 
 static void updateTextEntry(TextEditorState *state, TextListEntry* entry, int rel_pos) {
-	entry->line_number = state->base_pos + rel_pos;
+	entry->line_number = state->base_pos+rel_pos;
 
 	// Mark entry as selected
 	entry->selected = 0;
@@ -203,8 +203,8 @@ static void updateTextEntry(TextEditorState *state, TextListEntry* entry, int re
 		}
 	}
 
-	int length = textReadLine(state->buffer, state->offset_list[state->base_pos + rel_pos], state->size, entry->line);
-	state->offset_list[state->base_pos + rel_pos + 1] = state->offset_list[state->base_pos + rel_pos] + length;
+	int length = textReadLine(state->buffer, state->offset_list[state->base_pos+rel_pos], state->size, entry->line);
+	state->offset_list[state->base_pos+rel_pos+1] = state->offset_list[state->base_pos+rel_pos] + length;
 }
 
 static void updateTextEntries(TextEditorState *state) {
@@ -271,8 +271,8 @@ static void delete_line(TextEditorState *state, int line_number) {
 		state->buffer[0] = '\n';
 	} 
 
-	if (state->base_pos + state->rel_pos >= state->n_lines) {
-		state->rel_pos = state->n_lines - state->base_pos - 1;
+	if (state->base_pos+state->rel_pos >= state->n_lines) {
+		state->rel_pos = state->n_lines-state->base_pos-1;
 	}
 
 	if (state->rel_pos < 0) {
@@ -408,15 +408,15 @@ static int contextMenuEnterCallback(int sel, void *context) {
 			break;
 
 		case TEXT_MENU_ENTRY_PASTE:
-			paste_lines(state, state->base_pos + state->rel_pos + 1);
+			paste_lines(state, state->base_pos+state->rel_pos+1);
 			break;
 
 		case TEXT_MENU_ENTRY_DELETE:
-			delete_line(state, state->base_pos + state->rel_pos);
+			delete_line(state, state->base_pos+state->rel_pos);
 			break;
 
 		case TEXT_MENU_ENTRY_INSERT_EMPTY_LINE:
-			insert_line(state, "\n", state->base_pos + state->rel_pos + 1);
+			insert_line(state, "\n", state->base_pos+state->rel_pos+1);
 			break;
 
 		case TEXT_MENU_ENTRY_MARK_UNMARK_ALL:
@@ -484,7 +484,7 @@ static int search_thread(SceSize args, SearchParams *argp) {
 
 	char *r;
 	while (state->search_running && offset < state->size && state->n_search_results < MAX_SEARCH_RESULTS) {
-		r = strcasestr(state->buffer + offset, search_term);
+		r = strcasestr(state->buffer+offset, search_term);
 
 		if (r == NULL) {
 			state->search_running = 0;
@@ -494,7 +494,7 @@ static int search_thread(SceSize args, SearchParams *argp) {
 		int index = r - state->buffer;
 
 		search_result_offsets[state->n_search_results++] = index;
-		offset = index + 1;
+		offset = index+1;
 
 		sceKernelDelayThread(1000);
 	}
@@ -581,7 +581,7 @@ int textViewer(const char *file) {
 		entry->selected = 0;
 
 		int length = textReadLine(s->buffer, s->offset_list[i], s->size, entry->line);
-		s->offset_list[i + 1] = s->offset_list[i] + length;
+		s->offset_list[i+1] = s->offset_list[i] + length;
 		
 		textListAddEntry(&s->list, entry);
 	}
@@ -650,12 +650,12 @@ int textViewer(const char *file) {
 					}
 					s->copy_reset = 1;
 				} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
-					if (s->offset_list[s->rel_pos + 1] < s->size) {
-						if ((s->rel_pos + 1) < MAX_POSITION) {
-							if (s->base_pos + s->rel_pos < s->n_lines - 1) 
+					if (s->offset_list[s->rel_pos+1] < s->size) {
+						if ((s->rel_pos+1) < MAX_POSITION) {
+							if (s->base_pos+s->rel_pos < s->n_lines-1) 
 								s->rel_pos++;
 						} else {
-							if (s->offset_list[s->base_pos + s->rel_pos + 1] < s->size) {
+							if (s->offset_list[s->base_pos+s->rel_pos+1] < s->size) {
 								s->base_pos++;
 
 								// Head to tail
@@ -671,14 +671,14 @@ int textViewer(const char *file) {
 								s->list.tail->next = NULL;
 
 								// Update line_number
-								s->list.tail->line_number = s->base_pos + MAX_ENTRIES - 1;
+								s->list.tail->line_number = s->base_pos+MAX_ENTRIES-1;
 
 								// Read
-								int length = textReadLine(s->buffer, s->offset_list[s->base_pos + MAX_ENTRIES - 1], s->size, s->list.tail->line);
-								s->offset_list[s->base_pos + MAX_ENTRIES] = s->offset_list[s->base_pos + MAX_ENTRIES - 1] + length;
+								int length = textReadLine(s->buffer, s->offset_list[s->base_pos+MAX_ENTRIES-1], s->size, s->list.tail->line);
+								s->offset_list[s->base_pos+MAX_ENTRIES] = s->offset_list[s->base_pos+MAX_ENTRIES-1] + length;
 
 								// Update the entry
-								updateTextEntry(s, s->list.tail, MAX_ENTRIES - 1);
+								updateTextEntry(s, s->list.tail, MAX_ENTRIES-1);
 							}
 						}
 					}
@@ -694,7 +694,7 @@ int textViewer(const char *file) {
 						entry = entry->next;
 
 					int entry_start_offset = s->offset_list[entry->line_number];
-					int entry_end_offset = s->offset_list[entry->line_number + 1]; 
+					int entry_end_offset = s->offset_list[entry->line_number+1]; 
 
 					int target_offset = 0;
 
@@ -708,7 +708,7 @@ int textViewer(const char *file) {
 						}
 					} // Skip to next last result
 					else if (pressed_buttons & SCE_CTRL_LTRIGGER) {
-						for (i = s->n_search_results - 1; i >= 0; i--) {
+						for (i = s->n_search_results-1; i >= 0; i--) {
 							if (s->search_result_offsets[i] < entry_start_offset) {
 								target_offset = s->search_result_offsets[i] - entry_start_offset;
 								break;
@@ -718,7 +718,7 @@ int textViewer(const char *file) {
 
 					if (target_offset != 0) {
 						int dir = target_offset > 0 ? 1 : -1;
-						int line = s->base_pos + s->rel_pos;
+						int line = s->base_pos+s->rel_pos;
 						int offset = s->offset_list[line];
 
 						while (offset < s->size && offset >= 0 && target_offset != 0) {
@@ -728,9 +728,9 @@ int textViewer(const char *file) {
 							if (s->buffer[offset] == '\n') {
 								line += dir;
 								if (dir > 0) {
-									s->offset_list[line] = offset + 1;
+									s->offset_list[line] = offset+1;
 								} else {
-									s->offset_list[line+1] = offset + 1;
+									s->offset_list[line+1] = offset+1;
 								}
 							}
 						}
@@ -747,15 +747,15 @@ int textViewer(const char *file) {
 					if (hold_buttons & SCE_CTRL_LTRIGGER || hold_buttons & SCE_CTRL_RTRIGGER) {
 
 						if (hold_buttons & SCE_CTRL_LTRIGGER) {  // Skip page up
-							s->base_pos = s->base_pos - MAX_ENTRIES;
+							s->base_pos = s->base_pos-MAX_ENTRIES;
 							if (s->base_pos < 0) {
 								s->base_pos = 0;
 								s->rel_pos = 0;
 							}
 						} else {  // Skip page down
-							s->base_pos = s->base_pos + MAX_ENTRIES;
-							if (s->base_pos >=  s->n_lines - MAX_POSITION) {
-								s->base_pos = MAX(s->n_lines - MAX_POSITION, 0);
+							s->base_pos = s->base_pos+MAX_ENTRIES;
+							if (s->base_pos >= s->n_lines-MAX_POSITION) {
+								s->base_pos = MAX(s->n_lines-MAX_POSITION, 0);
 								s->rel_pos = MIN(MAX_POSITION-1, s->n_lines-1);
 							}
 						}
@@ -768,24 +768,24 @@ int textViewer(const char *file) {
 				// buffer modifying actions
 				if (s->modify_allowed && !s->search_running) {
 					if(s->edit_line <= 0 && pressed_buttons & SCE_CTRL_ENTER) {
-						int line_start = s->offset_list[s->base_pos + s->rel_pos];
+						int line_start = s->offset_list[s->base_pos+s->rel_pos];
 						
 						char line[MAX_LINE_CHARACTERS];
 						textReadLine(s->buffer, line_start, s->size, line);
 
 						initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, SCE_IME_OPTION_MULTILINE);
 
-						s->edit_line = s->base_pos + s->rel_pos;
+						s->edit_line = s->base_pos+s->rel_pos;
 					}
 
 					// Delete line
 					if (pressed_buttons & SCE_CTRL_LEFT && s->n_copied_lines < MAX_COPY_BUFFER_SIZE) {
-						delete_line(s, s->base_pos + s->rel_pos);
+						delete_line(s, s->base_pos+s->rel_pos);
 					} 
 
 					// Insert new line
 					if (pressed_buttons & SCE_CTRL_RIGHT) {
-						insert_line(s, "\n", s->base_pos + s->rel_pos + 1);
+						insert_line(s, "\n", s->base_pos+s->rel_pos+1);
 					}
 				}
 
@@ -805,7 +805,7 @@ int textViewer(const char *file) {
 
 				// (De-)select current line
 				if (pressed_buttons & SCE_CTRL_SQUARE) {
-					int cur_line = s->base_pos + s->rel_pos;
+					int cur_line = s->base_pos+s->rel_pos;
 					int line_selected = 1;
 
 					int i;
@@ -888,7 +888,7 @@ int textViewer(const char *file) {
 					int length = textReadLine(s->buffer, line_start, s->size, line);
 
 					// Don't count newline 
-					if (s->buffer[line_start + length - 1] == '\n') {
+					if (s->buffer[line_start+length-1] == '\n') {
 						length--;
 					}
 
@@ -898,7 +898,7 @@ int textViewer(const char *file) {
 					// Move data if size has changed
 					if (new_length != length) {
 						memmove(&s->buffer[line_start+new_length], &s->buffer[line_start+length], s->size-line_start-length);
-						s->size += (new_length - length);
+						s->size += (new_length-length);
 					}
 
 					// Copy new line into buffer
@@ -944,7 +944,7 @@ int textViewer(const char *file) {
 			int search_result_on_line = 0;
 
 			int entry_start_offset = s->offset_list[entry->line_number];
-			int entry_end_offset = entry_start_offset + line_lenght; 
+			int entry_end_offset = entry_start_offset+line_lenght; 
 
 			if (s->n_search_results > 0) {
 				int j; 

@@ -101,9 +101,9 @@ static void photoMode(float *zoom, float width, float height, float rad, int mod
 			
 		case MODE_PERFECT: // this is only used for showing image the first time
 			if (h > SCREEN_HEIGHT) { // first priority, fit height
-				*zoom = SCREEN_HEIGHT / h;
+				*zoom = SCREEN_HEIGHT/h;
 			} else if (w > SCREEN_WIDTH) { // second priority, fit screen
-				*zoom = SCREEN_WIDTH / w;
+				*zoom = SCREEN_WIDTH/w;
 			} else { // otherwise, original size
 				*zoom = 1.0f;
 			}
@@ -115,11 +115,11 @@ static void photoMode(float *zoom, float width, float height, float rad, int mod
 			break;
 			
 		case MODE_FIT_HEIGHT:
-			*zoom = SCREEN_HEIGHT / h;
+			*zoom = SCREEN_HEIGHT/h;
 			break;
 			
 		case MODE_FIT_WIDTH:
-			*zoom = SCREEN_WIDTH / w;
+			*zoom = SCREEN_WIDTH/w;
 			break;
 	}
 }
@@ -166,8 +166,8 @@ static void resetImageInfo(vita2d_texture *tex, float *width, float *height, flo
 	*width = vita2d_texture_get_width(tex);
 	*height = vita2d_texture_get_height(tex);
 
-	*x = *width / 2.0f;
-	*y = *height / 2.0f;
+	*x = *width/2.0f;
+	*y = *height/2.0f;
 
 	*rad = 0;
 	*zoom = 1.0f;
@@ -270,8 +270,8 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 		if (pressed_buttons & SCE_CTRL_ENTER) {
 			time = sceKernelGetProcessTimeWide();
 
-			x = width / 2.0f;
-			y = height / 2.0f;
+			x = width/2.0f;
+			y = height/2.0f;
 
 			// Find next mode
 			mode = getNextZoomMode(&zoom, width, height, rad, mode);
@@ -313,7 +313,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 
 		// Move
 		if (pad.lx < (ANALOG_CENTER - ANALOG_SENSITIVITY) || pad.lx > (ANALOG_CENTER + ANALOG_SENSITIVITY)) {
-			float d = ((pad.lx - ANALOG_CENTER) / MOVE_DIVISION) / zoom;
+			float d = ((pad.lx-ANALOG_CENTER) / MOVE_DIVISION) / zoom;
 
 			if (isHorizontal(rad)) {
 				x += cosf(rad) * d;
@@ -323,7 +323,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 		}
 
 		if (pad.ly < (ANALOG_CENTER - ANALOG_SENSITIVITY) || pad.ly > (ANALOG_CENTER + ANALOG_SENSITIVITY)) {
-			float d = ((pad.ly - ANALOG_CENTER) / MOVE_DIVISION) / zoom;
+			float d = ((pad.ly-ANALOG_CENTER) / MOVE_DIVISION) / zoom;
 
 			if (isHorizontal(rad)) {
 				y += cosf(rad) * d;
@@ -337,24 +337,24 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 		float w = horizontal ? SCREEN_HALF_WIDTH : SCREEN_HALF_HEIGHT;
 		float h = horizontal ? SCREEN_HALF_HEIGHT : SCREEN_HALF_WIDTH;
 
-		if ((zoom * width) > 2.0f*w) {
-			if (x < (w / zoom)) {
-				x = w / zoom;
-			} else if (x > (width - w / zoom)) {
-				x = width - w / zoom;
+		if ((zoom*width) > 2.0f*w) {
+			if (x < (w/zoom)) {
+				x = w/zoom;
+			} else if (x > (width - w/zoom)) {
+				x = width - w/zoom;
 			}
 		} else {
 			x = width / 2.0f;
 		}
 
-		if ((zoom * height) > 2.0f*h) {
-			if (y < (h / zoom)) {
-				y = h / zoom;
-			} else if (y > (height - h / zoom)) {
-				y = height - h / zoom;
+		if ((zoom*height) > 2.0f*h) {
+			if (y < (h/zoom)) {
+				y = h/zoom;
+			} else if (y > (height - h/zoom)) {
+				y = height - h/zoom;
 			}
 		} else {
-			y = height / 2.0f;
+			y = height/2.0f;
 		}
 
 		// Start drawing

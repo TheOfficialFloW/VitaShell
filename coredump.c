@@ -145,7 +145,7 @@ static int decompressGzip(uint8_t *dst, int size_dst, uint8_t *src, int size_src
 	z.avail_out = size_dst;
 	z.next_out = dst;
 
-	if (inflateInit2(&z, 15 + 32) != Z_OK)
+	if (inflateInit2(&z, 15+32) != Z_OK)
 		return -1;
 
 	if (inflate(&z, Z_FINISH) != Z_STREAM_END) {
@@ -244,7 +244,7 @@ int coredumpViewer(const char *file) {
 				for (j = 0; j < ((InfoHeader *)program)->num; j++) {
 					ModuleInfoTwoSegment *mod_info = (ModuleInfoTwoSegment *)(program + sizeof(InfoHeader) + offset);
 					
-					if (epc >= mod_info->segments[0].addr && epc < (mod_info->segments[0].addr + mod_info->segments[0].size)) {
+					if (epc >= mod_info->segments[0].addr && epc < (mod_info->segments[0].addr+mod_info->segments[0].size)) {
 						strcpy(modname, mod_info->name);
 						modid = mod_info->uid;
 						rel_epc = epc - mod_info->segments[0].addr;

@@ -78,7 +78,8 @@ int updateMessageDialog() {
 	SceCommonDialogStatus status = sceMsgDialogGetStatus();
 
 	if (status == MESSAGE_DIALOG_RESULT_FINISHED) {
-		if (message_dialog_type == SCE_MSG_DIALOG_BUTTON_TYPE_YESNO || message_dialog_type == SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL) {
+		if (message_dialog_type == SCE_MSG_DIALOG_BUTTON_TYPE_YESNO ||
+			message_dialog_type == SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL) {
 			SceMsgDialogResult result;
 			memset(&result, 0, sizeof(SceMsgDialogResult));
 			sceMsgDialogGetResult(&result);

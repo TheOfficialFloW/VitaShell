@@ -77,7 +77,7 @@ SettingsMenuOption henkaku_settings[] = {
 	{ HENKAKU_ENABLE_PSN_SPOOFING,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &henkaku_config.use_psn_spoofing },
 	{ HENKAKU_ENABLE_UNSAFE_HOMEBREW,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &henkaku_config.allow_unsafe_hb },
 	{ HENKAKU_ENABLE_VERSION_SPOOFING,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &henkaku_config.use_spoofed_version },
-	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, NULL, spoofed_version, sizeof(spoofed_version) - 1, NULL, 0, NULL },
+	{ HENKAKU_SPOOFED_VERSION,			SETTINGS_OPTION_TYPE_STRING, NULL, spoofed_version, sizeof(spoofed_version)-1, NULL, 0, NULL },
 	{ HENKAKU_RESTORE_DEFAULT_SETTINGS,	SETTINGS_OPTION_TYPE_CALLBACK, (void *)henkakuRestoreDefaultSettings, NULL, 0, NULL, 0, NULL },
 	{ HENKAKU_RELOAD_CONFIG,			SETTINGS_OPTION_TYPE_CALLBACK, (void *)taihenReloadConfig, NULL, 0, NULL, 0, NULL },
 };
@@ -87,7 +87,7 @@ SettingsMenuOption main_settings[] = {
 	// { VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &theme },
 	
 	{ VITASHELL_SETTINGS_SELECT_BUTTON,		SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
-											select_button_options, sizeof(select_button_options) / sizeof(char **),
+											select_button_options, sizeof(select_button_options)/sizeof(char **),
 											&vitashell_config.select_button },
 	{ VITASHELL_SETTINGS_NO_AUTO_UPDATE,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_autoupdate },
 };
@@ -99,14 +99,14 @@ SettingsMenuOption power_settings[] = {
 };
 
 SettingsMenuEntry molecularshell_settings_menu_entries[] = {
-	{ HENKAKU_SETTINGS, henkaku_settings, sizeof(henkaku_settings) / sizeof(SettingsMenuOption) },
-	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
-	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
+	{ HENKAKU_SETTINGS, henkaku_settings, sizeof(henkaku_settings)/sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings)/sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings)/sizeof(SettingsMenuOption) },
 };
 
 SettingsMenuEntry vitashell_settings_menu_entries[] = {
-	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
-	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings)/sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings)/sizeof(SettingsMenuOption) },
 };
 
 static SettingsMenu settings_menu;
@@ -114,12 +114,12 @@ static SettingsMenu settings_menu;
 void loadSettingsConfig() {
 	// Load settings config file
 	memset(&vitashell_config, 0, sizeof(VitaShellConfig));
-	readConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries) / sizeof(ConfigEntry));
+	readConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries)/sizeof(ConfigEntry));
 }
 
 void saveSettingsConfig() {
 	// Save settings config file
-	writeConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries) / sizeof(ConfigEntry));
+	writeConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries)/sizeof(ConfigEntry));
 }
 
 static void rebootDevice() {
@@ -268,7 +268,7 @@ void drawSettingsMenu() {
 	}
 
 	// Draw settings menu
-	vita2d_draw_texture(settings_image, 0.0f, SCREEN_HEIGHT - settings_menu.cur_pos);
+	vita2d_draw_texture(settings_image, 0.0f, SCREEN_HEIGHT-settings_menu.cur_pos);
 
 	float y = SCREEN_HEIGHT - settings_menu.cur_pos + START_Y;
 
@@ -286,7 +286,7 @@ void drawSettingsMenu() {
 		for (j = 0; j < settings_menu_entries[i].n_options; j++) {
 			// Focus
 			if (settings_menu.entry_sel == i && settings_menu.option_sel == j)
-				vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, SETTINGS_MENU_FOCUS_COLOR);
+				vita2d_draw_rectangle(SHELL_MARGIN_X, y+3.0f, MARK_WIDTH, FONT_Y_SPACE, SETTINGS_MENU_FOCUS_COLOR);
 
 			if (options[j].type == SETTINGS_OPTION_TYPE_CALLBACK) {
 				// Item
@@ -295,22 +295,22 @@ void drawSettingsMenu() {
 			} else {
 				// Item
 				float x = vita2d_pgf_text_width(font, FONT_SIZE, language_container[options[j].name]);
-				pgf_draw_text(ALIGN_RIGHT(SCREEN_HALF_WIDTH - 10.0f, x), y, SETTINGS_MENU_ITEM_COLOR, FONT_SIZE, language_container[options[j].name]);
+				pgf_draw_text(ALIGN_RIGHT(SCREEN_HALF_WIDTH-10.0f, x), y, SETTINGS_MENU_ITEM_COLOR, FONT_SIZE, language_container[options[j].name]);
 
 				// Option
 				switch (options[j].type) {
 					case SETTINGS_OPTION_TYPE_BOOLEAN:
-						pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, *(options[j].value) ? language_container[ON] : language_container[OFF]);
+						pgf_draw_text(SCREEN_HALF_WIDTH+10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, *(options[j].value) ? language_container[ON] : language_container[OFF]);
 						break;
 
 					case SETTINGS_OPTION_TYPE_STRING:
-						pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].string);
+						pgf_draw_text(SCREEN_HALF_WIDTH+10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].string);
 						break;
 
 					case SETTINGS_OPTION_TYPE_OPTIONS:
 					{
 						int value = *(options[j].value);
-						pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].options[value]);
+						pgf_draw_text(SCREEN_HALF_WIDTH+10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].options[value]);
 						break;
 					}
 				}

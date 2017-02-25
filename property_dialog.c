@@ -382,11 +382,11 @@ void drawPropertyDialog() {
 	// Dialog background
 	float dialog_width = vita2d_texture_get_width(dialog_image);
 	float dialog_height = vita2d_texture_get_height(dialog_image);
-	vita2d_draw_texture_scale_rotate_hotspot(dialog_image, property_dialog.x + property_dialog.width / 2.0f,
-														property_dialog.y + property_dialog.height / 2.0f,
-														property_dialog.scale * (property_dialog.width / dialog_width),
-														property_dialog.scale * (property_dialog.height / dialog_height),
-														0.0f, dialog_width / 2.0f, dialog_height / 2.0f);
+	vita2d_draw_texture_scale_rotate_hotspot(dialog_image, property_dialog.x + property_dialog.width/2.0f,
+														property_dialog.y + property_dialog.height/2.0f,
+														property_dialog.scale * (property_dialog.width/dialog_width),
+														property_dialog.scale * (property_dialog.height/dialog_height),
+														0.0f, dialog_width/2.0f, dialog_height/2.0f);
 
 	// Easing out
 	if (property_dialog.status == PROPERTY_DIALOG_CLOSING) {

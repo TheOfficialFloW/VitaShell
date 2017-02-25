@@ -40,7 +40,7 @@ MenuEntry menu_home_entries[] = {
 	{ UMOUNT_USB_UX0, 3, 0, CTX_INVISIBLE },
 };
 
-#define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
+#define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries)/sizeof(MenuEntry))
 
 enum MenuMainEntrys {
 	MENU_MAIN_ENTRY_MARK_UNMARK_ALL,
@@ -68,7 +68,7 @@ MenuEntry menu_main_entries[] = {
 	{ SORT_BY,    13, 1, CTX_VISIBLE },
 };
 
-#define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries) / sizeof(MenuEntry))
+#define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries)/sizeof(MenuEntry))
 
 enum MenuSortEntrys {
 	MENU_SORT_ENTRY_BY_NAME,
@@ -82,7 +82,7 @@ MenuEntry menu_sort_entries[] = {
 	{ BY_DATE, 15, 0, CTX_INVISIBLE },
 };
 
-#define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries) / sizeof(MenuEntry))
+#define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries)/sizeof(MenuEntry))
 
 enum MenuMoreEntrys {
 	MENU_MORE_ENTRY_COMPRESS,
@@ -100,7 +100,7 @@ MenuEntry menu_more_entries[] = {
 	{ CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
 };
 
-#define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
+#define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries)/sizeof(MenuEntry))
 
 static int contextMenuHomeEnterCallback(int sel, void *context);
 static int contextMenuMainEnterCallback(int sel, void *context);
@@ -392,7 +392,9 @@ void setContextMenuMoreVisibilities() {
 	}
 
 	// Invisible export for non-media files
-	if (!file_entry->is_folder && file_entry->type != FILE_TYPE_BMP && file_entry->type != FILE_TYPE_JPEG && file_entry->type != FILE_TYPE_PNG && file_entry->type != FILE_TYPE_MP3) {
+	if (!file_entry->is_folder &&
+		file_entry->type != FILE_TYPE_BMP && file_entry->type != FILE_TYPE_JPEG &&
+		file_entry->type != FILE_TYPE_PNG && file_entry->type != FILE_TYPE_MP3) {
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_INVISIBLE;
 	}
 

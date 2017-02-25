@@ -38,7 +38,7 @@ static char *devices[] = {
 	"vs0:",
 };
 
-#define N_DEVICES (sizeof(devices) / sizeof(char **))
+#define N_DEVICES (sizeof(devices)/sizeof(char **))
 
 int allocateReadFile(const char *file, void **buffer) {
 	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
@@ -488,7 +488,7 @@ int movePath(const char *src_path, const char *dst_path, int flags, FileProcessP
 
 	// The destination is a subfolder of the source folder
 	int len = strlen(src_path);
-	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
+	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len-1] == '/')) {
 		return -2;
 	}
 
@@ -604,7 +604,7 @@ int getFileType(const char *file) {
 	char *p = strrchr(file, '.');
 	if (p) {
 		int i;
-		for (i = 0; i < (sizeof(extension_types) / sizeof(ExtensionType)); i++) {
+		for (i = 0; i < (sizeof(extension_types)/sizeof(ExtensionType)); i++) {
 			if (strcasecmp(p, extension_types[i].extension) == 0) {
 				return extension_types[i].type;
 			}
@@ -684,7 +684,7 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 			while (p) {
 				// Get the minimum length without /
 				int len = MIN(entry->name_length, p->name_length);
-				if (entry->name[len - 1] == '/' || p->name[len - 1] == '/')
+				if (entry->name[len-1] == '/' || p->name[len-1] == '/')
 					len--;
 
 				// '..' is always at first

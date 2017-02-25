@@ -47,7 +47,6 @@
 	- Theme manager
 	- PFS bypass
 	- Inherit file stat when copying
-	- Disable scrolling on dialog
 */
 
 int _newlib_heap_size_user = 128 * 1024 * 1024;
@@ -389,7 +388,7 @@ void drawShellInfo(const char *path) {
 	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
 
 	// Status bar
-	float x = SCREEN_WIDTH - SHELL_MARGIN_X;
+	float x = SCREEN_WIDTH-SHELL_MARGIN_X;
 
 	// Battery
 	if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
@@ -405,7 +404,9 @@ void drawShellInfo(const char *path) {
 		float percent = scePowerGetBatteryLifePercent()/100.0f;
 
 		float width = vita2d_texture_get_width(battery_bar_image);
-		vita2d_draw_texture_part(battery_bar_image, battery_x+3.0f + (1.0f-percent) * width, SHELL_MARGIN_Y + 5.0f, (1.0f-percent) * width, 0.0f, percent*width, vita2d_texture_get_height(battery_bar_image));
+		vita2d_draw_texture_part(battery_bar_image, battery_x+3.0f + (1.0f-percent) * width,
+								SHELL_MARGIN_Y + 5.0f, (1.0f-percent) * width, 0.0f, percent*width,
+								vita2d_texture_get_height(battery_bar_image));
 
 		if (scePowerIsBatteryCharging()) {
 			vita2d_draw_texture(battery_bar_charge_image, battery_x+3.0f, SHELL_MARGIN_Y+5.0f);
@@ -464,7 +465,8 @@ void drawShellInfo(const char *path) {
 
 	// home (SAFE/UNSAFE MODE)
 	if (strcmp(path_first_line, HOME_PATH) == 0) {		
-		pgf_draw_textf(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, "%s (%s)", HOME_PATH, is_safe_mode ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
+		pgf_draw_textf(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, "%s (%s)", HOME_PATH,
+					   is_safe_mode ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
 	} else {
 		// Path
 		pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
@@ -1283,16 +1285,16 @@ static int shellMain() {
 		// Control
 		if (getDialogStep() != DIALOG_STEP_NONE) {
 			refresh = dialogSteps();
+			// scroll_count = 0;
+		} else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
+			propertyDialogCtrl();
+			scroll_count = 0;
+		} else if (getSettingsMenuStatus() != SETTINGS_MENU_CLOSED) {
+			settingsMenuCtrl();
+		} else if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
+			contextMenuCtrl();
 		} else {
-			if (getSettingsMenuStatus() != SETTINGS_MENU_CLOSED) {
-				settingsMenuCtrl();
-			} else if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
-				contextMenuCtrl();
-			} else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
-				propertyDialogCtrl();
-			} else {
-				refresh = fileBrowserMenuCtrl();
-			}
+			refresh = fileBrowserMenuCtrl();
 		}
 
 		// Receive system event
@@ -1460,7 +1462,7 @@ static int shellMain() {
 				char string[64];
 				sprintf(string, "%s %s", date_string, time_string);
 
-				pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), y, color, FONT_SIZE, string);
+				pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), y, color, FONT_SIZE, string);
 			}
 
 			// Next
