@@ -94,6 +94,7 @@ Be sure you pull request your customized design or language file there.
 * Everybody who contributed on vitasdk
 
 ### Changelog 1.60 ###
+- Added I/O operations speed in KB/s.
 - Added scrolling text for long filenames.
 - Added 'Sort by' option to context menu (R trigger combo removed).
 - Made control smoother.
