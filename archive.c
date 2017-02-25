@@ -60,7 +60,7 @@ int archiveCheckFilesForUnsafeFself() {
 				int i;
 				// jump to elf1
 				// Until here we have read 0x88 bytes
-				for (i = 0; i < elf1_offset - 0x88; i += sizeof(uint32_t)) {
+				for (i = 0; i < elf1_offset-0x88; i += sizeof(uint32_t)) {
 					uint32_t dummy = 0;
 					archiveFileRead(ARCHIVE_FD, &dummy, sizeof(uint32_t));
 				}

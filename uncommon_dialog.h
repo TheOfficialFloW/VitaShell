@@ -33,4 +33,7 @@ enum UncommonDialogStatus {
 
 int drawUncommonDialog();
 
+// CUSTOM FUNCTION
+int sceMsgDialogProgressBarSetInfo(SceMsgDialogProgressBarTarget target, const SceChar8 *barInfo);
+
 #endif

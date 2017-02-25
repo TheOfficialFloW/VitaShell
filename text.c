@@ -961,13 +961,13 @@ int textViewer(const char *file) {
 				snprintf(line_str, 5, "%04i", entry->line_number);
 
 				int color = (s->rel_pos == i) ? TEXT_LINE_NUMBER_COLOR_FOCUS : TEXT_LINE_NUMBER_COLOR;
-				pgf_draw_text(SHELL_MARGIN_X, START_Y + (i * FONT_Y_SPACE), color, FONT_SIZE, line_str);
+				pgf_draw_text(SHELL_MARGIN_X, START_Y + (i*FONT_Y_SPACE), color, FONT_SIZE, line_str);
 			}
 
 			float x = TEXT_START_X;
 
 			if (entry->selected) {
-				vita2d_draw_rectangle(x, START_Y + (i * FONT_Y_SPACE) + 3.0f, MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X, FONT_Y_SPACE, MARKED_COLOR);
+				vita2d_draw_rectangle(x, START_Y + (i*FONT_Y_SPACE) + 3.0f, MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X, FONT_Y_SPACE, MARKED_COLOR);
 			}
  
 			while (*line) {
@@ -987,7 +987,7 @@ int textViewer(const char *file) {
 					*search_highlight = '\0';
 				}
 
-				int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (s->rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR, FONT_SIZE, line);
+				int width = pgf_draw_text(x, START_Y + (i*FONT_Y_SPACE), (s->rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR, FONT_SIZE, line);
 				line += strlen(line);
 
 
@@ -1005,7 +1005,7 @@ int textViewer(const char *file) {
 					search_highlight[search_term_length] = '\0';
 
 					x += width;
-					x += pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, FONT_SIZE, line);
+					x += pgf_draw_text(x, START_Y + (i*FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, FONT_SIZE, line);
 					
 					search_highlight[search_term_length] = tmp;
 					line += strlen(s->search_term); 

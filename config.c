@@ -24,7 +24,7 @@ static void trim(char *str) {
 	int len = strlen(str);
 	int i;
 
-	for (i = len - 1; i >= 0; i--) {
+	for (i = len-1; i >= 0; i--) {
 		if (str[i] == 0x20 || str[i] == '\t') {
 			str[i] = 0;
 		} else {

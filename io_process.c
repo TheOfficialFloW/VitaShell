@@ -22,6 +22,7 @@
 #include "archiveRAR.h"
 #include "file.h"
 #include "message_dialog.h"
+#include "uncommon_dialog.h"
 #include "language.h"
 #include "utils.h"
 
@@ -35,27 +36,29 @@ void SetProgress(uint64_t value, uint64_t max) {
 	current_value = value;
 }
 
-int update_thread(SceSize args_size, UpdateArguments *args) {
-/*
+static int update_thread(SceSize args_size, UpdateArguments *args) {
 	uint64_t previous_value = current_value;
 	SceUInt64 cur_micros = 0, delta_micros = 0, last_micros = 0;
-	double kbs = 0;
-*/
-	while (current_value < args->max && isMessageDialogRunning()) {
-/*
-		// Show KB/s
-		cur_micros = sceKernelGetProcessTimeWide();
-		if (cur_micros >= (last_micros + 1000000)) {
-			delta_micros = cur_micros - last_micros;
-			last_micros = cur_micros;
-			kbs = (double)(current_value - previous_value) / 1024.0f;
-			previous_value = current_value;
+	double kbs = 0.0f;
 
-			char msg[32];
-			sprintf(msg, "%.2f KB/s", kbs);
-			sceMsgDialogProgressBarSetMsg(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (SceChar8 *)msg);
+	while (current_value < args->max && isMessageDialogRunning()) {
+		// Show KB/s
+		if (args->show_kbs) {
+			cur_micros = sceKernelGetProcessTimeWide();
+			if (cur_micros >= (last_micros + 1000 * 1000)) {
+				delta_micros = cur_micros - last_micros;
+				last_micros = cur_micros;
+				kbs = (double)(current_value-previous_value) / 1024.0f;
+				previous_value = current_value;
+
+				if (kbs > 0) {
+					char msg[32];
+					sprintf(msg, "%.0f KB/s", kbs);
+					sceMsgDialogProgressBarSetInfo(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (SceChar8 *)msg);
+				}
+			}
 		}
-*/
+
 		double progress = (double)((100.0f * (double)current_value) / (double)args->max);
 		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (int)progress);
 
@@ -65,11 +68,12 @@ int update_thread(SceSize args_size, UpdateArguments *args) {
 	return sceKernelExitDeleteThread(0);
 }
 
-SceUID createStartUpdateThread(uint64_t max) {
+SceUID createStartUpdateThread(uint64_t max, int show_kbs) {
 	current_value = 0;
 
 	UpdateArguments args;
 	args.max = max;
+	args.show_kbs = show_kbs;
 
 	SceUID thid = sceKernelCreateThread("update_thread", (SceKernelThreadEntry)update_thread, 0xBF, 0x4000, 0, 0, NULL);
 	if (thid >= 0)
@@ -115,14 +119,12 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 	int i;
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-
 		getPathInfo(path, NULL, &folders, &files, NULL);
-
 		mark_entry = mark_entry->next;
 	}
 
 	// Update thread
-	thid = createStartUpdateThread(folders + files);
+	thid = createStartUpdateThread(folders+files, 0);
 
 	// Remove process
 	uint64_t value = 0;
@@ -134,7 +136,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 
 		FileProcessParam param;
 		param.value = &value;
-		param.max = folders + files;
+		param.max = folders+files;
 		param.SetProgress = SetProgress;
 		param.cancelHandler = cancelHandler;
 		int res = removePath(path, &param);
@@ -185,7 +187,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 	if (args->copy_mode == COPY_MODE_MOVE) { // Move
 		// Update thread
-		thid = createStartUpdateThread(args->copy_list->length);
+		thid = createStartUpdateThread(args->copy_list->length, 0);
 
 		copy_entry = args->copy_list->head;
 
@@ -201,7 +203,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 				goto EXIT;
 			}
 
-			SetProgress(i + 1, args->copy_list->length);
+			SetProgress(i+1, args->copy_list->length);
 
 			if (cancelHandler()) {
 				closeWaitDialog();
@@ -274,7 +276,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 			goto EXIT;
 
 		// Update thread
-		thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE);
+		thid = createStartUpdateThread(size + folders*DIRECTORY_SIZE, 1);
 
 		// Copy process
 		uint64_t value = 0;
@@ -287,7 +289,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
 			FileProcessParam param;
 			param.value = &value;
-			param.max = size + folders * DIRECTORY_SIZE;
+			param.max = size + folders*DIRECTORY_SIZE;
 			param.SetProgress = SetProgress;
 			param.cancelHandler = cancelHandler;
 
@@ -546,9 +548,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 	int i;
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-
 		getPathInfo(path, &size, NULL, &files, mediaPathHandler);
-
 		mark_entry = mark_entry->next;
 	}
 
@@ -564,7 +564,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 		goto EXIT;
 
 	// Update thread
-	thid = createStartUpdateThread(size);
+	thid = createStartUpdateThread(size, 0);
 
 	// Export process
 	uint64_t value = 0;
@@ -637,7 +637,7 @@ int hash_thread(SceSize args_size, HashArguments *args) {
 	uint64_t value = 0;
 
 	// Spin off a thread to update the progress dialog 
-	thid = createStartUpdateThread(max);
+	thid = createStartUpdateThread(max, 0);
 
 	FileProcessParam param;
 	param.value = &value;

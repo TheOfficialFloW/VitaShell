@@ -84,7 +84,7 @@
 
 #define VITASHELL_LASTDIR "ux0:VitaShell/internal/lastdir.txt"
 
-#define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
+#define ALIGN(x, align) (((x) + ((align)-1)) & ~((align)-1))
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))

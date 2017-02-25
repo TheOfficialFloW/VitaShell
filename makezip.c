@@ -276,9 +276,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 	int i;
 	for (i = 0; i < count; i++) {
 		snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
-
 		getPathInfo(path, &size, &folders, &files, NULL);
-
 		mark_entry = mark_entry->next;
 	}
 
@@ -288,7 +286,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 		goto EXIT;
 
 	// Update thread
-	thid = createStartUpdateThread(size + folders);
+	thid = createStartUpdateThread(size+folders, 1);
 
 	// Remove process
 	uint64_t value = 0;

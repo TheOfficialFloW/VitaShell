@@ -30,6 +30,7 @@ typedef struct {
 	int buttonType;
 	int buttonId;
 	char msg[512];
+	char info[64];
 	float x;
 	float y;
 	float width;
@@ -92,7 +93,7 @@ static void calculateDialogBoxSize() {
 
 	// Align
 	int y_n = (int)((float)(uncommon_dialog.y-2.0f) / FONT_Y_SPACE);
-	uncommon_dialog.y = (float)y_n * FONT_Y_SPACE + 2.0f;
+	uncommon_dialog.y = (float)y_n*FONT_Y_SPACE + 2.0f;
 
 	// Scale
 	uncommon_dialog.scale = 0;
@@ -219,6 +220,11 @@ int sceMsgDialogGetResult(SceMsgDialogResult *result) {
 	return 0;
 }
 
+int sceMsgDialogProgressBarSetInfo(SceMsgDialogProgressBarTarget target, const SceChar8 *barInfo) {
+	strncpy(uncommon_dialog.info, (char *)barInfo, sizeof(uncommon_dialog.info)-1);
+	return 0;
+}
+
 int sceMsgDialogProgressBarSetMsg(SceMsgDialogProgressBarTarget target, const SceChar8 *barMsg) {
 	strncpy(uncommon_dialog.msg, (char *)barMsg, sizeof(uncommon_dialog.msg)-1);
 	return 0;
@@ -239,8 +245,8 @@ int drawUncommonDialog() {
 	// Dialog background
 	vita2d_draw_texture_scale_rotate_hotspot(dialog_image, uncommon_dialog.x + uncommon_dialog.width/2.0f,
 														uncommon_dialog.y + uncommon_dialog.height/2.0f,
-														uncommon_dialog.scale * (uncommon_dialog.width / vita2d_texture_get_width(dialog_image)),
-														uncommon_dialog.scale * (uncommon_dialog.height / vita2d_texture_get_height(dialog_image)),
+														uncommon_dialog.scale * (uncommon_dialog.width/vita2d_texture_get_width(dialog_image)),
+														uncommon_dialog.scale * (uncommon_dialog.height/vita2d_texture_get_height(dialog_image)),
 														0.0f, vita2d_texture_get_width(dialog_image)/2.0f, vita2d_texture_get_height(dialog_image)/2.0f);
 
 	// Easing out
@@ -262,9 +268,15 @@ int drawUncommonDialog() {
 	}
 
 	if (uncommon_dialog.dialog_status == UNCOMMON_DIALOG_OPENED) {
-		// Draw message
 		float string_y = uncommon_dialog.y + SHELL_MARGIN_Y - 2.0f;
 
+		// Draw info
+		if (uncommon_dialog.info[0] != '\0') {
+			float x = ALIGN_RIGHT(uncommon_dialog.x+uncommon_dialog.width-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, uncommon_dialog.info));
+			pgf_draw_text(x, string_y, DIALOG_COLOR, FONT_SIZE, uncommon_dialog.info);
+		}
+
+		// Draw message
 		int len = strlen(uncommon_dialog.msg);
 		char *string = uncommon_dialog.msg;
 
@@ -272,19 +284,19 @@ int drawUncommonDialog() {
 		for (i = 0; i < len+1; i++) {
 			if (uncommon_dialog.msg[i] == '\n') {
 				uncommon_dialog.msg[i] = '\0';
-				pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, string);
+				pgf_draw_text(uncommon_dialog.x+SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, string);
 				uncommon_dialog.msg[i] = '\n';
 
-				string = uncommon_dialog.msg + i + 1;
+				string = uncommon_dialog.msg+i+1;
 				string_y += FONT_Y_SPACE;
 			}
 
 			if (uncommon_dialog.msg[i] == '\0') {
-				pgf_draw_text(uncommon_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, string);
+				pgf_draw_text(uncommon_dialog.x+SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, string);
 				string_y += FONT_Y_SPACE;
 			}
 		}
-
+		
 		// Dialog type
 		char button_string[32];
 
@@ -294,11 +306,13 @@ int drawUncommonDialog() {
 				break;
 			
 			case SCE_MSG_DIALOG_BUTTON_TYPE_YESNO:
-				sprintf(button_string, "%s %s      %s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[YES], enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[NO]);
+				sprintf(button_string, "%s %s      %s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[YES],
+														   enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[NO]);
 				break;
 				
 			case SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL:
-				sprintf(button_string, "%s %s      %s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[OK], enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[CANCEL]);
+				sprintf(button_string, "%s %s      %s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[OK],
+														   enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[CANCEL]);
 				break;
 				
 			case SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL:
@@ -309,8 +323,8 @@ int drawUncommonDialog() {
 		// Progress bar
 		if (uncommon_dialog.mode == SCE_MSG_DIALOG_MODE_PROGRESS_BAR) {
 			float width = uncommon_dialog.width - 2.0f*SHELL_MARGIN_X;
-			vita2d_draw_rectangle(uncommon_dialog.x + SHELL_MARGIN_X, string_y+10.0f, width, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_BG_COLOR);
-			vita2d_draw_rectangle(uncommon_dialog.x + SHELL_MARGIN_X, string_y+10.0f, uncommon_dialog.progress * width / 100.0f, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_COLOR);
+			vita2d_draw_rectangle(uncommon_dialog.x+SHELL_MARGIN_X, string_y+10.0f, width, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_BG_COLOR);
+			vita2d_draw_rectangle(uncommon_dialog.x+SHELL_MARGIN_X, string_y+10.0f, uncommon_dialog.progress * width / 100.0f, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_COLOR);
 
 			char string[8];
 			sprintf(string, "%d%%", uncommon_dialog.progress);

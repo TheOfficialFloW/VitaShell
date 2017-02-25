@@ -21,8 +21,8 @@
 
 #include "main.h"
 
-#define ALIGN_CENTER(a, b) (((a) - (b)) / 2)
-#define ALIGN_RIGHT(x, w) ((x) - (w))
+#define ALIGN_CENTER(a, b) (((a)-(b)) / 2)
+#define ALIGN_RIGHT(x, w) ((x)-(w))
 
 #define ANALOG_CENTER 128
 #define ANALOG_THRESHOLD 64
@@ -70,13 +70,13 @@ int hasEndSlash(const char *path);
 int removeEndSlash(char *path);
 int addEndSlash(char *path);
 
-void getSizeString(char *string, uint64_t size);
+void getSizeString(char string[16], uint64_t size);
 
 void convertUtcToLocalTime(SceDateTime *time_local, SceDateTime *time_utc);
 void convertLocalTimeToUtc(SceDateTime *time_utc, SceDateTime *time_local);
 
-void getDateString(char *string, int date_format, SceDateTime *time);
-void getTimeString(char *string, int time_format, SceDateTime *time);
+void getDateString(char string[24], int date_format, SceDateTime *time);
+void getTimeString(char string[16], int time_format, SceDateTime *time);
 
 int debugPrintf(const char *text, ...);
 

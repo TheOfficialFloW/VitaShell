@@ -470,7 +470,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 			goto EXIT;
 
 		// Update thread
-		thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE);
+		thid = createStartUpdateThread(size + folders*DIRECTORY_SIZE, 1);
 
 		// Extract process
 		uint64_t value = 0;

@@ -45,7 +45,8 @@
 /*
 	TODO:
 	- Theme manager
-	- Show KB/s in progress bar
+	- PFS bypass
+	- Inherit file stat when copying
 */
 
 int _newlib_heap_size_user = 128 * 1024 * 1024;
@@ -370,8 +371,8 @@ void drawScrollBar(int pos, int n) {
 	if (n > MAX_POSITION) {
 		vita2d_draw_rectangle(SCROLL_BAR_X, START_Y, SCROLL_BAR_WIDTH, MAX_ENTRIES*FONT_Y_SPACE, SCROLL_BAR_BG_COLOR);
 
-		float y = START_Y + ((pos * FONT_Y_SPACE) / (n*FONT_Y_SPACE)) * (MAX_ENTRIES*FONT_Y_SPACE);
-		float height = ((MAX_POSITION * FONT_Y_SPACE) / (n*FONT_Y_SPACE)) * (MAX_ENTRIES*FONT_Y_SPACE);
+		float y = START_Y + ((pos*FONT_Y_SPACE) / (n*FONT_Y_SPACE)) * (MAX_ENTRIES*FONT_Y_SPACE);
+		float height = ((MAX_POSITION*FONT_Y_SPACE) / (n*FONT_Y_SPACE)) * (MAX_ENTRIES*FONT_Y_SPACE);
 
 		vita2d_draw_rectangle(SCROLL_BAR_X, MIN(y, (START_Y + MAX_ENTRIES*FONT_Y_SPACE - height)), SCROLL_BAR_WIDTH, MAX(height, SCROLL_BAR_MIN_HEIGHT), SCROLL_BAR_COLOR);
 	}
@@ -423,7 +424,7 @@ void drawShellInfo(const char *path) {
 	getTimeString(time_string, time_format, &time);
 
 	char string[64];
-	sprintf(string, "%s  %s", date_string, time_string);
+	snprintf(string, sizeof(string), "%s  %s", date_string, time_string);
 	float date_time_x = ALIGN_RIGHT(x, vita2d_pgf_text_width(font, FONT_SIZE, string));
 	pgf_draw_text(date_time_x, SHELL_MARGIN_Y, DATE_TIME_COLOR, FONT_SIZE, string);
 
@@ -460,13 +461,14 @@ void drawShellInfo(const char *path) {
 
 	strcpy(path_second_line, path+i);
 
-	// Add safe/unsafe mode
-	if (strcmp(path_first_line, HOME_PATH) == 0) {
-		sprintf(path_first_line, "%s (%s)", HOME_PATH, is_safe_mode ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
+	// home (SAFE/UNSAFE MODE)
+	if (strcmp(path_first_line, HOME_PATH) == 0) {		
+		pgf_draw_textf(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, "%s (%s)", HOME_PATH, is_safe_mode ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
+	} else {
+		// Path
+		pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
+		pgf_draw_text(SHELL_MARGIN_X, PATH_Y+FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
 	}
-
-	pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
-	pgf_draw_text(SHELL_MARGIN_X, PATH_Y+FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
 }
 
 static void initFtp() {
@@ -1327,7 +1329,7 @@ static int shellMain() {
 		int i;
 		for (i = 0; i < MAX_ENTRIES && (base_pos+i) < file_list.length; i++) {
 			uint32_t color = FILE_COLOR;
-			float y = START_Y + (i * FONT_Y_SPACE);
+			float y = START_Y + (i*FONT_Y_SPACE);
 
 			vita2d_texture *icon = NULL;
 
@@ -1413,7 +1415,7 @@ static int shellMain() {
 					x = scroll_x;
 				}
 			}
-			
+
 			pgf_draw_text(x, y, color, FONT_SIZE, file_entry->name);
 
 			vita2d_disable_clipping();

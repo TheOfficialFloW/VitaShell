@@ -47,8 +47,6 @@ static char property_creation_date[64], property_modification_date[64];
 static int scroll_count = 0;
 static float scroll_x = 0;
 
-#define PROPERTY_DIALOG_ENTRY_MAX_WIDTH 580
-
 typedef struct {
 	int name;
 	int visibility;
@@ -92,10 +90,9 @@ int getPropertyDialogStatus() {
 	return property_dialog.status;
 }
 
-static int copyStringLimited(char *out, char *in, int limit) {
+static float copyStringGetWidth(char *out, char *in) {
 	strcpy(out, in);
-	int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, out);
-	return width < limit ? width : limit;
+	return vita2d_pgf_text_width(font, FONT_SIZE, out);
 }
 
 typedef struct {
@@ -130,13 +127,13 @@ static int info_thread(SceSize args_size, InfoArguments *args) {
 }
 
 static void resetWidth() {
-	int width = 0, max_width = 0;
+	float width = 0.0f, max_width = 0.0f;
 	
-	width = copyStringLimited(property_size, property_size_new, PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+	width = copyStringGetWidth(property_size, property_size_new);
 	if (width > max_width)
 		max_width = width;
 
-	width = copyStringLimited(property_contains, property_contains_new, PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+	width = copyStringGetWidth(property_contains, property_contains_new);
 	if (width > max_width)
 		max_width = width;
 
@@ -176,7 +173,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	property_dialog.info_x += 2.0f*SHELL_MARGIN_X;
 
 	// Entries
-	int width = 0, max_width = 0;
+	float width = 0.0f, max_width = 0.0f;
 
 	// Name
 	strcpy(property_name, entry->name);
@@ -213,11 +210,11 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 		// Check authid flag
 		uint64_t authid = *(uint64_t *)((uint32_t)buffer + 0x80);
 		if (authid == 0x2F00000000000001 || authid == 0x2F00000000000003) {			
-			width = copyStringLimited(property_fself_mode, language_container[PROPERTY_FSELF_MODE_UNSAFE], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+			width = copyStringGetWidth(property_fself_mode, language_container[PROPERTY_FSELF_MODE_UNSAFE]);
 		} else if (authid == 0x2F00000000000002) {
-			width = copyStringLimited(property_fself_mode, language_container[PROPERTY_FSELF_MODE_SAFE], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+			width = copyStringGetWidth(property_fself_mode, language_container[PROPERTY_FSELF_MODE_SAFE]);
 		} else {
-			width = copyStringLimited(property_fself_mode, language_container[PROPERTY_FSELF_MODE_SCE], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+			width = copyStringGetWidth(property_fself_mode, language_container[PROPERTY_FSELF_MODE_SCE]);
 		}
 
 		if (width > max_width)
@@ -278,7 +275,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 			break;
 	}
 
-	width = copyStringLimited(property_type, language_container[type], PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+	width = copyStringGetWidth(property_type, language_container[type]);
 	if (width > max_width)
 		max_width = width;
 
@@ -324,16 +321,16 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 	// Modification date
 	getDateString(date_string, date_format, &entry->mtime);
 	getTimeString(time_string, time_format, &entry->mtime);
-	sprintf(string, "%s %s", date_string, time_string);
-	width = copyStringLimited(property_modification_date, string, PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+	snprintf(string, sizeof(string), "%s %s", date_string, time_string);
+	width = copyStringGetWidth(property_modification_date, string);
 	if (width > max_width)
 		max_width = width;
 
 	// Creation date
 	getDateString(date_string, date_format, &entry->ctime);
 	getTimeString(time_string, time_format, &entry->ctime);
-	sprintf(string, "%s %s", date_string, time_string);
-	width = copyStringLimited(property_creation_date, string, PROPERTY_DIALOG_ENTRY_MAX_WIDTH);
+	snprintf(string, sizeof(string), "%s %s", date_string, time_string);
+	width = copyStringGetWidth(property_creation_date, string);
 	if (width > max_width)
 		max_width = width;
 
@@ -362,7 +359,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 
 	// Align
 	int y_n = (int)((float)(property_dialog.y - 2.0f) / FONT_Y_SPACE);
-	property_dialog.y = (float)y_n * FONT_Y_SPACE + 2.0f;
+	property_dialog.y = (float)y_n*FONT_Y_SPACE + 2.0f;
 
 	// Scale
 	property_dialog.scale = 0.0f;

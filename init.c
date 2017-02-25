@@ -135,17 +135,17 @@ static void finishSceAppUtil() {
 static int isKoreanChar(unsigned int c) {
     unsigned short ch = c;
 
-    // hangul compatibility jamo block
+    // Hangul compatibility jamo block
     if (0x3130 <= ch && ch <= 0x318F) {
         return 1;
     }
 
-    // hangul syllables block
+    // Hangul syllables block
     if (0xAC00 <= ch && ch <= 0xD7AF) {
         return 1;
     }
 
-    // korean won sign
+    // Korean won sign
     if (ch == 0xFFE6) {
         return 1;
     }
@@ -156,12 +156,12 @@ static int isKoreanChar(unsigned int c) {
 static int isLatinChar(unsigned int c) {
     unsigned short ch = c;
 
-    // basic latin block + latin-1 supplement block
+    // Basic latin block + latin-1 supplement block
     if (ch <= 0x00FF) {
         return 1;
     }
 
-    // cyrillic block
+    // Cyrillic block
     if (0x0400 <= ch && ch <= 0x04FF) {
         return 1;
     }

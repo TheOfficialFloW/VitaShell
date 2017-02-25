@@ -192,14 +192,14 @@ static int downloadProcess(char *version_string) {
 
 	// Download url
 	char url[128];
-	sprintf(url, BASE_ADDRESS "/%s/VitaShell.vpk", version_string);
+	snprintf(url, sizeof(url), BASE_ADDRESS "/%s/VitaShell.vpk", version_string);
 
 	// File size
 	uint64_t size = 0;
 	getDownloadFileSize(url, &size);
 
 	// Update thread
-	thid = createStartUpdateThread(size);
+	thid = createStartUpdateThread(size, 1);
 
 	// Download
 	uint64_t value = 0;
@@ -340,7 +340,7 @@ int update_extract_thread(SceSize args, void *argp) {
 	getArchivePathInfo(src_path, &size, &folders, &files);
 
 	// Update thread
-	thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE);
+	thid = createStartUpdateThread(size + folders*DIRECTORY_SIZE, 1);
 
 	// Extract process
 	uint64_t value = 0;

@@ -79,7 +79,7 @@ void infoDialog(const char *msg, ...) {
 	char string[512];
 
 	va_start(list, msg);
-	vsprintf(string, msg, list);
+	vsnprintf(string, sizeof(string), msg, list);
 	va_end(list);
 
 	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, string);
@@ -238,7 +238,7 @@ int addEndSlash(char *path) {
 	return 0;
 }
 
-void getSizeString(char *string, uint64_t size) {
+void getSizeString(char string[16], uint64_t size) {
 	double double_size = (double)size;
 
 	int i = 0;
@@ -248,7 +248,7 @@ void getSizeString(char *string, uint64_t size) {
 		i++;
 	}
 
-	sprintf(string, "%.*f %s", (i == 0) ? 0 : 2, double_size, units[i]);
+	snprintf(string, 16, "%.*f %s", (i == 0) ? 0 : 2, double_size, units[i]);
 }
 
 void convertUtcToLocalTime(SceDateTime *time_local, SceDateTime *time_utc) {
@@ -265,36 +265,36 @@ void convertLocalTimeToUtc(SceDateTime *time_utc, SceDateTime *time_local) {
 	sceRtcSetTick(time_utc, &tick);	
 }
 
-void getDateString(char *string, int date_format, SceDateTime *time) {
+void getDateString(char string[24], int date_format, SceDateTime *time) {
 	SceDateTime time_local;
 	convertUtcToLocalTime(&time_local, time);
 
 	switch (date_format) {
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_YYYYMMDD:
-			sprintf(string, "%04d/%02d/%02d", time_local.year, time_local.month, time_local.day);
+			snprintf(string, 24, "%04d/%02d/%02d", time_local.year, time_local.month, time_local.day);
 			break;
 
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_DDMMYYYY:
-			sprintf(string, "%02d/%02d/%04d", time_local.day, time_local.month, time_local.year);
+			snprintf(string, 24, "%02d/%02d/%04d", time_local.day, time_local.month, time_local.year);
 			break;
 
 		case SCE_SYSTEM_PARAM_DATE_FORMAT_MMDDYYYY:
-			sprintf(string, "%02d/%02d/%04d", time_local.month, time_local.day, time_local.year);
+			snprintf(string, 24, "%02d/%02d/%04d", time_local.month, time_local.day, time_local.year);
 			break;
 	}
 }
 
-void getTimeString(char *string, int time_format, SceDateTime *time) {
+void getTimeString(char string[16], int time_format, SceDateTime *time) {
 	SceDateTime time_local;
 	convertUtcToLocalTime(&time_local, time);
 
 	switch(time_format) {
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
-			sprintf(string, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour-12) : ((time_local.hour == 0) ? 12 : time_local.hour), time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
+			snprintf(string, 16, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour-12) : ((time_local.hour == 0) ? 12 : time_local.hour), time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
 			break;
 
 		case SCE_SYSTEM_PARAM_TIME_FORMAT_24HR:
-			sprintf(string, "%02d:%02d", time_local.hour, time_local.minute);
+			snprintf(string, 16, "%02d:%02d", time_local.hour, time_local.minute);
 			break;
 	}
 }
@@ -304,7 +304,7 @@ int debugPrintf(const char *text, ...) {
 	char string[512];
 
 	va_start(list, text);
-	vsprintf(string, text, list);
+	vsnprintf(string, sizeof(string), text, list);
 	va_end(list);
 
 	SceUID fd = sceIoOpen("tm0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
@@ -318,7 +318,7 @@ int debugPrintf(const char *text, ...) {
 
 int launchAppByUriExit(const char *titleid) {
 	char uri[32];
-	sprintf(uri, "psgm:play?titleid=%s", titleid);
+	snprintf(uri, sizeof(uri), "psgm:play?titleid=%s", titleid);
 
 	sceKernelDelayThread(10000);
 	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
