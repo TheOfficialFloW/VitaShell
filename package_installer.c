@@ -32,45 +32,6 @@
 
 #include "resources/base_head_bin.h"
 
-static int patchRetailContents() {
-	int res;
-	
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
-	res = sceIoGetstat(PACKAGE_DIR "/sce_sys/retail/livearea", &stat);
-	if (res < 0)
-		return res;
-
-	res = sceIoRename(PACKAGE_DIR "/sce_sys/livearea", PACKAGE_DIR "/sce_sys/livearea_org");
-	if (res < 0)
-		return res;
-
-	res = sceIoRename(PACKAGE_DIR "/sce_sys/retail/livearea", PACKAGE_DIR "/sce_sys/livearea");
-	if (res < 0)
-		return res;
-
-	return 0;
-}
-
-static int restoreRetailContents(const char *titleid) {
-	int res;
-	char src_path[128], dst_path[128];
-
-	sprintf(src_path, "ux0:app/%s/sce_sys/livearea", titleid);
-	sprintf(dst_path, "ux0:app/%s/sce_sys/retail/livearea", titleid);
-	res = sceIoRename(src_path, dst_path);
-	if (res < 0)
-		return res;
-
-	sprintf(src_path, "ux0:app/%s/sce_sys/livearea_org", titleid);
-	sprintf(dst_path, "ux0:app/%s/sce_sys/livearea", titleid);
-	res = sceIoRename(src_path, dst_path);
-	if (res < 0)
-		return res;
-
-	return 0;
-}
-
 int promoteUpdate(const char *path, const char *titleid, const char *category, void *sfo_buffer, int sfo_size) {
 	int res;
 
@@ -102,6 +63,39 @@ int promoteUpdate(const char *path, const char *titleid, const char *category, v
 	return 0;
 }
 
+int promotePkg(const char *path) {
+	int res;
+
+	res = scePromoterUtilityInit();
+	if (res < 0)
+		return res;
+
+	res = scePromoterUtilityPromotePkgWithRif(path, 0);
+	if (res < 0)
+		return res;
+
+	int state = 0;
+	do {
+		res = scePromoterUtilityGetState(&state);
+		if (res < 0)
+			return res;
+
+		sceKernelDelayThread(100 * 1000);
+	} while (state);
+
+	int ret = 0;
+	res = scePromoterUtilityGetResult(&ret);
+	if (res < 0)
+		return res;
+
+	res = scePromoterUtilityExit();
+	if (res < 0)
+		return res;
+	
+	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
+	return ret == 0x80870005 ? 0 : ret;
+}
+
 int promoteApp(const char *path) {
 	int res;
 
@@ -125,41 +119,8 @@ int promoteApp(const char *path) {
 	// Free sfo buffer
 	free(sfo_buffer);
 
-	// Patch to use retail contents so the game is not shown as test version
-	int patch_retail_contents = patchRetailContents();
-
-	res = scePromoterUtilityInit();
-	if (res < 0)
-		return res;
-
-	res = scePromoterUtilityPromotePkg(path, 0);
-	if (res < 0)
-		return res;
-
-	int state = 0;
-	do {
-		res = scePromoterUtilityGetState(&state);
-		if (res < 0)
-			return res;
-
-		sceKernelDelayThread(100 * 1000);
-	} while (state);
-
-	int ret = 0;
-	res = scePromoterUtilityGetResult(&ret);
-	if (res < 0)
-		return res;
-
-	res = scePromoterUtilityExit();
-	if (res < 0)
-		return res;
-
-	// Restore
-	if (patch_retail_contents >= 0)
-		restoreRetailContents(titleid);
-
-	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
-	return ret == 0x80870005 ? 0 : ret;
+	// Promote pkg
+	return promotePkg(path);
 }
 
 int deleteApp(const char *titleid) {
@@ -183,7 +144,7 @@ int deleteApp(const char *titleid) {
 		if (res < 0)
 			return res;
 
-		sceKernelDelayThread(300 * 1000);
+		sceKernelDelayThread(100 * 1000);
 	} while (state);
 
 	int ret = 0;

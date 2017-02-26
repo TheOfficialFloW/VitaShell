@@ -87,7 +87,7 @@ SettingsMenuOption main_settings[] = {
 	// { VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &theme },
 	
 	{ VITASHELL_SETTINGS_SELECT_BUTTON,		SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
-											select_button_options, sizeof(select_button_options)/sizeof(char **),
+											select_button_options, sizeof(select_button_options) / sizeof(char **),
 											&vitashell_config.select_button },
 	{ VITASHELL_SETTINGS_NO_AUTO_UPDATE,	SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_autoupdate },
 };
@@ -99,14 +99,14 @@ SettingsMenuOption power_settings[] = {
 };
 
 SettingsMenuEntry molecularshell_settings_menu_entries[] = {
-	{ HENKAKU_SETTINGS, henkaku_settings, sizeof(henkaku_settings)/sizeof(SettingsMenuOption) },
-	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings)/sizeof(SettingsMenuOption) },
-	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings)/sizeof(SettingsMenuOption) },
+	{ HENKAKU_SETTINGS, henkaku_settings, sizeof(henkaku_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
 };
 
 SettingsMenuEntry vitashell_settings_menu_entries[] = {
-	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings)/sizeof(SettingsMenuOption) },
-	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings)/sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+	{ VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
 };
 
 static SettingsMenu settings_menu;
@@ -114,12 +114,12 @@ static SettingsMenu settings_menu;
 void loadSettingsConfig() {
 	// Load settings config file
 	memset(&vitashell_config, 0, sizeof(VitaShellConfig));
-	readConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries)/sizeof(ConfigEntry));
+	readConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries) / sizeof(ConfigEntry));
 }
 
 void saveSettingsConfig() {
 	// Save settings config file
-	writeConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries)/sizeof(ConfigEntry));
+	writeConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries) / sizeof(ConfigEntry));
 }
 
 static void rebootDevice() {

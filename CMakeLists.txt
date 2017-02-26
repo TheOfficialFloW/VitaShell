@@ -48,7 +48,7 @@ FUNCTION(ADD_RESOURCES out_var)
   SET(${out_var} "${result}" PARENT_SCOPE)
 ENDFUNCTION()
 
-file(GLOB res_files RELATIVE ${CMAKE_SOURCE_DIR} resources/*.png resources/*.txt resources/*.bin resources/*.skprx)
+file(GLOB res_files RELATIVE ${CMAKE_SOURCE_DIR} resources/*.png resources/*.txt resources/*.bin resources/*.suprx resources/*.skprx)
 add_resources(vitashell_res ${res_files})
 
 add_executable(VitaShell
@@ -122,7 +122,7 @@ target_link_libraries(VitaShell
   stdc++
   taihen_stub
   HENkaku_stub
-  VitaShellKernel_stub_weak
+  VitaShellUser_stub_weak
   SceAppMgr_stub
   SceAppUtil_stub
   SceAudio_stub

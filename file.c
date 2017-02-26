@@ -38,7 +38,7 @@ static char *devices[] = {
 	"vs0:",
 };
 
-#define N_DEVICES (sizeof(devices)/sizeof(char **))
+#define N_DEVICES (sizeof(devices) / sizeof(char **))
 
 int allocateReadFile(const char *file, void **buffer) {
 	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
@@ -604,7 +604,7 @@ int getFileType(const char *file) {
 	char *p = strrchr(file, '.');
 	if (p) {
 		int i;
-		for (i = 0; i < (sizeof(extension_types)/sizeof(ExtensionType)); i++) {
+		for (i = 0; i < (sizeof(extension_types) / sizeof(ExtensionType)); i++) {
 			if (strcasecmp(p, extension_types[i].extension) == 0) {
 				return extension_types[i].type;
 			}

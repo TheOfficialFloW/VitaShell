@@ -203,7 +203,6 @@ void loadLanguage(int id) {
 		// USB strings
 		LANGUAGE_ENTRY(USB_CONNECTED),
 		LANGUAGE_ENTRY(USB_NOT_CONNECTED),
-		LANGUAGE_ENTRY(USB_CONNECTION_PERMISSION),
 		LANGUAGE_ENTRY(USB_CONNECTION_NOT_AVAILABLE),
 		LANGUAGE_ENTRY(USB_WAIT_ATTACH),
 		LANGUAGE_ENTRY(USB_UMA0_MOUNTED),
@@ -213,28 +212,26 @@ void loadLanguage(int id) {
 		// Others
 		LANGUAGE_ENTRY(SAFE_MODE),
 		LANGUAGE_ENTRY(UNSAFE_MODE),
-		LANGUAGE_ENTRY(TOOLBOX),
-		LANGUAGE_ENTRY(SYSINFO_TITLE),
 		LANGUAGE_ENTRY(PLEASE_WAIT),
 		LANGUAGE_ENTRY(SAVE_MODIFICATIONS),
 		LANGUAGE_ENTRY(NO_SPACE_ERROR),
+		LANGUAGE_ENTRY(EXTENDED_PERMISSIONS_REQUIRED),
 		LANGUAGE_ENTRY(WIFI_ERROR),
 		LANGUAGE_ENTRY(FTP_SERVER),
-		LANGUAGE_ENTRY(SYS_INFO),
 		LANGUAGE_ENTRY(UPDATE_QUESTION),
 		LANGUAGE_ENTRY(ARCHIVE_NAME),
 		LANGUAGE_ENTRY(COMPRESSION_LEVEL),
 	};
 
 	// Load default config file
-	readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size, language_entries, sizeof(language_entries)/sizeof(ConfigEntry));
+	readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 
 	// Load custom config file
 	if (use_custom_config) {
-		if (id >= 0 && id < (sizeof(lang)/sizeof(char *))) {
+		if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
 			char path[MAX_PATH_LENGTH];
 			snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/language/%s.txt", lang[id]);
-			readConfig(path, language_entries, sizeof(language_entries)/sizeof(ConfigEntry));
+			readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 		}
 	}
 }

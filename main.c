@@ -1053,7 +1053,7 @@ static int fileBrowserMenuCtrl() {
 			if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
 				infoDialog(language_container[USB_CONNECTION_NOT_AVAILABLE]);
 			} else if (is_safe_mode) {
-				infoDialog(language_container[USB_CONNECTION_PERMISSION]);
+				infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
 			} else {
 				SceUdcdDeviceState state;
 				sceUdcdGetDeviceState(&state);
@@ -1127,11 +1127,9 @@ static int fileBrowserMenuCtrl() {
 				setContextMenuMainVisibilities();
 				setContextMenuMode(CONTEXT_MENU_OPENING);
 			} else {
-				if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
-					setContextMenu(&context_menu_home);
-					setContextMenuHomeVisibilities();
-					setContextMenuMode(CONTEXT_MENU_OPENING);
-				}
+				setContextMenu(&context_menu_home);
+				setContextMenuHomeVisibilities();
+				setContextMenuMode(CONTEXT_MENU_OPENING);
 			}
 		}
 	}

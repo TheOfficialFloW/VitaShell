@@ -69,7 +69,7 @@
 
 #include <taihen.h>
 
-#include <vitashell_kernel.h>
+#include <vitashell_user.h>
 
 #include "file.h"
 #include "vitashell_config.h"

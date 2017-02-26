@@ -74,7 +74,7 @@ int mountUsbUx0() {
 	sceIoRemove("uma0:VitaShell/internal/lastdir.txt");
 
 	// Redirect ux0: to uma0:
-	redirectUx0();
+	shellUserRedirectUx0();
 
 	// Mount USB ux0:
 	vshIoUmount(0xF00, 0, 0, 0);
@@ -91,7 +91,7 @@ int umountUsbUx0() {
 	sceAppMgrDestroyOtherApp();
 
 	// Restore ux0: patch
-	unredirectUx0();
+	shellUserUnredirectUx0();
 
 	// Remount and relaunch
 	char * const argv[] = { "umount", NULL };

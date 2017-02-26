@@ -40,7 +40,7 @@ MenuEntry menu_home_entries[] = {
 	{ UMOUNT_USB_UX0, 3, 0, CTX_INVISIBLE },
 };
 
-#define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries)/sizeof(MenuEntry))
+#define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
 
 enum MenuMainEntrys {
 	MENU_MAIN_ENTRY_MARK_UNMARK_ALL,
@@ -68,7 +68,7 @@ MenuEntry menu_main_entries[] = {
 	{ SORT_BY,    13, 1, CTX_VISIBLE },
 };
 
-#define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries)/sizeof(MenuEntry))
+#define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries) / sizeof(MenuEntry))
 
 enum MenuSortEntrys {
 	MENU_SORT_ENTRY_BY_NAME,
@@ -82,7 +82,7 @@ MenuEntry menu_sort_entries[] = {
 	{ BY_DATE, 15, 0, CTX_INVISIBLE },
 };
 
-#define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries)/sizeof(MenuEntry))
+#define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries) / sizeof(MenuEntry))
 
 enum MenuMoreEntrys {
 	MENU_MORE_ENTRY_COMPRESS,
@@ -100,7 +100,7 @@ MenuEntry menu_more_entries[] = {
 	{ CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
 };
 
-#define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries)/sizeof(MenuEntry))
+#define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
 
 static int contextMenuHomeEnterCallback(int sel, void *context);
 static int contextMenuMainEnterCallback(int sel, void *context);
@@ -194,23 +194,25 @@ void setContextMenuHomeVisibilities() {
 	}
 
 	// Invisible if already mounted or if we're not on a Vita TV
-	int uma_exist = 0;
-
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
-	if (sceIoGetstat("uma0:", &stat) >= 0)
-		uma_exist = 1;
-		
-	if (uma_exist || isUx0Redirected() || sceKernelGetModel() == SCE_KERNEL_MODEL_VITA)
+	if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
 		menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
-
-	if (isUx0Redirected()) {
 		menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
-	} else if (uma_exist) {
 		menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 	} else {
-		menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
-		menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
+		SceIoStat stat;
+		memset(&stat, 0, sizeof(SceIoStat));
+		if (sceIoGetstat("uma0:", &stat) >= 0) {
+			menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
+		} else {
+			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
+			menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
+		}
+
+		if (shellUserIsUx0Redirected()) {
+			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
+		} else {
+			menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
+		}
 	}
 
 	// Go to first entry

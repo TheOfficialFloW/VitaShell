@@ -47,6 +47,7 @@ INCLUDE_EXTERN_RESOURCE(theme_txt);
 INCLUDE_EXTERN_RESOURCE(colors_txt);
 INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
+INCLUDE_EXTERN_RESOURCE(user_suprx);
 INCLUDE_EXTERN_RESOURCE(usbdevice_skprx);
 // INCLUDE_EXTERN_RESOURCE(kernel_skprx);
 // INCLUDE_EXTERN_RESOURCE(umass_skprx);
@@ -78,6 +79,7 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", fastforward_png, 0),
 	DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", fastrewind_png, 0),
 
+	DEFAULT_FILE("ux0:VitaShell/module/user.suprx", user_suprx, 1),
 	DEFAULT_FILE("ux0:VitaShell/module/usbdevice.skprx", usbdevice_skprx, 1),
 	// DEFAULT_FILE("ux0:VitaShell/module/kernel.skprx", kernel_skprx, 1),
 	// DEFAULT_FILE("ux0:VitaShell/module/umass.skprx", umass_skprx, 1),
@@ -233,15 +235,31 @@ static void loadScePaf() {
 	sceSysmoduleLoadModuleInternalWithArg(0x80000008, sizeof(scepaf_argp), scepaf_argp, buf);
 }
 
-void initVitaShell() {
-	// Load kernel module
-	SceUID modid = taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
-	if (modid >= 0) {
-		// Trick
-		const char * const argv[] = { "restart", NULL };
-		sceAppMgrLoadExec("app0:eboot.bin", NULL, NULL);
-	}
+void installDefaultFiles() {
+	// Make VitaShell folders
+	sceIoMkdir("ux0:VitaShell", 0777);
+	sceIoMkdir("ux0:VitaShell/internal", 0777);
+	sceIoMkdir("ux0:VitaShell/language", 0777);
+	sceIoMkdir("ux0:VitaShell/module", 0777);
+	sceIoMkdir("ux0:VitaShell/theme", 0777);
+	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
 
+	sceIoMkdir("ux0:patch", 0777);
+	sceIoMkdir("ux0:patch/VITASHELL", 0777);
+	sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);
+	sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0777);
+
+	// Write default files if they don't exist
+	int i;
+	for (i = 0; i < (sizeof(default_files) / sizeof(DefaultFile)); i++) {
+		SceIoStat stat;
+		memset(&stat, 0, sizeof(stat));
+		if (sceIoGetstat(default_files[i].path, &stat) < 0 || (default_files[i].replace && (int)stat.st_size != default_files[i].size))
+			WriteFile(default_files[i].path, default_files[i].buffer, default_files[i].size);
+	}	
+}
+
+void initVitaShell() {
 	// Set CPU to 444mhz
 	scePowerSetArmClockFrequency(444);
 
@@ -287,38 +305,14 @@ void initVitaShell() {
 	sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
 	sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
 
-	// Init audio
-	vitaAudioInit(0x40);
-
 	// Init
-	initSceAppUtil();
+	vitaAudioInit(0x40);
 	initVita2dLib();
+	initSceAppUtil();
 	initNet();
 
 	// Init power tick thread
 	initPowerTickThread();
-
-	// Make VitaShell folders
-	sceIoMkdir("ux0:VitaShell", 0777);
-	sceIoMkdir("ux0:VitaShell/internal", 0777);
-	sceIoMkdir("ux0:VitaShell/language", 0777);
-	sceIoMkdir("ux0:VitaShell/module", 0777);
-	sceIoMkdir("ux0:VitaShell/theme", 0777);
-	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
-
-	sceIoMkdir("ux0:patch", 0777);
-	sceIoMkdir("ux0:patch/VITASHELL", 0777);
-	sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);
-	sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0777);
-
-	// Write default files if they don't exist
-	int i;
-	for (i = 0; i < (sizeof(default_files) / sizeof(DefaultFile)); i++) {
-		SceIoStat stat;
-		memset(&stat, 0, sizeof(stat));
-		if (sceIoGetstat(default_files[i].path, &stat) < 0 || (default_files[i].replace && (int)stat.st_size != default_files[i].size))
-			WriteFile(default_files[i].path, default_files[i].buffer, default_files[i].size);
-	}
 
 	// Delete VitaShell updater if available
 	SceIoStat stat;
@@ -326,15 +320,23 @@ void initVitaShell() {
 	if (sceIoGetstat("ux0:app/VSUPDATER", &stat) >= 0) {
 		deleteApp("VSUPDATER");
 	}
+
+	// Install default files
+	installDefaultFiles();
+
+	// Load modules
+	SceUID kernel_modid = taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
+	SceUID user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
+	
+	debugPrintf("kernel_modid: 0x%08X\n", kernel_modid);
+	debugPrintf("user_modid: 0x%08X\n", user_modid);
 }
 
 void finishVitaShell() {
 	// Finish
 	finishNet();
-	finishVita2dLib();
 	finishSceAppUtil();
-	
-	// Shutdown audio
+	finishVita2dLib();
 	vitaAudioShutdown();
 	
 	// Unload modules
