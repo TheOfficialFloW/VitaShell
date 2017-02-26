@@ -42,12 +42,16 @@ OPEN_HEX_EDITOR                      = "Hex szerkesztő megnyitása"
 # Szöveg szerkesztői szövegek
 EDIT_LINE                            = "Sor szerkesztése"
 ENTER_SEARCH_TERM                    = "Keresendő kifejezés"
-CUT                                  = "Kivágás"
-INSERT_EMPTY_LINE                    = "Üres sor beillesztése"
 
-# File browser context menu strings
-# Fájl böngésző összefüggési menü szövegek
-MORE                                 = "Több"
+# Context menu strings
+# Összefüggési menü szövegek
+MOUNT_UMA0                           = "uma0: felcsatolása"
+MOUNT_USB_UX0                        = "ux0: USB felcsatolása"
+UMOUNT_USB_UX0                       = "ux0: USB lecsatolása"
+SORT_BY                              = "Sorrend"
+BY_NAME                              = "Név szerint"
+BY_SIZE                              = "Méret szerint"
+BY_DATE                              = "Dátum szerint"
 MARK_ALL                             = "Összes kijelölése"
 UNMARK_ALL                           = "Összes kijelölés törlése"
 MOVE                                 = "Mozgat"
@@ -57,11 +61,14 @@ DELETE                               = "Töröl"
 RENAME                               = "Átnevez"
 NEW_FOLDER                           = "Új mappa"
 PROPERTIES                           = "Tulajdonságok"
+MORE                                 = "Több"
 COMPRESS                             = "Becsomagol"
 INSTALL_ALL                          = "Összes telepítése"
 INSTALL_FOLDER                       = "Mappa telepítése"
 CALCULATE_SHA1                       = "SHA1 kiszámolása"
 EXPORT_MEDIA                         = "Média exportálása"
+CUT                                  = "Kivágás"
+INSERT_EMPTY_LINE                    = "Üres sor beillesztése"
 SEARCH                               = "Keresés"
 
 # File browser properties strings
@@ -143,15 +150,22 @@ VITASHELL_SETTINGS_POWEROFF          = "Kikapcsolás"
 VITASHELL_SETTINGS_STANDBY           = "Készenlét"
 VITASHELL_SETTINGS_SELECT_BUTTON_USB = "USB"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
+
 # USB strings
 # USB szövegek
 USB_CONNECTED                        = "USB csatlakoztatva"
 USB_NOT_CONNECTED                    = "Csatlakoztassa ezt a rendszert egy PC számítógéppel USB kábel használatával."
 USB_CONNECTION_PERMISSION            = "Az USB csatlakozásnak szüksége van kiterjesztett engedélyekre.\Kérem aktiválja a 'Nem biztonságos homebrewek bekapcsolása' beállítást először."
 USB_CONNECTION_NOT_AVAILABLE         = "USB csatlakozás nem érhető el ezen az eszközön."
+USB_WAIT_ATTACH                      = "Kérlek csatolj fel egy USB cserélhető eszközt hogy folytasd.\Ha már fel volt csatolva, akkor csatold le\és csatold fel újra."
+USB_UMA0_MOUNTED                     = "uma0: felcsatolva."
+USB_UX0_MOUNTED                      = "USB ux0: felcsatolva."
+USB_UX0_UMOUNTED                     = "USB ux0: lecsatolva."
 
 # Others
 # Egyebek
+SAFE_MODE                            = "BIZTONSÁGOS MÓD"
+UNSAFE_MODE                          = "NEM BIZTONSÁGOS MÓD"
 PLEASE_WAIT                          = "Kérlek várj..."
 SAVE_MODIFICATIONS                   = "Szeretnéd menteni a módosításokat?"
 NO_SPACE_ERROR                       = "Nincs elég szabad hely a memória\kártyán.\Legalább %s több hely kell."
