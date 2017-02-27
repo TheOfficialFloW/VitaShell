@@ -16,9 +16,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <psp2/sysmodule.h>
-#include <psp2/promoterutil.h>
-
 #include "main.h"
 #include "io_process.h"
 #include "package_installer.h"
@@ -64,34 +61,33 @@ int promoteUpdate(const char *path, const char *titleid, const char *category, v
 }
 
 int promotePkg(const char *path) {
-	int res;
+	int res, ret;
 
 	res = scePromoterUtilityInit();
 	if (res < 0)
 		return res;
 
-	res = scePromoterUtilityPromotePkgWithRif(path, 0);
+	res = scePromoterUtilityPromotePkg(path, 0);
 	if (res < 0)
-		return res;
+		goto ERROR_EXIT;
 
 	int state = 0;
 	do {
 		res = scePromoterUtilityGetState(&state);
 		if (res < 0)
-			return res;
+			goto ERROR_EXIT;
 
 		sceKernelDelayThread(100 * 1000);
 	} while (state);
 
-	int ret = 0;
 	res = scePromoterUtilityGetResult(&ret);
+
+ERROR_EXIT:
+	scePromoterUtilityExit();
+	
 	if (res < 0)
 		return res;
 
-	res = scePromoterUtilityExit();
-	if (res < 0)
-		return res;
-	
 	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
 	return ret == 0x80870005 ? 0 : ret;
 }
@@ -124,11 +120,9 @@ int promoteApp(const char *path) {
 }
 
 int deleteApp(const char *titleid) {
-	int res;
+	int res, ret;
 
-	res = sceAppMgrDestroyOtherApp();
-	if (res < 0)
-		return res;
+	sceAppMgrDestroyOtherApp();
 
 	res = scePromoterUtilityInit();
 	if (res < 0)
@@ -136,23 +130,22 @@ int deleteApp(const char *titleid) {
 
 	res = scePromoterUtilityDeletePkg(titleid);
 	if (res < 0)
-		return res;
+		goto ERROR_EXIT;
 
 	int state = 0;
 	do {
 		res = scePromoterUtilityGetState(&state);
 		if (res < 0)
-			return res;
+			goto ERROR_EXIT;
 
 		sceKernelDelayThread(100 * 1000);
 	} while (state);
 
-	int ret = 0;
 	res = scePromoterUtilityGetResult(&ret);
-	if (res < 0)
-		return res;
 
-	res = scePromoterUtilityExit();
+ERROR_EXIT:
+	scePromoterUtilityExit();
+
 	if (res < 0)
 		return res;
 

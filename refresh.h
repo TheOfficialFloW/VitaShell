@@ -16,25 +16,9 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PACKAGE_INSTALLER_H__
-#define __PACKAGE_INSTALLER_H__
+#ifndef __REFRESH_H__
+#define __REFRESH_H__
 
-#define ntohl __builtin_bswap32
-
-#define PACKAGE_DIR "ux0:data/pkg"
-#define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
-
-typedef struct {
-	char *file;
-} InstallArguments;
-
-int promotePkg(const char *path);
-int promoteApp(const char *path);
-int deleteApp(const char *titleid);
-
-int makeHeadBin();
-
-int installPackage(const char *file);
-int install_thread(SceSize args_size, InstallArguments *args);
+int refresh_thread(SceSize args, void *argp);
 
 #endif

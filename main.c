@@ -20,6 +20,7 @@
 #include "main_context.h"
 #include "init.h"
 #include "io_process.h"
+#include "refresh.h"
 #include "makezip.h"
 #include "package_installer.h"
 #include "network_update.h"
@@ -523,18 +524,22 @@ static int dialogSteps() {
 		case DIALOG_STEP_ERROR:
 		case DIALOG_STEP_INFO:
 		case DIALOG_STEP_SYSTEM:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
-			
+		}
+		
+		case DIALOG_STEP_REFRESHED:
 		case DIALOG_STEP_CANCELLED:
 			refresh = REFRESH_MODE_NORMAL;
 			setDialogStep(DIALOG_STEP_NONE);
 			break;
 			
 		case DIALOG_STEP_DELETED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
@@ -548,8 +553,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_COMPRESSED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 
@@ -575,9 +582,11 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_COPIED:
 		case DIALOG_STEP_MOVED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				// Empty mark list
 				fileListEmpty(&mark_list);
@@ -607,8 +616,26 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
+		case DIALOG_STEP_REFRESH_LIVEAREA_QUESTION:
+		{
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[REFRESHING]);
+				setDialogStep(DIALOG_STEP_REFRESHING);
+
+				SceUID thid = sceKernelCreateThread("refresh_thread", (SceKernelThreadEntry)refresh_thread, 0x40, 0x100000, 0, 0, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, 0, NULL);
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				setDialogStep(DIALOG_STEP_NONE);
+			}
+
+			break;
+		}
+		
 		case DIALOG_STEP_USB_ATTACH_WAIT:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				SceUID fd = sceIoOpen("sdstor0:uma-lp-act-entire", SCE_O_RDONLY, 0);
 				if (fd >= 0) {
@@ -633,8 +660,10 @@ static int dialogSteps() {
 			}
 			
 			break;
-			
+		}
+		
 		case DIALOG_STEP_FTP_WAIT:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				int state = 0;
 				sceNetCtlInetGetState(&state);
@@ -660,8 +689,10 @@ static int dialogSteps() {
 			}
 			
 			break;
-			
+		}
+		
 		case DIALOG_STEP_FTP:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				refresh = REFRESH_MODE_NORMAL;
 				setDialogStep(DIALOG_STEP_NONE);
@@ -673,8 +704,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_USB_WAIT:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				SceUdcdDeviceState state;
 				sceUdcdGetDeviceState(&state);
@@ -696,8 +729,10 @@ static int dialogSteps() {
 			}
 			
 			break;
-			
+		}
+		
 		case DIALOG_STEP_USB:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				SceUdcdDeviceState state;
 				sceUdcdGetDeviceState(&state);
@@ -713,8 +748,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_PASTE:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				CopyArguments args;
 				args.file_list = &file_list;
@@ -731,8 +768,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_DELETE_QUESTION:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DELETING]);
 				setDialogStep(DIALOG_STEP_DELETE_CONFIRMED);
@@ -741,8 +780,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_DELETE_CONFIRMED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				DeleteArguments args;
 				args.file_list = &file_list;
@@ -757,8 +798,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_EXPORT_QUESTION:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[EXPORTING]);
 				setDialogStep(DIALOG_STEP_EXPORT_CONFIRMED);
@@ -767,8 +810,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_EXPORT_CONFIRMED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				ExportArguments args;
 				args.file_list = &file_list;
@@ -783,8 +828,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_RENAME:
+		{
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (name[0] == '\0') {
@@ -819,8 +866,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_NEW_FOLDER:
+		{
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (name[0] == '\0') {
@@ -842,8 +891,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_COMPRESS_NAME:
+		{
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *name = (char *)getImeDialogInputTextUTF8();
 				if (name[0] == '\0') {
@@ -859,8 +910,10 @@ static int dialogSteps() {
 			}
 			
 			break;
-			
+		}
+		
 		case DIALOG_STEP_COMPRESS_LEVEL:
+		{
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *level = (char *)getImeDialogInputTextUTF8();
 				if (level[0] == '\0') {
@@ -887,8 +940,10 @@ static int dialogSteps() {
 			}
 			
 			break;
-			
+		}
+		
 		case DIALOG_STEP_HASH_QUESTION:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				// Throw up the progress bar, enter hashing state
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[HASHING]);
@@ -899,8 +954,10 @@ static int dialogSteps() {
 			}
 
 			break;
-
+		}
+		
 		case DIALOG_STEP_HASH_CONFIRMED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				// User has confirmed desire to hash, get requested file entry
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
@@ -920,8 +977,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_INSTALL_QUESTION:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
 				setDialogStep(DIALOG_STEP_INSTALL_CONFIRMED);
@@ -930,8 +989,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_INSTALL_CONFIRMED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				InstallArguments args;
 
@@ -957,8 +1018,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_INSTALL_WARNING:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				setDialogStep(DIALOG_STEP_INSTALL_WARNING_AGREED);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
@@ -966,8 +1029,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_INSTALLED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				if (install_list.length > 0) {
 					initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
@@ -980,16 +1045,20 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_UPDATE_QUESTION:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DOWNLOADING]);
 				setDialogStep(DIALOG_STEP_DOWNLOADING);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				setDialogStep(DIALOG_STEP_NONE);
 			}
-			
+		}
+		
 		case DIALOG_STEP_DOWNLOADED:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
 
@@ -1001,8 +1070,10 @@ static int dialogSteps() {
 			}
 
 			break;
-			
+		}
+		
 		case DIALOG_STEP_SETTINGS_AGREEMENT:
+		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				settingsAgree();
 				setDialogStep(DIALOG_STEP_NONE);
@@ -1015,8 +1086,10 @@ static int dialogSteps() {
 			}
 			
 			break;
-			
+		}
+		
 		case DIALOG_STEP_SETTINGS_STRING:
+		{
 			if (ime_result == IME_DIALOG_RESULT_FINISHED) {
 				char *string = (char *)getImeDialogInputTextUTF8();
 				if (string[0] != '\0') {
@@ -1029,7 +1102,8 @@ static int dialogSteps() {
 			}
 			
 			break;
-			
+		}
+		
 		case DIALOG_STEP_EXTRACTED:
 			launchAppByUriExit("VSUPDATER");
 			setDialogStep(DIALOG_STEP_NONE);

@@ -21,6 +21,7 @@ DOWNLOADING                          = "Downloading..."
 EXTRACTING                           = "Extracting..."
 COMPRESSING                          = "Compressing..."
 HASHING                              = "Hashing..."
+REFRESHING                           = "Refreshing..."
 
 # Audio player strings
 TITLE                                = "Title"
@@ -38,6 +39,7 @@ EDIT_LINE                            = "Edit line"
 ENTER_SEARCH_TERM                    = "Enter search term"
 
 # Context menu strings
+REFRESH_LIVEAREA                     = "Refresh livearea"
 MOUNT_UMA0                           = "Mount uma0:"
 MOUNT_USB_UX0                        = "Mount USB ux0:"
 UMOUNT_USB_UX0                       = "Umount USB ux0:"
@@ -113,6 +115,8 @@ INSTALL_QUESTION                     = "Do you want to install this package?"
 INSTALL_WARNING                      = "This package requests extended permissions.\It will have access to your personal information.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
 INSTALL_BRICK_WARNING                = "This package uses functions that remounts\partitions and can potentially brick your device.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
 HASH_FILE_QUESTION                   = "SHA1 hashing may take a long time. Continue?"
+SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"
+REFRESH_LIVEAREA_QUESTION            = "Refreshing the livearea may take a long time. Continue?"
 
 # HENkaku settings strings
 HENKAKU_SETTINGS                     = "HENkaku settings"
@@ -152,7 +156,6 @@ USB_UX0_UMOUNTED                     = "USB ux0: umounted."
 SAFE_MODE                            = "SAFE MODE"
 UNSAFE_MODE                          = "UNSAFE MODE"
 PLEASE_WAIT                          = "Please wait..."
-SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"
 NO_SPACE_ERROR                       = "There is not enough free space on the memory\card.\At least %s more space is needed."
 EXTENDED_PERMISSIONS_REQUIRED        = "This feature requires extended permissions.\Please activate 'Enable unsafe homebrew' first."
 WIFI_ERROR                           = "You must use Wi-Fi to do this."

@@ -60,6 +60,7 @@ add_executable(VitaShell
   io_process.c
   makezip.c
   package_installer.c
+  refresh.c
   network_update.c
   context_menu.c
   archive.c

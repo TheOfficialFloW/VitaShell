@@ -33,6 +33,7 @@
 #include <psp2/photoexport.h>
 #include <psp2/pgf.h>
 #include <psp2/power.h>
+#include <psp2/promoterutil.h>
 #include <psp2/rtc.h>
 #include <psp2/shellutil.h>
 #include <psp2/sysmodule.h>
@@ -175,6 +176,10 @@ enum DialogSteps {
 	DIALOG_STEP_INFO,
 	DIALOG_STEP_SYSTEM,
 
+	DIALOG_STEP_REFRESH_LIVEAREA_QUESTION,
+	DIALOG_STEP_REFRESHING,
+	DIALOG_STEP_REFRESHED,
+	
 	DIALOG_STEP_USB_ATTACH_WAIT,
 
 	DIALOG_STEP_FTP_WAIT,

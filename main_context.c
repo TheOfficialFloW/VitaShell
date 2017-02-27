@@ -29,15 +29,17 @@
 #include "usb.h"
 
 enum MenuHomeEntrys {
+	MENU_HOME_ENTRY_REFRESH_LIVEAREA,
 	MENU_HOME_ENTRY_MOUNT_UMA0,
 	MENU_HOME_ENTRY_MOUNT_USB_UX0,
 	MENU_HOME_ENTRY_UMOUNT_USB_UX0,
 };
 
 MenuEntry menu_home_entries[] = {
-	{ MOUNT_UMA0,     0, 0, CTX_INVISIBLE },
-	{ MOUNT_USB_UX0,  2, 0, CTX_INVISIBLE },
-	{ UMOUNT_USB_UX0, 3, 0, CTX_INVISIBLE },
+	{ REFRESH_LIVEAREA, 0, 0, CTX_INVISIBLE },
+	{ MOUNT_UMA0,       1, 0, CTX_INVISIBLE },
+	{ MOUNT_USB_UX0,    3, 0, CTX_INVISIBLE },
+	{ UMOUNT_USB_UX0,   4, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
@@ -205,10 +207,10 @@ void setContextMenuHomeVisibilities() {
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
 		} else {
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
-			menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 		}
-
-		if (shellUserIsUx0Redirected()) {
+	
+		if (shellUserIsUx0Redirected() == 1) {
+			menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 		} else {
 			menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
@@ -414,6 +416,13 @@ void setContextMenuMoreVisibilities() {
 
 static int contextMenuHomeEnterCallback(int sel, void *context) {
 	switch (sel) {
+		case MENU_HOME_ENTRY_REFRESH_LIVEAREA:
+		{
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[REFRESH_LIVEAREA_QUESTION]);
+			setDialogStep(DIALOG_STEP_REFRESH_LIVEAREA_QUESTION);
+			break;
+		}
+		
 		case MENU_HOME_ENTRY_MOUNT_UMA0:
 		{
 			SceUID fd = sceIoOpen("sdstor0:uma-lp-act-entire", SCE_O_RDONLY, 0);

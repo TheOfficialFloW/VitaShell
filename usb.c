@@ -60,10 +60,10 @@ int mountUsbUx0() {
 
 	// Create important dirs
 	sceIoMkdir("uma0:data", 0777);
-	sceIoMkdir("uma0:temp", 0777);
-	sceIoMkdir("uma0:temp/app_work/", 0777);
-	sceIoMkdir("uma0:temp/app_work/MLCL00001", 0777);
-	sceIoMkdir("uma0:temp/app_work/MLCL00001/rec", 0777);
+	sceIoMkdir("uma0:temp", 0006);
+	sceIoMkdir("uma0:temp/app_work/", 0006);
+	sceIoMkdir("uma0:temp/app_work/MLCL00001", 0006);
+	sceIoMkdir("uma0:temp/app_work/MLCL00001/rec", 0006);
 
 	// Copy important files
 	copyPath("ux0:temp/app_work/MLCL00001/rec/config.bin", "uma0:temp/app_work/MLCL00001/rec/config.bin", NULL);
@@ -114,24 +114,33 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
 	// Stop MTP driver
 	res = sceMtpIfStopDriver(1);
 	if (res < 0)
-		return res;
+		goto ERROR_STOP_DRIVER;
 
 	// Set device information
 	res = sceUsbstorVStorSetDeviceInfo("\"PS Vita\" MC", "1.00");
 	if (res < 0)
-		return res;
+		goto ERROR_USBSTOR_VSTOR;
 
 	// Set image file path
 	res = sceUsbstorVStorSetImgFilePath(imgFilePath);
 	if (res < 0)
-		return res;
+		goto ERROR_USBSTOR_VSTOR;
 
 	// Start USB storage
 	res = sceUsbstorVStorStart(type);
 	if (res < 0)
-		return res;
+		goto ERROR_USBSTOR_VSTOR;
 
 	return modid;
+
+ERROR_USBSTOR_VSTOR:
+	sceMtpIfStartDriver(1);
+
+ERROR_STOP_DRIVER:
+	if (modid >= 0)
+		taiStopUnloadKernelModule(modid, 0, NULL, 0, NULL, NULL);
+
+	return res;
 }
 
 int stopUsb(SceUID modid) {

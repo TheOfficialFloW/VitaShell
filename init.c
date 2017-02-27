@@ -87,6 +87,7 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt, 1),
 };
 
+char vitashell_titleid[12];
 char henkaku_config_path[32];
 
 int is_safe_mode = 0, is_molecular_shell = 0;
@@ -270,19 +271,18 @@ void initVitaShell() {
 	sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION);
 
 	// Get titleid
-	char titleid[12];
-	memset(titleid, 0, sizeof(titleid));
-	sceAppMgrAppParamGetString(sceKernelGetProcessId(), 12, titleid, sizeof(titleid));
+	memset(vitashell_titleid, 0, sizeof(vitashell_titleid));
+	sceAppMgrAppParamGetString(sceKernelGetProcessId(), 12, vitashell_titleid, sizeof(vitashell_titleid));
 
 	// Allow writing to ux0:app/VITASHELL
 	sceAppMgrUmount("app0:");
 
 	// Is molecularShell
-	if (strcmp(titleid, "MLCL00001") == 0) {
+	if (strcmp(vitashell_titleid, "MLCL00001") == 0) {
 		// HENkaku config path (ux0:temp/app_work/MLCL00001/rec/config.bin)
 		char mount_point[16];
 		memset(mount_point, 0, sizeof(mount_point));
-		sceAppMgrWorkDirMountById(207, titleid, mount_point);
+		sceAppMgrWorkDirMountById(207, vitashell_titleid, mount_point);
 		sprintf(henkaku_config_path, "%s/config.bin", mount_point);
 
 		is_molecular_shell = 1;
@@ -325,11 +325,8 @@ void initVitaShell() {
 	installDefaultFiles();
 
 	// Load modules
-	SceUID kernel_modid = taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
-	SceUID user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
-	
-	debugPrintf("kernel_modid: 0x%08X\n", kernel_modid);
-	debugPrintf("user_modid: 0x%08X\n", user_modid);
+	taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
+	sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
 }
 
 void finishVitaShell() {
