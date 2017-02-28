@@ -114,6 +114,7 @@ enum LanguageContainer {
 	PROPERTY_FSELF_MODE_SCE,
 
 	// File browser strings
+	REFRESHED,
 	COPIED_FILE,
 	COPIED_FOLDER,
 	COPIED_FILES_FOLDERS,

@@ -109,7 +109,7 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
 	// Load and start usbdevice module
 	SceUID modid = taiLoadStartKernelModule(usbDevicePath, 0, NULL, 0);
 	if (modid < 0)
-		return modid;
+		goto ERROR_LOAD_MODULE;
 
 	// Stop MTP driver
 	res = sceMtpIfStopDriver(1);
@@ -137,9 +137,9 @@ ERROR_USBSTOR_VSTOR:
 	sceMtpIfStartDriver(1);
 
 ERROR_STOP_DRIVER:
-	if (modid >= 0)
-		taiStopUnloadKernelModule(modid, 0, NULL, 0, NULL, NULL);
+	taiStopUnloadKernelModule(modid, 0, NULL, 0, NULL, NULL);
 
+ERROR_LOAD_MODULE:
 	return res;
 }
 

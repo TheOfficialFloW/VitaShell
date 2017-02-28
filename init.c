@@ -245,10 +245,10 @@ void installDefaultFiles() {
 	sceIoMkdir("ux0:VitaShell/theme", 0777);
 	sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
 
-	sceIoMkdir("ux0:patch", 0777);
-	sceIoMkdir("ux0:patch/VITASHELL", 0777);
-	sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0777);
-	sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0777);
+	sceIoMkdir("ux0:patch", 0006);
+	sceIoMkdir("ux0:patch/VITASHELL", 0006);
+	sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0006);
+	sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0006);
 
 	// Write default files if they don't exist
 	int i;

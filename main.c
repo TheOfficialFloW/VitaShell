@@ -532,7 +532,6 @@ static int dialogSteps() {
 			break;
 		}
 		
-		case DIALOG_STEP_REFRESHED:
 		case DIALOG_STEP_CANCELLED:
 			refresh = REFRESH_MODE_NORMAL;
 			setDialogStep(DIALOG_STEP_NONE);
@@ -1613,6 +1612,10 @@ int main(int argc, const char *argv[]) {
 		} else if (strcmp(argv[1], "umount") == 0) {
 			// Remount uma0:
 			remount(0xF00);
+			
+			// Copy back iconlayout.ini
+			copyPath("uma0:iconlayout.ini", "ux0:iconlayout.ini", NULL);
+
 			infoDialog(language_container[USB_UX0_UMOUNTED]);
 		}
 	}

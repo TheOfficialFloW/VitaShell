@@ -94,6 +94,7 @@ PROPERTY_FSELF_MODE_UNSAFE           = "Unsafe"
 PROPERTY_FSELF_MODE_SCE              = "SCE signed"
 
 # File browser strings
+REFRESHED                            = "Refreshed %d items."
 COPIED_FILE                          = "Copied %d file(s)."
 COPIED_FOLDER                        = "Copied %d folder(s)."
 COPIED_FILES_FOLDERS                 = "Copied %d file(s)/folder(s)."

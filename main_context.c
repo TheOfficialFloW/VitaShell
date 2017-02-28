@@ -418,25 +418,34 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 	switch (sel) {
 		case MENU_HOME_ENTRY_REFRESH_LIVEAREA:
 		{
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[REFRESH_LIVEAREA_QUESTION]);
-			setDialogStep(DIALOG_STEP_REFRESH_LIVEAREA_QUESTION);
+			if (is_safe_mode) {
+				infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
+			} else {
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[REFRESH_LIVEAREA_QUESTION]);
+				setDialogStep(DIALOG_STEP_REFRESH_LIVEAREA_QUESTION);
+			}
+
 			break;
 		}
 		
 		case MENU_HOME_ENTRY_MOUNT_UMA0:
 		{
-			SceUID fd = sceIoOpen("sdstor0:uma-lp-act-entire", SCE_O_RDONLY, 0);
-			if (fd >= 0) {
-				sceIoClose(fd);
-				int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
-				if (res < 0)
-					errorDialog(res);
-				else
-					infoDialog(language_container[USB_UMA0_MOUNTED]);
-				refreshFileList();
+			if (is_safe_mode) {
+				infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
 			} else {
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_WAIT_ATTACH]);
-				setDialogStep(DIALOG_STEP_USB_ATTACH_WAIT);
+				SceUID fd = sceIoOpen("sdstor0:uma-lp-act-entire", SCE_O_RDONLY, 0);
+				if (fd >= 0) {
+					sceIoClose(fd);
+					int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
+					if (res < 0)
+						errorDialog(res);
+					else
+						infoDialog(language_container[USB_UMA0_MOUNTED]);
+					refreshFileList();
+				} else {
+					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_WAIT_ATTACH]);
+					setDialogStep(DIALOG_STEP_USB_ATTACH_WAIT);
+				}
 			}
 			
 			break;

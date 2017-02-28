@@ -65,7 +65,7 @@ int promotePkg(const char *path) {
 
 	res = scePromoterUtilityInit();
 	if (res < 0)
-		return res;
+		goto ERROR_EXIT;
 
 	res = scePromoterUtilityPromotePkg(path, 0);
 	if (res < 0)
@@ -126,7 +126,7 @@ int deleteApp(const char *titleid) {
 
 	res = scePromoterUtilityInit();
 	if (res < 0)
-		return res;
+		goto ERROR_EXIT;
 
 	res = scePromoterUtilityDeletePkg(titleid);
 	if (res < 0)
