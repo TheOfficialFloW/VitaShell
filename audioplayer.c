@@ -132,7 +132,6 @@ void shortenString(char *out, const char *in, int width) {
 }
 
 vita2d_texture *getAlternativeCoverImage(const char *file) {
-	SceIoStat stat;
 	char path[MAX_PATH_LENGTH];
 
 	char *p = strrchr(file, '/');
@@ -140,15 +139,13 @@ vita2d_texture *getAlternativeCoverImage(const char *file) {
 		*p = '\0';
 
 		snprintf(path, MAX_PATH_LENGTH, "%s/cover.jpg", file);
-		memset(&stat, 0, sizeof(SceIoStat));
-		if (sceIoGetstat(path, &stat) >= 0) {
+		if (checkFileExist(path)) {
 			*p = '/';
 			return vita2d_load_JPEG_file(path);
 		}
 
 		snprintf(path, MAX_PATH_LENGTH, "%s/folder.jpg", file);
-		memset(&stat, 0, sizeof(SceIoStat));
-		if (sceIoGetstat(path, &stat) >= 0) {
+		if (checkFileExist(path)) {
 			*p = '/';
 			return vita2d_load_JPEG_file(path);
 		}

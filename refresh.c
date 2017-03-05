@@ -40,17 +40,33 @@ int isCustomHomebrew() {
 	return 1;
 }
 
+int sceRegMgrGetKeyBin(const char *category, const char *name, void *buf, int size);
+int _sceNpDrmGetRifName(char *rif_name, int flags, uint64_t aid);
+int _sceNpDrmGetFixedRifName(char *rif_name, int flags, uint64_t aid);
+
 int refreshApp(const char *titleid) {
 	int res;
-	int ret;
 
-	res = scePromoterUtilityInit();
-	if (res < 0)
-		goto ERROR_EXIT;
+	// Check if app exists
+	if (checkAppExist(titleid) >= 0) {
+		uint64_t aid;
+		sceRegMgrGetKeyBin("/CONFIG/NP", "account_id", &aid, sizeof(uint64_t));
 
-	res = scePromoterUtilityCheckExist(titleid, &ret);
-	if (res >= 0)
-		goto ERROR_EXIT;
+		char rif_name[48];
+		char path[MAX_PATH_LENGTH];
+
+		_sceNpDrmGetRifName(rif_name, 0, aid);
+		snprintf(path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
+
+		if (checkFileExist(path))
+			return 0;
+
+		_sceNpDrmGetFixedRifName(rif_name, 0, 0);
+		snprintf(path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
+
+		if (checkFileExist(path))
+			return 0;
+	}
 
 	// Clean
 	removePath("ux0:temp/game", NULL);
@@ -63,24 +79,23 @@ int refreshApp(const char *titleid) {
 	// Rename app
 	res = sceIoRename(path, "ux0:temp/game");
 	if (res < 0)
-		goto ERROR_EXIT;
+		return res;
 
 	// Remove work.bin for custom homebrews
 	if (isCustomHomebrew())
 		sceIoRemove("ux0:temp/game/sce_sys/package/work.bin");
 
-	res = scePromoterUtilityPromotePkgWithRif("ux0:temp/game", 1);
+	// Promote app
+	res = promoteApp("ux0:temp/game");
 
-	// Rename back if it failed, or set to 1 if succeeded
-	if (res < 0)
+	// Rename back if it failed
+	if (res < 0) {
 		sceIoRename("ux0:temp/game", path);
-	else
-		res = 1;
+		return res;
+	}
 
-ERROR_EXIT:
-	scePromoterUtilityExit();
-
-	return res;
+	// Return success
+	return 1;
 }
 
 int refresh_thread(SceSize args, void *argp) {

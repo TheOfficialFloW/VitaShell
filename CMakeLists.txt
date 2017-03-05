@@ -138,6 +138,8 @@ target_link_libraries(VitaShell
   SceMusicExport_stub
   SceNet_stub
   SceNetCtl_stub
+  SceNpDrm_stub
+  SceReg_stub
   SceShellSvc_stub
   SceSsl_stub
   SceSysmodule_stub

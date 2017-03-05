@@ -315,9 +315,7 @@ void initVitaShell() {
 	initPowerTickThread();
 
 	// Delete VitaShell updater if available
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
-	if (sceIoGetstat("ux0:app/VSUPDATER", &stat) >= 0) {
+	if (checkAppExist("VSUPDATER") >= 0) {
 		deleteApp("VSUPDATER");
 	}
 

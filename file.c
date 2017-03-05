@@ -93,6 +93,13 @@ int getFileSize(const char *file) {
 	return fileSize;
 }
 
+int checkFileExist(const char *file) {
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+
+	return sceIoGetstat(file, &stat) >= 0;
+}
+
 int changePathPermissions(const char *path, int perms) {
 	SceIoStat stat;
 	memset(&stat, 0, sizeof(SceIoStat));

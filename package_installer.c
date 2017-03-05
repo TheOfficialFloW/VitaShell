@@ -27,129 +27,51 @@
 #include "sfo.h"
 #include "sha1.h"
 
-#include "resources/base_head_bin.h"
-
-int promoteUpdate(const char *path, const char *titleid, const char *category, void *sfo_buffer, int sfo_size) {
-	int res;
-
-	// Update installation
-	if (strcmp(category, "gp") == 0) {
-		// Change category to 'gd'
-		setSfoString(sfo_buffer, "CATEGORY", "gd");
-		WriteFile(PACKAGE_DIR "/sce_sys/param.sfo", sfo_buffer, sfo_size);
-
-		// App path
-		char app_path[MAX_PATH_LENGTH];
-		snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", titleid);
-
-		/*
-			Without the following trick, the livearea won't be updated and the game will even crash
-		*/
-
-		// Integrate patch to app
-		res = movePath(path, app_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
-		if (res < 0)
-			return res;
-
-		// Move app to promotion directory
-		res = movePath(app_path, path, 0, NULL);
-		if (res < 0)
-			return res;
-	}
-
-	return 0;
-}
-
-int promotePkg(const char *path) {
-	int res, ret;
-
-	res = scePromoterUtilityInit();
-	if (res < 0)
-		goto ERROR_EXIT;
-
-	res = scePromoterUtilityPromotePkg(path, 0);
-	if (res < 0)
-		goto ERROR_EXIT;
-
-	int state = 0;
-	do {
-		res = scePromoterUtilityGetState(&state);
-		if (res < 0)
-			goto ERROR_EXIT;
-
-		sceKernelDelayThread(100 * 1000);
-	} while (state);
-
-	res = scePromoterUtilityGetResult(&ret);
-
-ERROR_EXIT:
-	scePromoterUtilityExit();
-	
-	if (res < 0)
-		return res;
-
-	// Using the promoteUpdate trick, we get 0x80870005 as result, but it installed correctly though, so return ok
-	return ret == 0x80870005 ? 0 : ret;
-}
+INCLUDE_EXTERN_RESOURCE(head_bin);
 
 int promoteApp(const char *path) {
 	int res;
 
-	// Read param.sfo
-	void *sfo_buffer = NULL;
-	int sfo_size = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
-	if (sfo_size < 0)
-		return sfo_size;
+	res = scePromoterUtilityInit();
+	if (res < 0)
+		return res;
 
-	// Get titleid
-	char titleid[12];
-	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+	res = scePromoterUtilityPromotePkgWithRif(path, 1);
 
-	// Get category
-	char category[4];
-	getSfoString(sfo_buffer, "CATEGORY", category, sizeof(category));
+	scePromoterUtilityExit();
 
-	// Promote update
-	promoteUpdate(path, titleid, category, sfo_buffer, sfo_size);
-
-	// Free sfo buffer
-	free(sfo_buffer);
-
-	// Promote pkg
-	return promotePkg(path);
+	return res;
 }
 
 int deleteApp(const char *titleid) {
-	int res, ret;
+	int res;
 
 	sceAppMgrDestroyOtherApp();
 
 	res = scePromoterUtilityInit();
 	if (res < 0)
-		goto ERROR_EXIT;
+		return res;
 
 	res = scePromoterUtilityDeletePkg(titleid);
-	if (res < 0)
-		goto ERROR_EXIT;
 
-	int state = 0;
-	do {
-		res = scePromoterUtilityGetState(&state);
-		if (res < 0)
-			goto ERROR_EXIT;
-
-		sceKernelDelayThread(100 * 1000);
-	} while (state);
-
-	res = scePromoterUtilityGetResult(&ret);
-
-ERROR_EXIT:
 	scePromoterUtilityExit();
 
+	return res;
+}
+
+int checkAppExist(const char *titleid) {
+	int res;
+	int ret;
+
+	res = scePromoterUtilityInit();
 	if (res < 0)
 		return res;
 
-	return ret;
+	res = scePromoterUtilityCheckExist(titleid, &ret);
+
+	scePromoterUtilityExit();
+
+	return res;
 }
 
 static void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
@@ -183,6 +105,12 @@ int makeHeadBin() {
 	uint32_t len;
 	uint32_t out;
 
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+
+	if (checkFileExist(HEAD_BIN) >= 0)
+		return 0;
+
 	// Read param.sfo
 	void *sfo_buffer = NULL;
 	int res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
@@ -207,12 +135,12 @@ int makeHeadBin() {
 	free(sfo_buffer);
 
 	// Allocate head.bin buffer
-	uint8_t *head_bin = malloc(sizeof(base_head_bin));
-	memcpy(head_bin, base_head_bin, sizeof(base_head_bin));
+	uint8_t *head_bin = malloc((int)&_binary_resources_head_bin_size);
+	memcpy(head_bin, (void *)&_binary_resources_head_bin_start, (int)&_binary_resources_head_bin_size);
 
 	// Write full title id
 	char full_title_id[48];
-	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-XXXXXXXXXXXXXXXX", titleid);
+	snprintf(full_title_id, sizeof(full_title_id), "EP9000-%s_00-0000000000000000", titleid);
 	strncpy((char *)&head_bin[0x30], strlen(contentid) > 0 ? contentid : full_title_id, 48);
 
 	// hmac of pkg header
@@ -224,7 +152,7 @@ int makeHeadBin() {
 	off = ntohl(*(uint32_t *)&head_bin[0x8]);
 	len = ntohl(*(uint32_t *)&head_bin[0x10]);
 	out = ntohl(*(uint32_t *)&head_bin[0xD4]);
-	fpkg_hmac(&head_bin[off], len - 64, hmac);
+	fpkg_hmac(&head_bin[off], len-64, hmac);
 	memcpy(&head_bin[out], hmac, 16);
 
 	// hmac of everything
@@ -236,7 +164,7 @@ int makeHeadBin() {
 	sceIoMkdir(PACKAGE_DIR "/sce_sys/package", 0777);
 
 	// Write head.bin
-	WriteFile(HEAD_BIN, head_bin, sizeof(base_head_bin));
+	WriteFile(HEAD_BIN, head_bin, (int)&_binary_resources_head_bin_size);
 
 	free(head_bin);
 

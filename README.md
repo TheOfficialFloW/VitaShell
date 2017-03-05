@@ -94,6 +94,9 @@ Be sure you pull request your customized design or language file there.
 * Everybody who contributed on vitasdk
 
 ### Changelog 1.60 ###
+- Added ability to mount uma0: and ability to use uma0: as ux0:.
+- Added ability to mount game card as usb device.
+- Added possibility to refresh the livearea.
 - Added I/O operations speed in KB/s.
 - Added scrolling text for long filenames.
 - Added 'Sort by' option to context menu (R trigger combo removed).

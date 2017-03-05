@@ -201,9 +201,7 @@ void setContextMenuHomeVisibilities() {
 		menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 		menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 	} else {
-		SceIoStat stat;
-		memset(&stat, 0, sizeof(SceIoStat));
-		if (sceIoGetstat("uma0:", &stat) >= 0) {
+		if (checkFileExist("uma0:")) {
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
 		} else {
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
@@ -631,9 +629,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 					snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
 				}
 
-				SceIoStat stat;
-				memset(&stat, 0, sizeof(SceIoStat));
-				if (sceIoGetstat(path, &stat) < 0)
+				if (!checkFileExist(path))
 					break;
 
 				count++;

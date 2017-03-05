@@ -1325,9 +1325,7 @@ static int shellMain() {
 	ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
 
 	// Calculate dir positions if the dir is valid
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
-	if (sceIoGetstat(lastdir, &stat) >= 0) {
+	if (checkFileExist(lastdir)) {
 		int i;
 		for (i = 0; i < strlen(lastdir)+1; i++) {
 			if (lastdir[i] == ':' || lastdir[i] == '/') {
