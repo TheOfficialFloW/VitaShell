@@ -492,14 +492,29 @@ static void initFtp() {
 }
 
 static void initUsb() {
-	char *path = "sdstor0:xmc-lp-ign-userext";
+	char *path = "";
 
-	SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
-	
-	if (fd < 0)
-		path = "sdstor0:int-lp-ign-userext";
-	else
-		sceIoClose(fd);
+	if (vitashell_config.usbdevice == USBDEVICE_MODE_MEMORY_CARD) {
+		path = "sdstor0:xmc-lp-ign-userext";
+
+		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
+		
+		if (fd < 0)
+			path = "sdstor0:int-lp-ign-userext";
+		else
+			sceIoClose(fd);
+	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_GAME_CARD) {
+		path = "sdstor0:gcd-lp-ign-gamero";
+		
+		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
+		
+		if (fd < 0) {
+			infoDialog(language_container[GAME_CARD_NOT_FOUND]);
+			return;
+		} else {
+			sceIoClose(fd);
+		}
+	}
 
 	usbdevice_modid = startUsb("ux0:VitaShell/module/usbdevice.skprx", path, SCE_USBSTOR_VSTOR_TYPE_FAT);
 	if (usbdevice_modid >= 0) {

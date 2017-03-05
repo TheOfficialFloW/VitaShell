@@ -19,10 +19,14 @@
 #ifndef __VITASHELL_CONFIGURATION_H__
 #define __VITASHELL_CONFIGURATION_H__
 
+#define USBDEVICE_MODE_MEMORY_CARD 0
+#define USBDEVICE_MODE_GAME_CARD 1
+
 #define SELECT_BUTTON_MODE_USB 0
 #define SELECT_BUTTON_MODE_FTP 1
 
 typedef struct {
+	int usbdevice;
 	int select_button;
 	int disable_autoupdate;
 } VitaShellConfig;

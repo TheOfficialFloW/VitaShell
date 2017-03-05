@@ -33,7 +33,13 @@ static int first = 1;
 
 static SceUID ksceIoOpenPatched(const char *file, int flags, SceMode mode) {
 	first = 1;
-	return TAI_CONTINUE(SceUID, ksceIoOpenRef, file, flags, mode);
+
+	SceUID fd = TAI_CONTINUE(SceUID, ksceIoOpenRef, file, flags, mode);
+
+	if (fd == 0x800F090D)
+		return TAI_CONTINUE(SceUID, ksceIoOpenRef, file, flags & ~SCE_O_WRONLY, mode);
+
+	return fd;
 }
 
 static int ksceIoReadPatched(SceUID fd, void *data, SceSize size) {

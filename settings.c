@@ -66,9 +66,11 @@ static char spoofed_version[6];
 static SettingsMenuEntry *settings_menu_entries = NULL;
 static int n_settings_entries = 0;
 
+static char *usbdevice_options[2];
 static char *select_button_options[2];
 
 static ConfigEntry settings_entries[] = {
+	{ "USBDEVICE", CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.usbdevice },
 	{ "SELECT_BUTTON", CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.select_button },
 	{ "DISABLE_AUTOUPDATE", CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_autoupdate },
 };
@@ -86,6 +88,9 @@ SettingsMenuOption main_settings[] = {
 	// { VITASHELL_SETTINGS_LANGUAGE,		SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &language },
 	// { VITASHELL_SETTINGS_THEME,			SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &theme },
 	
+	{ VITASHELL_SETTINGS_USBDEVICE,			SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
+											usbdevice_options, sizeof(usbdevice_options) / sizeof(char **),
+											&vitashell_config.usbdevice },
 	{ VITASHELL_SETTINGS_SELECT_BUTTON,		SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
 											select_button_options, sizeof(select_button_options) / sizeof(char **),
 											&vitashell_config.select_button },
@@ -167,6 +172,9 @@ void initSettingsMenu() {
 	int i;
 	for (i = 0; i < n_settings_entries; i++)
 		settings_menu.n_options += settings_menu_entries[i].n_options;
+
+	usbdevice_options[0] = language_container[VITASHELL_SETTINGS_USB_MEMORY_CARD];
+	usbdevice_options[1] = language_container[VITASHELL_SETTINGS_USB_GAME_CARD];
 
 	select_button_options[0] = language_container[VITASHELL_SETTINGS_SELECT_BUTTON_USB];
 	select_button_options[1] = language_container[VITASHELL_SETTINGS_SELECT_BUTTON_FTP];
