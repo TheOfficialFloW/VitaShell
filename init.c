@@ -315,7 +315,7 @@ void initVitaShell() {
 	initPowerTickThread();
 
 	// Delete VitaShell updater if available
-	if (checkAppExist("VSUPDATER") >= 0) {
+	if (checkAppExist("VSUPDATER")) {
 		deleteApp("VSUPDATER");
 	}
 

@@ -71,7 +71,7 @@ int checkAppExist(const char *titleid) {
 
 	scePromoterUtilityExit();
 
-	return res;
+	return res >= 0;
 }
 
 static void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
@@ -108,7 +108,7 @@ int makeHeadBin() {
 	SceIoStat stat;
 	memset(&stat, 0, sizeof(SceIoStat));
 
-	if (checkFileExist(HEAD_BIN) >= 0)
+	if (checkFileExist(HEAD_BIN))
 		return 0;
 
 	// Read param.sfo

@@ -21,6 +21,7 @@
 #include "io_process.h"
 #include "refresh.h"
 #include "package_installer.h"
+#include "sfo.h"
 #include "file.h"
 #include "message_dialog.h"
 #include "language.h"
@@ -44,27 +45,44 @@ int sceRegMgrGetKeyBin(const char *category, const char *name, void *buf, int si
 int _sceNpDrmGetRifName(char *rif_name, int flags, uint64_t aid);
 int _sceNpDrmGetFixedRifName(char *rif_name, int flags, uint64_t aid);
 
-int refreshApp(const char *titleid) {
+int refreshApp(const char *name) {
+	char app_path[MAX_PATH_LENGTH], param_path[MAX_PATH_LENGTH], license_path[MAX_PATH_LENGTH];
 	int res;
 
+	// Path
+	snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", name);
+	snprintf(param_path, MAX_PATH_LENGTH, "ux0:app/%s/sce_sys/param.sfo", name);
+
+	// Read param.sfo
+	void *sfo_buffer = NULL;
+	int sfo_size = allocateReadFile(param_path, &sfo_buffer);
+	if (sfo_size < 0)
+		return sfo_size;
+
+	// Get titleid
+	char titleid[12];
+	getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+
+	// Free sfo buffer
+	free(sfo_buffer);
+
 	// Check if app exists
-	if (checkAppExist(titleid) >= 0) {
+	if (checkAppExist(titleid)) {
+		char rif_name[48];
+
 		uint64_t aid;
 		sceRegMgrGetKeyBin("/CONFIG/NP", "account_id", &aid, sizeof(uint64_t));
 
-		char rif_name[48];
-		char path[MAX_PATH_LENGTH];
-
+		// Check if bounded rif file exits
 		_sceNpDrmGetRifName(rif_name, 0, aid);
-		snprintf(path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
-
-		if (checkFileExist(path))
+		snprintf(license_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
+		if (checkFileExist(license_path))
 			return 0;
 
+		// Check if fixed rif file exits
 		_sceNpDrmGetFixedRifName(rif_name, 0, 0);
-		snprintf(path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
-
-		if (checkFileExist(path))
+		snprintf(license_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
+		if (checkFileExist(license_path))
 			return 0;
 	}
 
@@ -72,12 +90,8 @@ int refreshApp(const char *titleid) {
 	removePath("ux0:temp/game", NULL);
 	sceIoMkdir("ux0:temp", 0006);
 
-	// Path
-	char path[MAX_PATH_LENGTH];
-	snprintf(path, MAX_PATH_LENGTH, "ux0:app/%s", titleid);
-
 	// Rename app
-	res = sceIoRename(path, "ux0:temp/game");
+	res = sceIoRename(app_path, "ux0:temp/game");
 	if (res < 0)
 		return res;
 
@@ -90,7 +104,7 @@ int refreshApp(const char *titleid) {
 
 	// Rename back if it failed
 	if (res < 0) {
-		sceIoRename("ux0:temp/game", path);
+		sceIoRename("ux0:temp/game", app_path);
 		return res;
 	}
 

@@ -97,15 +97,16 @@ Be sure you pull request your customized design or language file there.
 - Added ability to mount uma0: and ability to use uma0: as ux0:.
 - Added ability to mount game card as usb device.
 - Added possibility to refresh the livearea.
-- Added I/O operations speed in KB/s.
 - Added scrolling text for long filenames.
 - Added 'Sort by' option to context menu (R trigger combo removed).
-- Made control smoother.
-- Removed battery icon in status bar for PSTV.
+- Improved property dialog animation.
 - Fixed text editor bugs.
 - Fixed bug where USB cable wasn't recognized.
 - Fixed bug where VitaShell left to livearea after deleting the updater.
-- Improved property dialog animation.
+- Removed battery icon in status bar for PSTV.
+- File statistics are now inherited when copying.
+- I/O operations speed will now be showed in KB/s.
+- Made control smoother.
 
 ### Changelog 1.51 ###
 - Fixed bug where 'Please wait...' was shown instead of a specifc USB message.

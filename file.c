@@ -100,18 +100,6 @@ int checkFileExist(const char *file) {
 	return sceIoGetstat(file, &stat) >= 0;
 }
 
-int changePathPermissions(const char *path, int perms) {
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
-	int res = sceIoGetstat(path, &stat);
-	if (res < 0)
-		return res;
-
-	stat.st_mode |= perms;
-
-	return sceIoChstat(path, &stat, 1);	
-}
-
 int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param) {
 	// Set up SHA1 context
 	SHA1_CTX ctx;
@@ -335,14 +323,7 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
 	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len-1] == '/')) {
 		return -2;
 	}
-/*
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
 
-	int res = sceIoGetstat(src_path, &stat);
-	if (res < 0)
-		return res;
-*/
 	SceUID fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
 	if (fdsrc < 0)
 		return fdsrc;
@@ -364,6 +345,8 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
 			sceIoClose(fddst);
 			sceIoClose(fdsrc);
 
+			sceIoRemove(dst_path);
+
 			return read;
 		}
 
@@ -377,6 +360,8 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
 
 			sceIoClose(fddst);
 			sceIoClose(fdsrc);
+
+			sceIoRemove(dst_path);
 
 			return written;
 		}
@@ -394,12 +379,20 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
 				sceIoClose(fddst);
 				sceIoClose(fdsrc);
 
+				sceIoRemove(dst_path);
+
 				return 0;
 			}
 		}
 	}
 
 	free(buf);
+
+	// Inherit file stat
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	sceIoGetstatByFd(fdsrc, &stat);
+	sceIoChstatByFd(fddst, &stat, 0x3B);
 
 	sceIoClose(fddst);
 	sceIoClose(fdsrc);
@@ -418,17 +411,14 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
 	if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len-1] == '/')) {
 		return -2;
 	}
-/*
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
 
-	int res = sceIoGetstat(src_path, &stat);
-	if (res < 0)
-		return res;
-*/
 	SceUID dfd = sceIoDopen(src_path);
 	if (dfd >= 0) {
-		int ret = sceIoMkdir(dst_path, 0777);
+		SceIoStat stat;
+		memset(&stat, 0, sizeof(SceIoStat));
+		sceIoGetstatByFd(dfd, &stat);
+
+		int ret = sceIoMkdir(dst_path, stat.st_mode & 0xFFF);
 		if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
 			sceIoDclose(dfd);
 			return ret;
@@ -501,10 +491,7 @@ int movePath(const char *src_path, const char *dst_path, int flags, FileProcessP
 
 	int res = sceIoRename(src_path, dst_path);
 
-	if (res >= 0) {
-		// Give group RW permissions
-		changePathPermissions(dst_path, SCE_S_IROTH | SCE_S_IWOTH);
-	} else if (res == SCE_ERROR_ERRNO_EEXIST && flags & (MOVE_INTEGRATE | MOVE_REPLACE)) {
+	if (res == SCE_ERROR_ERRNO_EEXIST && flags & (MOVE_INTEGRATE | MOVE_REPLACE)) {
 		// Src stat
 		SceIoStat src_stat;
 		memset(&src_stat, 0, sizeof(SceIoStat));
@@ -534,9 +521,6 @@ int movePath(const char *src_path, const char *dst_path, int flags, FileProcessP
 			res = sceIoRename(src_path, dst_path);
 			if (res < 0)
 				return res;
-
-			// Give group RW permissions
-			changePathPermissions(dst_path, SCE_S_IROTH | SCE_S_IWOTH);
 
 			return 1;
 		}

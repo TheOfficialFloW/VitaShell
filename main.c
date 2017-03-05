@@ -47,7 +47,6 @@
 	TODO:
 	- Theme manager
 	- PFS bypass
-	- Inherit file stat when copying
 */
 
 int _newlib_heap_size_user = 128 * 1024 * 1024;
