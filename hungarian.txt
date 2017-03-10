@@ -101,6 +101,7 @@ PROPERTY_FSELF_MODE_SCE              = "SCE aláírt"
 
 # File browser strings
 # Fájl böngészői szövegek
+REFRESHED                            = "Megújult %d elem."
 COPIED_FILE                          = "%d fájl másolva."
 COPIED_FOLDER                        = "%d mappa másolva."
 COPIED_FILES_FOLDERS                 = "%d fájl/mappa másolva."
@@ -123,6 +124,8 @@ INSTALL_QUESTION                     = "Biztosan telepíteni szeretnéd ezt a cs
 INSTALL_WARNING                      = "Ez a csomag kiterjesztett jogosultságokat kér,\így hozzá fog férni a személyes adataidhoz.\Ha a csomag nem megbízható forrásból származik,\csak saját felelősségedre lépj tovább.\\Folytatódjon a telepítés?"
 INSTALL_BRICK_WARNING                = "Ez a csomag olyan funkciókat használ, ami újra felcsatol\partíciókat és lehetséges, hogy téglává teszi az eszközöd.\Ha a csomag nem megbízható forrásból származik,\csak saját felelősségedre lépj tovább.\\Folytatódjon a telepítés?
 HASH_FILE_QUESTION                   = "SHA1 hashelése sokáig eltarthat. Folytatódjon?"
+SAVE_MODIFICATIONS                   = "Szeretnéd menteni a módosításokat?"
+REFRESH_LIVEAREA_QUESTION            = "A LiveAreat frissíteni eltarthat egy ideig. Folytatod?"
 
 # HENkaku settings strings
 # HENkaku beállitási szövegek
@@ -142,38 +145,39 @@ HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "A nem biztonságos homebrewek tönkreteh
 VITASHELL_SETTINGS_MAIN              = "Fő beállítások"
 VITASHELL_SETTINGS_LANGUAGE          = "Nyelv"
 VITASHELL_SETTINGS_THEME             = "Téma"
+VITASHELL_SETTINGS_USBDEVICE         = "USB eszköz"
 VITASHELL_SETTINGS_SELECT_BUTTON     = "SELECT gomb"
 VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Automatikus frissítés kikapcsolása"
 VITASHELL_SETTINGS_POWER             = "Energiagazdálkodás"
 VITASHELL_SETTINGS_REBOOT            = "Újraindítás"
 VITASHELL_SETTINGS_POWEROFF          = "Kikapcsolás"
 VITASHELL_SETTINGS_STANDBY           = "Készenlét"
+VITASHELL_SETTINGS_USB_MEMORY_CARD   = "Memória kártya"
+VITASHELL_SETTINGS_USB_GAME_CARD     = "Játék kártya"
 VITASHELL_SETTINGS_SELECT_BUTTON_USB = "USB"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
 
 # USB strings
 # USB szövegek
 USB_CONNECTED                        = "USB csatlakoztatva"
+USB_UMA0_MOUNTED                     = "uma0: felcsatolva."
+USB_UX0_MOUNTED                      = "USB ux0: felcsatolva."
+USB_UX0_UMOUNTED                     = "USB ux0: lecsatolva."
 USB_NOT_CONNECTED                    = "Csatlakoztassa ezt a rendszert egy PC számítógéppel USB kábel használatával."
 USB_CONNECTION_PERMISSION            = "Az USB csatlakozásnak szüksége van kiterjesztett engedélyekre.\Kérem aktiválja a 'Nem biztonságos homebrewek bekapcsolása' beállítást először."
 USB_CONNECTION_NOT_AVAILABLE         = "USB csatlakozás nem érhető el ezen az eszközön."
 USB_WAIT_ATTACH                      = "Kérlek csatolj fel egy USB cserélhető eszközt hogy folytasd.\Ha már fel volt csatolva, akkor csatold le\és csatold fel újra."
-USB_UMA0_MOUNTED                     = "uma0: felcsatolva."
-USB_UX0_MOUNTED                      = "USB ux0: felcsatolva."
-USB_UX0_UMOUNTED                     = "USB ux0: lecsatolva."
 
 # Others
 # Egyebek
 SAFE_MODE                            = "BIZTONSÁGOS MÓD"
 UNSAFE_MODE                          = "NEM BIZTONSÁGOS MÓD"
 PLEASE_WAIT                          = "Kérlek várj..."
-SAVE_MODIFICATIONS                   = "Szeretnéd menteni a módosításokat?"
+GAME_CARD_NOT_FOUND                  = "Kérlek helyezz be egy játék kártyát."
 NO_SPACE_ERROR                       = "Nincs elég szabad hely a memória\kártyán.\Legalább %s több hely kell."
 WIFI_ERROR                           = "Ehhez a művelethez Wi-Fi kapcsolatra van szükség."
 FTP_SERVER                           = "FTP szerver fut ezen a címen\ftp://%s:%i\\Nyomj 'OK' gombot a háttérben való futtatáshoz\'Mégse' gombot a kapcsolat bontásához."
 SYS_INFO                             = "Rendszer szoftver: %s\Modell: 0x%08X\MAC cím: %s\IP cím: %s\Memória kártya: %s/%s"
 UPDATE_QUESTION                      = "Új VitaShell verzió érhető el %s.\\Frissíteni szeretnéd az alkalmazást?"
-TOOLBOX                              = "Eszköztár"
-SYSINFO_TITLE                        = "Rendszer informácíó"
 ARCHIVE_NAME                         = "Archívum neve"
 COMPRESSION_LEVEL                    = "Becsomagolás szintje (0-9)"
