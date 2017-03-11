@@ -73,6 +73,7 @@ PROPERTY_TYPE_JPEG                   = "Immagine JPEG"
 PROPERTY_TYPE_MP3                    = "File audio MP3"
 PROPERTY_TYPE_OGG                    = "File audio OGG"
 PROPERTY_TYPE_PNG                    = "Immagine PNG"
+PROPERTY_TYPE_RAR                    = "Archivio RAR"
 PROPERTY_TYPE_SFO                    = "File SFO"
 PROPERTY_TYPE_TXT                    = "Documento di testo"
 PROPERTY_TYPE_VPK                    = "Pacchetto VPK"
@@ -133,6 +134,7 @@ VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
 
 # USB strings
 USB_CONNECTED                        = "USB connessa"
+USB_NOT_CONNECTED                    = "Connettere questo sistema a un pc usando un cavo USB"
 USB_CONNECTION_PERMISSION            = "La connessione USB richiede autorizzazioni estese.\Devi prima scegliere 'Abilita homebrew non sicuri'."
 USB_CONNECTION_NOT_AVAILABLE         = "La connessione USB non è disponibile su questo dispositivo."
 
