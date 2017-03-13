@@ -19,6 +19,9 @@
 #ifndef __SETTINGS_H__
 #define __SETTINGS_H__
 
+#define MAX_THEMES 64
+#define MAX_THEME_LENGTH 64
+
 enum SettingsAgreement {
 	SETTINGS_AGREEMENT_NONE,
 	SETTINGS_AGREEMENT_AGREE,

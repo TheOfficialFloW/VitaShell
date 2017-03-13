@@ -416,11 +416,11 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
 			title_x = scroll_x;
 		}
 
-		pgf_draw_text(title_x, START_Y+(0*FONT_Y_SPACE), color, FONT_SIZE, fileinfo->title);		
-		pgf_draw_text(x, START_Y+(1*FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->album);
-		pgf_draw_text(x, START_Y+(2*FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->artist);
-		pgf_draw_text(x, START_Y+(3*FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->genre);
-		pgf_draw_text(x, START_Y+(4*FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->year);
+		pgf_draw_text(title_x, START_Y+(0*FONT_Y_SPACE), color, FONT_SIZE, fileinfo->title[0] == '\0' ? "-" : fileinfo->title);		
+		pgf_draw_text(x, START_Y+(1*FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->album[0] == '\0' ? "-" : fileinfo->album);
+		pgf_draw_text(x, START_Y+(2*FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->artist[0] == '\0' ? "-" : fileinfo->artist);
+		pgf_draw_text(x, START_Y+(3*FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->genre[0] == '\0' ? "-" : fileinfo->genre);
+		pgf_draw_text(x, START_Y+(4*FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->year[0] == '\0' ? "-" : fileinfo->year);
 
 		vita2d_disable_clipping();
 

@@ -229,6 +229,9 @@ int readConfig(const char *path, ConfigEntry *entries, int n_entries) {
 }
 
 static int writeEntry(SceUID fd, ConfigEntry *entry) {
+	if (!entry->value)
+		return -1;
+
     int result;
     if ((result = sceIoWrite(fd, entry->name, strlen(entry->name))) < 0)
         return result;

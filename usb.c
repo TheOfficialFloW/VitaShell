@@ -101,15 +101,18 @@ int umountUsbUx0() {
 }
 
 SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
+	SceUID modid = -1;
 	int res;
 
 	// Destroy other apps
 	sceAppMgrDestroyOtherApp();
 
 	// Load and start usbdevice module
-	SceUID modid = taiLoadStartKernelModule(usbDevicePath, 0, NULL, 0);
-	if (modid < 0)
+	res = taiLoadStartKernelModule(usbDevicePath, 0, NULL, 0);
+	if (res < 0)
 		goto ERROR_LOAD_MODULE;
+
+	modid = res;
 
 	// Stop MTP driver
 	res = sceMtpIfStopDriver(1);
