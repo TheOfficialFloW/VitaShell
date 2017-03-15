@@ -24,6 +24,7 @@ DOWNLOADING                          = "Letöltés..."
 EXTRACTING                           = "Kicsomagolás..."
 COMPRESSING                          = "Becsomagolás..."
 HASHING                              = "Hashelés..."
+REFRESHING                           = "Frissítés..."
 
 # Audio player strings
 # Hang lejátszói szövegek
@@ -45,6 +46,7 @@ ENTER_SEARCH_TERM                    = "Keresendő kifejezés"
 
 # Context menu strings
 # Összefüggési menü szövegek
+REFRESH_LIVEAREA                     = "LiveArea frissítése"
 MOUNT_UMA0                           = "uma0: felcsatolása"
 MOUNT_USB_UX0                        = "ux0: USB felcsatolása"
 UMOUNT_USB_UX0                       = "ux0: USB lecsatolása"
@@ -125,7 +127,7 @@ INSTALL_WARNING                      = "Ez a csomag kiterjesztett jogosultságok
 INSTALL_BRICK_WARNING                = "Ez a csomag olyan funkciókat használ, ami újra felcsatol\partíciókat és lehetséges, hogy téglává teszi az eszközöd.\Ha a csomag nem megbízható forrásból származik,\csak saját felelősségedre lépj tovább.\\Folytatódjon a telepítés?
 HASH_FILE_QUESTION                   = "SHA1 hashelése sokáig eltarthat. Folytatódjon?"
 SAVE_MODIFICATIONS                   = "Szeretnéd menteni a módosításokat?"
-REFRESH_LIVEAREA_QUESTION            = "A LiveAreat frissíteni eltarthat egy ideig. Folytatod?"
+REFRESH_LIVEAREA_QUESTION            = "A LiveArea frissítése eltarthat egy ideig. Folytatod?"
 
 # HENkaku settings strings
 # HENkaku beállitási szövegek
