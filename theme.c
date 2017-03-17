@@ -23,27 +23,24 @@
 #include "theme.h"
 #include "utils.h"
 
-INCLUDE_EXTERN_RESOURCE(colors_txt);
-INCLUDE_EXTERN_RESOURCE(colors_txt_size);
-
-INCLUDE_EXTERN_RESOURCE(folder_icon_png);
-INCLUDE_EXTERN_RESOURCE(file_icon_png);
-INCLUDE_EXTERN_RESOURCE(archive_icon_png);
-INCLUDE_EXTERN_RESOURCE(image_icon_png);
-INCLUDE_EXTERN_RESOURCE(audio_icon_png);
-INCLUDE_EXTERN_RESOURCE(sfo_icon_png);
-INCLUDE_EXTERN_RESOURCE(text_icon_png);
-INCLUDE_EXTERN_RESOURCE(ftp_png);
-INCLUDE_EXTERN_RESOURCE(battery_png);
-INCLUDE_EXTERN_RESOURCE(battery_bar_red_png);
-INCLUDE_EXTERN_RESOURCE(battery_bar_green_png);
-INCLUDE_EXTERN_RESOURCE(battery_bar_charge_png);
-
-INCLUDE_EXTERN_RESOURCE(cover_png);
-INCLUDE_EXTERN_RESOURCE(play_png);
-INCLUDE_EXTERN_RESOURCE(pause_png);
-INCLUDE_EXTERN_RESOURCE(fastforward_png);
-INCLUDE_EXTERN_RESOURCE(fastrewind_png);
+INCLUDE_EXTERN_RESOURCE(default_colors_txt);
+INCLUDE_EXTERN_RESOURCE(default_archive_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_audio_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_battery_bar_charge_png);
+INCLUDE_EXTERN_RESOURCE(default_battery_bar_green_png);
+INCLUDE_EXTERN_RESOURCE(default_battery_bar_red_png);
+INCLUDE_EXTERN_RESOURCE(default_battery_png);
+INCLUDE_EXTERN_RESOURCE(default_cover_png);
+INCLUDE_EXTERN_RESOURCE(default_fastforward_png);
+INCLUDE_EXTERN_RESOURCE(default_fastrewind_png);
+INCLUDE_EXTERN_RESOURCE(default_file_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_folder_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_ftp_png);
+INCLUDE_EXTERN_RESOURCE(default_image_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_pause_png);
+INCLUDE_EXTERN_RESOURCE(default_play_png);
+INCLUDE_EXTERN_RESOURCE(default_sfo_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_text_icon_png);
 
 // Shell colors
 int BACKGROUND_COLOR;
@@ -127,32 +124,32 @@ typedef struct {
 } ThemeImage;
 
 ThemeImage theme_images[] = {
-	{ "folder_icon.png", &_binary_resources_folder_icon_png_start, &folder_icon },
-	{ "file_icon.png", &_binary_resources_file_icon_png_start, &file_icon },
-	{ "archive_icon.png", &_binary_resources_archive_icon_png_start, &archive_icon },
-	{ "image_icon.png", &_binary_resources_image_icon_png_start, &image_icon },
-	{ "audio_icon.png", &_binary_resources_audio_icon_png_start, &audio_icon },
-	{ "sfo_icon.png", &_binary_resources_sfo_icon_png_start, &sfo_icon },
-	{ "text_icon.png", &_binary_resources_text_icon_png_start, &text_icon },
-	{ "ftp.png", &_binary_resources_ftp_png_start, &ftp_image },
-	{ "dialog.png", NULL, &dialog_image },
-	{ "context.png", NULL, &context_image },
-	{ "context_more.png", NULL, &context_more_image },
-	{ "settings.png", NULL, &settings_image },
-	{ "battery.png", &_binary_resources_battery_png_start, &battery_image },
-	{ "battery_bar_red.png", &_binary_resources_battery_bar_red_png_start, &battery_bar_red_image },
-	{ "battery_bar_green.png", &_binary_resources_battery_bar_green_png_start, &battery_bar_green_image },
-	{ "battery_bar_charge.png", &_binary_resources_battery_bar_charge_png_start, &battery_bar_charge_image },
+	{ "archive_icon.png", &_binary_resources_default_archive_icon_png_start, &archive_icon },
+	{ "audio_icon.png", &_binary_resources_default_audio_icon_png_start, &audio_icon },
+	{ "battery.png", &_binary_resources_default_battery_png_start, &battery_image },
+	{ "battery_bar_charge.png", &_binary_resources_default_battery_bar_charge_png_start, &battery_bar_charge_image },
+	{ "battery_bar_green.png", &_binary_resources_default_battery_bar_green_png_start, &battery_bar_green_image },
+	{ "battery_bar_red.png", &_binary_resources_default_battery_bar_red_png_start, &battery_bar_red_image },
+	{ "bg_audioplayer.png", NULL, &bg_audio_image },
 	{ "bg_browser.png", NULL, &bg_browser_image },
 	{ "bg_hexeditor.png", NULL, &bg_hex_image },
-	{ "bg_texteditor.png", NULL, &bg_text_image },
 	{ "bg_photoviewer.png", NULL, &bg_photo_image },
-	{ "bg_audioplayer.png", NULL, &bg_audio_image },
-	{ "cover.png", &_binary_resources_cover_png_start, &cover_image },
-	{ "play.png", &_binary_resources_play_png_start, &play_image },
-	{ "pause.png", &_binary_resources_pause_png_start, &pause_image },
-	{ "fastforward.png", &_binary_resources_fastforward_png_start, &fastforward_image },
-	{ "fastrewind.png", &_binary_resources_fastrewind_png_start, &fastrewind_image },
+	{ "bg_texteditor.png", NULL, &bg_text_image },
+	{ "context.png", NULL, &context_image },
+	{ "context_more.png", NULL, &context_more_image },
+	{ "cover.png", &_binary_resources_default_cover_png_start, &cover_image },
+	{ "dialog.png", NULL, &dialog_image },
+	{ "fastforward.png", &_binary_resources_default_fastforward_png_start, &fastforward_image },
+	{ "fastrewind.png", &_binary_resources_default_fastrewind_png_start, &fastrewind_image },
+	{ "file_icon.png", &_binary_resources_default_file_icon_png_start, &file_icon },
+	{ "folder_icon.png", &_binary_resources_default_folder_icon_png_start, &folder_icon },
+	{ "ftp.png", &_binary_resources_default_ftp_png_start, &ftp_image },
+	{ "image_icon.png", &_binary_resources_default_image_icon_png_start, &image_icon },
+	{ "pause.png", &_binary_resources_default_pause_png_start, &pause_image },
+	{ "play.png", &_binary_resources_default_play_png_start, &play_image },
+	{ "settings.png", NULL, &settings_image },
+	{ "sfo_icon.png", &_binary_resources_default_sfo_icon_png_start, &sfo_icon },
+	{ "text_icon.png", &_binary_resources_default_text_icon_png_start, &text_icon },
 	{ "wallpaper.png", NULL, &wallpaper_image },
 };
 
@@ -228,7 +225,7 @@ void loadTheme() {
 	int i;
 
 	// Load default config file
-	readConfigBuffer(&_binary_resources_colors_txt_start, (int)&_binary_resources_colors_txt_size, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
+	readConfigBuffer(&_binary_resources_default_colors_txt_start, (int)&_binary_resources_default_colors_txt_size, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
 	// Load custom config file
 	if (use_custom_config) {

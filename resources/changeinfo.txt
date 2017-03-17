@@ -228,4 +228,23 @@
 - Updated to newest libftpvita.<br>
     ]]>
   </changes>
+   <changes app_ver="01.60">
+    <![CDATA[
+- Added ability to mount uma0: and ability to use uma0: as ux0:.<br>
+- Added ability to mount game card as usb device.<br>
+- Added possibility to refresh the livearea.<br>
+- Added scrolling text for long filenames.<br>
+- Added 'Sort by' option to context menu (R trigger combo removed).<br>
+- Added 'Electron' theme by Acemad, the winner of the VitaShell theme contest.<br>
+- Added theme selector.<br>
+- Improved property dialog animation.<br>
+- Fixed text editor bugs.<br>
+- Fixed bug where USB cable wasn't recognized.<br>
+- Fixed bug where VitaShell left to livearea after deleting the updater.<br>
+- Removed battery icon in status bar for PSTV.<br>
+- File statistics are now inherited when copying.<br>
+- I/O operations speed will now be showed in KB/s.<br>
+- Made control smoother.<br>
+    ]]>
+  </changes>
 </changeinfo>

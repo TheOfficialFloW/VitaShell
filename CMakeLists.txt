@@ -48,7 +48,18 @@ FUNCTION(ADD_RESOURCES out_var)
   SET(${out_var} "${result}" PARENT_SCOPE)
 ENDFUNCTION()
 
-file(GLOB res_files RELATIVE ${CMAKE_SOURCE_DIR} resources/*.png resources/*.txt resources/*.bin resources/*.suprx resources/*.skprx)
+file(GLOB res_files RELATIVE
+  ${CMAKE_SOURCE_DIR}
+  resources/default/*.png
+  resources/default/*.txt
+  resources/electron/*.png
+  resources/electron/*.txt
+  resources/*.png
+  resources/*.txt
+  resources/*.bin
+  resources/*.suprx
+  resources/*.skprx
+)
 add_resources(vitashell_res ${res_files})
 
 add_executable(VitaShell

@@ -3,36 +3,45 @@
 VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you a file manager, package installer, built-in FTP and much more.
 This homebrew was an entry of the Revitalize PS Vita homebrew competition and won the first prize. HENkaku's molecularShell is also based on VitaShell.
 
+### How to use an USB flash drive as Memory Card on a PS TV ###
+- Format your USB flash drive as exFAT or FAT32.
+- Launch VitaShell and press /\ in the 'home' section.
+- Select 'Mount uma0:' and attach your USB flash drive. You can now copy stuff from/to your USB stick.
+- Once 'uma0:' is listed under the partitions, press /\ again and choose 'Mount USB ux0:'.
+- Your USB flash drive is now acting as a Memory Card.
+- To sync all your apps on your USB flash drive, press /\ and choose 'Refresh livearea'. This will NOT refresh PSP games.
+- If you wish to revert the patch, press /\ and select 'Umount USB ux0:'.
+
 ### Customization ###
 You can customize those files:
 - **colors.txt**: All colors adjustable
-- **bg_browser.png**: Background for file browser
-- **bg_hexeditor.png**: Background for hex editor
-- **bg_texteditor.png**: Background for text editor
-- **bg_photoviewer.png**: Background for photo viewer
-- **bg_audioplayer.png**: Background for audio player
-- **settings.png**: Background for settings
-- **wallpaper.png**: Wallpaper
-- **dialog.png**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
-- **context.png**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
-- **context_more.png**: Context menu more image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
+- **archive_icon.png**: Archive icon
+- **audio_icon.png**: Audio icon
 - **battery.png**: Battery border icon
+- **battery_bar_charge.png**: Charging battery bar
 - **battery_bar_green.png**: Green battery bar
 - **battery_bar_red.png**: Red battery bar
-- **battery_bar_charge.png**: Charging battery bar
-- **ftp.png**: Ftp icon
-- **audio_icon.png**: Audio icon
-- **archive_icon.png**: Archive icon
-- **file_icon.png**: File icon
-- **folder_icon.png**: Folder icon
-- **image_icon.png**: Image icon
-- **sfo_icon.png**: SFO icon
-- **text_icon.png**: Text icon
+- **bg_audioplayer.png**: Background for audio player
+- **bg_browser.png**: Background for file browser
+- **bg_hexeditor.png**: Background for hex editor
+- **bg_photoviewer.png**: Background for photo viewer
+- **bg_texteditor.png**: Background for text editor
+- **context.png**: Context menu image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
+- **context_more.png**: Context menu more image (Can be any size. Suggestion: It will look great if you add alpha channel to your image).
 - **cover.png**: Default album cover
-- **play.png**: Play icon
-- **pause.png**: Pause icon
+- **dialog.png**: Dialog menu image (Can be any size. This image file will be stretched by VitaShell to fit the dialog box. Suggestion: Don't use motives, as it will not look good with wrong proportion).
 - **fastforward.png**: Fastforward icon
 - **fastrewind.png**: Fastrewind icon
+- **file_icon.png**: File icon
+- **folder_icon.png**: Folder icon
+- **ftp.png**: Ftp icon
+- **image_icon.png**: Image icon
+- **pause.png**: Pause icon
+- **play.png**: Play icon
+- **settings.png**: Background for settings
+- **sfo_icon.png**: SFO icon
+- **text_icon.png**: Text icon
+- **wallpaper.png**: Wallpaper
 
 
 **Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
@@ -99,6 +108,8 @@ Be sure you pull request your customized design or language file there.
 - Added possibility to refresh the livearea.
 - Added scrolling text for long filenames.
 - Added 'Sort by' option to context menu (R trigger combo removed).
+- Added 'Electron' theme by Acemad, the winner of the VitaShell theme contest.
+- Added theme selector.
 - Improved property dialog animation.
 - Fixed text editor bugs.
 - Fixed bug where USB cable wasn't recognized.

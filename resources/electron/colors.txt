@@ -1,0 +1,60 @@
+# VitaShell colors file for Electron theme
+
+# Shell colors
+TITLE_COLOR                  = 0xFFFFF9D4
+PATH_COLOR                   = 0xFFFFCBAB
+DATE_TIME_COLOR              = 0xFFFFF9D4
+
+# Settings colors
+SETTINGS_MENU_COLOR          = 0xE0AD683C
+SETTINGS_MENU_FOCUS_COLOR    = 0x6FF5A878
+SETTINGS_MENU_TITLE_COLOR    = 0xFFFFF9D4
+SETTINGS_MENU_ITEM_COLOR     = 0xFFFFC29E
+SETTINGS_MENU_OPTION_COLOR   = 0xFF7CFF24
+
+# File browser colors
+FOCUS_COLOR                  = 0xFF7CFF24
+FILE_COLOR                   = 0xFFD4CDA5
+SFO_COLOR                    = 0xFFD4CDA5
+TXT_COLOR                    = 0xFFD4CDA5
+FOLDER_COLOR                 = 0xFFDBAA8C
+IMAGE_COLOR                  = 0xFFD190CB
+ARCHIVE_COLOR                = 0xFFCFBF59
+SCROLL_BAR_COLOR             = 0x80FFD0B5
+SCROLL_BAR_BG_COLOR          = 0x007F7F7F
+MARKED_COLOR                 = 0x4FF5A878
+
+# Context menu colors
+CONTEXT_MENU_TEXT_COLOR      = 0xFFD4CB99
+CONTEXT_MENU_FOCUS_COLOR     = 0xFF7CFF24
+INVISIBLE_COLOR              = 0xFFB07E39
+
+# Dialog colors
+DIALOG_COLOR                 = 0xFFD4CB99
+PROGRESS_BAR_COLOR           = 0xFFAAE300
+PROGRESS_BAR_BG_COLOR        = 0xFFE08E31
+
+# Hex editor colors
+HEX_COLOR                    = 0xFFFFF9D4
+HEX_OFFSET_COLOR             = 0xFFDBAA8C
+HEX_NIBBLE_COLOR             = 0xFF639FFF
+
+# Text editor colors
+TEXT_COLOR                   = 0xFFFFF9D4
+TEXT_FOCUS_COLOR             = 0xFFEBD334
+TEXT_LINE_NUMBER_COLOR       = 0xFFDBAA8C
+TEXT_LINE_NUMBER_COLOR_FOCUS = 0xFF7CFF24
+TEXT_HIGHLIGHT_COLOR         = 0xFF80F5FF
+
+# Photo viewer colors
+PHOTO_ZOOM_COLOR             = 0xFFFFF9D4
+
+# Audio player colors
+AUDIO_INFO_ASSIGN            = 0xFFDBAA8C
+AUDIO_INFO                   = 0xFFFFF9D4
+AUDIO_SPEED                  = 0xFFFFF9D4
+AUDIO_TIME_CURRENT           = 0xFFBBE000
+AUDIO_TIME_SLASH             = 0xFFFFF9D4
+AUDIO_TIME_TOTAL             = 0xFFFFF9D4
+AUDIO_TIME_BAR               = 0xFFFFEBCF
+AUDIO_TIME_BAR_BG            = 0x90BBE000
