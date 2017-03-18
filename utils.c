@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "init.h"
 #include "file.h"
 #include "message_dialog.h"
 #include "uncommon_dialog.h"
@@ -86,15 +87,35 @@ void infoDialog(const char *msg, ...) {
 	setDialogStep(DIALOG_STEP_INFO);
 }
 
-int checkMemoryCardFreeSpace(uint64_t size) {
-	uint64_t free_size = 0, max_size = 0;
-	sceAppMgrGetDevInfo("ux0:", &max_size, &free_size);
+int checkMemoryCardFreeSpace(const char *path, uint64_t size) {
+	char device[8];
+	uint64_t free_size = 0, max_size = 0, extra_space = 0;
+	
+	char *p = strchr(path, ':');
+	if (p) {
+		strncpy(device, path, p-path+1);
+		device[p-path+1] = '\0';
+	}
 
-	if (size >= (free_size + (40 * 1024 * 1024))) {
+	if (strcmp(device, "ux0:") == 0) {
+		extra_space = 40 * 1024 * 1024;
+	}
+
+	if (is_safe_mode) {
+		sceAppMgrGetDevInfo(device, &max_size, &free_size);
+	} else {
+		SceIoDevInfo info;
+		memset(&info, 0, sizeof(SceIoDevInfo));
+		sceIoDevctl(device, 0x3001, NULL, 0, &info, sizeof(SceIoDevInfo));
+		free_size = info.free_size;
+		max_size = info.max_size;
+	}
+
+	if (size >= (free_size + extra_space)) {
 		closeWaitDialog();
 
 		char size_string[16];
-		getSizeString(size_string, size - (free_size + (40 * 1024 * 1024)));
+		getSizeString(size_string, size - (free_size + extra_space));
 		infoDialog(language_container[NO_SPACE_ERROR], size_string);
 
 		return 1;

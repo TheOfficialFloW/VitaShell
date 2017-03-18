@@ -3,14 +3,18 @@
 VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you a file manager, package installer, built-in FTP and much more.
 This homebrew was an entry of the Revitalize PS Vita homebrew competition and won the first prize. HENkaku's molecularShell is also based on VitaShell.
 
+### Donation ###
+In case you want to support my work on the vita, you can always spend me some beer. Any cent is highly appreciated: goo.gl/uAIPIY 
+
 ### How to use an USB flash drive as Memory Card on a PS TV ###
 - Format your USB flash drive as exFAT or FAT32.
 - Launch VitaShell and press /\ in the 'home' section.
 - Select 'Mount uma0:' and attach your USB flash drive. You can now copy stuff from/to your USB stick.
-- Once 'uma0:' is listed under the partitions, press /\ again and choose 'Mount USB ux0:'.
+- Once 'uma0:' is listed under the partitions, press /\ again and choose 'Mount USB ux0:'. This will copy important apps like VitaShell, molecularShell, and other files.
 - Your USB flash drive is now acting as a Memory Card.
 - To sync all your apps on your USB flash drive, press /\ and choose 'Refresh livearea'. This will NOT refresh PSP games.
 - If you wish to revert the patch, press /\ and select 'Umount USB ux0:'.
+- Note that this patch is only temporary and you need to redo the procedure everytime you launch your PS TV.
 
 ### Customization ###
 You can customize those files:
@@ -101,6 +105,11 @@ Be sure you pull request your customized design or language file there.
 * wololo for the Revitalize contest
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
+
+### Changelog 1.61 ###
+- Fixed database corruption crash by inheriting 'calendar', 'mms' and 'mtp' when mounting USB ux0:.
+- Fixed bug where insufficent memory dialog appeared on uma0:.
+- Fixed bug where pressing triangle crashed if unsafe mode was disabled.
 
 ### Changelog 1.60 ###
 - Added ability to mount uma0: and ability to use uma0: as ux0:.

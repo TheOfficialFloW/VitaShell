@@ -272,7 +272,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 		}
 
 		// Check memory card free space
-		if (checkMemoryCardFreeSpace(size))
+		if (checkMemoryCardFreeSpace(args->file_list->path, size))
 			goto EXIT;
 
 		// Update thread
@@ -560,7 +560,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 	}
 
 	// Check memory card free space
-	if (checkMemoryCardFreeSpace(size))
+	if (checkMemoryCardFreeSpace("ux0:", size))
 		goto EXIT;
 
 	// Update thread

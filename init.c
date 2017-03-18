@@ -147,6 +147,8 @@ char henkaku_config_path[32];
 
 int is_safe_mode = 0, is_molecular_shell = 0;
 
+SceUID kernel_modid = -1, user_modid = -1;
+
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
 
@@ -379,8 +381,8 @@ void initVitaShell() {
 	installDefaultFiles();
 
 	// Load modules
-	taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
-	sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
+	kernel_modid = taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
+	user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
 }
 
 void finishVitaShell() {

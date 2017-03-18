@@ -43,12 +43,6 @@
 #include "archiveRAR.h"
 #include "usb.h"
 
-/*
-	TODO:
-	- Theme manager
-	- PFS bypass
-*/
-
 int _newlib_heap_size_user = 128 * 1024 * 1024;
 
 // Dialog step
@@ -1625,7 +1619,10 @@ int main(int argc, const char *argv[]) {
 			// Remount uma0:
 			remount(0xF00);
 			
-			// Copy back iconlayout.ini
+			// Copy back important files
+			copyPath("uma0:calendar", "ux0:calendar", NULL);
+			copyPath("uma0:mms", "ux0:mms", NULL);
+			copyPath("uma0:mtp", "ux0:mtp", NULL);
 			copyPath("uma0:iconlayout.ini", "ux0:iconlayout.ini", NULL);
 
 			infoDialog(language_container[USB_UX0_UMOUNTED]);

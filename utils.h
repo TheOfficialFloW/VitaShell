@@ -57,7 +57,7 @@ void closeWaitDialog();
 void errorDialog(int error);
 void infoDialog(const char *msg, ...);
 
-int checkMemoryCardFreeSpace(uint64_t size);
+int checkMemoryCardFreeSpace(const char *path, uint64_t size);
 
 void initPowerTickThread();
 void powerLock();

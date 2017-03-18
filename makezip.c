@@ -282,7 +282,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 
 	// Check memory card free space
 	double guessed_size = (double)size * 0.7f;
-	if (checkMemoryCardFreeSpace((uint64_t)guessed_size))
+	if (checkMemoryCardFreeSpace(args->path, (uint64_t)guessed_size))
 		goto EXIT;
 
 	// Update thread

@@ -207,7 +207,7 @@ void setContextMenuHomeVisibilities() {
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 		}
 	
-		if (shellUserIsUx0Redirected() == 1) {
+		if ((kernel_modid >= 0 || kernel_modid == 0x8002D013) && user_modid >= 0 && shellUserIsUx0Redirected() == 1) {
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 		} else {

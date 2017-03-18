@@ -66,6 +66,9 @@ int mountUsbUx0() {
 	sceIoMkdir("uma0:temp/app_work/MLCL00001/rec", 0006);
 
 	// Copy important files
+	copyPath("ux0:calendar", "uma0:calendar", NULL);
+	copyPath("ux0:mms", "uma0:mms", NULL);
+	copyPath("ux0:mtp", "uma0:mtp", NULL);
 	copyPath("ux0:temp/app_work/MLCL00001/rec/config.bin", "uma0:temp/app_work/MLCL00001/rec/config.bin", NULL);
 	copyPath("ux0:iconlayout.ini", "uma0:iconlayout.ini", NULL);
 	copyPath("ux0:id.dat", "uma0:id.dat", NULL);

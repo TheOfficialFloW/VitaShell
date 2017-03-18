@@ -247,4 +247,11 @@
 - Made control smoother.<br>
     ]]>
   </changes>
+   <changes app_ver="01.61">
+    <![CDATA[
+- Fixed database corruption crash by inheriting 'calendar', 'mms' and 'mtp' when mounting USB ux0:.<br>
+- Fixed bug where insufficent memory dialog appeared on uma0:.<br>
+- Fixed bug where pressing triangle crashed if unsafe mode was disabled.<br>
+    ]]>
+  </changes>
 </changeinfo>

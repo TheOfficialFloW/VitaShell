@@ -28,6 +28,8 @@ extern char henkaku_config_path[32];
 
 extern int is_safe_mode, is_molecular_shell;
 
+extern SceUID kernel_modid, user_modid;
+
 extern int language, enter_button, date_format, time_format;
 
 typedef struct {

@@ -348,7 +348,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 		getArchivePathInfo(src_path, &size, &folders, &files);
 
 		// Check memory card free space
-		if (checkMemoryCardFreeSpace(size))
+		if (checkMemoryCardFreeSpace(PACKAGE_DIR, size))
 			goto EXIT;
 
 		// Update thread
