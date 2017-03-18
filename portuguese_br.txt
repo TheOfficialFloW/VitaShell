@@ -1,4 +1,4 @@
-# VitaShell v1.51 language file - (Português - Brasil) Rev.(0011)
+# VitaShell v1.61 language file - (Português - Brasil) Rev.(0012)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -21,6 +21,7 @@ DOWNLOADING                          = "Baixando..."
 EXTRACTING                           = "Extraindo..."
 COMPRESSING                          = "Comprimindo..."
 HASHING                              = "Hashing..."
+REFRESHING                           = "Atualizando..."
 
 # Audio player strings
 TITLE                                = "Título"
@@ -36,11 +37,16 @@ OPEN_HEX_EDITOR                      = "Abrir editor Hex"
 # Text editor strings
 EDIT_LINE                            = "Editar Linha"
 ENTER_SEARCH_TERM                    = "Entre com o termo de busca"
-CUT                                  = "Recortar"
-INSERT_EMPTY_LINE                    = "Inserir linha vazia"
 
 # File browser context menu strings
-MORE                                 = "Mais"
+REFRESH_LIVEAREA                     = "Atualizar livearea"
+MOUNT_UMA0                           = "Montar uma0:"
+MOUNT_USB_UX0                        = "Montar USB ux0:"
+UMOUNT_USB_UX0                       = "Desmontar USB ux0:"
+SORT_BY                              = "Ordenar por"
+BY_NAME                              = "Por nome"
+BY_SIZE                              = "Por tamanho"
+BY_DATE                              = "Por data"
 MARK_ALL                             = "Marcar todos"
 UNMARK_ALL                           = "Desmarcar todos"
 MOVE                                 = "Mover"
@@ -50,11 +56,14 @@ DELETE                               = "Deletar"
 RENAME                               = "Renomear"
 NEW_FOLDER                           = "Nova pasta"
 PROPERTIES                           = "Propriedades"
+MORE                                 = "Mais"
 COMPRESS                             = "Comprimir"
 INSTALL_ALL                          = "Instalar todos"
 INSTALL_FOLDER                       = "Instalar pasta"
 CALCULATE_SHA1                       = "Calcular SHA1"
 EXPORT_MEDIA                         = "Exportar mídia"
+CUT                                  = "Recortar"
+INSERT_EMPTY_LINE                    = "Inserir linha vazia"
 SEARCH                               = "Procurar"
 
 # File browser properties strings
@@ -85,6 +94,7 @@ PROPERTY_FSELF_MODE_UNSAFE           = "Inseguro"
 PROPERTY_FSELF_MODE_SCE              = "SCE assinado"
 
 # File browser strings
+REFRESHED                            = "%d items atualizados."
 COPIED_FILE                          = "%d arquivo copiado."
 COPIED_FOLDER                        = "%d pasta copiada."
 COPIED_FILES_FOLDERS                 = "%d arquivos/pastas copiados."
@@ -106,6 +116,8 @@ INSTALL_QUESTION                     = "Você deseja instalar este pacote?"
 INSTALL_WARNING                      = "Este pacote solicita permissões estendidas.\Ele terá acesso às suas informações pessoais.\Se você não o obteve de uma fonte confiável,\proceda com cuidado.\\Deseja continuar a instalação?"
 INSTALL_BRICK_WARNING                = "Este pacote usa funções que remontam partições\e pode potencialmente brickar seu dispositivo.\Se você não o obteve de uma fonte confiável,\Favor prossiga com cuidado.\\Deseja continuar a instalação?"
 HASH_FILE_QUESTION                   = "O hashing SHA1 pode levar um longo tempo. Deseja continuar?"
+SAVE_MODIFICATIONS                   = "Deseja salvar suas modificações?"
+REFRESH_LIVEAREA_QUESTION            = "Atualizar a livearea pode levar muito tempo. Continuar?"
 
 # HENkaku settings strings
 HENKAKU_SETTINGS                     = "Configurações HENkaku"
@@ -123,32 +135,37 @@ HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Homebrews inseguros podem danificar seu 
 VITASHELL_SETTINGS_MAIN              = "Configurações principais"
 VITASHELL_SETTINGS_LANGUAGE          = "Linguagem"
 VITASHELL_SETTINGS_THEME             = "Tema"
+VITASHELL_SETTINGS_USBDEVICE         = "Dispositivo USB"
 VITASHELL_SETTINGS_SELECT_BUTTON     = "Botão SELECT"
 VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Desabilitar atualizações automáticas"
+VITASHELL_SETTINGS_RESTART_SHELL     = "Reiniciar VitaShell"
 VITASHELL_SETTINGS_POWER             = "Power"
 VITASHELL_SETTINGS_REBOOT            = "Reiniciar"
 VITASHELL_SETTINGS_POWEROFF          = "Desligar"
 VITASHELL_SETTINGS_STANDBY           = "Standby"
+VITASHELL_SETTINGS_USB_MEMORY_CARD   = "Cartão de Memória"
+VITASHELL_SETTINGS_USB_GAME_CARD     = "Game Card"
 VITASHELL_SETTINGS_SELECT_BUTTON_USB = "USB"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
 
 # USB strings
 USB_CONNECTED                        = "USB conectado"
+USB_UMA0_MOUNTED                     = "uma0: montado."
+USB_UX0_MOUNTED                      = "USB ux0: montado."
+USB_UX0_UMOUNTED                     = "USB ux0: montado."
 USB_NOT_CONNECTED                    = "Conecte este sistema a um PC usando um cabo USB."
-USB_CONNECTION_PERMISSION            = "A conexão USB requer permissão estendida.\Por favor, primeiro ative 'Ativar homebrew inseguro'."
 USB_CONNECTION_NOT_AVAILABLE         = "A conexão USB não está disponível neste dispositivo."
+USB_WAIT_ATTACH                      = "Por favor, anexe uma unidade flash USB para continuar.\Se ela já tiver sido anexada, por favor, desconecte\e volte a anexá-la."
 
 # Others
 SAFE_MODE                            = "MODO SEGURO"
 UNSAFE_MODE                          = "MODO ISEGURO"
 PLEASE_WAIT                          = "Por favor, aguarde..."
-SAVE_MODIFICATIONS                   = "Você deseja salvar as modificações?"
+GAME_CARD_NOT_FOUND                  = "Por favor insira um game card."
 NO_SPACE_ERROR                       = "Não há espaço livre suficiente na memória\cartão.\É necessário pelo menos mais %s de espaço livre."
+EXTENDED_PERMISSIONS_REQUIRED        = "Esse recurso requer permissões estendidas.\Por favor, ative 'Ativar homebrew inseguro' primeiro."
 WIFI_ERROR                           = "Você deve usar o Wi-Fi para fazer isso."
 FTP_SERVER                           = "Servidor FTP está disponível em\ftp://%s:%i\\Pressione 'OK' para mantê-lo em segundo plano.\Pressione 'Cancelar' para desconectar."
-SYS_INFO                             = "Software de sistema: %s\Modelo: 0x%08X\Endereço MAC: %s\Endereço IP: %s\Cartão de memória: %s/%s\Nível de bateria: %d%%"
 UPDATE_QUESTION                      = "VitaShell %s está disponível.\\Deseja atualizar o aplicativo?"
-TOOLBOX                              = "Caixa de ferramentas"
-SYSINFO_TITLE                        = "Informações do sistema"
 ARCHIVE_NAME                         = "Nome do arquivo"
 COMPRESSION_LEVEL                    = "Nível de compressão (0-9)"
