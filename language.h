@@ -61,6 +61,7 @@ enum LanguageContainer {
 	// Context menu strings
 	REFRESH_LIVEAREA,
 	MOUNT_UMA0,
+	MOUNT_IMC0,
 	MOUNT_USB_UX0,
 	UMOUNT_USB_UX0,
 	SORT_BY,
@@ -178,6 +179,7 @@ enum LanguageContainer {
 	USB_UX0_UMOUNTED,
 
 	// Others
+	IMC0_MOUNTED,
 	SAFE_MODE,
 	UNSAFE_MODE,
 	PLEASE_WAIT,

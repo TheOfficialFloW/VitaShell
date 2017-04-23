@@ -31,6 +31,7 @@
 enum MenuHomeEntrys {
 	MENU_HOME_ENTRY_REFRESH_LIVEAREA,
 	MENU_HOME_ENTRY_MOUNT_UMA0,
+	MENU_HOME_ENTRY_MOUNT_IMC0,
 	MENU_HOME_ENTRY_MOUNT_USB_UX0,
 	MENU_HOME_ENTRY_UMOUNT_USB_UX0,
 };
@@ -38,8 +39,9 @@ enum MenuHomeEntrys {
 MenuEntry menu_home_entries[] = {
 	{ REFRESH_LIVEAREA, 0, 0, CTX_INVISIBLE },
 	{ MOUNT_UMA0,       1, 0, CTX_INVISIBLE },
-	{ MOUNT_USB_UX0,    3, 0, CTX_INVISIBLE },
-	{ UMOUNT_USB_UX0,   4, 0, CTX_INVISIBLE },
+	{ MOUNT_IMC0,       2, 0, CTX_INVISIBLE },
+	{ MOUNT_USB_UX0,    4, 0, CTX_INVISIBLE },
+	{ UMOUNT_USB_UX0,   5, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
@@ -214,6 +216,19 @@ void setContextMenuHomeVisibilities() {
 			menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 		}
 	}
+
+	// Invisible if already mounted or there is no internal storage
+	SceUID fd_int = sceIoOpen("sdstor0:int-lp-ign-userext", SCE_O_RDONLY, 0);
+	SceUID fd_xmc = sceIoOpen("sdstor0:xmc-lp-ign-userext", SCE_O_RDONLY, 0);
+
+	if (fd_int < 0 || fd_xmc < 0 || checkFileExist("imc0:"))
+		menu_home_entries[MENU_HOME_ENTRY_MOUNT_IMC0].visibility = CTX_INVISIBLE;
+
+	if (fd_int >= 0)
+		sceIoClose(fd_int);
+
+	if (fd_xmc >= 0)
+		sceIoClose(fd_xmc);
 
 	// Go to first entry
 	for (i = 0; i < N_MENU_HOME_ENTRIES; i++) {
@@ -444,6 +459,22 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 					initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_WAIT_ATTACH]);
 					setDialogStep(DIALOG_STEP_USB_ATTACH_WAIT);
 				}
+			}
+			
+			break;
+		}
+		
+		case MENU_HOME_ENTRY_MOUNT_IMC0:
+		{
+			if (is_safe_mode) {
+				infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
+			} else {
+				int res = vshIoMount(0xD00, NULL, 2, 0, 0, 0);
+				if (res < 0)
+					errorDialog(res);
+				else
+					infoDialog(language_container[IMC0_MOUNTED]);
+				refreshFileList();
 			}
 			
 			break;

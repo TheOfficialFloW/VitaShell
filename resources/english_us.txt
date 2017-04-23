@@ -41,6 +41,7 @@ ENTER_SEARCH_TERM                    = "Enter search term"
 # Context menu strings
 REFRESH_LIVEAREA                     = "Refresh livearea"
 MOUNT_UMA0                           = "Mount uma0:"
+MOUNT_IMC0                           = "Mount imc0:"
 MOUNT_USB_UX0                        = "Mount USB ux0:"
 UMOUNT_USB_UX0                       = "Umount USB ux0:"
 SORT_BY                              = "Sort by"
@@ -158,6 +159,7 @@ USB_CONNECTION_NOT_AVAILABLE         = "USB connection is not available on this 
 USB_WAIT_ATTACH                      = "Please attach an USB flash drive to continue.\If it has already been attached, please detach\and reattach it."
 
 # Others
+IMC0_MOUNTED                         = "imc0: mounted."
 SAFE_MODE                            = "SAFE MODE"
 UNSAFE_MODE                          = "UNSAFE MODE"
 PLEASE_WAIT                          = "Please wait..."
