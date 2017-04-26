@@ -43,6 +43,7 @@ INSERT_EMPTY_LINE                    = "Inserisci riga vuota"
 # File browser context menu strings
 REFRESH_LIVEAREA                     = "Aggiorna il livearea"
 MOUNT_UMA0                           = "Monta uma0:"
+MOUNT_IMC0                           = "Monta imc0:"
 MOUNT_USB_UX0                        = "Monta USB ux0:"
 UMOUNT_USB_UX0                       = "Non montare USB ux0:"
 SORT_BY                              = "Ordina per"
@@ -135,7 +136,7 @@ HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "Gli homebrew non sicuri possono danneg
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "Impostazioni principali"
-VITASHELL_SETTINGS_LANGUAGE          = "Language"
+VITASHELL_SETTINGS_LANGUAGE          = "Lingua"
 VITASHELL_SETTINGS_THEME             = "Tema"
 VITASHELL_SETTINGS_SELECT_BUTTON     = "Pulsante SELECT"
 VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Disattiva aggiornamento automatico"
@@ -159,6 +160,7 @@ USB_CONNECTION_NOT_AVAILABLE         = "La connessione USB non è disponibile su
 USB_WAIT_ATTACH                      = "Si prega di inserire una chiavetta USB per continuare. \ Se è già stata inserita, si prega di staccare \ e ricollegare di nuovo."
 
 # Others
+IMC0_MOUNTED                         = "imc0: montato."
 SAFE_MODE                            = "MODALITÀ SICURA"
 UNSAFE_MODE                          = "MODALITÀ NON SICURA"
 PLEASE_WAIT                          = "Attendere prego..."
