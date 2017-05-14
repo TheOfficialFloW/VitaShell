@@ -35,6 +35,7 @@
 #include <psp2/power.h>
 #include <psp2/promoterutil.h>
 #include <psp2/rtc.h>
+#include <psp2/registrymgr.h>
 #include <psp2/shellutil.h>
 #include <psp2/sysmodule.h>
 #include <psp2/system_param.h>

@@ -41,7 +41,6 @@ int isCustomHomebrew() {
 	return 1;
 }
 
-int sceRegMgrGetKeyBin(const char *category, const char *name, void *buf, int size);
 int _sceNpDrmGetRifName(char *rif_name, int flags, uint64_t aid);
 int _sceNpDrmGetFixedRifName(char *rif_name, int flags, uint64_t aid);
 
