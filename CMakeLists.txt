@@ -14,7 +14,7 @@ project(VitaShell)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 set(VITA_APP_NAME "VitaShell")
 set(VITA_TITLEID  "VITASHELL")
-set(VITA_VERSION  "01.61")
+set(VITA_VERSION  "01.62")
 
 # Flags and includes
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -fno-lto")

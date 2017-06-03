@@ -106,6 +106,9 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.62 ###
+- Fixed bug where the cursor was moving too fast when the headphone was plugged in.
+
 ### Changelog 1.61 ###
 - Fixed database corruption crash by inheriting 'calendar', 'mms' and 'mtp' when mounting USB ux0:.
 - Fixed bug where insufficent memory dialog appeared on uma0:.

@@ -254,4 +254,9 @@
 - Fixed bug where pressing triangle crashed if unsafe mode was disabled.<br>
     ]]>
   </changes>
+   <changes app_ver="01.62">
+    <![CDATA[
+- Fixed bug where the cursor was moving too fast when the headphone was plugged in.<br>
+    ]]>
+  </changes>
 </changeinfo>
