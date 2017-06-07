@@ -1,5 +1,5 @@
-# VitaShell language file
-# VitaShell 1.6対応版日本語言語ファイル 16a148
+# VitaShell language file for 1.62
+# VitaShell 1.62対応版日本語言語ファイル 162a152
 # 作者 @Umineko19930417
 # お願い: http://2ch.net/ にて日本語言語ファイルを紹介する行為はお辞め下さい
 
@@ -43,15 +43,16 @@ OPEN_HEX_EDITOR				= "バイナリエディタを開く"
 
 # Text editor strings
 # テキストエディタの文字列
-EDIT_LINE				= "行編集"
+EDIT_LINE				= "行の編集"
 ENTER_SEARCH_TERM			= "検索用語を入力"
 CUT					= "切り取り"
-INSERT_EMPTY_LINE			= "空行を挿入"
+INSERT_EMPTY_LINE			= "空の行を挿入"
 
 # Context menu strings
 # コンテキストメニューの文字列
 REFRESH_LIVEAREA			= "ライブエリアをリフレッシュ"
 MOUNT_UMA0				= "uma0に接続"
+MOUNT_IMC0				= "imc0に接続"
 MOUNT_USB_UX0				= "USBのux0に接続"
 UMOUNT_USB_UX0				= "USBのux0から切断"
 SORT_BY					= "並び替え"
@@ -133,11 +134,11 @@ REFRESH_LIVEAREA_QUESTION		= "ライブエリアのリフレッシュには時�
 
 # HENkaku settings strings
 # 変革設定の文字列
-HENKAKU_SETTINGS			= "HENkaku設定"
-HENKAKU_ENABLE_PSN_SPOOFING		= "PSN偽装を有効"
+HENKAKU_SETTINGS			= "HENkakuの設定"
+HENKAKU_ENABLE_PSN_SPOOFING		= "PSNの偽装を有効"
 HENKAKU_ENABLE_UNSAFE_HOMEBREW		 = "安全ではない自作アプリを有効"
-HENKAKU_ENABLE_VERSION_SPOOFING		= "バージョン偽装を有効"
-HENKAKU_SPOOFED_VERSION			= "バージョン偽装"
+HENKAKU_ENABLE_VERSION_SPOOFING		= "バージョンの偽装を有効"
+HENKAKU_SPOOFED_VERSION			= "偽装するバージョン"
 HENKAKU_RESTORE_DEFAULT_SETTINGS	= "デフォルトの設定に戻す"
 HENKAKU_RELOAD_CONFIG			= "taiHENのconfig.txtの再読込"
 HENKAKU_RESTORE_DEFAULT_MESSAGE		= "デフォルトの設定が正常に復元されました"
@@ -202,11 +203,12 @@ DATABASEREBUILDCONFIRMQUESTION		= "データベースを再構築する為に再
 # USBの文字列
 USB_CONNECTED				= "USBを接続しました"
 USB_UMA0_MOUNTED			= "uma0に接続しました"
+IMC0_MOUNTED				= "imcに接続しました"
 USB_UX0_MOUNTED				= "USBのux0に接続しました"
 USB_UX0_UMOUNTED			= "USBのux0から切断しました"
 USB_NOT_CONNECTED			= "この機能はUSBケーブルを使用してPCと接続します"
-USB_CONNECTION_PERMISSION		= "USB接続には、拡張アクセス権限が必要です\安全ではない自作アプリを有効にして下さい"
-USB_CONNECTION_NOT_AVAILABLE		= "このデバイスでは、USB接続を利用出来ません"
+USB_CONNECTION_PERMISSION		= "USBの接続には、拡張アクセス権限が必要です\安全ではない自作アプリを有効にして下さい"
+USB_CONNECTION_NOT_AVAILABLE		= "このデバイスでは、USBの接続を利用出来ません"
 
 # Others
 # その他
@@ -218,9 +220,9 @@ NO_SPACE_ERROR				= "メモリーカードに充分な空き容量がありま�
 EXTENDED_PERMISSIONS_REQUIRED		= "この機能には、拡張アクセス許可が必要です\安全ではない自作アプリを有効にして下さい"
 WIFI_ERROR				= "Wi-Fiを有効にする必要があります"
 FTP_SERVER				   = "FTPサーバーを動作させます\ftp://%s:%i\ \OKを選択するとバックグラウンドで動作します   \キャンセルを選択すると接続を解除します"
-#SYS_INFO				  = "システムソフトウェア: %s\モデル: 0x%08X  \MACアドレス: %s \IPアドレス: %s \メモリーカード: %s/%s \バッテリー容量: %d%%"
+SYS_INFO				  = "システムソフトウェア: %s\モデル: 0x%08X  \MACアドレス: %s \IPアドレス: %s \メモリーカード: %s/%s \バッテリー容量: %d%%"
 UPDATE_QUESTION				= "VitaShell %sの更新が利用出来ます\\VitaShellの更新をしますか?"
-#TOOLBOX					= "ツールボックス"
-#SYSINFO_TITLE				= "システム情報"
+TOOLBOX					= "ツールボックス"
+SYSINFO_TITLE				= "システム情報"
 ARCHIVE_NAME				= "アーカイブ名"
 COMPRESSION_LEVEL			= "圧縮率(0-9)"
