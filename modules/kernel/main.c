@@ -65,7 +65,13 @@ static SceUID hookid = -1;
 
 static tai_hook_ref_t ksceSysrootIsSafeModeRef;
 
+static tai_hook_ref_t ksceSblAimgrIsDolceRef;
+
 static int ksceSysrootIsSafeModePatched() {
+	return 1;
+}
+
+static int ksceSblAimgrIsDolcePatched() {
 	return 1;
 }
 
@@ -134,6 +140,7 @@ int shellKernelUnredirectUx0() {
 
 void _start() __attribute__ ((weak, alias("module_start")));
 int module_start(SceSize args, void *argp) {
+	SceUID tmp1, tmp2;
 	// Get tai module info
 	tai_module_info_t info;
 	info.size = sizeof(tai_module_info_t);
@@ -144,16 +151,20 @@ int module_start(SceSize args, void *argp) {
 	module_get_offset(KERNEL_PID, info.modid, 0, 0x138C1, (uintptr_t *)&sceIoFindMountPoint);
 
 	// Fake safe mode so that SceUsbMass can be loaded
-	hookid = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSysrootIsSafeModeRef, "SceSysmem", 0x2ED7F97A, 0x834439A7, ksceSysrootIsSafeModePatched);
-	if (hookid < 0)
+	tmp1 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSysrootIsSafeModeRef, "SceSysmem", 0x2ED7F97A, 0x834439A7, ksceSysrootIsSafeModePatched);
+	if (tmp1 < 0)
+		return SCE_KERNEL_START_SUCCESS;
+	// this patch is only needed on handheld units
+	tmp2 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSblAimgrIsDolceRef, "SceSysmem", 0xFD00C69A, 0x71608CA3, ksceSblAimgrIsDolcePatched);
+	if (tmp2 < 0)
 		return SCE_KERNEL_START_SUCCESS;
 
 	// Load SceUsbMass
 	SceUID modid = ksceKernelLoadStartModule("ux0:VitaShell/module/umass.skprx", 0, NULL, 0, NULL, NULL);
 
 	// Release patch
-	taiHookReleaseForKernel(hookid, ksceSysrootIsSafeModeRef);
-	hookid = -1;
+	taiHookReleaseForKernel(tmp1, ksceSysrootIsSafeModeRef);
+	taiHookReleaseForKernel(tmp2, ksceSblAimgrIsDolceRef);
 
 	// Check result
 	if (modid < 0)
