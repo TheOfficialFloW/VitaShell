@@ -161,6 +161,7 @@ target_link_libraries(VitaShell
   SceTouch_stub
   SceUdcd_stub
   SceUsbstorVStorDriver_stub
+  SceVideoExport_stub
   SceVshBridge_stub
 )
 

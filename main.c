@@ -349,7 +349,7 @@ static int handleFile(const char *file, FileListEntry *entry) {
 			break;
 			
 		default:
-			errorDialog(type);
+			res = textViewer(file);
 			break;
 	}
 

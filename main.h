@@ -30,6 +30,7 @@
 #include <psp2/message_dialog.h>
 #include <psp2/mtpif.h>
 #include <psp2/musicexport.h>
+#include <psp2/npdrm.h>
 #include <psp2/photoexport.h>
 #include <psp2/pgf.h>
 #include <psp2/power.h>
@@ -43,6 +44,7 @@
 #include <psp2/types.h>
 #include <psp2/udcd.h>
 #include <psp2/usbstorvstor.h>
+#include <psp2/videoexport.h>
 #include <psp2/kernel/modulemgr.h>
 #include <psp2/kernel/processmgr.h>
 #include <psp2/io/devctl.h>
@@ -80,7 +82,7 @@
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0x01
-#define VITASHELL_VERSION_MINOR 0x62
+#define VITASHELL_VERSION_MINOR 0x63
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 

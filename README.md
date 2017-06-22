@@ -106,6 +106,10 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.63 ###
+- Added ability to export video files.
+- Fixed bug where the right analog stick was simulated when the headphone was plugged in.
+
 ### Changelog 1.62 ###
 - Fixed bug where the cursor was moving too fast when the headphone was plugged in.
 

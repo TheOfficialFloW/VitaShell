@@ -41,9 +41,6 @@ int isCustomHomebrew() {
 	return 1;
 }
 
-int _sceNpDrmGetRifName(char *rif_name, int flags, uint64_t aid);
-int _sceNpDrmGetFixedRifName(char *rif_name, int flags, uint64_t aid);
-
 int refreshApp(const char *name) {
 	char app_path[MAX_PATH_LENGTH], param_path[MAX_PATH_LENGTH], license_path[MAX_PATH_LENGTH];
 	int res;

@@ -39,7 +39,7 @@ void SetProgress(uint64_t value, uint64_t max) {
 static int update_thread(SceSize args_size, UpdateArguments *args) {
 	uint64_t previous_value = current_value;
 	SceUInt64 cur_micros = 0, delta_micros = 0, last_micros = 0;
-	double kbs = 0.0f;
+	double kbs = 0.0;
 
 	while (current_value < args->max && isMessageDialogRunning()) {
 		// Show KB/s
@@ -48,7 +48,7 @@ static int update_thread(SceSize args_size, UpdateArguments *args) {
 			if (cur_micros >= (last_micros + 1000*1000)) {
 				delta_micros = cur_micros-last_micros;
 				last_micros = cur_micros;
-				kbs = (double)(current_value-previous_value) / 1024.0f;
+				kbs = (double)(current_value-previous_value) / 1024.0;
 				previous_value = current_value;
 
 				if (kbs > 0) {
@@ -59,7 +59,7 @@ static int update_thread(SceSize args_size, UpdateArguments *args) {
 			}
 		}
 
-		double progress = (double)((100.0f * (double)current_value) / (double)args->max);
+		double progress = (double)((100.0 * (double)current_value) / (double)args->max);
 		sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (int)progress);
 
 		sceKernelDelayThread(COUNTUP_WAIT);
@@ -366,7 +366,9 @@ EXIT:
 
 static int mediaPathHandler(const char *path) {
 	// Avoid export-ception
-	if (strncasecmp(path, "ux0:music/", 10) == 0 || strncasecmp(path, "ux0:picture/", 12) == 0) {
+	if (strncasecmp(path, "ux0:music/", 10) == 0 ||
+		strncasecmp(path, "ux0:video/", 10) == 0 ||
+		strncasecmp(path, "ux0:picture/", 12) == 0) {
 		return 1;
 	}
 
@@ -377,6 +379,7 @@ static int mediaPathHandler(const char *path) {
 		case FILE_TYPE_JPEG:
 		case FILE_TYPE_PNG:
 		case FILE_TYPE_MP3:
+		case FILE_TYPE_MP4:
 			return 0;
 	}
 
@@ -408,7 +411,7 @@ static void musicExportProgress(void *data, int progress) {
 	}
 }
 
-static int exportMedia(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam *process_param) {
+static int exportMedia(char *path, uint32_t *songs, uint32_t *videos, uint32_t *pictures, FileProcessParam *process_param) {
 	static char buf[64 * 1024];
 	char out[MAX_PATH_LENGTH];
 
@@ -452,12 +455,33 @@ static int exportMedia(char *path, uint32_t *songs, uint32_t *pictures, FileProc
 			return (res == 0x8010530A) ? 0 : res;
 
 		(*songs)++;
+	} else if (type == FILE_TYPE_MP4) {
+		VideoExportInputParam in_param;
+		memset(&in_param, 0, sizeof(VideoExportInputParam));
+		strncpy(in_param.path, path, MAX_PATH_LENGTH);
+
+		VideoExportOutputParam out_param;
+		memset(&out_param, 0, sizeof(VideoExportOutputParam));
+
+		res = sceVideoExportFromFile(&in_param, 1, buf, process_param ? process_param->cancelHandler : NULL, NULL, NULL, 0, &out_param);
+		if (res < 0)
+			return (res == 0x8010540A) ? 0 : res;
+
+		if (process_param) {
+			if (process_param->value)
+				(*process_param->value) += stat.st_size;
+
+			if (process_param->SetProgress)
+				process_param->SetProgress(process_param->value ? *process_param->value : 0, process_param->max);
+		}
+
+		(*videos)++;
 	}
 
 	return 1;
 }
 
-int exportPath(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam *param) {
+int exportPath(char *path, uint32_t *songs, uint32_t *videos, uint32_t *pictures, FileProcessParam *param) {
 	SceUID dfd = sceIoDopen(path);
 	if (dfd >= 0) {
 		int res = 0;
@@ -472,7 +496,7 @@ int exportPath(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam
 				snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
 				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-					int ret = exportPath(new_path, songs, pictures, param);
+					int ret = exportPath(new_path, songs, videos, pictures, param);
 					if (ret <= 0) {
 						free(new_path);
 						sceIoDclose(dfd);
@@ -484,7 +508,7 @@ int exportPath(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam
 						continue;
 					}
 
-					int ret = exportMedia(new_path, songs, pictures, param);
+					int ret = exportMedia(new_path, songs, videos, pictures, param);
 					if (ret <= 0) {
 						free(new_path);
 						sceIoDclose(dfd);
@@ -501,7 +525,7 @@ int exportPath(char *path, uint32_t *songs, uint32_t *pictures, FileProcessParam
 		if (mediaPathHandler(path))
 			return 1;
 
-		int ret = exportMedia(path, songs, pictures, param);
+		int ret = exportMedia(path, songs, videos, pictures, param);
 		if (ret <= 0)
 			return ret;
 	}
@@ -568,7 +592,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 
 	// Export process
 	uint64_t value = 0;
-	uint32_t songs = 0, pictures = 0;
+	uint32_t songs = 0, videos = 0, pictures = 0;
 
 	mark_entry = head;
 
@@ -581,7 +605,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 		param.SetProgress = SetProgress;
 		param.cancelHandler = cancelHandler;
 
-		int res = exportPath(path, &songs, &pictures, &param);
+		int res = exportPath(path, &songs, &videos, &pictures, &param);
 		if (res <= 0) {
 			closeWaitDialog();
 			setDialogStep(DIALOG_STEP_CANCELLED);
@@ -600,10 +624,18 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 	closeWaitDialog();
 
 	// Info
-	if (songs > 0 && pictures > 0) {
+	if (songs > 0 && videos > 0 && pictures > 0) {
+		infoDialog(language_container[EXPORT_SONGS_VIDEOS_PICTURES_INFO], songs, videos, pictures);
+	} else if (songs > 0 && videos > 0) {
+		infoDialog(language_container[EXPORT_SONGS_VIDEOS_INFO], songs, videos);
+	} else if (songs > 0 && pictures > 0) {
 		infoDialog(language_container[EXPORT_SONGS_PICTURES_INFO], songs, pictures);
+	} else if (videos > 0 && pictures > 0) {
+		infoDialog(language_container[EXPORT_VIDEOS_PICTURES_INFO], videos, pictures);
 	} else if (songs > 0) {
 		infoDialog(language_container[EXPORT_SONGS_INFO], songs);
+	} else if (videos > 0) {
+		infoDialog(language_container[EXPORT_VIDEOS_INFO], videos);
 	} else if (pictures > 0) {
 		infoDialog(language_container[EXPORT_PICTURES_INFO], pictures);
 	}

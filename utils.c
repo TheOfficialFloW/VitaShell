@@ -264,8 +264,8 @@ void getSizeString(char string[16], uint64_t size) {
 
 	int i = 0;
 	static char *units[] = { "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
-	while (double_size >= 1024.0f) {
-		double_size /= 1024.0f;
+	while (double_size >= 1024.0) {
+		double_size /= 1024.0;
 		i++;
 	}
 

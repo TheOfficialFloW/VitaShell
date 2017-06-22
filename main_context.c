@@ -411,7 +411,8 @@ void setContextMenuMoreVisibilities() {
 	// Invisible export for non-media files
 	if (!file_entry->is_folder &&
 		file_entry->type != FILE_TYPE_BMP && file_entry->type != FILE_TYPE_JPEG &&
-		file_entry->type != FILE_TYPE_PNG && file_entry->type != FILE_TYPE_MP3) {
+		file_entry->type != FILE_TYPE_PNG && file_entry->type != FILE_TYPE_MP3 &&
+		file_entry->type != FILE_TYPE_MP4) {
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_INVISIBLE;
 	}
 
