@@ -24,9 +24,8 @@
 #define NET_INIT_SIZE 1 * 1024 * 1024
 
 extern char vitashell_titleid[12];
-extern char henkaku_config_path[32];
 
-extern int is_safe_mode, is_molecular_shell;
+extern int is_safe_mode;
 
 extern SceUID kernel_modid, user_modid;
 

@@ -133,7 +133,6 @@ target_link_libraries(VitaShell
   unrar
   stdc++
   taihen_stub
-  HENkaku_stub
   VitaShellUser_stub_weak
   SceAppMgr_stub
   SceAppUtil_stub

@@ -143,9 +143,8 @@ static DefaultFile default_files[] = {
 };
 
 char vitashell_titleid[12];
-char henkaku_config_path[32];
 
-int is_safe_mode = 0, is_molecular_shell = 0;
+int is_safe_mode = 0;
 
 SceUID kernel_modid = -1, user_modid = -1;
 
@@ -334,17 +333,6 @@ void initVitaShell() {
 
 	// Allow writing to ux0:app/VITASHELL
 	sceAppMgrUmount("app0:");
-
-	// Is molecularShell
-	if (strcmp(vitashell_titleid, "MLCL00001") == 0) {
-		// HENkaku config path (ux0:temp/app_work/MLCL00001/rec/config.bin)
-		char mount_point[16];
-		memset(mount_point, 0, sizeof(mount_point));
-		sceAppMgrWorkDirMountById(207, vitashell_titleid, mount_point);
-		sprintf(henkaku_config_path, "%s/config.bin", mount_point);
-
-		is_molecular_shell = 1;
-	}
 
 	// Is safe mode
 	if (sceIoDevctl("ux0:", 0x3001, NULL, 0, NULL, 0) == 0x80010030)

@@ -379,7 +379,7 @@ void drawShellInfo(const char *path) {
 	if (version[3] == '0')
 		version[3] = '\0';
 
-	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "%s %s", is_molecular_shell ? "molecularShell" : "VitaShell", version);
+	pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "VitaShell %s", version);
 
 	// Status bar
 	float x = SCREEN_WIDTH-SHELL_MARGIN_X;

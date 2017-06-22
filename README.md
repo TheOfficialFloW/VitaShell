@@ -108,6 +108,7 @@ Be sure you pull request your customized design or language file there.
 
 ### Changelog 1.63 ###
 - Added ability to export video files.
+- Added support for PSVSD uma0: mounting.
 - Fixed bug where the right analog stick was simulated when the headphone was plugged in.
 
 ### Changelog 1.62 ###
