@@ -194,7 +194,7 @@ int SFOReader(const char *file) {
 					break;
 					
 				case PSF_TYPE_VAL:
-					snprintf(string, sizeof(string), "%X", *(unsigned int *)data);
+					snprintf(string, sizeof(string), "0x%X", *(unsigned int *)data);
 					break;
 			}
 
