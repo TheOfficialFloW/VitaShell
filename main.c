@@ -181,10 +181,8 @@ static void setFocusOnFilename(const char *name) {
 			if (index > name_pos) {
 				if (rel_pos > 0) {
 					rel_pos--;
-				} else {
-					if (base_pos > 0) {
-						base_pos--;
-					}
+				} else if (base_pos > 0) {
+					base_pos--;
 				}
 			}
 
@@ -192,10 +190,8 @@ static void setFocusOnFilename(const char *name) {
 				if ((rel_pos+1) < file_list.length) {
 					if ((rel_pos+1) < MAX_POSITION) {
 						rel_pos++;
-					} else {
-						if ((base_pos+rel_pos+1) < file_list.length) {
-							base_pos++;
-						}
+					} else if ((base_pos+rel_pos+1) < file_list.length) {
+						base_pos++;
 					}
 				}
 			}
@@ -221,10 +217,8 @@ int refreshFileList() {
 	while ((base_pos+rel_pos) >= file_list.length) {
 		if (base_pos > 0) {
 			base_pos--;
-		} else {
-			if (rel_pos > 0) {
-				rel_pos--;
-			}
+		} else if (rel_pos > 0) {
+			rel_pos--;
 		}
 	}
 
@@ -1175,10 +1169,8 @@ static int fileBrowserMenuCtrl() {
 		
 		if (rel_pos > 0) {
 			rel_pos--;
-		} else {
-			if (base_pos > 0) {
-				base_pos--;
-			}
+		} else if (base_pos > 0) {
+			base_pos--;
 		}
 
 		if (old_pos != base_pos+rel_pos)
@@ -1189,10 +1181,8 @@ static int fileBrowserMenuCtrl() {
 		if ((rel_pos+1) < file_list.length) {
 			if ((rel_pos+1) < MAX_POSITION) {
 				rel_pos++;
-			} else {
-				if ((base_pos+rel_pos+1) < file_list.length) {
-					base_pos++;
-				}
+			} else if ((base_pos+rel_pos+1) < file_list.length) {
+				base_pos++;
 			}
 		}
 

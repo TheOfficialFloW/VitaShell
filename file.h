@@ -64,13 +64,6 @@ enum FileMoveFlags {
 };
 
 typedef struct {
-	uint64_t max_size;
-	uint64_t free_size;
-	uint32_t cluster_size;
-	void *unk;
-} SceIoDevInfo;
-
-typedef struct {
 	uint64_t *value;
 	uint64_t max;
 	void (* SetProgress)(uint64_t value, uint64_t max);

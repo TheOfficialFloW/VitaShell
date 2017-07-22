@@ -130,49 +130,45 @@ int hexViewer(const char *file) {
 			if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
 				if (rel_pos > 0) {
 					rel_pos -= 0x10;
-				} else {
-					if (base_pos > 0) {
-						base_pos -= 0x10;
+				} else if (base_pos > 0) {
+					base_pos -= 0x10;
 
-						// Tail to head
-						list.tail->next = list.head;
-						list.head->previous = list.tail;
-						list.head = list.tail;
+					// Tail to head
+					list.tail->next = list.head;
+					list.head->previous = list.tail;
+					list.head = list.tail;
 
-						// Second last to tail
-						list.tail = list.tail->previous;
-						list.tail->next = NULL;
+					// Second last to tail
+					list.tail = list.tail->previous;
+					list.tail->next = NULL;
 
-						// No previous
-						list.head->previous = NULL;
+					// No previous
+					list.head->previous = NULL;
 
-						// Read
-						memcpy(list.head->data, buffer+base_pos, 0x10);
-					}
+					// Read
+					memcpy(list.head->data, buffer+base_pos, 0x10);
 				}
 			} else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
 				if ((rel_pos+0x10) < size) {
 					if ((rel_pos+0x10) < ((MAX_POSITION-1) * 0x10)) {
 						rel_pos += 0x10;
-					} else {
-						if ((base_pos+rel_pos+0x10) < size) {
-							base_pos += 0x10;
+					} else if ((base_pos+rel_pos+0x10) < size) {
+						base_pos += 0x10;
 
-							// Head to tail
-							list.head->previous = list.tail;
-							list.tail->next = list.head;
-							list.tail = list.head;
+						// Head to tail
+						list.head->previous = list.tail;
+						list.tail->next = list.head;
+						list.tail = list.head;
 
-							// Second first to head
-							list.head = list.head->next;
-							list.head->previous = NULL;
+						// Second first to head
+						list.head = list.head->next;
+						list.head->previous = NULL;
 
-							// No next
-							list.tail->next = NULL;
+						// No next
+						list.tail->next = NULL;
 
-							// Read
-							memcpy(list.tail->data, buffer+base_pos + (0x10-1) * 0x10, 0x10);
-						}
+						// Read
+						memcpy(list.tail->data, buffer+base_pos + (0x10-1) * 0x10, 0x10);
 					}
 				}
 			}
