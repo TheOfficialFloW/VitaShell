@@ -259,4 +259,11 @@
 - Fixed bug where the cursor was moving too fast when the headphone was plugged in.<br>
     ]]>
   </changes>
+   <changes app_ver="01.63">
+    <![CDATA[
+- Added ability to export video files.<br>
+- Added support for PSVSD uma0: mounting.<br>
+- Fixed bug where the right analog stick was simulated when the headphone was plugged in.<br>
+    ]]>
+  </changes>
 </changeinfo>

@@ -289,7 +289,7 @@ static void loadScePaf() {
 	buf[2] = 0;
 	buf[3] = 0;
 
-	sceSysmoduleLoadModuleInternalWithArg(SCE_SYSMODULE_PAF, sizeof(scepaf_argp), scepaf_argp, buf);
+	sceSysmoduleLoadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, sizeof(scepaf_argp), scepaf_argp, buf);
 }
 
 void installDefaultFiles() {
@@ -344,8 +344,8 @@ void initVitaShell() {
 	// Load modules
 	loadScePaf();
 
-	sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
-	sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_VIDEO_EXPORT);
+	sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_VIDEO_EXPORT);
 	sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
 	sceSysmoduleLoadModule(SCE_SYSMODULE_MUSIC_EXPORT);
 	sceSysmoduleLoadModule(SCE_SYSMODULE_PHOTO_EXPORT);
@@ -387,6 +387,6 @@ void finishVitaShell() {
 	sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);
 	sceSysmoduleUnloadModule(SCE_SYSMODULE_MUSIC_EXPORT);
 	sceSysmoduleUnloadModule(SCE_SYSMODULE_PGF);
-	sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_VIDEO_EXPORT);
-	sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_PROMOTER_UTIL);
+	sceSysmoduleUnloadModule(SCE_SYSMODULE_VIDEO_EXPORT);
+	sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
 }
