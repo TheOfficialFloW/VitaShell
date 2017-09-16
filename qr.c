@@ -90,6 +90,8 @@ int qr_thread() {
 					last_qr_len = data.payload_len;
 					qr_scanned = 1;
 				}
+			} else {
+				memset(last_qr, 0, MAX_QR_LENGTH);
 			}
 			qr_next = 1;
 			sceKernelDelayThread(250000);
