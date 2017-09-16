@@ -26,6 +26,7 @@
 #define MESSAGE_DIALOG_RESULT_YES 4
 
 #define MESSAGE_DIALOG_PROGRESS_BAR 5
+#define MESSAGE_DIALOG_QR_CODE 6
 
 int initMessageDialog(int type, const char *msg, ...);
 int isMessageDialogRunning();

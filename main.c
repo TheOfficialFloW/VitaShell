@@ -24,6 +24,7 @@
 #include "makezip.h"
 #include "package_installer.h"
 #include "network_update.h"
+#include "network_download.h"
 #include "context_menu.h"
 #include "archive.h"
 #include "photo.h"
@@ -42,6 +43,7 @@
 #include "coredump.h"
 #include "archiveRAR.h"
 #include "usb.h"
+#include "qr.h"
 
 int _newlib_heap_size_user = 128 * 1024 * 1024;
 
@@ -1021,6 +1023,22 @@ static int dialogSteps() {
 			break;
 		}
 		
+		case DIALOG_STEP_INSTALL_CONFIRMED_QR:
+		{
+			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
+				InstallArguments args;
+				args.file = getLastDownloadQR();
+
+				setDialogStep(DIALOG_STEP_INSTALLING);
+
+				SceUID thid = sceKernelCreateThread("install_thread", (SceKernelThreadEntry)install_thread, 0x40, 0x100000, 0, 0, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, sizeof(InstallArguments), &args);
+			}
+
+			break;
+		}
+ 
 		case DIALOG_STEP_INSTALL_WARNING:
 		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
@@ -1109,6 +1127,73 @@ static int dialogSteps() {
 			launchAppByUriExit("VSUPDATER");
 			setDialogStep(DIALOG_STEP_NONE);
 			break;
+			
+			
+		case DIALOG_STEP_QR:
+		{
+			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				setDialogStep(DIALOG_STEP_NONE);
+				setScannedQR(0);
+			} else if (scannedQR()) {
+				setDialogStep(DIALOG_STEP_QR_DONE);
+				sceMsgDialogClose();
+				setScannedQR(0);
+				stopQR();
+			}
+			break;
+		}
+		
+		case DIALOG_STEP_QR_DONE:
+		{
+			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				stopQR();
+				SceUID thid = sceKernelCreateThread("qr_scan_thread", (SceKernelThreadEntry)qr_scan_thread, 0x10000100, 0x100000, 0, 0, NULL);
+				if (thid >= 0)
+					sceKernelStartThread(thid, 0, NULL);
+			}
+		}
+		
+		case DIALOG_STEP_QR_CONFIRM:
+		{
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[DOWNLOADING]);
+				setDialogStep(DIALOG_STEP_QR_DOWNLOADING);
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				setDialogStep(DIALOG_STEP_NONE);
+			}
+			break;
+		}
+		
+		case DIALOG_STEP_QR_DOWNLOADED:
+		{
+			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
+				setDialogStep(DIALOG_STEP_INSTALL_CONFIRMED_QR);
+			}
+			break;
+		}
+		
+		case DIALOG_STEP_QR_OPEN_WEBSITE:
+		{
+			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
+				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
+				setDialogStep(DIALOG_STEP_NONE);
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
+				setDialogStep(DIALOG_STEP_NONE);
+			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
+				setDialogStep(DIALOG_STEP_NONE);
+			}
+			break;
+		}
+		
+		case DIALOG_STEP_QR_SHOW_CONTENTS:
+		{
+			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+				setDialogStep(DIALOG_STEP_NONE);
+			}
+			break;
+		}
 	}
 
 	return refresh;
@@ -1162,7 +1247,14 @@ static int fileBrowserMenuCtrl() {
 			}
 		}
 	}
-
+	
+	// QR
+	if (hold2_buttons & SCE_CTRL_LTRIGGER && hold2_buttons & SCE_CTRL_RTRIGGER && enabledQR()) {
+		startQR();
+		initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
+		setDialogStep(DIALOG_STEP_QR);
+	}
+	
 	// Move
 	if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
 		int old_pos = base_pos+rel_pos;
