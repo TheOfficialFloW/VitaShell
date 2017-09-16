@@ -106,6 +106,11 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.65 ###
+- Added QR Code scanner and file downloader by cxziaho (press L+R to open the camera).
+- Added option in 'More->' to open applications in decrypted mode (PFS bypassed). Thanks to frangarcj.
+- Fixed bug where 'imc0:' could not be mounted if the Memory Card was not available.
+
 ### Changelog 1.63 ###
 - Added ability to export video files.
 - Added support for PSVSD uma0: mounting.

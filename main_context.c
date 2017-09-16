@@ -28,6 +28,9 @@
 #include "utils.h"
 #include "usb.h"
 
+char pfs_mounted_path[MAX_PATH_LENGTH];
+char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
+
 enum MenuHomeEntrys {
 	MENU_HOME_ENTRY_REFRESH_LIVEAREA,
 	MENU_HOME_ENTRY_MOUNT_UMA0,
@@ -55,8 +58,8 @@ enum MenuMainEntrys {
 	MENU_MAIN_ENTRY_RENAME,
 	MENU_MAIN_ENTRY_NEW_FOLDER,
 	MENU_MAIN_ENTRY_PROPERTIES,
-	MENU_MAIN_ENTRY_MORE,
 	MENU_MAIN_ENTRY_SORT_BY,
+	MENU_MAIN_ENTRY_MORE,
 };
 
 MenuEntry menu_main_entries[] = {
@@ -68,8 +71,8 @@ MenuEntry menu_main_entries[] = {
 	{ RENAME,      7, 0, CTX_INVISIBLE },
 	{ NEW_FOLDER,  9, 0, CTX_INVISIBLE },
 	{ PROPERTIES, 10, 0, CTX_INVISIBLE },
-	{ MORE,       12, 1, CTX_INVISIBLE },
-	{ SORT_BY,    13, 1, CTX_VISIBLE },
+	{ SORT_BY,    12, 1, CTX_VISIBLE },
+	{ MORE,       13, 1, CTX_INVISIBLE },
 };
 
 #define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries) / sizeof(MenuEntry))
@@ -94,6 +97,7 @@ enum MenuMoreEntrys {
 	MENU_MORE_ENTRY_INSTALL_FOLDER,
 	MENU_MORE_ENTRY_EXPORT_MEDIA,
 	MENU_MORE_ENTRY_CALCULATE_SHA1,
+	MENU_MORE_ENTRY_OPEN_DECRYPTED,
 };
 
 MenuEntry menu_more_entries[] = {
@@ -102,6 +106,7 @@ MenuEntry menu_more_entries[] = {
 	{ INSTALL_FOLDER, 14, 0, CTX_INVISIBLE },
 	{ EXPORT_MEDIA,   15, 0, CTX_INVISIBLE },
 	{ CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
+	{ OPEN_DECRYPTED, 17, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
@@ -146,6 +151,14 @@ ContextMenu context_menu_more = {
 	.callback = contextMenuMoreEnterCallback,
 	.sel = -1,
 };
+
+void gameDataUmount() {
+	if (pfs_mount_point[0] != 0) {
+		sceShellUtilUnlock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+		sceAppMgrUmount(pfs_mount_point);
+		memset(pfs_mount_point, 0, sizeof(pfs_mount_point));
+	}
+}
 
 void initContextMenuWidth() {
 	int i;
@@ -218,17 +231,8 @@ void setContextMenuHomeVisibilities() {
 	}
 
 	// Invisible if already mounted or there is no internal storage
-	SceUID fd_int = sceIoOpen("sdstor0:int-lp-ign-userext", SCE_O_RDONLY, 0);
-	SceUID fd_xmc = sceIoOpen("sdstor0:xmc-lp-ign-userext", SCE_O_RDONLY, 0);
-
-	if (fd_int < 0 || fd_xmc < 0 || checkFileExist("imc0:"))
+	if (!checkFileExist("sdstor0:int-lp-ign-userext") || checkFileExist("imc0:"))
 		menu_home_entries[MENU_HOME_ENTRY_MOUNT_IMC0].visibility = CTX_INVISIBLE;
-
-	if (fd_int >= 0)
-		sceIoClose(fd_int);
-
-	if (fd_xmc >= 0)
-		sceIoClose(fd_xmc);
 
 	// Go to first entry
 	for (i = 0; i < N_MENU_HOME_ENTRIES; i++) {
@@ -286,8 +290,8 @@ void setContextMenuMainVisibilities() {
 		}
 	}
 
-	// Invisble write operations in archives
-	if (isInArchive()) { // TODO: read-only mount points
+	// Invisble write operations in archives or pfs mounted paths
+	if (isInArchive() || strcmp(file_list.path, pfs_mounted_path) == 0) { // TODO: read-only mount points
 		menu_main_entries[MENU_MAIN_ENTRY_MOVE].visibility = CTX_INVISIBLE;
 		menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
 		menu_main_entries[MENU_MAIN_ENTRY_DELETE].visibility = CTX_INVISIBLE;
@@ -366,6 +370,7 @@ void setContextMenuMoreVisibilities() {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
 	}
 
 	// Invisble operations in archives
@@ -375,6 +380,7 @@ void setContextMenuMoreVisibilities() {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_INVISIBLE;
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_INVISIBLE;
+		menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
 	}
 
 	if (file_entry->is_folder) {
@@ -414,6 +420,17 @@ void setContextMenuMoreVisibilities() {
 		file_entry->type != FILE_TYPE_PNG && file_entry->type != FILE_TYPE_MP3 &&
 		file_entry->type != FILE_TYPE_MP4) {
 		menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_INVISIBLE;
+	}
+
+	// Invisible if it's not folder or sce_pfs does not exist
+	if (!file_entry->is_folder) {
+		menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
+	} else {
+		char path[MAX_PATH_LENGTH];
+		snprintf(path, MAX_PATH_LENGTH, "%s%s/sce_pfs", file_list.path, file_entry->name);
+		
+		if (!checkFolderExist(path))
+			menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
 	}
 
 	// Go to first entry
@@ -532,6 +549,12 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 		case MENU_MAIN_ENTRY_MOVE:
 		case MENU_MAIN_ENTRY_COPY:
 		{
+			// Umount if last path copied from is the pfs mounted path
+			if (strcmp(copy_list.path, pfs_mounted_path) == 0 &&
+				strcmp(file_list.path, pfs_mounted_path) != 0) {
+				gameDataUmount();
+			}
+
 			// Mode
 			if (sel == MENU_MAIN_ENTRY_MOVE) {
 				copy_mode = COPY_MODE_MOVE;
@@ -540,7 +563,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 			}
 			
 			file_type = getArchiveType();
-			strcpy(archive_copy_path,archive_path);
+			strcpy(archive_copy_path, archive_path);
 
 			// Empty copy list at first
 			fileListEmpty(&copy_list);
@@ -818,6 +841,48 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 			// Ensure user wants to actually take the hash
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[HASH_FILE_QUESTION]);
 			setDialogStep(DIALOG_STEP_HASH_QUESTION);
+			break;
+		}
+		
+		case MENU_MORE_ENTRY_OPEN_DECRYPTED:
+		{
+			char path[MAX_PATH_LENGTH];
+			int res;
+
+			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+
+			gameDataUmount();
+
+			snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+			res = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+			
+			// In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
+			snprintf(path, MAX_PATH_LENGTH, "ux0:app/%s", file_entry->name);
+			if (res < 0)
+				res = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+			snprintf(path, MAX_PATH_LENGTH, "gro:app/%s", file_entry->name);
+			if (res < 0)
+				res = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+
+			if (res >= 0) {
+				addEndSlash(file_list.path);
+				strcat(file_list.path, file_entry->name);
+				strcpy(pfs_mounted_path, file_list.path);
+				dirLevelUp();
+
+				// Save last dir
+				WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path)+1);
+
+				// Open folder
+				int res = refreshFileList();
+				if (res < 0)
+					errorDialog(res);
+				
+				sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
+			} else {
+				errorDialog(res);
+			}
+
 			break;
 		}
 	}

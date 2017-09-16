@@ -63,8 +63,8 @@ static char focus_name[MAX_NAME_LENGTH], compress_name[MAX_NAME_LENGTH];
 
 // Position
 int base_pos = 0, rel_pos = 0;
-static char base_pos_list[MAX_DIR_LEVELS];
-static char rel_pos_list[MAX_DIR_LEVELS];
+static uint8_t base_pos_list[MAX_DIR_LEVELS];
+static uint8_t rel_pos_list[MAX_DIR_LEVELS];
 static int dir_level = 0;
 
 // Modes
@@ -111,8 +111,8 @@ void setDialogStep(int step) {
 }
 
 void dirLevelUp() {
-	base_pos_list[dir_level] = (char)base_pos;
-	rel_pos_list[dir_level] = (char)rel_pos;
+	base_pos_list[dir_level] = (uint8_t)base_pos;
+	rel_pos_list[dir_level] = (uint8_t)rel_pos;
 	dir_level++;
 	base_pos_list[dir_level] = 0;
 	rel_pos_list[dir_level] = 0;
@@ -143,6 +143,12 @@ void dirUpCloseArchive() {
 }
 
 static void dirUp() {
+	// If nothing has been copied from the pfs mounted path, then umount
+	if (strcmp(file_list.path, pfs_mounted_path) == 0 &&
+		strcmp(copy_list.path, pfs_mounted_path) != 0) {
+		gameDataUmount();
+	}
+
 	removeEndSlash(file_list.path);
 
 	char *p;
@@ -613,6 +619,13 @@ static int dialogSteps() {
 				// Empty copy list when moved
 				if (getDialogStep() == DIALOG_STEP_MOVED)
 					fileListEmpty(&copy_list);
+				
+				// Umount and remove from clipboard after pasting
+				if (strcmp(copy_list.path, pfs_mounted_path) == 0 &&
+					strcmp(file_list.path, pfs_mounted_path) != 0) {
+					gameDataUmount();
+					fileListEmpty(&copy_list);
+				}
 
 				refresh = REFRESH_MODE_SETFOCUS;
 				setDialogStep(DIALOG_STEP_NONE);
@@ -1400,7 +1413,7 @@ static int shellMain() {
 	ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
 
 	// Calculate dir positions if the dir is valid
-	if (checkFileExist(lastdir)) {
+	if (checkFolderExist(lastdir)) {
 		int i;
 		for (i = 0; i < strlen(lastdir)+1; i++) {
 			if (lastdir[i] == ':' || lastdir[i] == '/') {
@@ -1462,6 +1475,7 @@ static int shellMain() {
 
 		// Refresh on app resume
 		if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
+			gameDataUmount(); // umount game data at resume
 			refresh = REFRESH_MODE_NORMAL;
 		}
 

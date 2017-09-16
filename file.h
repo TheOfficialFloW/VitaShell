@@ -25,6 +25,7 @@
 #define MAX_PATH_LENGTH 1024
 #define MAX_NAME_LENGTH 256
 #define MAX_SHORT_NAME_LENGTH 64
+#define MAX_MOUNT_POINT_LENGTH 16
 #define MAX_DIR_LEVELS 32
 
 #define DIRECTORY_SIZE (4 * 1024)
@@ -97,7 +98,9 @@ typedef struct {
 int allocateReadFile(const char *file, void **buffer);
 int ReadFile(const char *file, void *buf, int size);
 int WriteFile(const char *file, const void *buf, int size);
+
 int checkFileExist(const char *file);
+int checkFolderExist(const char *folder);
 
 int getFileSize(const char *file);
 int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param);

@@ -267,6 +267,8 @@ extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
 extern int use_custom_config;
 
+void dirLevelUp();
+
 int getDialogStep();
 void setDialogStep(int step);
 

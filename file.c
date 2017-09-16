@@ -95,10 +95,21 @@ int getFileSize(const char *file) {
 }
 
 int checkFileExist(const char *file) {
-	SceIoStat stat;
-	memset(&stat, 0, sizeof(SceIoStat));
+	SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
+	if (fd < 0)
+		return 0;
 
-	return sceIoGetstat(file, &stat) >= 0;
+	sceIoClose(fd);
+	return 1;
+}
+
+int checkFolderExist(const char *folder) {
+	SceUID fd = sceIoDopen(folder);
+	if (fd < 0)
+		return 0;
+
+	sceIoDclose(fd);
+	return 1;
 }
 
 int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param) {
