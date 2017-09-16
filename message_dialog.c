@@ -48,6 +48,12 @@ int initMessageDialog(int type, const char *msg, ...) {
 
 		param.progBarParam = &progress_bar_param;
 		param.mode = SCE_MSG_DIALOG_MODE_PROGRESS_BAR;
+	} else if (type == MESSAGE_DIALOG_QR_CODE) {
+		static SceMsgDialogUserMessageParam user_message_param;
+		memset(&user_message_param, 0, sizeof(SceMsgDialogUserMessageParam));
+		user_message_param.msg = (SceChar8 *)message_string;
+		param.userMsgParam = &user_message_param;
+		param.mode = MSG_DIALOG_MODE_QR_SCAN;
 	} else {
 		static SceMsgDialogUserMessageParam user_message_param;
 		memset(&user_message_param, 0, sizeof(SceMsgDialogUserMessageParam));

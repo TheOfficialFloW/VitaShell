@@ -68,11 +68,13 @@ add_executable(VitaShell
   main_context.c
   init.c
   usb.c
+  qr.c
   io_process.c
   makezip.c
   package_installer.c
   refresh.c
   network_update.c
+  network_download.c
   context_menu.c
   archive.c
   photo.c
@@ -129,6 +131,7 @@ target_link_libraries(VitaShell
   z
   m
   c
+  quirc
   onigmo
   unrar
   stdc++
@@ -138,12 +141,14 @@ target_link_libraries(VitaShell
   SceAppUtil_stub
   SceAudio_stub
   SceAudiodec_stub
+  SceCamera_stub
   SceCommonDialog_stub
   SceCtrl_stub
   SceDisplay_stub
   SceGxm_stub
   SceIme_stub
   SceHttp_stub
+  SceLibKernel_stub
   SceMtpIfDriver_stub
   SceMusicExport_stub
   SceNet_stub

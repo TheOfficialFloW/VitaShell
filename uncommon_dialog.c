@@ -22,6 +22,7 @@
 #include "language.h"
 #include "utils.h"
 #include "uncommon_dialog.h"
+#include "qr.h"
 
 typedef struct {
 	int dialog_status;
@@ -82,7 +83,12 @@ static void calculateDialogBoxSize() {
 		uncommon_dialog.width = UNCOMMON_DIALOG_PROGRESS_BAR_BOX_WIDTH;
 		uncommon_dialog.height += 2.0f*FONT_Y_SPACE;
 	}
-
+	
+	if (uncommon_dialog.mode == MSG_DIALOG_MODE_QR_SCAN) {
+		uncommon_dialog.width = CAM_WIDTH + 30;
+		uncommon_dialog.height += CAM_HEIGHT;
+	}
+	
 	// More space for buttons
 	if (uncommon_dialog.buttonType != SCE_MSG_DIALOG_BUTTON_TYPE_NONE)
 		uncommon_dialog.height += 2.0f*FONT_Y_SPACE;
@@ -123,6 +129,13 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
 
 			strncpy(uncommon_dialog.msg, (char *)param->progBarParam->msg, sizeof(uncommon_dialog.msg)-1);
 			uncommon_dialog.buttonType = SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL;
+			break;
+		}
+		
+		case MSG_DIALOG_MODE_QR_SCAN:
+		{
+			strncpy(uncommon_dialog.msg, (char *)param->userMsgParam->msg, sizeof(uncommon_dialog.msg)-1);
+ 			uncommon_dialog.buttonType = SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL;
 			break;
 		}
 		
@@ -331,6 +344,11 @@ int drawUncommonDialog() {
 			pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, string);
 
 			string_y += 2.0f*FONT_Y_SPACE;
+		}
+		
+		if (uncommon_dialog.mode == MSG_DIALOG_MODE_QR_SCAN) {
+			renderCameraQR(uncommon_dialog.x + 15, string_y + 10);
+			string_y += CAM_HEIGHT;
 		}
 
 		switch (uncommon_dialog.buttonType) {

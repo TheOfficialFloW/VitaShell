@@ -162,6 +162,12 @@ USB_NOT_CONNECTED                    = "Connect this system to a PC system using
 USB_CONNECTION_NOT_AVAILABLE         = "USB connection is not available on this device."
 USB_WAIT_ATTACH                      = "Please attach an USB flash drive to continue.\If it has already been attached, please detach\and reattach it."
 
+# QR strings
+QR_SCANNING                         = "Scanning for QR Codes..."
+QR_OPEN_WEBSITE                     = "Do you want to open this URL:\%s"
+QR_CONFIRM_INSTALL                  = "Do you want to install this package:\%s"
+QR_SHOW_CONTENTS                    = "QR Code Says:\%s"
+
 # Others
 IMC0_MOUNTED                         = "imc0: mounted."
 SAFE_MODE                            = "SAFE MODE"
