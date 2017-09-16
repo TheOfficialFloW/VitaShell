@@ -106,10 +106,14 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
-### Changelog 1.65 ###
+### Changelog 1.7 ###
 - Added QR Code scanner and file downloader by cxziaho (press L+R to open the camera).
-- Added option in 'More->' to open applications in decrypted mode (PFS bypassed). Thanks to frangarcj.
+- Added option in 'More->' to open applications in decrypted mode (bypass PFS). Thanks to frangarcj.
+- Added ability to mount sd2vita and psvsd as usb device.
 - Fixed bug where 'imc0:' could not be mounted if the Memory Card was not available.
+- Fixed bug where accessing the settings menu crashed if there was no Memory Card available.
+- Fixed bug where automatic usb connection was not blocked, after leaving and resuming VitaShell.
+- PS TV will now always open FTP when pressing SELECT.
 
 ### Changelog 1.63 ###
 - Added ability to export video files.

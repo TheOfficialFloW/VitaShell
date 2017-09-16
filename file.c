@@ -89,7 +89,7 @@ int getFileSize(const char *file) {
 		return fd;
 
 	int fileSize = sceIoLseek(fd, 0, SCE_SEEK_END);
-	
+
 	sceIoClose(fd);
 	return fileSize;
 }

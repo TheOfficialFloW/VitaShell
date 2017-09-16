@@ -79,6 +79,7 @@ int network_update_thread(SceSize args, void *argp) {
 
 				char url[128];
 	        	snprintf(url, sizeof(url), BASE_ADDRESS "/%s/VitaShell.vpk", version_string);
+
 				// Yes
 				return downloadFileProcess(url, VITASHELL_UPDATE_FILE, DIALOG_STEP_DOWNLOADED);
 			}

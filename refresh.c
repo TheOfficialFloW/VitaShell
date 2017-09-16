@@ -52,8 +52,11 @@ int refreshApp(const char *name) {
 	// Read param.sfo
 	void *sfo_buffer = NULL;
 	int sfo_size = allocateReadFile(param_path, &sfo_buffer);
-	if (sfo_size < 0)
+	if (sfo_size < 0) {
+		if (sfo_buffer)
+			free(sfo_buffer);
 		return sfo_size;
+	}
 
 	// Get titleid
 	char titleid[12];

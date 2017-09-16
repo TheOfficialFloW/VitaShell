@@ -370,7 +370,8 @@ void drawScrollBar(int pos, int n) {
 		float y = START_Y + ((pos*FONT_Y_SPACE) / (n*FONT_Y_SPACE)) * (MAX_ENTRIES*FONT_Y_SPACE);
 		float height = ((MAX_POSITION*FONT_Y_SPACE) / (n*FONT_Y_SPACE)) * (MAX_ENTRIES*FONT_Y_SPACE);
 
-		vita2d_draw_rectangle(SCROLL_BAR_X, MIN(y, (START_Y + MAX_ENTRIES*FONT_Y_SPACE - height)), SCROLL_BAR_WIDTH, MAX(height, SCROLL_BAR_MIN_HEIGHT), SCROLL_BAR_COLOR);
+		float scroll_bar_y = MIN(y, (START_Y + MAX_ENTRIES*FONT_Y_SPACE - height));
+		vita2d_draw_rectangle(SCROLL_BAR_X, scroll_bar_y, SCROLL_BAR_WIDTH, MAX(height, SCROLL_BAR_MIN_HEIGHT), SCROLL_BAR_COLOR);
 	}
 }
 
@@ -483,7 +484,7 @@ static void initFtp() {
 		}
 	}
 
-	ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);	
+	ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);
 }
 
 static void initUsb() {
@@ -498,21 +499,21 @@ static void initUsb() {
 			infoDialog(language_container[MEMORY_CARD_NOT_FOUND]);
 			return;
 		}
-	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_GAME_CARD) {				
+	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_GAME_CARD) {
 		if (checkFileExist("sdstor0:gcd-lp-ign-gamero"))
 			path = "sdstor0:gcd-lp-ign-gamero";
 		else {
 			infoDialog(language_container[GAME_CARD_NOT_FOUND]);
 			return;
 		}
-	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_SD2VITA) {				
+	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_SD2VITA) {
 		if (checkFileExist("sdstor0:gcd-lp-ign-entire"))
 			path = "sdstor0:gcd-lp-ign-entire";
 		else {
 			infoDialog(language_container[MICROSD_NOT_FOUND]);
 			return;
 		}
-	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_PSVSD) {				
+	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_PSVSD) {
 		if (checkFileExist("sdstor0:uma-lp-act-entire"))
 			path = "sdstor0:uma-lp-act-entire";
 		else {
@@ -663,18 +664,14 @@ static int dialogSteps() {
 		case DIALOG_STEP_USB_ATTACH_WAIT:
 		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
-				SceUID fd = sceIoOpen("sdstor0:uma-lp-act-entire", SCE_O_RDONLY, 0);
-				if (fd >= 0) {
-					sceIoClose(fd);
+				if (checkFileExist("sdstor0:uma-lp-act-entire")) {
 					sceMsgDialogClose();
 				}
 			} else {
 				if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 					setDialogStep(DIALOG_STEP_NONE);
 					
-					SceUID fd = sceIoOpen("sdstor0:uma-lp-act-entire", SCE_O_RDONLY, 0);
-					if (fd >= 0) {
-						sceIoClose(fd);
+					if (checkFileExist("sdstor0:uma-lp-act-entire")) {
 						int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
 						if (res < 0)
 							errorDialog(res);
@@ -1232,10 +1229,8 @@ static int fileBrowserMenuCtrl() {
 
 	// SELECT button
 	if (pressed_buttons & SCE_CTRL_SELECT) {
-		if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB) {
-			if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
-				infoDialog(language_container[USB_CONNECTION_NOT_AVAILABLE]);
-			} else if (is_safe_mode) {
+		if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB && sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
+			if (is_safe_mode) {
 				infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
 			} else {
 				SceUdcdDeviceState state;
@@ -1248,7 +1243,7 @@ static int fileBrowserMenuCtrl() {
 					setDialogStep(DIALOG_STEP_USB_WAIT);
 				}
 			}
-		} else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP) {
+		} else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP || sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
 			// Init FTP
 			if (!ftpvita_is_initialized()) {
 				int res = ftpvita_init(vita_ip, &vita_port);
@@ -1270,7 +1265,7 @@ static int fileBrowserMenuCtrl() {
 			}
 		}
 	}
-	
+
 	// QR
 	if (hold2_buttons & SCE_CTRL_LTRIGGER && hold2_buttons & SCE_CTRL_RTRIGGER && enabledQR()) {
 		startQR();
@@ -1485,6 +1480,7 @@ static int shellMain() {
 
 		// Refresh on app resume
 		if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
+			sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION);
 			gameDataUmount(); // umount game data at resume
 			refresh = REFRESH_MODE_NORMAL;
 		}
@@ -1619,9 +1615,12 @@ static int shellMain() {
 						strcpy(used_size_string, "-");
 						strcpy(max_size_string, "-");
 					}
-					pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string)), y, color, FONT_SIZE, max_size_string);
+					
+					float x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string));
+					pgf_draw_text(x, y, color, FONT_SIZE, max_size_string);
 					pgf_draw_text(separator_x, y, color, FONT_SIZE, "    /");
-					pgf_draw_text(ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string)), y, color, FONT_SIZE, used_size_string);
+					x = ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string));
+					pgf_draw_text(x, y, color, FONT_SIZE, used_size_string);
 				} else {
 					char *str = NULL;
 					if (!file_entry->is_folder) {
@@ -1645,7 +1644,8 @@ static int shellMain() {
 				char string[64];
 				sprintf(string, "%s %s", date_string, time_string);
 
-				pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), y, color, FONT_SIZE, string);
+				float x = ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string));
+				pgf_draw_text(x, y, color, FONT_SIZE, string);
 			}
 
 			// Next

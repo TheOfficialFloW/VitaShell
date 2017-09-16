@@ -114,8 +114,11 @@ int makeHeadBin() {
 	// Read param.sfo
 	void *sfo_buffer = NULL;
 	int res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
-	if (res < 0)
+	if (res < 0) {
+		if (sfo_buffer)
+			free(sfo_buffer);
 		return res;
+	}
 
 	// Get title id
 	char titleid[12];

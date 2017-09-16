@@ -26,8 +26,10 @@ enum UsbDeviceModes {
 	USBDEVICE_MODE_PSVSD,
 };
 
-#define SELECT_BUTTON_MODE_USB 0
-#define SELECT_BUTTON_MODE_FTP 1
+enum SelectButtonModes {
+	SELECT_BUTTON_MODE_USB,
+	SELECT_BUTTON_MODE_FTP,
+};
 
 typedef struct {
 	int usbdevice;

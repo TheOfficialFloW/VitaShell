@@ -336,8 +336,9 @@ int drawUncommonDialog() {
 		// Progress bar
 		if (uncommon_dialog.mode == SCE_MSG_DIALOG_MODE_PROGRESS_BAR) {
 			float width = uncommon_dialog.width - 2.0f*SHELL_MARGIN_X;
-			vita2d_draw_rectangle(uncommon_dialog.x+SHELL_MARGIN_X, string_y+10.0f, width, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_BG_COLOR);
-			vita2d_draw_rectangle(uncommon_dialog.x+SHELL_MARGIN_X, string_y+10.0f, uncommon_dialog.progress * width / 100.0f, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_COLOR);
+			float x = uncommon_dialog.x+SHELL_MARGIN_X;
+			vita2d_draw_rectangle(x, string_y+10.0f, width, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_BG_COLOR);
+			vita2d_draw_rectangle(x, string_y+10.0f, uncommon_dialog.progress * width / 100.0f, UNCOMMON_DIALOG_PROGRESS_BAR_HEIGHT, PROGRESS_BAR_COLOR);
 
 			char string[8];
 			sprintf(string, "%d%%", uncommon_dialog.progress);

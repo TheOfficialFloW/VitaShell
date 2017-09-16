@@ -471,9 +471,7 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 			if (is_safe_mode) {
 				infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
 			} else {
-				SceUID fd = sceIoOpen("sdstor0:uma-lp-act-entire", SCE_O_RDONLY, 0);
-				if (fd >= 0) {
-					sceIoClose(fd);
+				if (checkFileExist("sdstor0:uma-lp-act-entire")) {
 					int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
 					if (res < 0)
 						errorDialog(res);

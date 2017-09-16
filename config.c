@@ -218,8 +218,11 @@ int readConfigBuffer(void *buffer, int size, ConfigEntry *entries, int n_entries
 int readConfig(const char *path, ConfigEntry *entries, int n_entries) {
 	void *buffer = NULL;
 	int size = allocateReadFile(path, &buffer);
-	if (size < 0)
+	if (size < 0) {
+		if (buffer)
+			free(buffer);
 		return size;
+	}
 
 	readConfigBuffer(buffer, size, entries, n_entries);
 

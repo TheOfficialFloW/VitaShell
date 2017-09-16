@@ -93,6 +93,10 @@ void loadSettingsConfig() {
 void saveSettingsConfig() {
 	// Save settings config file
 	writeConfig("ux0:VitaShell/settings.txt", settings_entries, sizeof(settings_entries) / sizeof(ConfigEntry));
+
+	if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
+		vitashell_config.select_button = SELECT_BUTTON_MODE_FTP;
+	}
 }
 
 static void restartShell() {
@@ -181,7 +185,7 @@ void openSettingsMenu() {
 				res = sceIoDread(dfd, &dir);
 				if (res > 0) {
 					if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-						if (strcmp(dir.d_name, theme_name) == 0)
+						if (theme_name && strcmp(dir.d_name, theme_name) == 0)
 							theme = theme_count;
 						
 						strncpy(theme_options[theme_count], dir.d_name, MAX_THEME_LENGTH);
@@ -274,7 +278,8 @@ void drawSettingsMenu() {
 				// Option
 				switch (options[j].type) {
 					case SETTINGS_OPTION_TYPE_BOOLEAN:
-						pgf_draw_text(SCREEN_HALF_WIDTH+10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, *(options[j].value) ? language_container[ON] : language_container[OFF]);
+						pgf_draw_text(SCREEN_HALF_WIDTH+10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE,
+									  (options[j].value && *(options[j].value)) ? language_container[ON] : language_container[OFF]);
 						break;
 
 					case SETTINGS_OPTION_TYPE_STRING:
@@ -283,8 +288,10 @@ void drawSettingsMenu() {
 
 					case SETTINGS_OPTION_TYPE_OPTIONS:
 					{
-						int value = *(options[j].value);
-						pgf_draw_text(SCREEN_HALF_WIDTH+10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].options[value]);
+						int value = 0;
+						if (options[j].value)
+							value = *(options[j].value);
+						pgf_draw_text(SCREEN_HALF_WIDTH+10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].options ? options[j].options[value] : "");
 						break;
 					}
 				}
@@ -321,7 +328,8 @@ void settingsMenuCtrl() {
 
 		switch (option->type) {
 			case SETTINGS_OPTION_TYPE_BOOLEAN:
-				*(option->value) = !*(option->value);
+				if (option->value)
+					*(option->value) = !*(option->value);
 				break;
 			
 			case SETTINGS_OPTION_TYPE_STRING:
@@ -330,21 +338,24 @@ void settingsMenuCtrl() {
 				break;
 				
 			case SETTINGS_OPTION_TYPE_CALLBACK:
-				option->callback(&option);
+				if (option->callback)
+					option->callback(&option);
 				break;
 				
 			case SETTINGS_OPTION_TYPE_OPTIONS:
 			{
-				if (pressed_buttons & SCE_CTRL_LEFT) {
-					if (*(option->value) > 0)
-						(*(option->value))--;
-					else
-						*(option->value) = option->n_options-1;
-				} else if (pressed_buttons & (SCE_CTRL_ENTER | SCE_CTRL_RIGHT)) {
-					if (*(option->value) < option->n_options-1)
-						(*(option->value))++;
-					else
-						*(option->value) = 0;
+				if (option->value) {
+					if (pressed_buttons & SCE_CTRL_LEFT) {
+						if (*(option->value) > 0)
+							(*(option->value))--;
+						else
+							*(option->value) = option->n_options-1;
+					} else if (pressed_buttons & (SCE_CTRL_ENTER | SCE_CTRL_RIGHT)) {
+						if (*(option->value) < option->n_options-1)
+							(*(option->value))++;
+						else
+							*(option->value) = 0;
+					}
 				}
 				
 				break;
