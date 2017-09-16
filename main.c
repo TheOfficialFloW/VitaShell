@@ -490,24 +490,34 @@ static void initUsb() {
 	char *path = "";
 
 	if (vitashell_config.usbdevice == USBDEVICE_MODE_MEMORY_CARD) {
-		path = "sdstor0:xmc-lp-ign-userext";
-
-		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
-		
-		if (fd < 0)
+		if (checkFileExist("sdstor0:xmc-lp-ign-userext"))
+			path = "sdstor0:xmc-lp-ign-userext";
+		else if (checkFileExist("sdstor0:int-lp-ign-userext"))
 			path = "sdstor0:int-lp-ign-userext";
-		else
-			sceIoClose(fd);
-	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_GAME_CARD) {
-		path = "sdstor0:gcd-lp-ign-gamero";
-		
-		SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
-		
-		if (fd < 0) {
+		else {
+			infoDialog(language_container[MEMORY_CARD_NOT_FOUND]);
+			return;
+		}
+	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_GAME_CARD) {				
+		if (checkFileExist("sdstor0:gcd-lp-ign-gamero"))
+			path = "sdstor0:gcd-lp-ign-gamero";
+		else {
 			infoDialog(language_container[GAME_CARD_NOT_FOUND]);
 			return;
-		} else {
-			sceIoClose(fd);
+		}
+	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_SD2VITA) {				
+		if (checkFileExist("sdstor0:gcd-lp-ign-entire"))
+			path = "sdstor0:gcd-lp-ign-entire";
+		else {
+			infoDialog(language_container[MICROSD_NOT_FOUND]);
+			return;
+		}
+	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_PSVSD) {				
+		if (checkFileExist("sdstor0:uma-lp-act-entire"))
+			path = "sdstor0:uma-lp-act-entire";
+		else {
+			infoDialog(language_container[MICROSD_NOT_FOUND]);
+			return;
 		}
 	}
 

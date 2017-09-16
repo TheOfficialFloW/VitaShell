@@ -39,7 +39,7 @@ static char spoofed_version[6];
 static SettingsMenuEntry *settings_menu_entries = NULL;
 static int n_settings_entries = 0;
 
-static char *usbdevice_options[2];
+static char *usbdevice_options[4];
 static char *select_button_options[2];
 
 static char **theme_options = NULL;
@@ -131,6 +131,8 @@ void initSettingsMenu() {
 
 	usbdevice_options[0] = language_container[VITASHELL_SETTINGS_USB_MEMORY_CARD];
 	usbdevice_options[1] = language_container[VITASHELL_SETTINGS_USB_GAME_CARD];
+	usbdevice_options[2] = language_container[VITASHELL_SETTINGS_USB_SD2VITA];
+	usbdevice_options[3] = language_container[VITASHELL_SETTINGS_USB_PSVSD];
 
 	select_button_options[0] = language_container[VITASHELL_SETTINGS_SELECT_BUTTON_USB];
 	select_button_options[1] = language_container[VITASHELL_SETTINGS_SELECT_BUTTON_FTP];

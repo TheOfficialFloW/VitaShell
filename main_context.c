@@ -152,12 +152,19 @@ ContextMenu context_menu_more = {
 	.sel = -1,
 };
 
-void gameDataUmount() {
-	if (pfs_mount_point[0] != 0) {
-		sceShellUtilUnlock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
-		sceAppMgrUmount(pfs_mount_point);
+int gameDataMount(const char *path) {
+	return sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+}
+
+int gameDataUmount() {
+	if (pfs_mount_point[0] == 0)
+		return -1;
+
+	int res = sceAppMgrUmount(pfs_mount_point);
+	if (res >= 0)
 		memset(pfs_mount_point, 0, sizeof(pfs_mount_point));
-	}
+
+	return res;
 }
 
 void initContextMenuWidth() {
@@ -854,15 +861,15 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 			gameDataUmount();
 
 			snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-			res = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+			res = gameDataMount(path);
 			
 			// In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
 			snprintf(path, MAX_PATH_LENGTH, "ux0:app/%s", file_entry->name);
 			if (res < 0)
-				res = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+				res = gameDataMount(path);
 			snprintf(path, MAX_PATH_LENGTH, "gro:app/%s", file_entry->name);
 			if (res < 0)
-				res = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+				res = gameDataMount(path);
 
 			if (res >= 0) {
 				addEndSlash(file_list.path);
@@ -877,8 +884,6 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 				int res = refreshFileList();
 				if (res < 0)
 					errorDialog(res);
-				
-				sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_PS_BTN);
 			} else {
 				errorDialog(res);
 			}

@@ -28,7 +28,8 @@ extern ContextMenu context_menu_main;
 extern ContextMenu context_menu_sort;
 extern ContextMenu context_menu_more;
 
-void gameDataUmount();
+int gameDataMount(const char *path);
+int gameDataUmount();
 
 void initContextMenuWidth();
 void setContextMenuHomeVisibilities();

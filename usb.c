@@ -22,16 +22,22 @@
 #include "utils.h"
 
 static int remount_thread(SceSize args, void *argp) {
-	sceKernelDelayThread(10 * 1000);
-	remount(0x800);
+	sceKernelDelayThread(100 * 1000);
+	if (checkFileExist("ux0:"))
+		remount(0x800);
 	return sceKernelExitDeleteThread(0);
 }
 
 void remountRelaunch(char * const argv[]) {
+	// Remount uma0:
+	if (checkFileExist("uma0:"))
+		remount(0xF00);
+
+	// Remount ux0: by using race condition (this trick fixes the freeze)
 	SceUID thid = sceKernelCreateThread("remount_thread", (SceKernelThreadEntry)remount_thread, 0x40, 0x1000, 0, 0, NULL);
 	if (thid >= 0)
 		sceKernelStartThread(thid, 0, NULL);
-	
+
 	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
 }
 
@@ -82,7 +88,7 @@ int mountUsbUx0() {
 
 	// Mount USB ux0:
 	vshIoUmount(0xF00, 0, 0, 0);
-	
+
 	// Remount and relaunch
 	char * const argv[] = { "mount", NULL };
 	remountRelaunch(argv);
