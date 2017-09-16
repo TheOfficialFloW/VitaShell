@@ -104,11 +104,11 @@ int checkFileExist(const char *file) {
 }
 
 int checkFolderExist(const char *folder) {
-	SceUID fd = sceIoDopen(folder);
-	if (fd < 0)
+	SceUID dfd = sceIoDopen(folder);
+	if (dfd < 0)
 		return 0;
 
-	sceIoDclose(fd);
+	sceIoDclose(dfd);
 	return 1;
 }
 
@@ -627,6 +627,9 @@ char **getDevices() {
 }
 
 FileListEntry *fileListFindEntry(FileList *list, const char *name) {
+	if (!list)
+		return NULL;
+
 	FileListEntry *entry = list->head;
 
 	int name_length = strlen(name);
@@ -642,6 +645,9 @@ FileListEntry *fileListFindEntry(FileList *list, const char *name) {
 }
 
 FileListEntry *fileListGetNthEntry(FileList *list, int n) {
+	if (!list)
+		return NULL;
+
 	FileListEntry *entry = list->head;
 
 	while (n > 0 && entry) {
@@ -656,6 +662,9 @@ FileListEntry *fileListGetNthEntry(FileList *list, int n) {
 }
 
 int fileListGetNumberByName(FileList *list, const char *name) {
+	if (!list)
+		return 0;
+
 	FileListEntry *entry = list->head;
 
 	int name_length = strlen(name);
@@ -674,6 +683,9 @@ int fileListGetNumberByName(FileList *list, const char *name) {
 }
 
 void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
+	if (!list || !entry)
+		return;
+
 	entry->next = NULL;
 	entry->previous = NULL;
 
@@ -791,34 +803,36 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 }
 
 int fileListRemoveEntry(FileList *list, FileListEntry *entry) {
-	if (entry) {
-		if (entry->previous) {
-			entry->previous->next = entry->next;
-		} else {
-			list->head = entry->next;
-		}
+	if (!list || !entry)
+		return 0;
 
-		if (entry->next) {
-			entry->next->previous = entry->previous;
-		} else {
-			list->tail = entry->previous;
-		}
-
-		list->length--;
-		free(entry);
-
-		if (list->length == 0) {
-			list->head = NULL;
-			list->tail = NULL;
-		}
-
-		return 1;
+	if (entry->previous) {
+		entry->previous->next = entry->next;
+	} else {
+		list->head = entry->next;
 	}
 
-	return 0;
+	if (entry->next) {
+		entry->next->previous = entry->previous;
+	} else {
+		list->tail = entry->previous;
+	}
+
+	list->length--;
+	free(entry);
+
+	if (list->length == 0) {
+		list->head = NULL;
+		list->tail = NULL;
+	}
+
+	return 1;
 }
 
 int fileListRemoveEntryByName(FileList *list, const char *name) {
+	if (!list)
+		return 0;
+
 	FileListEntry *entry = list->head;
 	FileListEntry *previous = NULL;
 
@@ -855,6 +869,9 @@ int fileListRemoveEntryByName(FileList *list, const char *name) {
 }
 
 void fileListEmpty(FileList *list) {
+	if (!list)
+		return;
+
 	FileListEntry *entry = list->head;
 
 	while (entry) {
@@ -871,15 +888,16 @@ void fileListEmpty(FileList *list) {
 }
 
 int fileListGetDeviceEntries(FileList *list) {
+	if (!list)
+		return -1;
+
 	int i;
 	for (i = 0; i < N_DEVICES; i++) {
 		if (devices[i]) {
 			if (is_safe_mode && strcmp(devices[i], "ux0:") != 0)
 				continue;
 
-			SceIoStat stat;
-			memset(&stat, 0, sizeof(SceIoStat));
-			if (sceIoGetstat(devices[i], &stat) >= 0) {
+			if (checkFolderExist(devices[i])) {
 				FileListEntry *entry = malloc(sizeof(FileListEntry));
 				strcpy(entry->name, devices[i]);
 				entry->name_length = strlen(entry->name);
@@ -916,6 +934,9 @@ int fileListGetDeviceEntries(FileList *list) {
 }
 
 int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
+	if (!list)
+		return -1;
+
 	SceUID dfd = sceIoDopen(path);
 	if (dfd < 0)
 		return dfd;
@@ -966,6 +987,9 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
 }
 
 int fileListGetEntries(FileList *list, const char *path, int sort) {
+	if (!list)
+		return -1;
+
 	if (isInArchive()) {
         enum FileTypes type = getArchiveType();
         if(type == FILE_TYPE_ZIP)

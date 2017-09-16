@@ -120,7 +120,7 @@ int archiveCheckFilesForUnsafeFself() {
 int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 	int res;
 
-	if (!uf)
+	if (!list || !uf)
 		return -1;
 
 	FileListEntry *entry = malloc(sizeof(FileListEntry));

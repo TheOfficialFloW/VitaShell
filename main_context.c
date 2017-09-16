@@ -223,7 +223,7 @@ void setContextMenuHomeVisibilities() {
 		menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 		menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 	} else {
-		if (checkFileExist("uma0:")) {
+		if (checkFolderExist("uma0:")) {
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
 		} else {
 			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
@@ -238,7 +238,7 @@ void setContextMenuHomeVisibilities() {
 	}
 
 	// Invisible if already mounted or there is no internal storage
-	if (!checkFileExist("sdstor0:int-lp-ign-userext") || checkFileExist("imc0:"))
+	if (!checkFileExist("sdstor0:int-lp-ign-userext") || checkFolderExist("imc0:"))
 		menu_home_entries[MENU_HOME_ENTRY_MOUNT_IMC0].visibility = CTX_INVISIBLE;
 
 	// Go to first entry
@@ -263,6 +263,8 @@ void setContextMenuMainVisibilities() {
 	}
 
 	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+	if (!file_entry)
+		return;
 
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
@@ -369,6 +371,8 @@ void setContextMenuMoreVisibilities() {
 	}
 
 	FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+	if (!file_entry)
+		return;
 
 	// Invisble entries when on '..'
 	if (strcmp(file_entry->name, DIR_UP) == 0) {
@@ -392,27 +396,23 @@ void setContextMenuMoreVisibilities() {
 
 	if (file_entry->is_folder) {
 		menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_INVISIBLE;
-		do {
-			char check_path[MAX_PATH_LENGTH];
-			SceIoStat stat;
-			int statres;
-			if (strcmp(file_list.path, "ux0:app/") == 0 || strcmp(file_list.path, "ux0:patch/") == 0) {
-				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
-				break;
-			}
-			snprintf(check_path, MAX_PATH_LENGTH, "%s%s/eboot.bin", file_list.path, file_entry->name);
-			statres = sceIoGetstat(check_path, &stat);
-			if (statres < 0 || SCE_S_ISDIR(stat.st_mode)) {
-				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
-				break;
-			}
-			snprintf(check_path, MAX_PATH_LENGTH, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
-			statres = sceIoGetstat(check_path, &stat);
-			if (statres < 0 || SCE_S_ISDIR(stat.st_mode)) {
-				menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
-				break;
-			}
-		} while(0);
+
+		if (strcmp(file_list.path, "ux0:app/") == 0 || strcmp(file_list.path, "ux0:patch/") == 0) {
+			menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
+			break;
+		}
+		
+		char check_path[MAX_PATH_LENGTH];
+
+		snprintf(check_path, MAX_PATH_LENGTH, "%s%s/eboot.bin", file_list.path, file_entry->name);
+		if (!checkFileExist(check_path)) {
+			menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
+		}
+		
+		snprintf(check_path, MAX_PATH_LENGTH, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
+		if (!checkFileExist(check_path)) {
+			menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
+		}
 	} else {
 		menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
 	}
@@ -434,7 +434,7 @@ void setContextMenuMoreVisibilities() {
 		menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
 	} else {
 		char path[MAX_PATH_LENGTH];
-		snprintf(path, MAX_PATH_LENGTH, "%s%s/sce_pfs", file_list.path, file_entry->name);
+		snprintf(path, MAX_PATH_LENGTH, "%s%ssce_pfs", file_list.path, file_entry->name);
 		
 		if (!checkFolderExist(path))
 			menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
@@ -523,28 +523,30 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 	switch (sel) {
 		case MENU_MAIN_ENTRY_MARK_UNMARK_ALL:
 		{
-			int on_marked_entry = 0;
-			int length = mark_list.length;
-
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
-			if (fileListFindEntry(&mark_list, file_entry->name))
-				on_marked_entry = 1;
+			if (file_entry) {
+				int on_marked_entry = 0;
+				int length = mark_list.length;
 
-			// Empty mark list
-			fileListEmpty(&mark_list);
+				if (fileListFindEntry(&mark_list, file_entry->name))
+					on_marked_entry = 1;
 
-			// Mark all if not all entries are marked yet and we are not focusing on a marked entry
-			if (length != (file_list.length-1) && !on_marked_entry) {
-				FileListEntry *file_entry = file_list.head->next; // Ignore '..'
+				// Empty mark list
+				fileListEmpty(&mark_list);
 
-				int i;
-				for (i = 0; i < file_list.length-1; i++) {
-					FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
-					memcpy(mark_entry, file_entry, sizeof(FileListEntry));
-					fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+				// Mark all if not all entries are marked yet and we are not focusing on a marked entry
+				if (length != (file_list.length-1) && !on_marked_entry) {
+					FileListEntry *file_entry = file_list.head->next; // Ignore '..'
 
-					// Next
-					file_entry = file_entry->next;
+					int i;
+					for (i = 0; i < file_list.length-1; i++) {
+						FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
+						memcpy(mark_entry, file_entry, sizeof(FileListEntry));
+						fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+
+						// Next
+						file_entry = file_entry->next;
+					}
 				}
 			}
 
@@ -554,60 +556,61 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 		case MENU_MAIN_ENTRY_MOVE:
 		case MENU_MAIN_ENTRY_COPY:
 		{
-			// Umount if last path copied from is the pfs mounted path
-			if (strcmp(copy_list.path, pfs_mounted_path) == 0 &&
-				strcmp(file_list.path, pfs_mounted_path) != 0) {
-				gameDataUmount();
-			}
-
-			// Mode
-			if (sel == MENU_MAIN_ENTRY_MOVE) {
-				copy_mode = COPY_MODE_MOVE;
-			} else {
-				copy_mode = isInArchive() ? COPY_MODE_EXTRACT : COPY_MODE_NORMAL;
-			}
-			
-			file_type = getArchiveType();
-			strcpy(archive_copy_path, archive_path);
-
-			// Empty copy list at first
-			fileListEmpty(&copy_list);
-
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
-
-			// Paths
-			if (fileListFindEntry(&mark_list, file_entry->name)) { // On marked entry
-				// Copy mark list to copy list
-				FileListEntry *mark_entry = mark_list.head;
-
-				int i;
-				for (i = 0; i < mark_list.length; i++) {
-					FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
-					memcpy(copy_entry, mark_entry, sizeof(FileListEntry));
-					fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
-
-					// Next
-					mark_entry = mark_entry->next;
+			if (file_entry) {
+				// Umount if last path copied from is the pfs mounted path
+				if (strcmp(copy_list.path, pfs_mounted_path) == 0 &&
+					strcmp(file_list.path, pfs_mounted_path) != 0) {
+					gameDataUmount();
 				}
-			} else {
-				FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
-				memcpy(copy_entry, file_entry, sizeof(FileListEntry));
-				fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
+
+				// Mode
+				if (sel == MENU_MAIN_ENTRY_MOVE) {
+					copy_mode = COPY_MODE_MOVE;
+				} else {
+					copy_mode = isInArchive() ? COPY_MODE_EXTRACT : COPY_MODE_NORMAL;
+				}
+				
+				file_type = getArchiveType();
+				strcpy(archive_copy_path, archive_path);
+
+				// Empty copy list at first
+				fileListEmpty(&copy_list);
+
+				// Paths
+				if (fileListFindEntry(&mark_list, file_entry->name)) { // On marked entry
+					// Copy mark list to copy list
+					FileListEntry *mark_entry = mark_list.head;
+
+					int i;
+					for (i = 0; i < mark_list.length; i++) {
+						FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
+						memcpy(copy_entry, mark_entry, sizeof(FileListEntry));
+						fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
+
+						// Next
+						mark_entry = mark_entry->next;
+					}
+				} else {
+					FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
+					memcpy(copy_entry, file_entry, sizeof(FileListEntry));
+					fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
+				}
+
+				strcpy(copy_list.path, file_list.path);
+
+				char *message;
+
+				// On marked entry
+				if (copy_list.length > 1 && fileListFindEntry(&copy_list, file_entry->name)) {
+					message = language_container[COPIED_FILES_FOLDERS];
+				} else {
+					message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
+				}
+
+				// Copy message
+				infoDialog(message, copy_list.length);
 			}
-
-			strcpy(copy_list.path, file_list.path);
-
-			char *message;
-
-			// On marked entry
-			if (copy_list.length > 1 && fileListFindEntry(&copy_list, file_entry->name)) {
-				message = language_container[COPIED_FILES_FOLDERS];
-			} else {
-				message = language_container[file_entry->is_folder ? COPIED_FOLDER : COPIED_FILE];
-			}
-
-			// Copy message
-			infoDialog(message, copy_list.length);
 
 			break;
 		}
@@ -637,41 +640,47 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 
 		case MENU_MAIN_ENTRY_DELETE:
 		{
-			char *message;
-
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+			if (file_entry) {
+				char *message;
 
-			// On marked entry
-			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
-				message = language_container[DELETE_FILES_FOLDERS_QUESTION];
-			} else {
-				message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
+				// On marked entry
+				if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
+					message = language_container[DELETE_FILES_FOLDERS_QUESTION];
+				} else {
+					message = language_container[file_entry->is_folder ? DELETE_FOLDER_QUESTION : DELETE_FILE_QUESTION];
+				}
+
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
+				setDialogStep(DIALOG_STEP_DELETE_QUESTION);
 			}
 
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
-			setDialogStep(DIALOG_STEP_DELETE_QUESTION);
 			break;
 		}
 		
 		case MENU_MAIN_ENTRY_RENAME:
 		{
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+			if (file_entry) {
+				char name[MAX_NAME_LENGTH];
+				strcpy(name, file_entry->name);
+				removeEndSlash(name);
 
-			char name[MAX_NAME_LENGTH];
-			strcpy(name, file_entry->name);
-			removeEndSlash(name);
+				initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
 
-			initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
-
-			setDialogStep(DIALOG_STEP_RENAME);
+				setDialogStep(DIALOG_STEP_RENAME);
+			}
+			
 			break;
 		}
 		
 		case MENU_MAIN_ENTRY_PROPERTIES:
 		{
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
-			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-			initPropertyDialog(cur_file, file_entry);
+			if (file_entry) {
+				snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+				initPropertyDialog(cur_file, file_entry);
+			}
 
 			break;
 		}
@@ -689,7 +698,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 					snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
 				}
 
-				if (!checkFileExist(path))
+				if (!checkFolderExist(path))
 					break;
 
 				count++;
@@ -743,43 +752,45 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 	switch (sel) {
 		case MENU_MORE_ENTRY_COMPRESS:
 		{
-			char path[MAX_NAME_LENGTH];
-
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+			if (file_entry) {
+				char path[MAX_NAME_LENGTH];
 
-			// On marked entry
-			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
-				int end_slash = removeEndSlash(file_list.path);
+				// On marked entry
+				if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
+					int end_slash = removeEndSlash(file_list.path);
 
-				char *p = strrchr(file_list.path, '/');
-				if (!p)
-					p = strrchr(file_list.path, ':');
+					char *p = strrchr(file_list.path, '/');
+					if (!p)
+						p = strrchr(file_list.path, ':');
 
-				if (strlen(p+1) > 0) {
-					strcpy(path, p+1);
+					if (strlen(p+1) > 0) {
+						strcpy(path, p+1);
+					} else {
+						strncpy(path, file_list.path, p - file_list.path);
+						path[p - file_list.path] = '\0';
+					}
+
+					if (end_slash)
+						addEndSlash(file_list.path);
 				} else {
-					strncpy(path, file_list.path, p - file_list.path);
-					path[p - file_list.path] = '\0';
+					char *p = strrchr(file_entry->name, '.');
+					if (!p)
+						p = strrchr(file_entry->name, '/');
+					if (!p)
+						p = file_entry->name+strlen(file_entry->name);
+
+					strncpy(path, file_entry->name, p-file_entry->name);
+					path[p - file_entry->name] = '\0';
 				}
 
-				if (end_slash)
-					addEndSlash(file_list.path);				
-			} else {
-				char *p = strrchr(file_entry->name, '.');
-				if (!p)
-					p = strrchr(file_entry->name, '/');
-				if (!p)
-					p = file_entry->name+strlen(file_entry->name);
+				// Append .zip extension
+				strcat(path, ".zip");
 
-				strncpy(path, file_entry->name, p-file_entry->name);
-				path[p - file_entry->name] = '\0';
+				initImeDialog(language_container[ARCHIVE_NAME], path, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
+				setDialogStep(DIALOG_STEP_COMPRESS_NAME);
 			}
-
-			// Append .zip extension
-			strcat(path, ".zip");
-
-			initImeDialog(language_container[ARCHIVE_NAME], path, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0);
-			setDialogStep(DIALOG_STEP_COMPRESS_NAME);
+			
 			break;
 		}
 		
@@ -817,27 +828,32 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 		case MENU_MORE_ENTRY_INSTALL_FOLDER:
 		{
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
-			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
-			setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
+			if (file_entry) {
+				snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
+				setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
+			}
+			
 			break;
 		}
 		
 		case MENU_MORE_ENTRY_EXPORT_MEDIA:
 		{
-			char *message;
-
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+			if (file_entry) {
+				char *message;
 
-			// On marked entry
-			if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
-				message = language_container[EXPORT_FILES_FOLDERS_QUESTION];
-			} else {
-				message = language_container[file_entry->is_folder ? EXPORT_FOLDER_QUESTION : EXPORT_FILE_QUESTION];
+				// On marked entry
+				if (mark_list.length > 1 && fileListFindEntry(&mark_list, file_entry->name)) {
+					message = language_container[EXPORT_FILES_FOLDERS_QUESTION];
+				} else {
+					message = language_container[file_entry->is_folder ? EXPORT_FOLDER_QUESTION : EXPORT_FILE_QUESTION];
+				}
+
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
+				setDialogStep(DIALOG_STEP_EXPORT_QUESTION);
 			}
-
-			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, message);
-			setDialogStep(DIALOG_STEP_EXPORT_QUESTION);
+			
 			break;
 		}
 		
@@ -851,39 +867,40 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 		
 		case MENU_MORE_ENTRY_OPEN_DECRYPTED:
 		{
-			char path[MAX_PATH_LENGTH];
-			int res;
-
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+			if (file_entry) {
+				char path[MAX_PATH_LENGTH];
+				int res;
 
-			gameDataUmount();
+				gameDataUmount();
 
-			snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-			res = gameDataMount(path);
-			
-			// In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
-			snprintf(path, MAX_PATH_LENGTH, "ux0:app/%s", file_entry->name);
-			if (res < 0)
+				snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 				res = gameDataMount(path);
-			snprintf(path, MAX_PATH_LENGTH, "gro:app/%s", file_entry->name);
-			if (res < 0)
-				res = gameDataMount(path);
-
-			if (res >= 0) {
-				addEndSlash(file_list.path);
-				strcat(file_list.path, file_entry->name);
-				strcpy(pfs_mounted_path, file_list.path);
-				dirLevelUp();
-
-				// Save last dir
-				WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path)+1);
-
-				// Open folder
-				int res = refreshFileList();
+				
+				// In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
+				snprintf(path, MAX_PATH_LENGTH, "ux0:app/%s", file_entry->name);
 				if (res < 0)
+					res = gameDataMount(path);
+				snprintf(path, MAX_PATH_LENGTH, "gro:app/%s", file_entry->name);
+				if (res < 0)
+					res = gameDataMount(path);
+
+				if (res >= 0) {
+					addEndSlash(file_list.path);
+					strcat(file_list.path, file_entry->name);
+					strcpy(pfs_mounted_path, file_list.path);
+					dirLevelUp();
+
+					// Save last dir
+					WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path)+1);
+
+					// Open folder
+					int res = refreshFileList();
+					if (res < 0)
+						errorDialog(res);
+				} else {
 					errorDialog(res);
-			} else {
-				errorDialog(res);
+				}
 			}
 
 			break;

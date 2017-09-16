@@ -488,39 +488,34 @@ static void initFtp() {
 }
 
 static void initUsb() {
-	char *path = "";
+	char *path = NULL;
 
 	if (vitashell_config.usbdevice == USBDEVICE_MODE_MEMORY_CARD) {
 		if (checkFileExist("sdstor0:xmc-lp-ign-userext"))
 			path = "sdstor0:xmc-lp-ign-userext";
 		else if (checkFileExist("sdstor0:int-lp-ign-userext"))
 			path = "sdstor0:int-lp-ign-userext";
-		else {
+		else
 			infoDialog(language_container[MEMORY_CARD_NOT_FOUND]);
-			return;
-		}
 	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_GAME_CARD) {
 		if (checkFileExist("sdstor0:gcd-lp-ign-gamero"))
 			path = "sdstor0:gcd-lp-ign-gamero";
-		else {
+		else
 			infoDialog(language_container[GAME_CARD_NOT_FOUND]);
-			return;
-		}
 	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_SD2VITA) {
 		if (checkFileExist("sdstor0:gcd-lp-ign-entire"))
 			path = "sdstor0:gcd-lp-ign-entire";
-		else {
+		else
 			infoDialog(language_container[MICROSD_NOT_FOUND]);
-			return;
-		}
 	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_PSVSD) {
 		if (checkFileExist("sdstor0:uma-lp-act-entire"))
 			path = "sdstor0:uma-lp-act-entire";
-		else {
+		else
 			infoDialog(language_container[MICROSD_NOT_FOUND]);
-			return;
-		}
 	}
+	
+	if (!path)
+		return;
 
 	usbdevice_modid = startUsb("ux0:VitaShell/module/usbdevice.skprx", path, SCE_USBSTOR_VSTOR_TYPE_FAT);
 	if (usbdevice_modid >= 0) {
@@ -562,14 +557,15 @@ static int dialogSteps() {
 		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+				if (file_entry) {
+					// Empty mark list if on marked entry
+					if (fileListFindEntry(&mark_list, file_entry->name)) {
+						fileListEmpty(&mark_list);
+					}
 
-				// Empty mark list if on marked entry
-				if (fileListFindEntry(&mark_list, file_entry->name)) {
-					fileListEmpty(&mark_list);
+					refresh = REFRESH_MODE_NORMAL;
+					setDialogStep(DIALOG_STEP_NONE);
 				}
-
-				refresh = REFRESH_MODE_NORMAL;
-				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -579,26 +575,27 @@ static int dialogSteps() {
 		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+				if (file_entry) {
+					// Empty mark list if on marked entry
+					if (fileListFindEntry(&mark_list, file_entry->name)) {
+						fileListEmpty(&mark_list);
+					}
 
-				// Empty mark list if on marked entry
-				if (fileListFindEntry(&mark_list, file_entry->name)) {
-					fileListEmpty(&mark_list);
+					// The name of the newly created zip
+					char *name = (char *)getImeDialogInputTextUTF8();
+
+					// Mark that entry
+					FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
+					strcpy(mark_entry->name, name);
+					mark_entry->name_length = strlen(name);
+					fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+
+					// Focus
+					strcpy(focus_name, name);
+
+					refresh = REFRESH_MODE_SETFOCUS;
+					setDialogStep(DIALOG_STEP_NONE);
 				}
-
-				// The name of the newly created zip
-				char *name = (char *)getImeDialogInputTextUTF8();
-
-				// Mark that entry
-				FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
-				strcpy(mark_entry->name, name);
-				mark_entry->name_length = strlen(name);
-				fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
-
-				// Focus
-				strcpy(focus_name, name);
-
-				refresh = REFRESH_MODE_SETFOCUS;
-				setDialogStep(DIALOG_STEP_NONE);
 			}
 
 			break;
@@ -861,26 +858,27 @@ static int dialogSteps() {
 					setDialogStep(DIALOG_STEP_NONE);
 				} else {
 					FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+					if (file_entry) {
+						char old_name[MAX_NAME_LENGTH];
+						strcpy(old_name, file_entry->name);
+						removeEndSlash(old_name);
 
-					char old_name[MAX_NAME_LENGTH];
-					strcpy(old_name, file_entry->name);
-					removeEndSlash(old_name);
-
-					if (strcasecmp(old_name, name) == 0) { // No change
-						setDialogStep(DIALOG_STEP_NONE);
-					} else {
-						char old_path[MAX_PATH_LENGTH];
-						char new_path[MAX_PATH_LENGTH];
-
-						snprintf(old_path, MAX_PATH_LENGTH, "%s%s", file_list.path, old_name);
-						snprintf(new_path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
-
-						int res = sceIoRename(old_path, new_path);
-						if (res < 0) {
-							errorDialog(res);
-						} else {
-							refresh = REFRESH_MODE_NORMAL;
+						if (strcasecmp(old_name, name) == 0) { // No change
 							setDialogStep(DIALOG_STEP_NONE);
+						} else {
+							char old_path[MAX_PATH_LENGTH];
+							char new_path[MAX_PATH_LENGTH];
+
+							snprintf(old_path, MAX_PATH_LENGTH, "%s%s", file_list.path, old_name);
+							snprintf(new_path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
+
+							int res = sceIoRename(old_path, new_path);
+							if (res < 0) {
+								errorDialog(res);
+							} else {
+								refresh = REFRESH_MODE_NORMAL;
+								setDialogStep(DIALOG_STEP_NONE);
+							}
 						}
 					}
 				}
@@ -984,19 +982,20 @@ static int dialogSteps() {
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
 				// User has confirmed desire to hash, get requested file entry
 				FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
+				if (file_entry) {
+					// Place the full file path in cur_file
+					snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
-				// Place the full file path in cur_file
-				snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+					HashArguments args;
+					args.file_path = cur_file;
 
-				HashArguments args;
-				args.file_path = cur_file;
+					setDialogStep(DIALOG_STEP_HASHING);
 
-				setDialogStep(DIALOG_STEP_HASHING);
-
-				// Create a thread to run out actual sum
-				SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x100000, 0, 0, NULL);
-				if (thid >= 0)
-					sceKernelStartThread(thid, sizeof(HashArguments), &args);
+					// Create a thread to run out actual sum
+					SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x100000, 0, 0, NULL);
+					if (thid >= 0)
+						sceKernelStartThread(thid, sizeof(HashArguments), &args);
+				}
 			}
 
 			break;
@@ -1144,10 +1143,11 @@ static int dialogSteps() {
 		}
 		
 		case DIALOG_STEP_EXTRACTED:
+		{
 			launchAppByUriExit("VSUPDATER");
 			setDialogStep(DIALOG_STEP_NONE);
 			break;
-			
+		}
 			
 		case DIALOG_STEP_QR:
 		{
@@ -1160,6 +1160,7 @@ static int dialogSteps() {
 				setScannedQR(0);
 				stopQR();
 			}
+			
 			break;
 		}
 		
@@ -1171,6 +1172,8 @@ static int dialogSteps() {
 				if (thid >= 0)
 					sceKernelStartThread(thid, 0, NULL);
 			}
+			
+			break;
 		}
 		
 		case DIALOG_STEP_QR_CONFIRM:
@@ -1181,6 +1184,7 @@ static int dialogSteps() {
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				setDialogStep(DIALOG_STEP_NONE);
 			}
+			
 			break;
 		}
 		
@@ -1190,6 +1194,7 @@ static int dialogSteps() {
 				initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
 				setDialogStep(DIALOG_STEP_INSTALL_CONFIRMED_QR);
 			}
+			
 			break;
 		}
 		
@@ -1204,6 +1209,7 @@ static int dialogSteps() {
 				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
 				setDialogStep(DIALOG_STEP_NONE);
 			}
+			
 			break;
 		}
 		
@@ -1320,7 +1326,7 @@ static int fileBrowserMenuCtrl() {
 		// Mark entry
 		if (pressed_buttons & SCE_CTRL_SQUARE) {
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
-			if (strcmp(file_entry->name, DIR_UP) != 0) {
+			if (file_entry && strcmp(file_entry->name, DIR_UP) != 0) {
 				if (!fileListFindEntry(&mark_list, file_entry->name)) {
 					FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
 					memcpy(mark_entry, file_entry, sizeof(FileListEntry));
@@ -1349,45 +1355,47 @@ static int fileBrowserMenuCtrl() {
 
 		// Handle file or folder
 		FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
-		if (file_entry->is_folder) {
-			if (strcmp(file_entry->name, DIR_UP) == 0) {
-				dirUp();
-			} else {
-				if (dir_level == 0) {
-					strcpy(file_list.path, file_entry->name);
+		if (file_entry) {
+			if (file_entry->is_folder) {
+				if (strcmp(file_entry->name, DIR_UP) == 0) {
+					dirUp();
 				} else {
-					if (dir_level > 1)
-						addEndSlash(file_list.path);
-					strcat(file_list.path, file_entry->name);
+					if (dir_level == 0) {
+						strcpy(file_list.path, file_entry->name);
+					} else {
+						if (dir_level > 1)
+							addEndSlash(file_list.path);
+						strcat(file_list.path, file_entry->name);
+					}
+
+					dirLevelUp();
 				}
 
-				dirLevelUp();
-			}
+				// Save last dir
+				WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path)+1);
 
-			// Save last dir
-			WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path)+1);
+				// Open folder
+				int res = refreshFileList();
+				if (res < 0)
+					errorDialog(res);
+			} else {
+				snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+				int type = handleFile(cur_file, file_entry);
 
-			// Open folder
-			int res = refreshFileList();
-			if (res < 0)
-				errorDialog(res);
-		} else {
-			snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-			int type = handleFile(cur_file, file_entry);
+				// Archive mode
+				if ((type == FILE_TYPE_ZIP) | (type == FILE_TYPE_RAR)) {
+					is_in_archive = 1;
+					archive_type = type;
+					dir_level_archive = dir_level;
 
-			// Archive mode
-			if ((type == FILE_TYPE_ZIP) | (type == FILE_TYPE_RAR)) {
-				is_in_archive = 1;
-				archive_type = type;
-				dir_level_archive = dir_level;
+					snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
-				snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+					strcat(file_list.path, file_entry->name);
+					addEndSlash(file_list.path);
 
-				strcat(file_list.path, file_entry->name);
-				addEndSlash(file_list.path);
-
-				dirLevelUp();
-				refreshFileList();
+					dirLevelUp();
+					refreshFileList();
+				}
 			}
 		}
 	}
@@ -1507,149 +1515,150 @@ static int shellMain() {
 
 		// Draw
 		FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos);
+		if (file_entry) {
+			int i;
+			for (i = 0; i < MAX_ENTRIES && (base_pos+i) < file_list.length; i++) {
+				uint32_t color = FILE_COLOR;
+				float y = START_Y + (i*FONT_Y_SPACE);
 
-		int i;
-		for (i = 0; i < MAX_ENTRIES && (base_pos+i) < file_list.length; i++) {
-			uint32_t color = FILE_COLOR;
-			float y = START_Y + (i*FONT_Y_SPACE);
+				vita2d_texture *icon = NULL;
 
-			vita2d_texture *icon = NULL;
-
-			// Folder
-			if (file_entry->is_folder) {
-				color = FOLDER_COLOR;
-				icon = folder_icon;
-			} else {
-				switch (file_entry->type) {
-					case FILE_TYPE_BMP:
-					case FILE_TYPE_PNG:
-					case FILE_TYPE_JPEG:
-						color = IMAGE_COLOR;
-						icon = image_icon;
-						break;
-						
-					case FILE_TYPE_RAR:
-					case FILE_TYPE_VPK:
-					case FILE_TYPE_ZIP:
-						color = ARCHIVE_COLOR;
-						icon = archive_icon;
-						break;
-						
-					case FILE_TYPE_MP3:
-					case FILE_TYPE_OGG:
-						color = IMAGE_COLOR;
-						icon = audio_icon;
-						break;
-						
-					case FILE_TYPE_SFO:
-						color = SFO_COLOR;
-						icon = sfo_icon;
-						break;
-					
-					case FILE_TYPE_INI:
-					case FILE_TYPE_TXT:
-					case FILE_TYPE_XML:
-						color = TXT_COLOR;
-						icon = text_icon;
-						break;
-						
-					default:
-						color = FILE_COLOR;
-						icon = file_icon;
-						break;
-				}
-			}
-
-			// Draw icon
-			if (icon)
-				vita2d_draw_texture(icon, SHELL_MARGIN_X, y+3.0f);
-
-			// Current position
-			if (i == rel_pos)
-				color = FOCUS_COLOR;
-
-			// Marked
-			if (fileListFindEntry(&mark_list, file_entry->name))
-				vita2d_draw_rectangle(SHELL_MARGIN_X, y+3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
-
-			// Draw file name
-			vita2d_enable_clipping();
-			vita2d_set_clip_rectangle(FILE_X+1.0f, y, FILE_X+1.0f+MAX_NAME_WIDTH, y+FONT_Y_SPACE);
-			
-			float x = FILE_X;
-			
-			if (i == rel_pos) {
-				int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, file_entry->name);
-				if (width >= MAX_NAME_WIDTH) {
-					if (scroll_count < 60) {
-						scroll_x = x;
-					} else if (scroll_count < width+90) {
-						scroll_x--;
-					} else if (scroll_count < width+120) {
-						color = (color & 0x00FFFFFF) | ((((color >> 24) * (scroll_count-width-90)) / 30) << 24); // fade-in in 0.5s
-						scroll_x = x;
-					} else {
-						scroll_count = 0;
-					}
-					
-					scroll_count++;
-					
-					x = scroll_x;
-				}
-			}
-
-			pgf_draw_text(x, y, color, FONT_SIZE, file_entry->name);
-
-			vita2d_disable_clipping();
-
-			// File information
-			if (strcmp(file_entry->name, DIR_UP) != 0) {
-				if (dir_level == 0) {
-					char used_size_string[16], max_size_string[16];
-					int max_size_x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, "0000.00 MB"));
-					int separator_x = ALIGN_RIGHT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "    /  "));
-					if (file_entry->size != 0 && file_entry->size2 != 0) {
-						getSizeString(used_size_string, file_entry->size2 - file_entry->size);
-						getSizeString(max_size_string, file_entry->size2);
-					} else {
-						strcpy(used_size_string, "-");
-						strcpy(max_size_string, "-");
-					}
-					
-					float x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string));
-					pgf_draw_text(x, y, color, FONT_SIZE, max_size_string);
-					pgf_draw_text(separator_x, y, color, FONT_SIZE, "    /");
-					x = ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string));
-					pgf_draw_text(x, y, color, FONT_SIZE, used_size_string);
+				// Folder
+				if (file_entry->is_folder) {
+					color = FOLDER_COLOR;
+					icon = folder_icon;
 				} else {
-					char *str = NULL;
-					if (!file_entry->is_folder) {
-						// Folder/size
-						char string[16];
-						getSizeString(string, file_entry->size);
-						str = string;
-					} else {
-						str = language_container[FOLDER];
+					switch (file_entry->type) {
+						case FILE_TYPE_BMP:
+						case FILE_TYPE_PNG:
+						case FILE_TYPE_JPEG:
+							color = IMAGE_COLOR;
+							icon = image_icon;
+							break;
+							
+						case FILE_TYPE_RAR:
+						case FILE_TYPE_VPK:
+						case FILE_TYPE_ZIP:
+							color = ARCHIVE_COLOR;
+							icon = archive_icon;
+							break;
+							
+						case FILE_TYPE_MP3:
+						case FILE_TYPE_OGG:
+							color = IMAGE_COLOR;
+							icon = audio_icon;
+							break;
+							
+						case FILE_TYPE_SFO:
+							color = SFO_COLOR;
+							icon = sfo_icon;
+							break;
+						
+						case FILE_TYPE_INI:
+						case FILE_TYPE_TXT:
+						case FILE_TYPE_XML:
+							color = TXT_COLOR;
+							icon = text_icon;
+							break;
+							
+						default:
+							color = FILE_COLOR;
+							icon = file_icon;
+							break;
 					}
-					pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
 				}
 
-				// Date
-				char date_string[16];
-				getDateString(date_string, date_format, &file_entry->mtime);
+				// Draw icon
+				if (icon)
+					vita2d_draw_texture(icon, SHELL_MARGIN_X, y+3.0f);
 
-				char time_string[24];
-				getTimeString(time_string, time_format, &file_entry->mtime);
+				// Current position
+				if (i == rel_pos)
+					color = FOCUS_COLOR;
 
-				char string[64];
-				sprintf(string, "%s %s", date_string, time_string);
+				// Marked
+				if (fileListFindEntry(&mark_list, file_entry->name))
+					vita2d_draw_rectangle(SHELL_MARGIN_X, y+3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
 
-				float x = ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string));
-				pgf_draw_text(x, y, color, FONT_SIZE, string);
+				// Draw file name
+				vita2d_enable_clipping();
+				vita2d_set_clip_rectangle(FILE_X+1.0f, y, FILE_X+1.0f+MAX_NAME_WIDTH, y+FONT_Y_SPACE);
+				
+				float x = FILE_X;
+				
+				if (i == rel_pos) {
+					int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, file_entry->name);
+					if (width >= MAX_NAME_WIDTH) {
+						if (scroll_count < 60) {
+							scroll_x = x;
+						} else if (scroll_count < width+90) {
+							scroll_x--;
+						} else if (scroll_count < width+120) {
+							color = (color & 0x00FFFFFF) | ((((color >> 24) * (scroll_count-width-90)) / 30) << 24); // fade-in in 0.5s
+							scroll_x = x;
+						} else {
+							scroll_count = 0;
+						}
+						
+						scroll_count++;
+						
+						x = scroll_x;
+					}
+				}
+
+				pgf_draw_text(x, y, color, FONT_SIZE, file_entry->name);
+
+				vita2d_disable_clipping();
+
+				// File information
+				if (strcmp(file_entry->name, DIR_UP) != 0) {
+					if (dir_level == 0) {
+						char used_size_string[16], max_size_string[16];
+						int max_size_x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, "0000.00 MB"));
+						int separator_x = ALIGN_RIGHT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "    /  "));
+						if (file_entry->size != 0 && file_entry->size2 != 0) {
+							getSizeString(used_size_string, file_entry->size2 - file_entry->size);
+							getSizeString(max_size_string, file_entry->size2);
+						} else {
+							strcpy(used_size_string, "-");
+							strcpy(max_size_string, "-");
+						}
+						
+						float x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string));
+						pgf_draw_text(x, y, color, FONT_SIZE, max_size_string);
+						pgf_draw_text(separator_x, y, color, FONT_SIZE, "    /");
+						x = ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string));
+						pgf_draw_text(x, y, color, FONT_SIZE, used_size_string);
+					} else {
+						char *str = NULL;
+						if (!file_entry->is_folder) {
+							// Folder/size
+							char string[16];
+							getSizeString(string, file_entry->size);
+							str = string;
+						} else {
+							str = language_container[FOLDER];
+						}
+						pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
+					}
+
+					// Date
+					char date_string[16];
+					getDateString(date_string, date_format, &file_entry->mtime);
+
+					char time_string[24];
+					getTimeString(time_string, time_format, &file_entry->mtime);
+
+					char string[64];
+					sprintf(string, "%s %s", date_string, time_string);
+
+					float x = ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string));
+					pgf_draw_text(x, y, color, FONT_SIZE, string);
+				}
+
+				// Next
+				file_entry = file_entry->next;
 			}
-
-			// Next
-			file_entry = file_entry->next;
 		}
 
 		// Draw settings menu

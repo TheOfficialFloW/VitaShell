@@ -22,15 +22,14 @@
 #include "utils.h"
 
 static int remount_thread(SceSize args, void *argp) {
-	sceKernelDelayThread(100 * 1000);
-	if (checkFileExist("ux0:"))
+	if (checkFolderExist("ux0:"))
 		remount(0x800);
 	return sceKernelExitDeleteThread(0);
 }
 
 void remountRelaunch(char * const argv[]) {
 	// Remount uma0:
-	if (checkFileExist("uma0:"))
+	if (checkFolderExist("uma0:"))
 		remount(0xF00);
 
 	// Remount ux0: by using race condition (this trick fixes the freeze)
