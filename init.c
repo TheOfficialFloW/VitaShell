@@ -263,6 +263,8 @@ static void initNet() {
 
 	sceSslInit(300 * 1024);
 	sceHttpInit(40 * 1024);
+
+	sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
 }
 
 static void finishNet() {

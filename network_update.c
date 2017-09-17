@@ -38,8 +38,6 @@ extern unsigned char _binary_resources_updater_param_bin_start;
 extern unsigned char _binary_resources_updater_param_bin_size;
 
 int network_update_thread(SceSize args, void *argp) {
-	sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
-
 	uint64_t size = 0;
 	if (getDownloadFileSize(BASE_ADDRESS VERSION_URL, &size) >= 0 && size == sizeof(uint32_t)) {
 		int res = downloadFile(BASE_ADDRESS VERSION_URL, VITASHELL_VERSION_FILE, NULL);
