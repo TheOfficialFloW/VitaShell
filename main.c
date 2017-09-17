@@ -143,9 +143,9 @@ void dirUpCloseArchive() {
 }
 
 static void dirUp() {
-	// If nothing has been copied from the pfs mounted path, then umount
-	if (strcmp(file_list.path, pfs_mounted_path) == 0 &&
-		strcmp(copy_list.path, pfs_mounted_path) != 0) {
+	if (strcmp(file_list.path, pfs_mounted_path) == 0 && // we're about to leave the pfs path
+		strncmp(copy_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) != 0) { // nothing has been copied from pfs path
+		// Then umount
 		gameDataUmount();
 	}
 
@@ -629,8 +629,8 @@ static int dialogSteps() {
 					fileListEmpty(&copy_list);
 				
 				// Umount and remove from clipboard after pasting
-				if (strcmp(copy_list.path, pfs_mounted_path) == 0 &&
-					strcmp(file_list.path, pfs_mounted_path) != 0) {
+				if (strncmp(file_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) != 0 &&
+					strncmp(copy_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) == 0) {
 					gameDataUmount();
 					fileListEmpty(&copy_list);
 				}

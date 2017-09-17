@@ -106,6 +106,9 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.72 ###
+- Fixed pfs mounting bug where you could not export files from specific folders.
+
 ### Changelog 1.71 ###
 - Fixed pvsd usb device mounting.
 - Fixed bug where uma0: options were grayed out on non PS TV models.
