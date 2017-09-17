@@ -55,7 +55,7 @@ typedef struct {
 	int unk7;
 } SceIoMountPoint;
 
-static SceIoDevice uma_ux0_dev = { "ux0:", "exfatux0", "sdstor0:uma-pp-act-a", "sdstor0:uma-lp-act-entire", MOUNT_POINT_ID };
+static SceIoDevice uma_ux0_dev = { "ux0:", "exfatux0", "sdstor0:uma-pp-act-a", "sdstor0:uma-pp-act-a", MOUNT_POINT_ID };
 
 static SceIoMountPoint *(* sceIoFindMountPoint)(int id) = NULL;
 

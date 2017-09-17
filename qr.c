@@ -103,7 +103,7 @@ int qr_scan_thread(SceSize args, void *argp) {
 	if (last_qr_len > 4) {
 		if (!(last_qr[last_qr_len-4] == '.' && last_qr[last_qr_len-3] == 'v' && last_qr[last_qr_len-2] == 'p' && last_qr[last_qr_len-1] == 'k')) {
 			if (last_qr[0] == 'h' && last_qr[1] == 't' && last_qr[2] == 't' && last_qr[3] == 'p') {
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[QR_OPEN_WEBSITE], last_qr);
+				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], last_qr);
 				setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
 			} else {
 				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], last_qr);
@@ -117,7 +117,7 @@ int qr_scan_thread(SceSize args, void *argp) {
 		return sceKernelExitDeleteThread(0);
 	}
 	
-	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[QR_CONFIRM_INSTALL], last_qr);
+	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_CONFIRM_INSTALL], last_qr);
 	setDialogStep(DIALOG_STEP_QR_CONFIRM);
 	
 	// Wait for response
@@ -215,7 +215,17 @@ int startQR() {
 }
 
 int stopQR() {
-	return sceCameraStop(1);
+	int res = sceCameraStop(1);
+
+	int y;
+	for (y = 0; y < CAM_HEIGHT; y++) {
+		int x;
+		for (x = 0; x < CAM_WIDTH; x++) {
+			((uint32_t *)qr_data)[x + 960 * y] = 0;
+		}
+	}
+
+	return res;
 }
 
 int renderCameraQR(int x, int y) {	

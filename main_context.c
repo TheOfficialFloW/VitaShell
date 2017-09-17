@@ -217,24 +217,17 @@ void setContextMenuHomeVisibilities() {
 			menu_home_entries[i].visibility = CTX_VISIBLE;
 	}
 
-	// Invisible if already mounted or if we're not on a Vita TV
-	if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
+	if (checkFolderExist("uma0:")) {
+		menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
+	} else {
+		menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
+	}
+
+	if ((kernel_modid >= 0 || kernel_modid == 0x8002D013) && user_modid >= 0 && shellUserIsUx0Redirected() == 1) {
 		menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
 		menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
-		menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 	} else {
-		if (checkFolderExist("uma0:")) {
-			menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
-		} else {
-			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
-		}
-	
-		if ((kernel_modid >= 0 || kernel_modid == 0x8002D013) && user_modid >= 0 && shellUserIsUx0Redirected() == 1) {
-			menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
-			menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
-		} else {
-			menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
-		}
+		menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
 	}
 
 	// Invisible if already mounted or there is no internal storage
@@ -475,7 +468,7 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 			if (is_safe_mode) {
 				infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
 			} else {
-				if (checkFileExist("sdstor0:uma-lp-act-entire")) {
+				if (checkFileExist("sdstor0:uma-pp-act-a")) {
 					int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
 					if (res < 0)
 						errorDialog(res);

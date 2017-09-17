@@ -508,8 +508,8 @@ static void initUsb() {
 		else
 			infoDialog(language_container[MICROSD_NOT_FOUND]);
 	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_PSVSD) {
-		if (checkFileExist("sdstor0:uma-lp-act-entire"))
-			path = "sdstor0:uma-lp-act-entire";
+		if (checkFileExist("sdstor0:uma-pp-act-a"))
+			path = "sdstor0:uma-pp-act-a";
 		else
 			infoDialog(language_container[MICROSD_NOT_FOUND]);
 	}
@@ -661,14 +661,14 @@ static int dialogSteps() {
 		case DIALOG_STEP_USB_ATTACH_WAIT:
 		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
-				if (checkFileExist("sdstor0:uma-lp-act-entire")) {
+				if (checkFileExist("sdstor0:uma-pp-act-a")) {
 					sceMsgDialogClose();
 				}
 			} else {
 				if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 					setDialogStep(DIALOG_STEP_NONE);
 					
-					if (checkFileExist("sdstor0:uma-lp-act-entire")) {
+					if (checkFileExist("sdstor0:uma-pp-act-a")) {
 						int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
 						if (res < 0)
 							errorDialog(res);
@@ -1201,13 +1201,13 @@ static int dialogSteps() {
 		case DIALOG_STEP_QR_OPEN_WEBSITE:
 		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
-				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
 				setDialogStep(DIALOG_STEP_NONE);
+				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				setDialogStep(DIALOG_STEP_NONE);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
 				setDialogStep(DIALOG_STEP_NONE);
+				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
 			}
 			
 			break;
@@ -1218,6 +1218,7 @@ static int dialogSteps() {
 			if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				setDialogStep(DIALOG_STEP_NONE);
 			}
+			
 			break;
 		}
 	}

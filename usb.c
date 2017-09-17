@@ -23,8 +23,7 @@
 
 static int remount_thread(SceSize args, void *argp) {
 	sceKernelDelayThread(10 * 1000);
-	if (checkFolderExist("ux0:"))
-		remount(0x800);
+	remount(0x800);
 	return sceKernelExitDeleteThread(0);
 }
 

@@ -106,6 +106,11 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.71 ###
+- Fixed pvsd usb device mounting.
+- Fixed bug where uma0: options were grayed out on non PS TV models.
+- Fixed bug where the QR code scanner showed the result twice.
+
 ### Changelog 1.7 ###
 - Added QR Code scanner and file downloader by cxziaho (press L+R to open the camera).
 - Added option in 'More->' to open applications in decrypted mode (bypass PFS). Thanks to frangarcj.
