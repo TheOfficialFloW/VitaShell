@@ -266,4 +266,15 @@
 - Fixed bug where the right analog stick was simulated when the headphone was plugged in.<br>
     ]]>
   </changes>
+   <changes app_ver="01.70">
+    <![CDATA[
+- Added QR Code scanner and file downloader by cxziaho (press L+R to open the camera).<br>
+- Added option in 'More->' to open applications in decrypted mode (bypass PFS). Thanks to frangarcj.<br>
+- Added ability to mount sd2vita and psvsd as usb device.<br>
+- Fixed bug where 'imc0:' could not be mounted if the Memory Card was not available.<br>
+- Fixed bug where accessing the settings menu crashed if there was no Memory Card available.<br>
+- Fixed bug where automatic usb connection was not blocked, after leaving and resuming VitaShell.<br>
+- PS TV will now always open FTP when pressing SELECT.<br>
+    ]]>
+  </changes>
 </changeinfo>
