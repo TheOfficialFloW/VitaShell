@@ -284,4 +284,11 @@
 - Fixed bug where the QR code scanner showed the result twice.<br>
     ]]>
   </changes>
+   <changes app_ver="01.72">
+    <![CDATA[
+- Fixed pfs mounting bug where you could not export files from specific folders.<br>
+- Fixed bug where files from https could not be downloaded using QR code.<br>
+- Fixed bug with pvsd usb device mounting where microSD could not be found.<br>
+    ]]>
+  </changes>
 </changeinfo>

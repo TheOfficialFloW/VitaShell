@@ -108,6 +108,8 @@ Be sure you pull request your customized design or language file there.
 
 ### Changelog 1.72 ###
 - Fixed pfs mounting bug where you could not export files from specific folders.
+- Fixed bug where files from https could not be downloaded using QR code.
+- Fixed bug with pvsd usb device mounting where microSD could not be found.
 
 ### Changelog 1.71 ###
 - Fixed pvsd usb device mounting.
