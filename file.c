@@ -897,7 +897,9 @@ int fileListGetDeviceEntries(FileList *list) {
 			if (is_safe_mode && strcmp(devices[i], "ux0:") != 0)
 				continue;
 
-			if (checkFolderExist(devices[i])) {
+			SceIoStat stat;
+			memset(&stat, 0, sizeof(SceIoStat));
+			if (sceIoGetstat(devices[i], &stat) >= 0) {
 				FileListEntry *entry = malloc(sizeof(FileListEntry));
 				strcpy(entry->name, devices[i]);
 				entry->name_length = strlen(entry->name);

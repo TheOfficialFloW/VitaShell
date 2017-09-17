@@ -502,7 +502,7 @@ static void initUsb() {
 			path = "sdstor0:gcd-lp-ign-gamero";
 		else
 			infoDialog(language_container[GAME_CARD_NOT_FOUND]);
-	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_SD2VITA) {
+	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_SD2VITA) { // TODO: Fix this
 		if (checkFileExist("sdstor0:gcd-lp-ign-entire"))
 			path = "sdstor0:gcd-lp-ign-entire";
 		else
