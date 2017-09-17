@@ -294,7 +294,7 @@ void setContextMenuMainVisibilities() {
 
 	// Invisble write operations in archives or pfs mounted paths
 	// TODO: read-only mount points
-	if (isInArchive() || strncmp(file_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) == 0) {
+	if (isInArchive() || (pfs_mounted_path[0] && strstr(file_list.path, pfs_mounted_path))) {
 		menu_main_entries[MENU_MAIN_ENTRY_MOVE].visibility = CTX_INVISIBLE;
 		menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
 		menu_main_entries[MENU_MAIN_ENTRY_DELETE].visibility = CTX_INVISIBLE;
@@ -469,7 +469,7 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 			if (is_safe_mode) {
 				infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
 			} else {
-				if (checkFileExist("sdstor0:uma-pp-act-a")) {
+				if (checkFileExist("sdstor0:uma-lp-act-entire")) {
 					int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
 					if (res < 0)
 						errorDialog(res);
@@ -557,8 +557,9 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 			FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos+rel_pos);
 			if (file_entry) {
 				// Umount if last path copied from is the pfs mounted path
-				if (strncmp(file_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) != 0 &&
-					strncmp(copy_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) == 0) {
+				if (pfs_mounted_path[0] &&
+					!strstr(file_list.path, pfs_mounted_path) &&
+					strstr(copy_list.path, pfs_mounted_path)) {
 					gameDataUmount();
 				}
 

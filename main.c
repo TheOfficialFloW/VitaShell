@@ -143,8 +143,9 @@ void dirUpCloseArchive() {
 }
 
 static void dirUp() {
-	if (strcmp(file_list.path, pfs_mounted_path) == 0 && // we're about to leave the pfs path
-		strncmp(copy_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) != 0) { // nothing has been copied from pfs path
+	if (pfs_mounted_path[0] &&
+		strcmp(file_list.path, pfs_mounted_path) == 0 && // we're about to leave the pfs path
+		!strstr(copy_list.path, pfs_mounted_path)) { // nothing has been copied from pfs path
 		// Then umount
 		gameDataUmount();
 	}
@@ -510,6 +511,8 @@ static void initUsb() {
 	} else if (vitashell_config.usbdevice == USBDEVICE_MODE_PSVSD) {
 		if (checkFileExist("sdstor0:uma-pp-act-a"))
 			path = "sdstor0:uma-pp-act-a";
+		else if (checkFileExist("sdstor0:uma-lp-act-entire"))
+			path = "sdstor0:uma-lp-act-entire";
 		else
 			infoDialog(language_container[MICROSD_NOT_FOUND]);
 	}
@@ -629,8 +632,7 @@ static int dialogSteps() {
 					fileListEmpty(&copy_list);
 				
 				// Umount and remove from clipboard after pasting
-				if (strncmp(file_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) != 0 &&
-					strncmp(copy_list.path, pfs_mounted_path, strlen(pfs_mounted_path)) == 0) {
+				if (pfs_mounted_path[0] && strstr(copy_list.path, pfs_mounted_path)) {
 					gameDataUmount();
 					fileListEmpty(&copy_list);
 				}
@@ -661,14 +663,14 @@ static int dialogSteps() {
 		case DIALOG_STEP_USB_ATTACH_WAIT:
 		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
-				if (checkFileExist("sdstor0:uma-pp-act-a")) {
+				if (checkFileExist("sdstor0:uma-lp-act-entire")) {
 					sceMsgDialogClose();
 				}
 			} else {
 				if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 					setDialogStep(DIALOG_STEP_NONE);
 					
-					if (checkFileExist("sdstor0:uma-pp-act-a")) {
+					if (checkFileExist("sdstor0:uma-lp-act-entire")) {
 						int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
 						if (res < 0)
 							errorDialog(res);
@@ -1202,12 +1204,12 @@ static int dialogSteps() {
 		{
 			if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
 				setDialogStep(DIALOG_STEP_NONE);
-				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
+				sceAppMgrLaunchAppByUri(0xFFFFF, getLastQR());
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
 				setDialogStep(DIALOG_STEP_NONE);
 			} else if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
 				setDialogStep(DIALOG_STEP_NONE);
-				sceAppMgrLaunchAppByUri(0x20000, getLastQR());
+				sceAppMgrLaunchAppByUri(0xFFFFF, getLastQR());
 			}
 			
 			break;
