@@ -277,4 +277,11 @@
 - PS TV will now always open FTP when pressing SELECT.<br>
     ]]>
   </changes>
+   <changes app_ver="01.71">
+    <![CDATA[
+- Fixed pvsd usb device mounting.<br>
+- Fixed bug where uma0: options were grayed out on non PS TV models.<br>
+- Fixed bug where the QR code scanner showed the result twice.<br>
+    ]]>
+  </changes>
 </changeinfo>
