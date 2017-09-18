@@ -106,6 +106,9 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.74 ###
+- Fixed QR download and C2-13696-5 error.
+
 ### Changelog 1.73 ###
 - Fixed crash when you pressed triangle in the home menu.
 
