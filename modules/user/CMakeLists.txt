@@ -21,7 +21,7 @@ add_executable(user
 target_link_libraries(user
   SceLibKernel_stub
   SceIofilemgr_stub
-  VitaShellKernel_stub
+  VitaShellKernel2_stub
 )
 
 vita_create_self(user.suprx user CONFIG exports.yml UNSAFE)

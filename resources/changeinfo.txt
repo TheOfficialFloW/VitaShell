@@ -291,4 +291,9 @@
 - Fixed bug with pvsd usb device mounting where microSD could not be found.<br>
     ]]>
   </changes>
+   <changes app_ver="01.73">
+    <![CDATA[
+- Fixed crash when you pressed triangle in the home menu.<br>
+    ]]>
+  </changes>
 </changeinfo>

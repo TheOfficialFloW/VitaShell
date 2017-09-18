@@ -1,4 +1,4 @@
-VitaShellKernel:
+VitaShellKernel2:
   attributes: 0
   version:
     major: 1
@@ -7,7 +7,7 @@ VitaShellKernel:
     start: module_start
     stop: module_stop
   modules:
-    VitaShellKernelLibrary:
+    VitaShellKernel2Library:
       syscall: true
       functions:
         - shellKernelIsUx0Redirected
