@@ -76,6 +76,57 @@ ERROR_EXIT:
 	return res;
 }
 
+int getFieldFromHeader(const char *src, const char *field, const char **data, unsigned int *valueLen) {
+	int res;
+	char *header;
+	unsigned int headerSize;
+	int tmplId = -1, connId = -1, reqId = -1;
+
+	res = sceHttpCreateTemplate(VITASHELL_USER_AGENT, SCE_HTTP_VERSION_1_1, SCE_TRUE);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	tmplId = res;
+
+	res = sceHttpCreateConnectionWithURL(tmplId, src, SCE_TRUE);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	connId = res;
+	
+	res = sceHttpCreateRequestWithURL(connId, SCE_HTTP_METHOD_GET, src,  0);
+	if (res < 0)
+		goto ERROR_EXIT;
+	
+	reqId = res;
+	
+	res = sceHttpSendRequest(reqId, NULL, 0);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	res = sceHttpGetAllResponseHeaders(reqId, &header, &headerSize);
+	if (res < 0)
+		goto ERROR_EXIT;
+
+	res = sceHttpParseResponseHeader(header, headerSize, field, data, valueLen);
+	if (res < 0) {
+		*data = "";
+		*valueLen = 0;
+	}
+	
+ERROR_EXIT:
+	if (reqId >= 0)
+		sceHttpDeleteRequest(reqId);
+
+	if (connId >= 0)
+		sceHttpDeleteConnection(connId);
+
+	if (tmplId >= 0)
+		sceHttpDeleteTemplate(tmplId);
+
+	return res;
+}
+
 int downloadFile(const char *src, const char *dst, FileProcessParam *param) {
 	int res;
 	int statusCode;
