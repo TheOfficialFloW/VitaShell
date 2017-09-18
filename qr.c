@@ -119,15 +119,21 @@ int qr_scan_thread(SceSize args, void *argp) {
 	// check for attached file
 	const char *headerData;
 	unsigned int headerLen;
+	unsigned int fileNameLength = 0;
 	int vpk = 0;
-	char fileName[1024];
+	char *fileName = "";
 	uint64_t fileSize;
 	char sizeString[16];
 	int ret;
+
 	ret = getDownloadFileSize(strdup(data), &fileSize);
-	if (ret < 0) goto NETWORK_FAILURE;
+	if (ret < 0)
+		goto NETWORK_FAILURE;
+
 	ret = getFieldFromHeader(strdup(data), "Content-Disposition", &headerData, &headerLen);
-	if (ret < 0) goto NETWORK_FAILURE;
+	if (ret < 0)
+		goto NETWORK_FAILURE;
+
 	getSizeString(sizeString, fileSize);
 	sceMsgDialogClose();
 
@@ -136,28 +142,54 @@ int qr_scan_thread(SceSize args, void *argp) {
 		sceKernelDelayThread(10 * 1000);
 	}
 
-	if (headerLen > 0) {
+	if (headerLen <= 0) {
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
+		setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
+		return sceKernelExitDeleteThread(0);
+	} else {
 		if (strstr(headerData, "inline") != NULL) {
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
 			setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
 			return sceKernelExitDeleteThread(0);
 		}
-		if (strstr(headerData, ".vpk") != NULL) {
-			vpk = 1;
+
+		char *p = strstr(headerData, "filename=");
+		if (!p)
+			goto EXIT;
+
+		fileName = p+9;
+
+		p = strchr(fileName, '\n');
+		if (p)
+			*p = '\0';
+
+		// Trim at beginning
+		while (*fileName < 0x20 ||
+			   *fileName == ' ' || *fileName == '\\' ||
+			   *fileName == '/' || *fileName == ':' ||
+			   *fileName == '*' || *fileName == '?' ||
+			   *fileName == '"' || *fileName == '<' ||
+			   *fileName == '>' || *fileName == '|') {
+			fileName++;
 		}
-		if (strstr(headerData, "filename=\"") == NULL) {
-			strcpy(fileName, &strstr(headerData, "filename=")[9]);
-			while (strstr(strdup(fileName), "\n") != NULL) strstr(fileName, "\n")[0] = '\0';
-			strcpy(fileName, fileName);
-		} else {
-			strcpy(fileName, &strstr(headerData, "filename=")[10]);
-			if (strstr(strdup(fileName), "\"") != NULL) strstr(fileName, "\"")[0] = '\0';
-			snprintf(fileName, sizeof(fileName), "%s", fileName);
+
+		// Trim at end
+		int i;
+		for (i = strlen(fileName)-1; i >= 0; i--) {
+			if (fileName[i] < 0x20 ||
+				fileName[i] == ' ' || fileName[i] == '\\' ||
+			    fileName[i] == '/' || fileName[i] == ':' ||
+			    fileName[i] == '*' || fileName[i] == '?' ||
+			    fileName[i] == '"' || fileName[i] == '<' ||
+			    fileName[i] == '>' || fileName[i] == '|') {
+				fileName[i] = 0;
+			} else {
+				break;
+			}
 		}
-	} else {
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
-		setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
-		return sceKernelExitDeleteThread(0);
+
+		// VPK type
+		vpk = getFileType(fileName) == FILE_TYPE_VPK;
 	}
 	
 	if (vpk)
@@ -212,8 +244,10 @@ int qr_scan_thread(SceSize args, void *argp) {
 		return downloadFileProcess(data, download_path, DIALOG_STEP_QR_DOWNLOADED_VPK);
 	else
 		return downloadFileProcess(data, download_path, DIALOG_STEP_QR_DOWNLOADED);
+
 EXIT:
 	return sceKernelExitDeleteThread(0);
+
 NETWORK_FAILURE:
 	sceMsgDialogClose();
 	while (isMessageDialogRunning()) {
@@ -272,7 +306,7 @@ int stopQR() {
 	for (y = 0; y < CAM_HEIGHT; y++) {
 		int x;
 		for (x = 0; x < CAM_WIDTH; x++) {
-			((uint32_t *)qr_data)[x + 960 * y] = 0;
+			((uint32_t *)qr_data)[x + CAM_WIDTH * y] = 0;
 		}
 	}
 

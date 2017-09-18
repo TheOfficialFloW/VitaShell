@@ -22,7 +22,7 @@
 #include "utils.h"
 
 static int remount_thread(SceSize args, void *argp) {
-	sceKernelDelayThread(20 * 1000);
+	sceKernelDelayThread(15 * 1000);
 	remount(0x800);
 	return sceKernelExitDeleteThread(0);
 }
