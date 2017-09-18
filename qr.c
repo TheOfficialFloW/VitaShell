@@ -45,6 +45,7 @@ static int qr_enabled;
 
 static struct quirc *qr;
 static uint32_t* qr_data;
+static char *data;
 static int qr_next;
 
 static vita2d_texture *camera_tex;
@@ -100,24 +101,69 @@ int qr_thread() {
 }
 
 int qr_scan_thread(SceSize args, void *argp) {
+	data = strdup(last_qr);
 	if (last_qr_len > 4) {
-		if (!(last_qr[last_qr_len-4] == '.' && last_qr[last_qr_len-3] == 'v' && last_qr[last_qr_len-2] == 'p' && last_qr[last_qr_len-1] == 'k')) {
-			if (last_qr[0] == 'h' && last_qr[1] == 't' && last_qr[2] == 't' && last_qr[3] == 'p') {
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], last_qr);
-				setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
-			} else {
-				initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], last_qr);
-				setDialogStep(DIALOG_STEP_QR_SHOW_CONTENTS);
-			}
+		if (!(data[0] == 'h' && data[1] == 't' && data[2] == 't' && data[3] == 'p')) {
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], data);
+			setDialogStep(DIALOG_STEP_QR_SHOW_CONTENTS);
 			return sceKernelExitDeleteThread(0);
 		}
 	} else {
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], last_qr);
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], data);
 		setDialogStep(DIALOG_STEP_QR_SHOW_CONTENTS);
 		return sceKernelExitDeleteThread(0);
 	}
 	
-	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_CONFIRM_INSTALL], last_qr);
+	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_NONE, language_container[PLEASE_WAIT]);
+	
+	// check for attached file
+	const char *headerData;
+	unsigned int headerLen;
+	int vpk = 0;
+	char fileName[1024];
+	uint64_t fileSize;
+	char sizeString[16];
+	int ret;
+	ret = getDownloadFileSize(strdup(data), &fileSize);
+	if (ret < 0) goto NETWORK_FAILURE;
+	ret = getFieldFromHeader(strdup(data), "Content-Disposition", &headerData, &headerLen);
+	if (ret < 0) goto NETWORK_FAILURE;
+	getSizeString(sizeString, fileSize);
+	sceMsgDialogClose();
+
+	// Wait for it to stop loading
+	while (isMessageDialogRunning()) {
+		sceKernelDelayThread(10 * 1000);
+	}
+
+	if (headerLen > 0) {
+		if (strstr(headerData, "inline") != NULL) {
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
+			setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
+			return sceKernelExitDeleteThread(0);
+		}
+		if (strstr(headerData, ".vpk") != NULL) {
+			vpk = 1;
+		}
+		if (strstr(headerData, "filename=\"") == NULL) {
+			strcpy(fileName, &strstr(headerData, "filename=")[9]);
+			while (strstr(strdup(fileName), "\n") != NULL) strstr(fileName, "\n")[0] = '\0';
+			strcpy(fileName, fileName);
+		} else {
+			strcpy(fileName, &strstr(headerData, "filename=")[10]);
+			if (strstr(strdup(fileName), "\"") != NULL) strstr(fileName, "\"")[0] = '\0';
+			snprintf(fileName, sizeof(fileName), "%s", fileName);
+		}
+	} else {
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
+		setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
+		return sceKernelExitDeleteThread(0);
+	}
+	
+	if (vpk)
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_CONFIRM_INSTALL], data, fileName, sizeString);
+	else
+		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_CONFIRM_DOWNLOAD], data, fileName, sizeString);
 	setDialogStep(DIALOG_STEP_QR_CONFIRM);
 	
 	// Wait for response
@@ -135,27 +181,22 @@ int qr_scan_thread(SceSize args, void *argp) {
 	char short_name[MAX_URL_LENGTH];
 	int count = 0;
 	
-	char *next;
-	char *file_name = strdup(last_qr);
-	while ((next = strpbrk(file_name + 1, "\\/"))) file_name = next;
-	if (file_name != last_qr) file_name++;
-		
-	char *ext = strrchr(file_name, '.');
+	char *ext = strrchr(fileName, '.');
 	if (ext) {
-		int len = ext-file_name;
+		int len = ext-fileName;
 		if (len > sizeof(short_name)-1)
 			len = sizeof(short_name)-1;
-		strncpy(short_name, file_name, len);
+		strncpy(short_name, fileName, len);
 		short_name[len] = '\0';
 	} else {
-		strncpy(short_name, file_name, sizeof(short_name)-1);
+		strncpy(short_name, fileName, sizeof(short_name)-1);
 		ext = "";
 	}
 	while (1) {
 		if (count == 0)
-			snprintf(download_path, sizeof(download_path)-1, "ux0:download/qr/%s", file_name);
+			snprintf(download_path, sizeof(download_path)-1, "ux0:download/%s", fileName);
 		else
-			snprintf(download_path, sizeof(download_path)-1, "ux0:download/qr/%s (%d)%s", short_name, count, ext);
+			snprintf(download_path, sizeof(download_path)-1, "ux0:download/%s (%d)%s", short_name, count, ext);
 
 		SceIoStat stat;
 		memset(&stat, 0, sizeof(SceIoStat));
@@ -165,12 +206,22 @@ int qr_scan_thread(SceSize args, void *argp) {
 	}
 	
 	sceIoMkdir("ux0:download", 0006);
-	sceIoMkdir("ux0:download/qr", 0006);
 	
 	strcpy(last_download, download_path);
-	return downloadFileProcess(last_qr, download_path, DIALOG_STEP_QR_DOWNLOADED);
-
+	if (vpk)
+		return downloadFileProcess(data, download_path, DIALOG_STEP_QR_DOWNLOADED_VPK);
+	else
+		return downloadFileProcess(data, download_path, DIALOG_STEP_QR_DOWNLOADED);
 EXIT:
+	return sceKernelExitDeleteThread(0);
+NETWORK_FAILURE:
+	sceMsgDialogClose();
+	while (isMessageDialogRunning()) {
+		sceKernelDelayThread(10 * 1000);
+	}
+
+	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], data);
+	setDialogStep(DIALOG_STEP_QR_SHOW_CONTENTS);
 	return sceKernelExitDeleteThread(0);
 }
 
@@ -239,7 +290,7 @@ int renderCameraQR(int x, int y) {
 } 
 
 char *getLastQR() {
-	return last_qr;
+	return data;
 }
 
 char *getLastDownloadQR() {

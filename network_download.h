@@ -26,6 +26,7 @@
 #define __NETWORK_DOWNLOAD_H__
 
 int getDownloadFileSize(const char *src, uint64_t *size);
+int getFieldFromHeader(const char *src, const char *field, const char **data, unsigned int *valueLen);
 int downloadFile(const char *src, const char *dst, FileProcessParam *param);
 int downloadFileProcess(const char *url, const char *dest, int successStep);
 

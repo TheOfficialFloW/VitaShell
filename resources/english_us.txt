@@ -168,8 +168,9 @@ USB_WAIT_ATTACH                      = "Please attach an USB flash drive to cont
 # QR strings
 QR_SCANNING                         = "Scanning for QR Codes..."
 QR_OPEN_WEBSITE                     = "Do you want to open this URL:\%s"
-QR_CONFIRM_INSTALL                  = "Do you want to install this package:\%s"
 QR_SHOW_CONTENTS                    = "QR Code Says:\%s"
+QR_CONFIRM_INSTALL                  = "Do you want to install this package:\%s\File: %s\Size: %s"
+QR_CONFIRM_DOWNLOAD                 = "Do you want to download this file:\%s\File: %s\Size: %s"
 
 # Others
 IMC0_MOUNTED                         = "imc0: mounted."
