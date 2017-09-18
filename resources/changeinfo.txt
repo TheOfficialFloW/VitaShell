@@ -295,7 +295,7 @@
     <![CDATA[
 - Fixed crash when you pressed triangle in the home menu.<br>
     ]]>
-  </changes
+  </changes>
    <changes app_ver="01.74">
     <![CDATA[
 - Fixed QR download and C2-13696-5 error.<br>
