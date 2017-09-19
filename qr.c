@@ -144,7 +144,7 @@ int qr_scan_thread(SceSize args, void *argp) {
 
 	if (headerLen <= 0) {
 		char *next;
-		fileName = strdup(data);
+		fileName = data;
 		while ((next = strpbrk(fileName + 1, "\\/"))) fileName = next;
 		if (fileName != last_qr) fileName++;
 		
