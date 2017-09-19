@@ -45,7 +45,9 @@ static UncommonDialog uncommon_dialog;
 static void calculateDialogBoxSize() {
 	int len = strlen(uncommon_dialog.msg);
 	char *string = uncommon_dialog.msg;
-
+	char *tempstr = "";
+	float text_width = 0;
+	
 	// Get width and height
 	uncommon_dialog.width = 0.0f;
 	uncommon_dialog.height = 0.0f;
@@ -58,22 +60,41 @@ static void calculateDialogBoxSize() {
 			float width = vita2d_pgf_text_width(font, FONT_SIZE, string);
 			if (width > uncommon_dialog.width)
 				uncommon_dialog.width = width;
-
+			
 			uncommon_dialog.msg[i] = '\n';
 
 			string = uncommon_dialog.msg + i;
-			uncommon_dialog.height += FONT_Y_SPACE;
 		}
 
 		if (uncommon_dialog.msg[i] == '\0') {
 			float width = vita2d_pgf_text_width(font, FONT_SIZE, string);
 			if (width > uncommon_dialog.width)
 				uncommon_dialog.width = width;
+		}
 
-			uncommon_dialog.height += FONT_Y_SPACE;
+		tempstr = strdup(uncommon_dialog.msg);
+		tempstr[i+1] = '\0';
+		text_width = vita2d_pgf_text_width(font, FONT_SIZE, tempstr);
+
+		if (text_width > UNCOMMON_DIALOG_MAX_WIDTH) {
+			int lastSpace = i - 1;
+			while (uncommon_dialog.msg[lastSpace] != ' ' && uncommon_dialog.msg[lastSpace] != '\n' && lastSpace > 0) lastSpace--;
+			if (lastSpace == 0 || uncommon_dialog.msg[lastSpace] == '\n') {
+				memmove(uncommon_dialog.msg+i+1, uncommon_dialog.msg+i, strlen(uncommon_dialog.msg)-(i + 1));
+				uncommon_dialog.msg[i] = '\n';
+			} else {
+				uncommon_dialog.msg[lastSpace] = '\n';
+			}
+			
+			uncommon_dialog.width = text_width;
+			string = uncommon_dialog.msg + i;
 		}
 	}
 
+	uncommon_dialog.height += FONT_Y_SPACE;
+	for (i = 0; uncommon_dialog.msg[i]; i++)
+		uncommon_dialog.height += FONT_Y_SPACE * (uncommon_dialog.msg[i] == '\n');
+	
 	// Margin
 	uncommon_dialog.width += 2.0f*SHELL_MARGIN_X;
 	uncommon_dialog.height += 2.0f*SHELL_MARGIN_Y;
