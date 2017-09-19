@@ -264,7 +264,7 @@ NETWORK_FAILURE:
 		sceKernelDelayThread(10 * 1000);
 	}
 
-	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_SHOW_CONTENTS], data);
+	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], data);
 	setDialogStep(DIALOG_STEP_QR_SHOW_CONTENTS);
 	return sceKernelExitDeleteThread(0);
 }
