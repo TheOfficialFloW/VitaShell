@@ -143,9 +143,19 @@ int qr_scan_thread(SceSize args, void *argp) {
 	}
 
 	if (headerLen <= 0) {
-		initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
-		setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
-		return sceKernelExitDeleteThread(0);
+		char *next;
+		fileName = strdup(data);
+		while ((next = strpbrk(fileName + 1, "\\/"))) fileName = next;
+		if (fileName != last_qr) fileName++;
+		
+		char *ext = strrchr(fileName, '.');
+		if (ext) {
+			vpk = getFileType(fileName) == FILE_TYPE_VPK;
+		} else {
+			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
+			setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
+			return sceKernelExitDeleteThread(0);
+		}
 	} else {
 		if (strstr(headerData, "inline") != NULL) {
 			initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
@@ -254,7 +264,7 @@ NETWORK_FAILURE:
 		sceKernelDelayThread(10 * 1000);
 	}
 
-	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], data);
+	initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_SHOW_CONTENTS], data);
 	setDialogStep(DIALOG_STEP_QR_SHOW_CONTENTS);
 	return sceKernelExitDeleteThread(0);
 }

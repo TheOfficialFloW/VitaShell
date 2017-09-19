@@ -112,6 +112,7 @@ int getFieldFromHeader(const char *src, const char *field, const char **data, un
 	if (res < 0) {
 		*data = "";
 		*valueLen = 0;
+		res = 0;
 	}
 	
 ERROR_EXIT:
