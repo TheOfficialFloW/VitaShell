@@ -186,6 +186,6 @@ add_custom_target(send
 )
 
 add_custom_target(copy
-  COMMAND cp eboot.bin G:/app/${VITA_TITLEID}/eboot.bin
+  COMMAND cp eboot.bin F:/app/${VITA_TITLEID}/eboot.bin
   DEPENDS eboot.bin
 )

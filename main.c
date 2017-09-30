@@ -1744,24 +1744,6 @@ int main(int argc, const char *argv[]) {
 			sceKernelStartThread(thid, 0, NULL);
 	}
 
-	// Restart commands
-	if (argc == 2) {
-		if (strcmp(argv[1], "mount") == 0) {
-			infoDialog(language_container[USB_UX0_MOUNTED]);
-		} else if (strcmp(argv[1], "umount") == 0) {
-			// Remount uma0:
-			remount(0xF00);
-			
-			// Copy back important files
-			copyPath("uma0:calendar", "ux0:calendar", NULL);
-			copyPath("uma0:mms", "ux0:mms", NULL);
-			copyPath("uma0:mtp", "ux0:mtp", NULL);
-			copyPath("uma0:iconlayout.ini", "ux0:iconlayout.ini", NULL);
-
-			infoDialog(language_container[USB_UX0_UMOUNTED]);
-		}
-	}
-
 	// Main
 	shellMain();
 

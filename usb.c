@@ -21,25 +21,6 @@
 #include "file.h"
 #include "utils.h"
 
-static int remount_thread(SceSize args, void *argp) {
-	sceKernelDelayThread(15 * 1000);
-	remount(0x800);
-	return sceKernelExitDeleteThread(0);
-}
-
-void remountRelaunch(char * const argv[]) {
-	// Remount uma0:
-	if (checkFolderExist("uma0:"))
-		remount(0xF00);
-
-	// Remount ux0: by using race condition (this trick fixes the freeze)
-	SceUID thid = sceKernelCreateThread("remount_thread", (SceKernelThreadEntry)remount_thread, 0x40, 0x1000, 0, 0, NULL);
-	if (thid >= 0)
-		sceKernelStartThread(thid, 0, NULL);
-
-	sceAppMgrLoadExec("app0:eboot.bin", argv, NULL);
-}
-
 int mountUsbUx0() {
 	// Destroy other apps
 	sceAppMgrDestroyOtherApp();
@@ -85,12 +66,11 @@ int mountUsbUx0() {
 	// Redirect ux0: to uma0:
 	shellUserRedirectUx0();
 
-	// Mount USB ux0:
+	// Umount uma0:
 	vshIoUmount(0xF00, 0, 0, 0);
 
-	// Remount and relaunch
-	char * const argv[] = { "mount", NULL };
-	remountRelaunch(argv);
+	// Remount Memory Card
+	remount(0x800);
 
 	return 0;
 }
@@ -102,9 +82,17 @@ int umountUsbUx0() {
 	// Restore ux0: patch
 	shellUserUnredirectUx0();
 
-	// Remount and relaunch
-	char * const argv[] = { "umount", NULL };
-	remountRelaunch(argv);
+	// Remount Memory Card
+	remount(0x800);
+
+	// Remount uma0:
+	remount(0xF00);
+
+	// Copy back important files
+	copyPath("uma0:calendar", "ux0:calendar", NULL);
+	copyPath("uma0:mms", "ux0:mms", NULL);
+	copyPath("uma0:mtp", "ux0:mtp", NULL);
+	copyPath("uma0:iconlayout.ini", "ux0:iconlayout.ini", NULL);
 
 	return 0;
 }
@@ -173,9 +161,12 @@ int stopUsb(SceUID modid) {
 	if (res < 0)
 		return res;
 
-	// Remount and relaunch
-	char * const argv[] = { "restart", NULL };
-	remountRelaunch(argv);
+	// Remount Memory Card
+	remount(0x800);
+
+	// Remount uma0:
+	if (checkFolderExist("uma0:"))
+		remount(0xF00);
 
 	return 0;
 }

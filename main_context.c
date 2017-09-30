@@ -161,8 +161,10 @@ int gameDataUmount() {
 		return -1;
 
 	int res = sceAppMgrUmount(pfs_mount_point);
-	if (res >= 0)
+	if (res >= 0) {
 		memset(pfs_mount_point, 0, sizeof(pfs_mount_point));
+		memset(pfs_mounted_path, 0, sizeof(pfs_mounted_path));
+	}
 
 	return res;
 }
@@ -503,13 +505,15 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 		
 		case MENU_HOME_ENTRY_MOUNT_USB_UX0:
 		{
-			mountUsbUx0();
+			if (mountUsbUx0() >= 0)
+				infoDialog(language_container[USB_UX0_MOUNTED]);
 			break;
 		}
 		
 		case MENU_HOME_ENTRY_UMOUNT_USB_UX0:
 		{
-			umountUsbUx0();
+			if (umountUsbUx0() >= 0)
+				infoDialog(language_container[USB_UX0_UMOUNTED]);
 			break;
 		}
 	}
