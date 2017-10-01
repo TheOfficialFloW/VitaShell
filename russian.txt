@@ -1,4 +1,4 @@
-# VitaShell language file 1.61 ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus
+# VitaShell language file 1.74 ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus
 
 # General strings
 ERROR                                         = "Ошибка 0x%08X."
@@ -19,9 +19,9 @@ EXPORTING                                     = "Экспорт медиафай
 INSTALLING                                    = "Установка..."
 DOWNLOADING                                   = "Загрузка..."
 EXTRACTING                                    = "Извлечение..."
-COMPRESSING                                   = "Архивирование..."
-HASHING                                       = "Хеширование..."
-REFRESHING                                    = "Обновление livearea..."
+COMPRESSING                                   = "Упаковка..."
+HASHING                                       = "Вычисление хеша..."
+REFRESHING                                    = "Обновление данных LiveArea..."
 
 # Audio player strings
 TITLE                                         = "Название"
@@ -32,17 +32,18 @@ YEAR                                          = "Год"
 
 # Hex editor strings
 OFFSET                                        = "Смещение:"
-OPEN_HEX_EDITOR                               = "Открыть в Hex редакторе"
+OPEN_HEX_EDITOR                               = "Открыть в Hex-редакторе"
 
 # Text editor strings
 EDIT_LINE                                     = "Редактировать строку"
 ENTER_SEARCH_TERM                             = "Поиск..."
 
 # Context menu strings
-REFRESH_LIVEAREA                              = "Обновить экран livearea"
-MOUNT_UMA0                                    = "Монтировать раздел uma0:"
-MOUNT_USB_UX0                                 = "Монтировать USB в ux0:"
-UMOUNT_USB_UX0                                = "Размонтировать USB с ux0:"
+REFRESH_LIVEAREA                              = "Обновить экран LiveArea"
+MOUNT_UMA0                                    = "Монтировать uma0:"
+MOUNT_IMC0                                    = "Монтировать imc0:"
+MOUNT_USB_UX0                                 = "Монтировать USB как ux0:"
+UMOUNT_USB_UX0                                = "Размонтировать USB от ux0:"
 SORT_BY                                       = "Сортировка"
 BY_NAME                                       = "По имени"
 BY_SIZE                                       = "По размеру"
@@ -61,6 +62,7 @@ COMPRESS                                      = "Архивировать"
 INSTALL_ALL                                   = "Установить все .vpk"
 INSTALL_FOLDER                                = "Установить из папки"
 CALCULATE_SHA1                                = "Вычислить SHA1"
+OPEN_DECRYPTED                                = "Декриптовать и открыть"
 EXPORT_MEDIA                                  = "Экспорт медиафайлов"
 CUT                                           = "Вырезать"
 INSERT_EMPTY_LINE                             = "Вставить строку"
@@ -84,9 +86,9 @@ PROPERTY_TYPE_OGG                             = "Аудиофайл OGG"
 PROPERTY_TYPE_PNG                             = "Изображение PNG"
 PROPERTY_TYPE_RAR                             = "Архив RAR"
 PROPERTY_TYPE_SFO                             = "Файл SFO"
-PROPERTY_TYPE_TXT                             = "Текстовый документ"
+PROPERTY_TYPE_TXT                             = "Документ TXT"
 PROPERTY_TYPE_VPK                             = "Пакет VPK"
-PROPERTY_TYPE_XML                             = "Файл XML"
+PROPERTY_TYPE_XML                             = "Документ XML"
 PROPERTY_TYPE_ZIP                             = "Архив ZIP"
 PROPERTY_TYPE_FSELF                           = "Файл FSELF"
 PROPERTY_FSELF_MODE_SAFE                      = "Безопасный"
@@ -108,8 +110,12 @@ EXPORT_FOLDER_QUESTION                        = "Запрос:\\Экспорти
 EXPORT_FILES_FOLDERS_QUESTION                 = "Запрос:\\Экспортировать выбранные данные в медиатеку?"
 EXPORT_NO_MEDIA                               = "Запрос:\\Нет подходящих для экспорта медиафайлов."
 EXPORT_SONGS_INFO                             = "Отчёт:\\Экспортировано композиций: %d."
+EXPORT_VIDEOS_INFO                            = "Отчёт:\\Экспортировано видеофайлов: %d."
 EXPORT_PICTURES_INFO                          = "Отчёт:\\Экспортировано изображений: %d."
-EXPORT_SONGS_PICTURES_INFO                    = "Отчёт:\\Экспортировано композиций: %d\и изображений %d."
+EXPORT_SONGS_VIDEOS_INFO                      = "Отчёт:\\Экспортировано композиций: %d\ и видеофайлов: %d."
+EXPORT_SONGS_PICTURES_INFO                    = "Отчёт:\\Экспортировано композиций: %d\ и изображений %d."
+EXPORT_VIDEOS_PICTURES_INFO                   = "Отчёт:\\Экспортировано видеофайлов: %d\ и изображений: %d."
+EXPORT_SONGS_VIDEOS_PICTURES_INFO             = "Отчёт:\\Экспортировано композиций: %d,\видеофайлов: %d и изображений: %d."
 INSTALL_ALL_QUESTION                          = "Установка vpk\\Установить все .vpk из этой папки?"
 INSTALL_FOLDER_QUESTION                       = "Установка из папки\\Использовать данную папку в качестве источника\для установки пакета?\Внимание:\По окончанию процесса установки папка и её\содержимое будут удалены!"
 INSTALL_QUESTION                              = "Установка vpk\\Установить данный пакет?"
@@ -145,6 +151,8 @@ VITASHELL_SETTINGS_POWEROFF                   = "Отключить питани
 VITASHELL_SETTINGS_STANDBY                    = "Режим сна"
 VITASHELL_SETTINGS_USB_MEMORY_CARD            = "Карта памяти"
 VITASHELL_SETTINGS_USB_GAME_CARD              = "Игровой картридж"
+VITASHELL_SETTINGS_USB_SD2VITA                = "SD2VITA"
+VITASHELL_SETTINGS_USB_PSVSD                  = "PSVSD"
 VITASHELL_SETTINGS_SELECT_BUTTON_USB          = "USB соединение"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP          = "FTP сервер"
 
@@ -155,13 +163,23 @@ USB_UX0_MOUNTED                               = "Отчёт:\\USB носител
 USB_UX0_UMOUNTED                              = "Отчёт:\\USB носитель размонтирован с ux0:"
 USB_NOT_CONNECTED                             = "Передача данных:\\Подключите PS Vita к ПК с помощью кабеля USB."
 USB_CONNECTION_NOT_AVAILABLE                  = "Ошибка:\\Невозножно активировать USB соединение на этом устройстве."
-USB_WAIT_ATTACH                               = "Подключите USB накопитель, прежде чем продолжить.\Ели устройство уже установлено, попробуйте\извлечь его и подключить повторно."
+USB_WAIT_ATTACH                               = "Подключите USB накопитель, прежде чем продолжить.\Если устройство уже установлено, попробуйте\извлечь его и подключить повторно."
+
+# QR strings
+QR_SCANNING                                   = "Сканирование QR-кода..."
+QR_OPEN_WEBSITE                               = "Запрос:\\Перейти по указанной ссылке?\%s"
+QR_SHOW_CONTENTS                              = "Отчёт:\\Содержимое QR-кода:\%s"
+QR_CONFIRM_INSTALL                            = "Запрос:\\Выполнить установку пакета?\%s"
+QR_CONFIRM_DOWNLOAD                           = "Запрос:\\Выполнить загрузку данных?\%s\Файл: %s\Размер: %s"
 
 # Others
+IMC0_MOUNTED                                  = "Отчёт:\\Раздел imc0: смонтирован."
 SAFE_MODE                                     = "БЕЗОПАСНЫЙ РЕЖИМ"
 UNSAFE_MODE                                   = "НЕБЕЗОПАСНЫЙ РЕЖИМ"
 PLEASE_WAIT                                   = "Ожидайте..."
+MEMORY_CARD_NOT_FOUND                         = "Карта памяти не установлена."
 GAME_CARD_NOT_FOUND                           = "Установите игровой картридж."
+MICROSD_NOT_FOUND                             = "Карта microSD не установлена."
 NO_SPACE_ERROR                                = "Внимание!\\Недостаточно свободного места на карте памяти.\Необходимо минимум %s."
 EXTENDED_PERMISSIONS_REQUIRED                 = "Внимание!\\Для использования данной функции необходимо\активировать опцию 'Разрешить небезопасные homebrew'."
 WIFI_ERROR                                    = "Ошибка Wi-Fi:\\Для запуска FTP-сервера необходимо активное Wi-Fi подключение."
