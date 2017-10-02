@@ -28,7 +28,6 @@
 
 #define MOUNT_POINT_ID 0x800
 
-int ksceIoDeleteMountEvent(SceUID evid);
 int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr);
 
 typedef struct {
@@ -62,7 +61,6 @@ static SceIoMountPoint *(* sceIoFindMountPoint)(int id) = NULL;
 
 static SceIoDevice *ori_dev = NULL, *ori_dev2 = NULL;
 
-static SceUID uids[3];
 static SceUID hookid = -1;
 
 static tai_hook_ref_t ksceSysrootIsSafeModeRef;
@@ -140,50 +138,22 @@ int shellKernelUnredirectUx0() {
 	return 0;
 }
 
-#define debugPrintf(...) \
-{ \
-	char msg[128]; \
-	snprintf(msg, sizeof(msg), __VA_ARGS__); \
-	debug_printf(msg); \
-}
-
-void debug_printf(char *msg) {
-	SceUID fd = ksceIoOpen("ux0:log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
-	if (fd >= 0) {
-		ksceIoWrite(fd, msg, strlen(msg));
-		ksceIoClose(fd);
-	}
-}
-
 void _start() __attribute__ ((weak, alias("module_start")));
 int module_start(SceSize args, void *argp) {
 	SceUID tmp1, tmp2;
-	tai_module_info_t appmgr_info, iofilemgr_info;
-
-	// Get SceAppMgr tai module info
-	appmgr_info.size = sizeof(tai_module_info_t);
-	if (taiGetModuleInfoForKernel(KERNEL_PID, "SceAppMgr", &appmgr_info) < 0)
+	// Get tai module info
+	tai_module_info_t info;
+	info.size = sizeof(tai_module_info_t);
+	if (taiGetModuleInfoForKernel(KERNEL_PID, "SceIofilemgr", &info) < 0)
 		return SCE_KERNEL_START_SUCCESS;
-
-	// Get SceIofilemgr tai module info
-	iofilemgr_info.size = sizeof(tai_module_info_t);
-	if (taiGetModuleInfoForKernel(KERNEL_PID, "SceIofilemgr", &iofilemgr_info) < 0)
-		return SCE_KERNEL_START_SUCCESS;
-
-	// Patch to allow Memory Card remount
-	uint16_t nop_opcode = 0xBF00;
-	uids[0] = taiInjectDataForKernel(KERNEL_PID, appmgr_info.modid, 0, 0xB338, &nop_opcode, sizeof(nop_opcode));
-	uids[1] = taiInjectDataForKernel(KERNEL_PID, appmgr_info.modid, 0, 0xB33A, &nop_opcode, sizeof(nop_opcode));
-	uids[2] = taiInjectDataForKernel(KERNEL_PID, appmgr_info.modid, 0, 0xB368, &nop_opcode, sizeof(nop_opcode));
 
 	// Get important function
-	module_get_offset(KERNEL_PID, iofilemgr_info.modid, 0, 0x138C1, (uintptr_t *)&sceIoFindMountPoint);
+	module_get_offset(KERNEL_PID, info.modid, 0, 0x138C1, (uintptr_t *)&sceIoFindMountPoint);
 
 	// Fake safe mode so that SceUsbMass can be loaded
 	tmp1 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSysrootIsSafeModeRef, "SceSysmem", 0x2ED7F97A, 0x834439A7, ksceSysrootIsSafeModePatched);
 	if (tmp1 < 0)
 		return SCE_KERNEL_START_SUCCESS;
-
 	// this patch is only needed on handheld units
 	tmp2 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSblAimgrIsDolceRef, "SceSysmem", 0xFD00C69A, 0x71608CA3, ksceSblAimgrIsDolcePatched);
 	if (tmp2 < 0)
@@ -209,15 +179,6 @@ int module_start(SceSize args, void *argp) {
 int module_stop(SceSize args, void *argp) {
 	if (hookid >= 0)
 		taiHookReleaseForKernel(hookid, ksceSysrootIsSafeModeRef);
-
-	if (uids[2] >= 0)
-		taiInjectReleaseForKernel(uids[2]);
-
-	if (uids[1] >= 0)
-		taiInjectReleaseForKernel(uids[1]);
-
-	if (uids[0] >= 0)
-		taiInjectReleaseForKernel(uids[0]);
 
 	return SCE_KERNEL_STOP_SUCCESS;
 }

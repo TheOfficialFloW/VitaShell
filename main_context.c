@@ -505,15 +505,19 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 		
 		case MENU_HOME_ENTRY_MOUNT_USB_UX0:
 		{
-			if (mountUsbUx0() >= 0)
+			if (mountUsbUx0() >= 0) {
 				infoDialog(language_container[USB_UX0_MOUNTED]);
+				refreshFileList();
+			}
 			break;
 		}
 		
 		case MENU_HOME_ENTRY_UMOUNT_USB_UX0:
 		{
-			if (umountUsbUx0() >= 0)
+			if (umountUsbUx0() >= 0) {
 				infoDialog(language_container[USB_UX0_UMOUNTED]);
+				refreshFileList();
+			}
 			break;
 		}
 	}

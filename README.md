@@ -106,6 +106,10 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.75 ###
+- Fixed bug where Memory Card was umounted after closing USB (fixed 'The file is corrupt' error).
+- Fixed QR download of URLs that link to files.
+
 ### Changelog 1.74 ###
 - Fixed QR download and C2-13696-5 error.
 

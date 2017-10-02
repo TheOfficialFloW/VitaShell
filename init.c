@@ -79,6 +79,7 @@ INCLUDE_EXTERN_RESOURCE(user_suprx);
 INCLUDE_EXTERN_RESOURCE(usbdevice_skprx);
 INCLUDE_EXTERN_RESOURCE(kernel_skprx);
 INCLUDE_EXTERN_RESOURCE(umass_skprx);
+INCLUDE_EXTERN_RESOURCE(patch_skprx);
 
 INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
 
@@ -139,6 +140,7 @@ static DefaultFile default_files[] = {
 	DEFAULT_FILE("ux0:VitaShell/module/usbdevice.skprx", usbdevice_skprx, 1),
 	DEFAULT_FILE("ux0:VitaShell/module/kernel.skprx", kernel_skprx, 1),
 	DEFAULT_FILE("ux0:VitaShell/module/umass.skprx", umass_skprx, 1),
+	DEFAULT_FILE("ux0:VitaShell/module/patch.skprx", patch_skprx, 1),
 
 	DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt, 1),
 };
@@ -147,7 +149,7 @@ char vitashell_titleid[12];
 
 int is_safe_mode = 0;
 
-SceUID kernel_modid = -1, user_modid = -1;
+SceUID patch_modid = -1, kernel_modid = -1, user_modid = -1;
 
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
@@ -374,6 +376,7 @@ void initVitaShell() {
 	installDefaultFiles();
 
 	// Load modules
+	patch_modid = taiLoadStartKernelModule("ux0:VitaShell/module/patch.skprx", 0, NULL, 0);
 	kernel_modid = taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
 	user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
 }

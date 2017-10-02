@@ -301,4 +301,10 @@
 - Fixed QR download and C2-13696-5 error.<br>
     ]]>
   </changes>
+   <changes app_ver="01.75">
+    <![CDATA[
+- Fixed bug where Memory Card was umounted after closing USB (fixed 'The file is corrupt' error).<br>
+- Fixed QR download of URLs that link to files.<br>
+    ]]>
+  </changes>
 </changeinfo>
