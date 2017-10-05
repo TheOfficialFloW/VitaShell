@@ -1,5 +1,6 @@
-# VitaShell language file for 1.62
-# VitaShell 1.62対応版日本語言語ファイル 162a152
+# VitaShell language file for 1.74
+# VitaShell 1.74対応版日本語言語ファイル 174a157
+# 更新 201709201026
 # 作者 @Umineko19930417
 # お願い: http://2ch.net/ にて日本語言語ファイルを紹介する行為はお辞め下さい
 
@@ -17,16 +18,16 @@ FOLDER					= "フォルダ"
 
 # Progress strings
 # 進捗の文字列
-MOVING					= "移動中..."
-COPYING					= "コピー中..."
-DELETING				= "削除中..."
-EXPORTING				= "出力中..."
-INSTALLING				= "インストール中..."
-DOWNLOADING				= "ダウンロード中..."
-EXTRACTING				= "展開中..."
-COMPRESSING				= "圧縮中..."
-HASHING					= "SHA-1ハッシュ値を計算中..."
-REFRESHING				= "リフレッシュ中..."
+MOVING					= "移動中"
+COPYING					= "コピー中"
+DELETING				= "削除中"
+EXPORTING				= "出力中"
+INSTALLING				= "インストール中"
+DOWNLOADING				= "ダウンロード中"
+EXTRACTING				= "展開中"
+COMPRESSING				= "圧縮中"
+HASHING					= "SHA-1ハッシュ値を計算中"
+REFRESHING				= "リフレッシュ中"
 
 # Audio player strings
 # オーディオプレイヤーの文字列
@@ -45,8 +46,6 @@ OPEN_HEX_EDITOR				= "バイナリエディタを開く"
 # テキストエディタの文字列
 EDIT_LINE				= "行の編集"
 ENTER_SEARCH_TERM			= "検索用語を入力"
-CUT					= "切り取り"
-INSERT_EMPTY_LINE			= "空の行を挿入"
 
 # Context menu strings
 # コンテキストメニューの文字列
@@ -73,7 +72,10 @@ COMPRESS				= "圧縮"
 INSTALL_ALL				= "全てをインストール"
 INSTALL_FOLDER				= "フォルダをインストール"
 CALCULATE_SHA1				= "SHA-1ハッシュ値を表示"
+OPEN_DECRYPTED				= "複合化"
 EXPORT_MEDIA				= "メディアを出力"
+CUT					= "切り取り"
+INSERT_EMPTY_LINE			= "空の行を挿入"
 SEARCH					= "検索"
 
 # File browser properties strings
@@ -109,25 +111,29 @@ PROPERTY_FSELF_MODE_SCE			= "SCEの署名済"
 REFRESHED				= "%d個のアイテムをリフレッシュしました"
 COPIED_FILE				= "%d個のファイルをコピーしました"
 COPIED_FOLDER				= "%d個のフォルダをコピーしました"
-COPIED_FILES_FOLDERS			  = "%d個のファイル/フォルダをコピーしました"
+COPIED_FILES_FOLDERS			= "%d個のファイル/フォルダをコピーしました"
 
 # Dialog questions
 # ダイアログの質問
-DELETE_FILE_QUESTION			 = "このファイルを削除してもよろしいですか?"
-DELETE_FOLDER_QUESTION			   = "このフォルダを削除してもよろしいですか?"
-DELETE_FILES_FOLDERS_QUESTION		  = "これらのファイル/フォルダを削除してもよろしいですか?"
-EXPORT_FILE_QUESTION			 = "このファイルをメディアに出力してもよろしいですか?"
-EXPORT_FOLDER_QUESTION			  = "このフォルダをメディアに出力してもよろしいですか?"
-EXPORT_FILES_FOLDERS_QUESTION		  = "これらのファイル/フォルダをメディアに出力してもよろしいですか?"
+DELETE_FILE_QUESTION			= "このファイルを削除してもよろしいですか?"
+DELETE_FOLDER_QUESTION			= "このフォルダを削除してもよろしいですか?"
+DELETE_FILES_FOLDERS_QUESTION		= "これらのファイル/フォルダを削除してもよろしいですか?"
+EXPORT_FILE_QUESTION			= "このファイルをメディアに出力してもよろしいですか?"
+EXPORT_FOLDER_QUESTION			= "このフォルダをメディアに出力してもよろしいですか?"
+EXPORT_FILES_FOLDERS_QUESTION		= "これらのファイル/フォルダをメディアに出力してもよろしいですか?"
 EXPORT_NO_MEDIA				= "出力が出来るメディアがありません"
-EXPORT_SONGS_INFO			= "%d個の歌を出力しました"
-EXPORT_PICTURES_INFO			  = "%d個の写真を出力しました"
-EXPORT_SONGS_PICTURES_INFO		   = "%d個の歌と%d個の写真を出力しました"
-INSTALL_ALL_QUESTION			 = "このフォルダの中にある、全てのパッケージをインストールしますか?"
-INSTALL_FOLDER_QUESTION			 = "このフォルダをインストールしますか?\\警告\インストール後にフォルダは削除されます"
-INSTALL_QUESTION			    = "このパッケージをインストールしますか?"
-INSTALL_WARNING				 = "このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します \信頼可能なソース以外から入手した場合のインストールは\自己判断で行って下さい\\インストールを続行しますか?"
-INSTALL_BRICK_WARNING			   = "このパッケージは、システム領域等に接続する機能が使用されており、\デバイスを破壊する危険性が含まれている可能性があります   \信頼可能なソース以外から入手した場合のインストールは  \自己判断で行って下さい\\インストールを続行しますか?"
+EXPORT_SONGS_INFO			= "%d曲の歌を出力しました"
+EXPORT_VIDEOS_INFO			= "%d本のビデオを出力しました"
+EXPORT_PICTURES_INFO			= "%d枚の写真を出力しました"
+EXPORT_SONGS_VIDEOS_INFO		= "%d曲の歌と%d本のビデオを出力しました"
+EXPORT_SONGS_PICTURES_INFO		= "%d曲の歌と%d枚の写真を出力しました"
+EXPORT_VIDEOS_PICTURES_INFO		= "%d本のビデオと%d枚の写真を出力しました"
+EXPORT_SONGS_VIDEOS_PICTURES_INFO	= "%d曲の歌と%d本のビデオと%d枚の写真を出力しました"
+INSTALL_ALL_QUESTION			= "このフォルダの中にある、全てのパッケージをインストールしますか?"
+INSTALL_FOLDER_QUESTION			= "このフォルダをインストールしますか?\\警告\インストール後にフォルダは削除されます"
+INSTALL_QUESTION			= "このパッケージをインストールしますか?"
+INSTALL_WARNING				= "このパッケージは拡張パーティションへのアクセス権や個人情報へのアクセス権を要求します\信頼可能なソース以外から入手した場合のインストールは\自己判断で行って下さい\\インストールを続行しますか?"
+INSTALL_BRICK_WARNING			= "このパッケージは、システム領域等に接続する機能が使用されており、\デバイスを破壊する危険性が含まれている可能性があります\信頼可能なソース以外から入手した場合のインストールは\自己判断で行って下さい\\インストールを続行しますか?"
 HASH_FILE_QUESTION			= "SHA-1ハッシュ値の計算には時間がかかる場合があります\\ハッシュ値の計算を続行しますか?"
 SAVE_MODIFICATIONS			= "変更を保存しますか?"
 REFRESH_LIVEAREA_QUESTION		= "ライブエリアのリフレッシュには時間がかかる場合があります\\続行しますか?"
@@ -136,14 +142,14 @@ REFRESH_LIVEAREA_QUESTION		= "ライブエリアのリフレッシュには時�
 # 変革設定の文字列
 HENKAKU_SETTINGS			= "HENkakuの設定"
 HENKAKU_ENABLE_PSN_SPOOFING		= "PSNの偽装を有効"
-HENKAKU_ENABLE_UNSAFE_HOMEBREW		 = "安全ではない自作アプリを有効"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW		= "安全ではない自作アプリを有効"
 HENKAKU_ENABLE_VERSION_SPOOFING		= "バージョンの偽装を有効"
 HENKAKU_SPOOFED_VERSION			= "偽装するバージョン"
 HENKAKU_RESTORE_DEFAULT_SETTINGS	= "デフォルトの設定に戻す"
 HENKAKU_RELOAD_CONFIG			= "taiHENのconfig.txtの再読込"
 HENKAKU_RESTORE_DEFAULT_MESSAGE		= "デフォルトの設定が正常に復元されました"
-HENKAKU_RELOAD_CONFIG_MESSAGE		  = "taiHENのconfig.txtが正常に再読込されました"
-HENKAKU_UNSAFE_HOMEBREW_MESSAGE		   = "悪意が含まれていたり誤って設定されていた場合、  \危険な自作アプリはあなたのデバイスを永久的に破壊する事が出来ます\  \インストールをする時は注意して下さい"
+HENKAKU_RELOAD_CONFIG_MESSAGE		= "taiHENのconfig.txtが正常に再読込されました"
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE		= "悪意が含まれていたり誤って設定されていた場合、\危険な自作アプリはあなたのデバイスを永久的に破壊する事が出来ます\\インストールをする時は注意して下さい"
 
 # VitaShell settings
 # Vitashellの設定
@@ -159,6 +165,8 @@ VITASHELL_SETTINGS_POWEROFF		= "電源を切る"
 VITASHELL_SETTINGS_STANDBY		= "待機状態"
 VITASHELL_SETTINGS_USB_MEMORY_CARD	= "メモリーカード"
 VITASHELL_SETTINGS_USB_GAME_CARD	= "ゲームカード"
+VITASHELL_SETTINGS_USB_SD2VITA		= "sd2vita"
+VITASHELL_SETTINGS_USB_PSVSD		= "psvsd"
 VITASHELL_SETTINGS_SELECT_BUTTON_USB	= "USBモード"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP	= "FTPモード"
 VITASHELL_SETTINGS_DATABASE		= "データベースメニュー"
@@ -195,9 +203,9 @@ THEMEMANAGER_CANCEL			= "キャンセル"
 # DataBase
 # データベース
 DATABASEUPDATEQUESTION			= "データベースを更新しますか?"
-DATABASEREBUILDQUESTION			 = "データベースを再構築しますか?"
-DATABASEUPDATECONFIRMQUESTION		 = "データベースを更新する為に再起動しますか?"
-DATABASEREBUILDCONFIRMQUESTION		= "データベースを再構築する為に再起動します。\\警告\ データベースの再構築を実施すると、アイコンのレイアウトを初期化します\  \よろしいですか?"
+DATABASEREBUILDQUESTION			= "データベースを再構築しますか?"
+DATABASEUPDATECONFIRMQUESTION		= "データベースを更新する為に再起動しますか?"
+DATABASEREBUILDCONFIRMQUESTION		= "データベースを再構築する為に再起動します\\警告\データベースの再構築を実施すると、アイコンのレイアウトを初期化します\\よろしいですか?"
 
 # USB strings
 # USBの文字列
@@ -210,17 +218,28 @@ USB_NOT_CONNECTED			= "この機能はUSBケーブルを使用してPCと接続�
 USB_CONNECTION_PERMISSION		= "USBの接続には、拡張アクセス権限が必要です\安全ではない自作アプリを有効にして下さい"
 USB_CONNECTION_NOT_AVAILABLE		= "このデバイスでは、USBの接続を利用出来ません"
 
+# QR strings
+# QRの文字列
+QR_SCANNING				= "QRコードをスキャン中"
+QR_OPEN_WEBSITE				= "このURLを開きますか?\%s"
+QR_SHOW_CONTENTS			= "QRコードの内容:\%s"
+QR_CONFIRM_INSTALL			= "下記のパッケージをインストールしますか?:\%s"
+QR_CONFIRM_DOWNLOAD			= "下記のファイルをダウンロードしますか?\%s\ファイル: %s\サイズ: %s"
+
+
 # Others
 # その他
 SAFE_MODE				= "安全なモード"
 UNSAFE_MODE				= "安全ではないモード"
-PLEASE_WAIT				= "しばらくお待ち下さい..."
+PLEASE_WAIT				= "しばらくお待ち下さい"
+MEMORY_CARD_NOT_FOUND			= "メモリーカードを挿入して下さい"
 GAME_CARD_NOT_FOUND			= "ゲームカードを挿入して下さい"
+MICROSD_NOT_FOUND			= "マイクロSDカードを挿入して下さい"
 NO_SPACE_ERROR				= "メモリーカードに充分な空き容量がありません\あと%s以上の空き容量が必要です"
 EXTENDED_PERMISSIONS_REQUIRED		= "この機能には、拡張アクセス許可が必要です\安全ではない自作アプリを有効にして下さい"
 WIFI_ERROR				= "Wi-Fiを有効にする必要があります"
-FTP_SERVER				   = "FTPサーバーを動作させます\ftp://%s:%i\ \OKを選択するとバックグラウンドで動作します   \キャンセルを選択すると接続を解除します"
-SYS_INFO				  = "システムソフトウェア: %s\モデル: 0x%08X  \MACアドレス: %s \IPアドレス: %s \メモリーカード: %s/%s \バッテリー容量: %d%%"
+FTP_SERVER				= "FTPサーバーを動作させます\ftp://%s:%i\\OKを選択するとバックグラウンドで動作します\キャンセルを選択すると接続を解除します"
+SYS_INFO				= "システムソフトウェア: %s\モデル: 0x%08X\MACアドレス: %s\IPアドレス: %s\メモリーカード: %s/%s\バッテリー容量: %d%%"
 UPDATE_QUESTION				= "VitaShell %sの更新が利用出来ます\\VitaShellの更新をしますか?"
 TOOLBOX					= "ツールボックス"
 SYSINFO_TITLE				= "システム情報"
