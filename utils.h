@@ -1,19 +1,19 @@
 /*
-	VitaShell
-	Copyright (C) 2015-2017, TheFloW
+  VitaShell
+  Copyright (C) 2015-2017, TheFloW
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef __UTILS_H__
@@ -29,18 +29,18 @@
 #define ANALOG_SENSITIVITY 16
 
 enum {
-	SCE_CTRL_RIGHT_ANALOG_UP	= 0x00200000,
-	SCE_CTRL_RIGHT_ANALOG_RIGHT	= 0x00400000,
-	SCE_CTRL_RIGHT_ANALOG_DOWN	= 0x00800000,
-	SCE_CTRL_RIGHT_ANALOG_LEFT	= 0x01000000,
+  SCE_CTRL_RIGHT_ANALOG_UP    = 0x00200000,
+  SCE_CTRL_RIGHT_ANALOG_RIGHT = 0x00400000,
+  SCE_CTRL_RIGHT_ANALOG_DOWN  = 0x00800000,
+  SCE_CTRL_RIGHT_ANALOG_LEFT  = 0x01000000,
 
-	SCE_CTRL_LEFT_ANALOG_UP		= 0x02000000,
-	SCE_CTRL_LEFT_ANALOG_RIGHT	= 0x04000000,
-	SCE_CTRL_LEFT_ANALOG_DOWN	= 0x08000000,
-	SCE_CTRL_LEFT_ANALOG_LEFT	= 0x10000000,
+  SCE_CTRL_LEFT_ANALOG_UP     = 0x02000000,
+  SCE_CTRL_LEFT_ANALOG_RIGHT  = 0x04000000,
+  SCE_CTRL_LEFT_ANALOG_DOWN   = 0x08000000,
+  SCE_CTRL_LEFT_ANALOG_LEFT   = 0x10000000,
 /*
-	SCE_CTRL_ENTER				= 0x20000000,
-	SCE_CTRL_CANCEL				= 0x40000000,
+  SCE_CTRL_ENTER              = 0x20000000,
+  SCE_CTRL_CANCEL             = 0x40000000,
 */
 };
 

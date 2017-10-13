@@ -1,19 +1,19 @@
 /*
-	VitaShell
-	Copyright (C) 2015-2017, TheFloW
+  VitaShell
+  Copyright (C) 2015-2017, TheFloW
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef __THEME_H__
@@ -83,9 +83,9 @@ extern int AUDIO_TIME_BAR;
 extern int AUDIO_TIME_BAR_BG;
 
 extern vita2d_texture *folder_icon, *file_icon, *archive_icon, *image_icon, *audio_icon, *sfo_icon, *text_icon,
-					  *ftp_image, *dialog_image, *context_image, *context_more_image, *settings_image, *battery_image,
-					  *battery_bar_red_image, *battery_bar_green_image, *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image,
-					  *bg_photo_image, *bg_audio_image, *cover_image, *play_image, *pause_image, *fastforward_image, *fastrewind_image;
+            *ftp_image, *dialog_image, *context_image, *context_more_image, *settings_image, *battery_image,
+            *battery_bar_red_image, *battery_bar_green_image, *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image,
+            *bg_photo_image, *bg_audio_image, *cover_image, *play_image, *pause_image, *fastforward_image, *fastrewind_image;
 
 extern vita2d_texture *wallpaper_image;
 extern vita2d_texture *previous_wallpaper_image, *current_wallpaper_image;

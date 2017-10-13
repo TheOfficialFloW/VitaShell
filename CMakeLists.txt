@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 2.8)
 # VitaSDK defines
 if( NOT DEFINED CMAKE_TOOLCHAIN_FILE )
   if( DEFINED ENV{VITASDK} )
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
+  set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
   else()
-    message(FATAL_ERROR "Please define VITASDK to point to your SDK path!")
+  message(FATAL_ERROR "Please define VITASDK to point to your SDK path!")
   endif()
 endif()
 
@@ -18,7 +18,7 @@ set(VITA_VERSION  "01.75")
 
 # Flags and includes
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format-truncation -fno-lto")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+ + 11 -fno-rtti -fno-exceptions")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2808000000000000")
 
@@ -33,17 +33,17 @@ link_directories(
 FUNCTION(ADD_RESOURCES out_var)
   SET(result)
   FOREACH(in_f ${ARGN})
-    SET(out_f "${CMAKE_CURRENT_BINARY_DIR}/${in_f}.o")
-    GET_FILENAME_COMPONENT(out_dir ${out_f} DIRECTORY)
-    ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
-      COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
-      COMMAND ${CMAKE_LINKER} -r -b binary -o ${out_f} ${in_f}
-      DEPENDS ${in_f}
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-      COMMENT "Building resource ${out_f}"
-      VERBATIM
-      )
-    LIST(APPEND result ${out_f})
+  SET(out_f "${CMAKE_CURRENT_BINARY_DIR}/${in_f}.o")
+  GET_FILENAME_COMPONENT(out_dir ${out_f} DIRECTORY)
+  ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
+    COMMAND ${CMAKE_LINKER} -r -b binary -o ${out_f} ${in_f}
+    DEPENDS ${in_f}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Building resource ${out_f}"
+    VERBATIM
+    )
+  LIST(APPEND result ${out_f})
   ENDFOREACH()
   SET(${out_var} "${result}" PARENT_SCOPE)
 ENDFUNCTION()
@@ -175,9 +175,9 @@ vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} eboot.bin
   VERSION ${VITA_VERSION}
   NAME ${VITA_APP_NAME}
   FILE pkg/sce_sys/icon0.png sce_sys/icon0.png
-       pkg/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
-       pkg/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
-       pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+     pkg/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
+     pkg/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
+     pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
 )
 
 add_custom_target(send
