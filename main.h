@@ -38,6 +38,7 @@
 #include <psp2/rtc.h>
 #include <psp2/registrymgr.h>
 #include <psp2/shellutil.h>
+#include <psp2/sqlite.h>
 #include <psp2/sysmodule.h>
 #include <psp2/system_param.h>
 #include <psp2/touch.h>

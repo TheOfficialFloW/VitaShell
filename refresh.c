@@ -1,6 +1,7 @@
 /*
   VitaShell
   Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2017, VitaSmith
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -26,41 +27,85 @@
 #include "message_dialog.h"
 #include "language.h"
 #include "utils.h"
+#include "sqlite3.h"
 
-int isCustomHomebrew() {
-  uint32_t work[512/4];
-  
-  if (ReadFile("ux0:temp/game/sce_sys/package/work.bin", work, sizeof(work)) != sizeof(work))
+// Note: The promotion process is *VERY* sensitive to the directories used below
+// Don't change them unless you know what you are doing!
+#define APP_TEMP "ux0:temp/app"
+#define DLC_TEMP "ux0:temp/addcont"
+#define DB_PATH "ux0:/license/licenses.db"
+
+#define RIF_SIZE 512
+#define MAX_QUERY_LENGTH 128
+#define MAX_DLC_PER_TITLE 1024
+
+int isCustomHomebrew(const char* path)
+{
+  uint32_t work[RIF_SIZE/4];
+
+  if (ReadFile(path, work, sizeof(work)) != sizeof(work))
     return 0;
-  
-  int i;
-  for (i = 0; i < sizeof(work) / sizeof(uint32_t); i++)
+
+  for (int i = 0; i < sizeof(work) / sizeof(uint32_t); i++)
     if (work[i] != 0)
       return 0;
-    
+
   return 1;
 }
 
-int refreshApp(const char *name) {
-  char app_path[MAX_PATH_LENGTH], param_path[MAX_PATH_LENGTH], license_path[MAX_PATH_LENGTH];
-  int res;
+// Query a rif from an sqlite database. Returned data must be freed by the caller.
+uint8_t* query_rif(const char* db_path, const char* content_id)
+{
+  int rc, rif_size = 0;
+  sqlite3 *db = NULL;
+  sqlite3_stmt *stmt;
+  char query[MAX_QUERY_LENGTH];
+  uint8_t *rif = NULL;
 
-  // Path
-  snprintf(app_path, MAX_PATH_LENGTH, "ux0:app/%s", name);
-  snprintf(param_path, MAX_PATH_LENGTH, "ux0:app/%s/sce_sys/param.sfo", name);
+  rc = sqlite3_open_v2(db_path, &db, SQLITE_OPEN_READONLY, NULL);
+  if (rc != SQLITE_OK)
+    return NULL;
+
+  snprintf(query, sizeof(query), "SELECT RIF FROM Licenses WHERE CONTENT_ID = '%s';", content_id);
+
+  rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+  if (rc != SQLITE_OK)
+    return NULL;
+
+  rc = sqlite3_step(stmt);
+  if (rc == SQLITE_ROW)
+    rif_size = sqlite3_column_bytes(stmt, 0);
+  if (rif_size != RIF_SIZE)
+    return NULL;
+
+  rif = malloc(rif_size);
+  if (rif != NULL)
+    memcpy(rif, sqlite3_column_blob(stmt, 0), rif_size);
+
+  sqlite3_close(db);
+  return rif;
+}
+
+int refreshNeeded(const char *app_path)
+{
+  char sfo_path[MAX_PATH_LENGTH];
+  // TODO: Check app vs dlc from SFO
+  int res, is_app = (app_path[6] == 'p');
 
   // Read param.sfo
+  snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
   void *sfo_buffer = NULL;
-  int sfo_size = allocateReadFile(param_path, &sfo_buffer);
+  int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
   if (sfo_size < 0) {
     if (sfo_buffer)
       free(sfo_buffer);
     return sfo_size;
   }
 
-  // Get titleid
-  char titleid[12];
+  // Get title and content ids
+  char titleid[12], contentid[50];
   getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+  getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
 
   // Free sfo buffer
   free(sfo_buffer);
@@ -74,49 +119,193 @@ int refreshApp(const char *name) {
 
     // Check if bounded rif file exits
     _sceNpDrmGetRifName(rif_name, 0, aid);
-    snprintf(license_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
-    if (checkFileExist(license_path))
+    if (is_app)
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
+    else
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
+    if (checkFileExist(sfo_path))
       return 0;
 
     // Check if fixed rif file exits
     _sceNpDrmGetFixedRifName(rif_name, 0, 0);
-    snprintf(license_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
-    if (checkFileExist(license_path))
+    if (is_app)
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
+    else
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
+    if (checkFileExist(sfo_path))
       return 0;
   }
 
-  // Clean
-  removePath("ux0:temp/game", NULL);
-  sceIoMkdir("ux0:temp", 0006);
-
-  // Rename app
-  res = sceIoRename(app_path, "ux0:temp/game");
-  if (res < 0)
-    return res;
-
-  // Remove work.bin for custom homebrews
-  if (isCustomHomebrew())
-    sceIoRemove("ux0:temp/game/sce_sys/package/work.bin");
-
-  // Promote app
-  res = promoteApp("ux0:temp/game");
-
-  // Rename back if it failed
-  if (res < 0) {
-    sceIoRename("ux0:temp/game", app_path);
-    return res;
-  }
-
-  // Return success
   return 1;
 }
 
-int refresh_thread(SceSize args, void *argp) {
+int refreshApp(const char *app_path)
+{
+  char work_bin_path[MAX_PATH_LENGTH];
+  int res;
+
+  snprintf(work_bin_path, MAX_PATH_LENGTH, "%s/sce_sys/package/work.bin", app_path);
+
+  // Remove work.bin for custom homebrews
+  if (isCustomHomebrew(work_bin_path)) {
+    sceIoRemove(work_bin_path);
+  } else if (!checkFileExist(work_bin_path)) {
+    // If available, restore work.bin from licenses.db
+    void *sfo_buffer = NULL;
+    char sfo_path[MAX_PATH_LENGTH], contentid[50];
+    snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
+    int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
+    if (sfo_size > 0) {
+      getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
+      uint8_t* rif = query_rif(DB_PATH, contentid);
+      if (rif != NULL) {
+        int fh = sceIoOpen(work_bin_path, SCE_O_WRONLY | SCE_O_CREAT, 0777);
+        if (fh > 0) {
+          sceIoWrite(fh, rif, RIF_SIZE);
+          sceIoClose(fh);
+        }
+        free(rif);
+      }
+    }
+    free(sfo_buffer);
+  }
+
+  // Promote app/dlc
+  res = promoteApp(app_path);
+  return (res < 0) ? res : 1;
+}
+
+int parse_dir_with_callback(const char* path, void(*callback)(void*, const char*, const char*), void* data)
+{
+  SceUID dfd = sceIoDopen(path);
+  if (dfd >= 0) {
+    int res = 0;
+
+    do {
+      SceIoDirent dir;
+      memset(&dir, 0, sizeof(SceIoDirent));
+
+      res = sceIoDread(dfd, &dir);
+      if (res > 0) {
+        if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
+          callback(data, path, dir.d_name);
+          if (cancelHandler()) {
+            closeWaitDialog();
+            setDialogStep(DIALOG_STEP_CANCELLED);
+            return -1;
+          }
+        }
+      }
+    } while (res > 0);
+    sceIoDclose(dfd);
+  }
+  return 0;
+}
+
+typedef struct {
+  int refresh_pass;
+  int count;
+  int processed;
+  int refreshed;
+} refresh_data_t;
+
+typedef struct {
+  refresh_data_t *refresh_data;
+  char* list[MAX_DLC_PER_TITLE];
+  int list_size;
+} dlc_data_t;
+
+void app_callback(void* data, const char* dir, const char* subdir)
+{
+  refresh_data_t *refresh_data = (refresh_data_t*)data;
+  char path[MAX_PATH_LENGTH];
+
+  if (strcmp(subdir, vitashell_titleid) == 0)
+    return;
+
+  if (refresh_data->refresh_pass) {
+    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
+    if (refreshNeeded(path)) {
+      // Move the directory to temp for installation
+      removePath(APP_TEMP, NULL);
+      sceIoRename(path, APP_TEMP);
+      if (refreshApp(APP_TEMP) == 1)
+        refresh_data->refreshed++;
+      else
+        // Restore folder on error
+        sceIoRename(APP_TEMP, path);
+    }
+    SetProgress(++refresh_data->processed, refresh_data->count);
+  } else {
+    refresh_data->count++;
+  }
+}
+
+void dlc_callback_inner(void* data, const char* dir, const char* subdir)
+{
+  dlc_data_t *dlc_data = (dlc_data_t*)data;
+  char path[MAX_PATH_LENGTH];
+
+  // Ignore  "sce_sys" and "sce_pfs" directories
+  if (strncmp(subdir, "sce_", 4) == 0)
+    return;
+
+  if (dlc_data->refresh_data->refresh_pass) {
+    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
+    if (dlc_data->list_size < MAX_DLC_PER_TITLE)
+      dlc_data->list[dlc_data->list_size++] = strdup(path);
+  } else {
+    dlc_data->refresh_data->count++;
+  }
+}
+
+void dlc_callback_outer(void* data, const char* dir, const char* subdir)
+{
+  refresh_data_t *refresh_data = (refresh_data_t*)data;
+  dlc_data_t dlc_data;
+  dlc_data.refresh_data = refresh_data;
+  dlc_data.list_size = 0;
+  char path[MAX_PATH_LENGTH];
+
+  // Get the title's dlc subdirectories
+  int len = snprintf(path, sizeof(path), "%s/%s", dir, subdir);
+  parse_dir_with_callback(path, dlc_callback_inner, &dlc_data);
+
+  if (refresh_data->refresh_pass) {
+    // For dlc, the process happens in two phases to avoid promotion errors:
+    // 1. Move all dlc that require refresh out of addcont/title_id
+    // 2. Refresh the moved dlc_data
+    for (int i = 0; i < dlc_data.list_size; i++) {
+      if (refreshNeeded(dlc_data.list[i])) {
+        snprintf(path, MAX_PATH_LENGTH, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
+        removePath(path, NULL);
+        sceIoRename(dlc_data.list[i], path);
+      } else {
+        free(dlc_data.list[i]);
+        dlc_data.list[i] = NULL;
+        SetProgress(++refresh_data->processed, refresh_data->count);
+      }
+    }
+
+    // Now that the dlc we need are out of addcont/title_id, refresh them
+    for (int i = 0; i < dlc_data.list_size; i++) {
+      if (dlc_data.list[i] != NULL) {
+        snprintf(path, MAX_PATH_LENGTH, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
+        if (refreshApp(path) == 1)
+          refresh_data->refreshed++;
+        else
+          sceIoRename(path, dlc_data.list[i]);
+        SetProgress(++refresh_data->processed, refresh_data->count);
+        free(dlc_data.list[i]);
+      }
+    }
+  }
+}
+
+int refresh_thread(SceSize args, void *argp) 
+{
   SceUID thid = -1;
-  SceUID dfd = -1;
-  int folders = 0;
-  int count = 0;  
-  int items = 0;
+  refresh_data_t refresh_data = { 0, 0, 0, 0 };
 
   // Lock power timers
   powerLock();
@@ -125,70 +314,31 @@ int refresh_thread(SceSize args, void *argp) {
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
   sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
-  // Get number of folders
-  dfd = sceIoDopen("ux0:app");
-  if (dfd >= 0) {
-    int res = 0;
+  // Get the app count
+  if (parse_dir_with_callback("ux0:app", app_callback, &refresh_data) < 0)
+    goto EXIT;
 
-    do {
-      SceIoDirent dir;
-      memset(&dir, 0, sizeof(SceIoDirent));
-
-      res = sceIoDread(dfd, &dir);
-      if (res > 0) {
-        if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-          if (strcmp(dir.d_name, vitashell_titleid) == 0)
-            continue;
-          
-          // Count
-          folders++;
-          
-          if (cancelHandler()) {
-            closeWaitDialog();
-            setDialogStep(DIALOG_STEP_CANCELLED);
-            goto EXIT;
-          }
-        }
-      }
-    } while (res > 0);
-
-    sceIoDclose(dfd);
-  }
+  // Get the dlc count
+  if (parse_dir_with_callback("ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
+    goto EXIT;
 
   // Update thread
-  thid = createStartUpdateThread(folders, 0);
+  thid = createStartUpdateThread(refresh_data.count, 0);
 
-  dfd = sceIoDopen("ux0:app");
-  if (dfd >= 0) {
-    int res = 0;
+  // Make sure we have the temp directories we need
+  sceIoMkdir("ux0:temp", 0006);
+  sceIoMkdir("ux0:temp/addcont", 0006);
+  refresh_data.refresh_pass = 1;
 
-    do {
-      SceIoDirent dir;
-      memset(&dir, 0, sizeof(SceIoDirent));
+  // Refresh apps
+  if (parse_dir_with_callback("ux0:app", app_callback, &refresh_data) < 0)
+    goto EXIT;
 
-      res = sceIoDread(dfd, &dir);
-      if (res > 0) {
-        if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-          if (strcmp(dir.d_name, vitashell_titleid) == 0)
-            continue;
+  // Refresh dlc
+  if (parse_dir_with_callback("ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
+    goto EXIT;
 
-          // Refresh app
-          if (refreshApp(dir.d_name) == 1)
-            items++;
-          
-          SetProgress(++count, folders);
-          
-          if (cancelHandler()) {
-            closeWaitDialog();
-            setDialogStep(DIALOG_STEP_CANCELLED);
-            goto EXIT;
-          }
-        }
-      }
-    } while (res > 0);
-
-    sceIoDclose(dfd);
-  }
+  sceIoRmdir("ux0:temp/addcont");
 
   // Set progress to 100%
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
@@ -197,7 +347,7 @@ int refresh_thread(SceSize args, void *argp) {
   // Close
   closeWaitDialog();
 
-  infoDialog(language_container[REFRESHED], items);
+  infoDialog(language_container[REFRESHED], refresh_data.refreshed);
 
 EXIT:
   if (thid >= 0)
