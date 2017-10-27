@@ -252,6 +252,15 @@ static void finishVita2dLib() {
   font = NULL;
 }
 
+static int initSQLite() {
+  SceSqliteMallocMethods mf = {
+    (void* (*) (int)) malloc,
+    (void* (*) (void*, int)) realloc,
+    free
+  };
+  return sceSqliteConfigMallocMethods(&mf);
+}
+
 static void initNet() {
   static char memory[16 * 1024];
 
@@ -356,6 +365,7 @@ void initVitaShell() {
   sceSysmoduleLoadModule(SCE_SYSMODULE_PHOTO_EXPORT);
   sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
   sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
+  sceSysmoduleLoadModule(SCE_SYSMODULE_SQLITE);
 
   // Init
   vitaAudioInit(0x40);
@@ -363,6 +373,7 @@ void initVitaShell() {
   initSceAppUtil();
   initNet();
   initQR();
+  initSQLite();
 
   // Init power tick thread
   initPowerTickThread();

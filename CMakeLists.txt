@@ -156,6 +156,7 @@ target_link_libraries(VitaShell
   SceNpDrm_stub
   SceRegistryMgr_stub
   SceShellSvc_stub
+  SceSqlite_stub
   SceSsl_stub
   SceSysmodule_stub
   ScePgf_stub
