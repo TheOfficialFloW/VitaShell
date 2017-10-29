@@ -1,6 +1,6 @@
 /*
-  VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  VitaShell - RIF handling functions
+  Copyright (C) 2017 VitaSmith
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -16,10 +16,22 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __REFRESH_H__
-#define __REFRESH_H__
+#pragma once
+#include <stdint.h>
 
-int refresh_thread(SceSize args, void *argp);
-int license_thread(SceSize args, void *argp);
+#define RIF_SIZE 512
+#define LICENSE_DB "ux0:license/license.db"
+#define LICENSE_DB_SCHEMA \
+  "CREATE TABLE Licenses (" \
+    "CONTENT_ID TEXT NOT NULL UNIQUE," \
+    "RIF BLOB NOT NULL," \
+    "PRIMARY KEY(CONTENT_ID)" \
+  ")"
 
-#endif
+int create_db(const char* db_path, const char* schema);
+int insert_rif(const char* db_path, const uint8_t* rif);
+uint8_t* query_rif(const char* db_path, const char* content_id);
+
+// From sqlite3.c
+int sqlite_init();
+int sqlite_exit();

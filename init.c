@@ -22,6 +22,7 @@
 #include "package_installer.h"
 #include "utils.h"
 #include "qr.h"
+#include "rif.h"
 
 #include "audio/vita_audio.h"
 
@@ -253,12 +254,11 @@ static void finishVita2dLib() {
 }
 
 static int initSQLite() {
-  SceSqliteMallocMethods mf = {
-    (void* (*) (int)) malloc,
-    (void* (*) (void*, int)) realloc,
-    free
-  };
-  return sceSqliteConfigMallocMethods(&mf);
+  return sqlite_init();
+}
+
+static int finishSQLite() {
+  return sqlite_exit();
 }
 
 static void initNet() {
@@ -394,6 +394,7 @@ void initVitaShell() {
 
 void finishVitaShell() {
   // Finish
+  finishSQLite();
   finishNet();
   finishSceAppUtil();
   finishVita2dLib();

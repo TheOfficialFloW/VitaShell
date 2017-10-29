@@ -83,6 +83,8 @@ add_executable(VitaShell
   text.c
   hex.c
   sfo.c
+  rif.c
+  sqlite3.c
   coredump.c
   settings.c
   property_dialog.c

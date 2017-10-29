@@ -44,11 +44,11 @@ static char *lang[] ={
   "turkish"
 };
 
-char *language_container[LANGUAGE_CONTRAINER_SIZE];
+char *language_container[LANGUAGE_CONTAINER_SIZE];
 
 void freeLanguageContainer() {
   int i;
-  for (i = 0; i < LANGUAGE_CONTRAINER_SIZE; i++) {
+  for (i = 0; i < LANGUAGE_CONTAINER_SIZE; i++) {
     if (language_container[i]) {
       free(language_container[i]);
       language_container[i] = NULL;
@@ -101,6 +101,7 @@ void loadLanguage(int id) {
 
     // Context menu strings
     LANGUAGE_ENTRY(REFRESH_LIVEAREA),
+    LANGUAGE_ENTRY(REFRESH_LICENSE_DB),
     LANGUAGE_ENTRY(MOUNT_UMA0),
     LANGUAGE_ENTRY(MOUNT_IMC0),
     LANGUAGE_ENTRY(MOUNT_USB_UX0),
@@ -161,6 +162,7 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(COPIED_FILE),
     LANGUAGE_ENTRY(COPIED_FOLDER),
     LANGUAGE_ENTRY(COPIED_FILES_FOLDERS),
+    LANGUAGE_ENTRY(IMPORTED_LICENSES),
 
     // Dialog questions
     LANGUAGE_ENTRY(DELETE_FILE_QUESTION),
@@ -185,6 +187,7 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(HASH_FILE_QUESTION),
     LANGUAGE_ENTRY(SAVE_MODIFICATIONS),
     LANGUAGE_ENTRY(REFRESH_LIVEAREA_QUESTION),
+    LANGUAGE_ENTRY(REFRESH_LICENSE_DB_QUESTION),
 
     // HENkaku settings strings
     LANGUAGE_ENTRY(HENKAKU_SETTINGS),
