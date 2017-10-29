@@ -106,6 +106,11 @@ Be sure you pull request your customized design or language file there.
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.76 ###
+- Added DLC refresh + restore license from Sqlite DB by VitaSmith.
+- Added license database refresh by VitaSmith.
+- Fixed C2-12828-1 error.
+
 ### Changelog 1.75 ###
 - Fixed bug where Memory Card was umounted after closing USB (fixed 'The file is corrupt' error).
 - Fixed QR download of URLs that link to files.

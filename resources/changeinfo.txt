@@ -307,4 +307,11 @@
 - Fixed QR download of URLs that link to files.<br>
     ]]>
   </changes>
+   <changes app_ver="01.76">
+    <![CDATA[
+- Added DLC refresh + restore license from Sqlite DB by VitaSmith.<br>
+- Added license database refresh by VitaSmith.<br>
+- Fixed C2-12828-1 error.<br>
+    ]]>
+  </changes>
 </changeinfo>
