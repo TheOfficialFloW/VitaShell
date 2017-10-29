@@ -40,6 +40,7 @@ ENTER_SEARCH_TERM                    = "Inserisci termine di ricerca"
 
 # Context menu strings
 REFRESH_LIVEAREA                     = "Aggiorna il livearea"
+REFRESH_LICENSE_DB                   = "Aggiorna licenza dal database"
 MOUNT_UMA0                           = "Monta uma0:"
 MOUNT_IMC0                           = "Monta imc0:"
 MOUNT_USB_UX0                        = "Monta USB ux0:"
@@ -100,6 +101,7 @@ REFRESHED                            = "Aggiornati %d elementi."
 COPIED_FILE                          = "Copiati %d file."
 COPIED_FOLDER                        = "Copiate %d cartella(e)."
 COPIED_FILES_FOLDERS                 = "Copiati %d file/cartella(e)."
+IMPORTED_LICENSES                    = "Importate %d licenza(e)."
 
 # Dialog questions
 DELETE_FILE_QUESTION                 = "Sei sicuro di voler eliminare questo file?"
