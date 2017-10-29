@@ -60,6 +60,7 @@ enum LanguageContainer {
 
   // Context menu strings
   REFRESH_LIVEAREA,
+  REFRESH_LICENSE_DB,
   MOUNT_UMA0,
   MOUNT_IMC0,
   MOUNT_USB_UX0,
@@ -120,6 +121,7 @@ enum LanguageContainer {
   COPIED_FILE,
   COPIED_FOLDER,
   COPIED_FILES_FOLDERS,
+  IMPORTED_LICENSES,
 
   // Dialog questions
   DELETE_FILE_QUESTION,
@@ -144,6 +146,7 @@ enum LanguageContainer {
   HASH_FILE_QUESTION,
   SAVE_MODIFICATIONS,
   REFRESH_LIVEAREA_QUESTION,
+  REFRESH_LICENSE_DB_QUESTION,
 
   // HENkaku settings strings
   HENKAKU_SETTINGS,
@@ -207,10 +210,10 @@ enum LanguageContainer {
   UPDATE_QUESTION,
   ARCHIVE_NAME,
   COMPRESSION_LEVEL,
-  LANGUAGE_CONTRAINER_SIZE,
+  LANGUAGE_CONTAINER_SIZE,
 };
 
-extern char *language_container[LANGUAGE_CONTRAINER_SIZE];
+extern char *language_container[LANGUAGE_CONTAINER_SIZE];
 
 void freeLanguageContainer();
 void loadLanguage(int id);

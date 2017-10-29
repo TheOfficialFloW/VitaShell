@@ -27,16 +27,13 @@
 #include "message_dialog.h"
 #include "language.h"
 #include "utils.h"
-#include "sqlite3.h"
+#include "rif.h"
 
 // Note: The promotion process is *VERY* sensitive to the directories used below
 // Don't change them unless you know what you are doing!
 #define APP_TEMP "ux0:temp/app"
 #define DLC_TEMP "ux0:temp/addcont"
-#define DB_PATH "ux0:/license/licenses.db"
 
-#define RIF_SIZE 512
-#define MAX_QUERY_LENGTH 128
 #define MAX_DLC_PER_TITLE 1024
 
 int isCustomHomebrew(const char* path)
@@ -51,39 +48,6 @@ int isCustomHomebrew(const char* path)
       return 0;
 
   return 1;
-}
-
-// Query a rif from an sqlite database. Returned data must be freed by the caller.
-uint8_t* query_rif(const char* db_path, const char* content_id)
-{
-  int rc, rif_size = 0;
-  sqlite3 *db = NULL;
-  sqlite3_stmt *stmt;
-  char query[MAX_QUERY_LENGTH];
-  uint8_t *rif = NULL;
-
-  rc = sqlite3_open_v2(db_path, &db, SQLITE_OPEN_READONLY, NULL);
-  if (rc != SQLITE_OK)
-    return NULL;
-
-  snprintf(query, sizeof(query), "SELECT RIF FROM Licenses WHERE CONTENT_ID = '%s';", content_id);
-
-  rc = sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
-  if (rc != SQLITE_OK)
-    return NULL;
-
-  rc = sqlite3_step(stmt);
-  if (rc == SQLITE_ROW)
-    rif_size = sqlite3_column_bytes(stmt, 0);
-  if (rif_size != RIF_SIZE)
-    return NULL;
-
-  rif = malloc(rif_size);
-  if (rif != NULL)
-    memcpy(rif, sqlite3_column_blob(stmt, 0), rif_size);
-
-  sqlite3_close(db);
-  return rif;
 }
 
 int refreshNeeded(const char *app_path)
@@ -157,7 +121,7 @@ int refreshApp(const char *app_path)
     int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
     if (sfo_size > 0) {
       getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
-      uint8_t* rif = query_rif(DB_PATH, contentid);
+      uint8_t* rif = query_rif(LICENSE_DB, contentid);
       if (rif != NULL) {
         int fh = sceIoOpen(work_bin_path, SCE_O_WRONLY | SCE_O_CREAT, 0777);
         if (fh > 0) {
@@ -175,7 +139,8 @@ int refreshApp(const char *app_path)
   return (res < 0) ? res : 1;
 }
 
-int parse_dir_with_callback(const char* path, void(*callback)(void*, const char*, const char*), void* data)
+// target_type should be either SCE_S_IFREG for files or SCE_S_IFDIR for directories
+int parse_dir_with_callback(int target_type, const char* path, void(*callback)(void*, const char*, const char*), void* data)
 {
   SceUID dfd = sceIoDopen(path);
   if (dfd >= 0) {
@@ -187,7 +152,7 @@ int parse_dir_with_callback(const char* path, void(*callback)(void*, const char*
 
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
-        if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
+        if ((dir.d_stat.st_mode & SCE_S_IFMT) == target_type) {
           callback(data, path, dir.d_name);
           if (cancelHandler()) {
             closeWaitDialog();
@@ -214,6 +179,16 @@ typedef struct {
   char* list[MAX_DLC_PER_TITLE];
   int list_size;
 } dlc_data_t;
+
+typedef struct {
+  int copy_pass;
+  int count;
+  int processed;
+  int copied;
+  int cur_depth;
+  int max_depth;
+  uint8_t* rif;
+} license_data_t;
 
 void app_callback(void* data, const char* dir, const char* subdir)
 {
@@ -269,7 +244,7 @@ void dlc_callback_outer(void* data, const char* dir, const char* subdir)
 
   // Get the title's dlc subdirectories
   int len = snprintf(path, sizeof(path), "%s/%s", dir, subdir);
-  parse_dir_with_callback(path, dlc_callback_inner, &dlc_data);
+  parse_dir_with_callback(SCE_S_IFDIR, path, dlc_callback_inner, &dlc_data);
 
   if (refresh_data->refresh_pass) {
     // For dlc, the process happens in two phases to avoid promotion errors:
@@ -315,11 +290,11 @@ int refresh_thread(SceSize args, void *argp)
   sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
   // Get the app count
-  if (parse_dir_with_callback("ux0:app", app_callback, &refresh_data) < 0)
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:app", app_callback, &refresh_data) < 0)
     goto EXIT;
 
   // Get the dlc count
-  if (parse_dir_with_callback("ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
     goto EXIT;
 
   // Update thread
@@ -331,11 +306,11 @@ int refresh_thread(SceSize args, void *argp)
   refresh_data.refresh_pass = 1;
 
   // Refresh apps
-  if (parse_dir_with_callback("ux0:app", app_callback, &refresh_data) < 0)
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:app", app_callback, &refresh_data) < 0)
     goto EXIT;
 
   // Refresh dlc
-  if (parse_dir_with_callback("ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
     goto EXIT;
 
   sceIoRmdir("ux0:temp/addcont");
@@ -348,6 +323,108 @@ int refresh_thread(SceSize args, void *argp)
   closeWaitDialog();
 
   infoDialog(language_container[REFRESHED], refresh_data.refreshed);
+
+EXIT:
+  if (thid >= 0)
+    sceKernelWaitThreadEnd(thid, NULL, NULL);
+
+  // Unlock power timers
+  powerUnlock();
+
+  return sceKernelExitDeleteThread(0);
+}
+
+// Note: This is currently not optimized AT ALL.
+// Ultimately, we want to use a single transaction and avoid trying to
+// re-insert rifs that are already present.
+void license_file_callback(void* data, const char* dir, const char* file)
+{
+  license_data_t *license_data = (license_data_t*)data;
+  char path[MAX_PATH_LENGTH];
+
+  // Ignore non rif content
+  if ((strlen(file) < 4) || (strcmp(&file[strlen(file) - 4], ".rif") != 0))
+    return;
+  if (license_data->copy_pass) {
+    snprintf(path, sizeof(path), "%s/%s", dir, file);
+    SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0777);
+    if (fd > 0) {
+      int read = sceIoRead(fd, license_data->rif, RIF_SIZE);
+      if (read == RIF_SIZE) {
+        if (insert_rif(LICENSE_DB, license_data->rif) == 0)
+          license_data->copied++;
+      }
+      sceIoClose(fd);
+    }
+    SetProgress(++license_data->processed, license_data->count);
+  } else {
+    license_data->count++;
+  }
+}
+
+void license_dir_callback(void* data, const char* dir, const char* subdir)
+{
+  license_data_t *license_data = (license_data_t*)data;
+  char path[MAX_PATH_LENGTH];
+
+  snprintf(path, sizeof(path), "%s/%s", dir, subdir);
+  if (++license_data->cur_depth == license_data->max_depth)
+    parse_dir_with_callback(SCE_S_IFREG, path, license_file_callback, data);
+  else
+    parse_dir_with_callback(SCE_S_IFDIR, path, license_dir_callback, data);
+  license_data->cur_depth--;
+}
+
+int license_thread(SceSize args, void *argp)
+{
+  SceUID thid = -1;
+  license_data_t license_data = { 0, 0, 0, 0, 0, 1, malloc(RIF_SIZE) };
+
+  if (license_data.rif == NULL)
+    goto EXIT;
+
+  // Lock power timers
+  powerLock();
+
+  // Set progress to 0%
+  sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
+  sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
+
+  // NB: ux0:license access requires elevated permisions
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:license/app", license_dir_callback, &license_data) < 0)
+    goto EXIT;
+  license_data.max_depth++;
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:license/addcont", license_dir_callback, &license_data) < 0)
+    goto EXIT;
+
+  // Update thread
+  thid = createStartUpdateThread(license_data.count, 0);
+
+  // Create the DB if needed
+  SceUID fd = sceIoOpen(LICENSE_DB, SCE_O_RDONLY, 0777);
+  if (fd > 0) {
+    sceIoClose(fd);
+  } else if (create_db(LICENSE_DB, LICENSE_DB_SCHEMA) != 0) {
+    goto EXIT;
+  }
+
+  // Insert the licenses
+  license_data.copy_pass = 1;
+  license_data.max_depth = 1;
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:license/app", license_dir_callback, &license_data) < 0)
+    goto EXIT;
+  license_data.max_depth++;
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:license/addcont", license_dir_callback, &license_data) < 0)
+    goto EXIT;
+
+  // Set progress to 100%
+  sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+  sceKernelDelayThread(COUNTUP_WAIT);
+
+  // Close
+  closeWaitDialog();
+
+  infoDialog(language_container[IMPORTED_LICENSES], license_data.copied);
 
 EXIT:
   if (thid >= 0)

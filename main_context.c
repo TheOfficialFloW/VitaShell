@@ -33,6 +33,7 @@ char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
 
 enum MenuHomeEntrys {
   MENU_HOME_ENTRY_REFRESH_LIVEAREA,
+  MENU_HOME_ENTRY_REFRESH_LICENSE_DB,
   MENU_HOME_ENTRY_MOUNT_UMA0,
   MENU_HOME_ENTRY_MOUNT_IMC0,
   MENU_HOME_ENTRY_MOUNT_USB_UX0,
@@ -40,11 +41,12 @@ enum MenuHomeEntrys {
 };
 
 MenuEntry menu_home_entries[] = {
-  { REFRESH_LIVEAREA, 0, 0, CTX_INVISIBLE },
-  { MOUNT_UMA0,       1, 0, CTX_INVISIBLE },
-  { MOUNT_IMC0,       2, 0, CTX_INVISIBLE },
-  { MOUNT_USB_UX0,    4, 0, CTX_INVISIBLE },
-  { UMOUNT_USB_UX0,   5, 0, CTX_INVISIBLE },
+  { REFRESH_LIVEAREA,   0, 0, CTX_INVISIBLE },
+  { REFRESH_LICENSE_DB, 1, 0, CTX_INVISIBLE },
+  { MOUNT_UMA0,         2, 0, CTX_INVISIBLE },
+  { MOUNT_IMC0,         3, 0, CTX_INVISIBLE },
+  { MOUNT_USB_UX0,      5, 0, CTX_INVISIBLE },
+  { UMOUNT_USB_UX0,     6, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
@@ -465,7 +467,19 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 
       break;
     }
-    
+
+    case MENU_HOME_ENTRY_REFRESH_LICENSE_DB:
+    {
+      if (is_safe_mode) {
+        infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
+      } else {
+        initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[REFRESH_LICENSE_DB_QUESTION]);
+        setDialogStep(DIALOG_STEP_REFRESH_LICENSE_DB_QUESTION);
+      }
+
+      break;
+    }
+
     case MENU_HOME_ENTRY_MOUNT_UMA0:
     {
       if (is_safe_mode) {
