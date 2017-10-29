@@ -15,6 +15,7 @@ FOLDER                               = "Cartella"
 MOVING                               = "Spostamento..."
 COPYING                              = "Copia..."
 DELETING                             = "Eliminazione..."
+IMPORTING                            = "Importazione ..."
 EXPORTING                            = "Esportazione..."
 INSTALLING                           = "Installazione..."
 DOWNLOADING                          = "Scaricamento..."
@@ -126,6 +127,7 @@ INSTALL_BRICK_WARNING                = "Questo pacchetto usa funzioni che rimont
 HASH_FILE_QUESTION                   = "L'hashing SHA1 può richiedere molto tempo. Continuare?"
 SAVE_MODIFICATIONS                   = "Vuoi salvare le tue modifiche?"
 REFRESH_LIVEAREA_QUESTION            = "L'Aggiornamento del LiveArea può richiedere molto tempo. Continuare?"
+REFRESH_LICENSE_DB_QUESTION          = "L'Aggiornamento della licenza dal database può richiedere molto tempo. Continuare?"
 
 # HENkaku settings strings
 HENKAKU_SETTINGS                     = "Impostazioni di HENkaku"
