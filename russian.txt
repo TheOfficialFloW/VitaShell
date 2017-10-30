@@ -1,4 +1,4 @@
-# VitaShell language file 1.74 ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus
+# VitaShell language file 1.76 ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus
 
 # General strings
 ERROR                                         = "Ошибка 0x%08X."
@@ -15,13 +15,14 @@ FOLDER                                        = "<Папка>"
 MOVING                                        = "Перемещение..."
 COPYING                                       = "Копирование..."
 DELETING                                      = "Удаление..."
-EXPORTING                                     = "Экспорт медиафайлов..."
+IMPORTING                                     = "Импорт данных..."
+EXPORTING                                     = "Экспорт данных..."
 INSTALLING                                    = "Установка..."
 DOWNLOADING                                   = "Загрузка..."
 EXTRACTING                                    = "Извлечение..."
 COMPRESSING                                   = "Упаковка..."
 HASHING                                       = "Вычисление хеша..."
-REFRESHING                                    = "Обновление данных LiveArea..."
+REFRESHING                                    = "Обновление данных..."
 
 # Audio player strings
 TITLE                                         = "Название"
@@ -32,7 +33,7 @@ YEAR                                          = "Год"
 
 # Hex editor strings
 OFFSET                                        = "Смещение:"
-OPEN_HEX_EDITOR                               = "Открыть в Hex-редакторе"
+OPEN_HEX_EDITOR                               = "Hex-редактор"
 
 # Text editor strings
 EDIT_LINE                                     = "Редактировать строку"
@@ -40,6 +41,7 @@ ENTER_SEARCH_TERM                             = "Поиск..."
 
 # Context menu strings
 REFRESH_LIVEAREA                              = "Обновить экран LiveArea"
+REFRESH_LICENSE_DB                            = "Обновить базу лицензий"
 MOUNT_UMA0                                    = "Монтировать uma0:"
 MOUNT_IMC0                                    = "Монтировать imc0:"
 MOUNT_USB_UX0                                 = "Монтировать USB как ux0:"
@@ -100,6 +102,7 @@ REFRESHED                                     = "Отчёт:\\Обновлено
 COPIED_FILE                                   = "Отчёт:\\Скопировано файлов: %d."
 COPIED_FOLDER                                 = "Отчёт:\\Скопировано папок: %d."
 COPIED_FILES_FOLDERS                          = "Отчёт:\\Скопировано файлов/папок: %d."
+IMPORTED_LICENSES                             = "Отчёт:\\Импортировано лицензий %d."
 
 # Dialog questions
 DELETE_FILE_QUESTION                          = "Запрос:\\Вы действительно хотите удалить этот файл?"
@@ -123,7 +126,8 @@ INSTALL_WARNING                               = "Внимание!\\Устано
 INSTALL_BRICK_WARNING                         = "Внимание!\\Установка пакета требует доступа к системным разделам.\При наличии вредоносного кода, ваше устройство может\быть безвозвратно выведено из строя.\Установка пакетов, скачанных из непроверенных источников,\производится на ваш страх и риск.\\Продолжить установку?"
 HASH_FILE_QUESTION                            = "Внимание!\\Рассчёт хеша SHA1 может занять длительное время.\Продолжить?"
 SAVE_MODIFICATIONS                            = "Запрос:\\Сохранить внесённые изменения?"
-REFRESH_LIVEAREA_QUESTION                     = "Запрос:\\Обновления экрана livearea может занять длительное время.\Продолжить?"
+REFRESH_LIVEAREA_QUESTION                     = "Запрос:\\Обновления данных LiveArea может занять длительное время.\Продолжить?"
+REFRESH_LICENSE_DB_QUESTION                   = "Запрос:\\Обновления базы данных лицензий может занять длительное время.\Продолжить??"
 
 # HENkaku configuration strings
 HENKAKU_SETTINGS                              = "Настройки HENkaku"
