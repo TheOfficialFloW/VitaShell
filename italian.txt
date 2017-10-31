@@ -15,6 +15,7 @@ FOLDER                               = "Cartella"
 MOVING                               = "Spostamento..."
 COPYING                              = "Copia..."
 DELETING                             = "Eliminazione..."
+IMPORTING                            = "Importazione ..."
 EXPORTING                            = "Esportazione..."
 INSTALLING                           = "Installazione..."
 DOWNLOADING                          = "Scaricamento..."
@@ -40,6 +41,7 @@ ENTER_SEARCH_TERM                    = "Inserisci termine di ricerca"
 
 # Context menu strings
 REFRESH_LIVEAREA                     = "Aggiorna il livearea"
+REFRESH_LICENSE_DB                   = "Aggiorna licenza dal database"
 MOUNT_UMA0                           = "Monta uma0:"
 MOUNT_IMC0                           = "Monta imc0:"
 MOUNT_USB_UX0                        = "Monta USB ux0:"
@@ -100,6 +102,7 @@ REFRESHED                            = "Aggiornati %d elementi."
 COPIED_FILE                          = "Copiati %d file."
 COPIED_FOLDER                        = "Copiate %d cartella(e)."
 COPIED_FILES_FOLDERS                 = "Copiati %d file/cartella(e)."
+IMPORTED_LICENSES                    = "Importate %d licenza(e)."
 
 # Dialog questions
 DELETE_FILE_QUESTION                 = "Sei sicuro di voler eliminare questo file?"
@@ -124,6 +127,7 @@ INSTALL_BRICK_WARNING                = "Questo pacchetto usa funzioni che rimont
 HASH_FILE_QUESTION                   = "L'hashing SHA1 può richiedere molto tempo. Continuare?"
 SAVE_MODIFICATIONS                   = "Vuoi salvare le tue modifiche?"
 REFRESH_LIVEAREA_QUESTION            = "L'Aggiornamento del LiveArea può richiedere molto tempo. Continuare?"
+REFRESH_LICENSE_DB_QUESTION          = "L'Aggiornamento della licenza dal database può richiedere molto tempo. Continuare?"
 
 # HENkaku settings strings
 HENKAKU_SETTINGS                     = "Impostazioni di HENkaku"
