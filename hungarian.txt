@@ -1,8 +1,6 @@
 # VitaShell language file
-# VitaShell nyelvi fájl
 
 # General strings
-# Általános szövegek
 ERROR                                = "Hiba: 0x%08X."
 OK                                   = "OK"
 YES                                  = "Igen"
@@ -14,10 +12,10 @@ FILE_                                = "Fájl"
 FOLDER                               = "Mappa"
 
 # Progress strings
-# Folyamati szövegek
 MOVING                               = "Mozgatás..."
 COPYING                              = "Másolás..."
 DELETING                             = "Törlés..."
+IMPORTING                            = "Importálás..."
 EXPORTING                            = "Exportálás..."
 INSTALLING                           = "Telepítés..."
 DOWNLOADING                          = "Letöltés..."
@@ -27,7 +25,6 @@ HASHING                              = "Hashelés..."
 REFRESHING                           = "Frissítés..."
 
 # Audio player strings
-# Hang lejátszói szövegek
 TITLE                                = "Cím"
 ALBUM                                = "Album"
 ARTIST                               = "Előadó"
@@ -35,19 +32,18 @@ GENRE                                = "Műfaj"
 YEAR                                 = "Év"
 
 # Hex editor strings
-# Hex szerkesztői szövegek
 OFFSET                               = "Eltolt"
 OPEN_HEX_EDITOR                      = "Hex szerkesztő megnyitása"
 
 # Text editor strings
-# Szöveg szerkesztői szövegek
 EDIT_LINE                            = "Sor szerkesztése"
 ENTER_SEARCH_TERM                    = "Keresendő kifejezés"
 
 # Context menu strings
-# Összefüggési menü szövegek
 REFRESH_LIVEAREA                     = "LiveArea frissítése"
+REFRESH_LICENSE_DB                   = "Licensz adatbázis frissítése"
 MOUNT_UMA0                           = "uma0: felcsatolása"
+MOUNT_IMC0                           = "imc0: felcsatolása"
 MOUNT_USB_UX0                        = "ux0: USB felcsatolása"
 UMOUNT_USB_UX0                       = "ux0: USB lecsatolása"
 SORT_BY                              = "Sorrend"
@@ -68,18 +64,18 @@ COMPRESS                             = "Becsomagol"
 INSTALL_ALL                          = "Összes telepítése"
 INSTALL_FOLDER                       = "Mappa telepítése"
 CALCULATE_SHA1                       = "SHA1 kiszámolása"
+OPEN_DECRYPTED                       = "Tömörített megnyitása"
 EXPORT_MEDIA                         = "Média exportálása"
 CUT                                  = "Kivágás"
 INSERT_EMPTY_LINE                    = "Üres sor beillesztése"
 SEARCH                               = "Keresés"
 
 # File browser properties strings
-# Fájl böngésző tulajdonsági szövegek
 PROPERTY_NAME                        = "Név"
 PROPERTY_TYPE                        = "Tipus"
 PROPERTY_FSELF_MODE                  = "FSELF mód"
 PROPERTY_SIZE                        = "Méret"
-PROPERTY_COMPRESSED_SIZE           	 = "Becsomagolt méret"
+PROPERTY_COMPRESSED_SIZE             = "Becsomagolt méret"
 PROPERTY_CONTAINS                    = "Tartalmaz"
 PROPERTY_CONTAINS_FILES_FOLDERS      = "%d fájlt, %d mappát"
 PROPERTY_CREATION_DATE               = "Létrehozás dátuma"
@@ -102,14 +98,13 @@ PROPERTY_FSELF_MODE_UNSAFE           = "Nem biztonságos"
 PROPERTY_FSELF_MODE_SCE              = "SCE aláírt"
 
 # File browser strings
-# Fájl böngészői szövegek
 REFRESHED                            = "Megújult %d elem."
 COPIED_FILE                          = "%d fájl másolva."
 COPIED_FOLDER                        = "%d mappa másolva."
 COPIED_FILES_FOLDERS                 = "%d fájl/mappa másolva."
+IMPORTED_LICENSES                    = "%d darab licensz importálva."
 
 # Dialog questions
-# Párbeszédi kérdések
 DELETE_FILE_QUESTION                 = "Biztosan törölni szeretnéd ezt a fájlt?"
 DELETE_FOLDER_QUESTION               = "Biztosan törölni szeretnéd ezt a mappát?"
 DELETE_FILES_FOLDERS_QUESTION        = "Biztosan törölni szeretnéd ezeket a fájlokat/mappákat?"
@@ -118,8 +113,12 @@ EXPORT_FOLDER_QUESTION               = "Biztosan szeretnéd exportálni ezt a ma
 EXPORT_FILES_FOLDERS_QUESTION        = "Biztosan szeretnéd exportálni ezeket a fájlokat/mappákat a médiába?"
 EXPORT_NO_MEDIA                      = "Nincs média fájl ami exportálható."
 EXPORT_SONGS_INFO                    = "Exportáltam %d dalt."
+EXPORT_VIDEOS_INFO                   = "Exportáltam %d videót."
 EXPORT_PICTURES_INFO                 = "Exportáltam %d képet."
+EXPORT_SONGS_VIDEOS_INFO             = "Exportáltam %d dalt és %d videót."
 EXPORT_SONGS_PICTURES_INFO           = "Exportáltam %d dalt és %d képet."
+EXPORT_VIDEOS_PICTURES_INFO          = "Exportáltam %d videót és %d képet."
+EXPORT_SONGS_VIDEOS_PICTURES_INFO    = "Exportáltam %d dalt %d videót és %d képet."
 INSTALL_ALL_QUESTION                 = "Biztosan szeretnéd az összes csomagot telepíteni ebből a mappából?"
 INSTALL_FOLDER_QUESTION              = "Biztosan szeretnéd ezt a mappát telepíteni?\Figyelmeztetés: ez a művelet törölni fogja\a mappát telepítés után!"
 INSTALL_QUESTION                     = "Biztosan telepíteni szeretnéd ezt a csomagot?"
@@ -128,12 +127,12 @@ INSTALL_BRICK_WARNING                = "Ez a csomag olyan funkciókat használ, 
 HASH_FILE_QUESTION                   = "SHA1 hashelése sokáig eltarthat. Folytatódjon?"
 SAVE_MODIFICATIONS                   = "Szeretnéd menteni a módosításokat?"
 REFRESH_LIVEAREA_QUESTION            = "A LiveArea frissítése eltarthat egy ideig. Folytatod?"
+REFRESH_LICENSE_DB_QUESTION          = "A licensz adatbázis frissítése eltarthat egy ideig. Folytatod?"
 
 # HENkaku settings strings
-# HENkaku beállitási szövegek
 HENKAKU_SETTINGS                     = "HENkaku beállitások"
 HENKAKU_ENABLE_PSN_SPOOFING          = "PSN hamisítás bekapcsolása"
-HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Nem biztonságos homebrewek bekapcsolása"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "Nem biztonságos homebrewek engedélyezése"
 HENKAKU_ENABLE_VERSION_SPOOFING      = "Verzió hamisítás bekapcsolása"
 HENKAKU_SPOOFED_VERSION              = "Hamisított verzió"
 HENKAKU_RESTORE_DEFAULT_SETTINGS     = "Alapértelmezett beállítások visszaállítása"
@@ -143,43 +142,52 @@ HENKAKU_RELOAD_CONFIG_MESSAGE        = "A taiHEN config.txt sikeresen visszaáll
 HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "A nem biztonságos homebrewek tönkretehetik az eszközöd\örökre, ha rosszul használod, rosszul van beállitva,\vagy rosszindulatú.\\Kérlek vigyázz amikor telepíted őket."
 
 # VitaShell settings
-# VitaShell beállitások
 VITASHELL_SETTINGS_MAIN              = "Fő beállítások"
 VITASHELL_SETTINGS_LANGUAGE          = "Nyelv"
 VITASHELL_SETTINGS_THEME             = "Téma"
 VITASHELL_SETTINGS_USBDEVICE         = "USB eszköz"
 VITASHELL_SETTINGS_SELECT_BUTTON     = "SELECT gomb"
 VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Automatikus frissítés kikapcsolása"
+VITASHELL_SETTINGS_RESTART_SHELL     = "VitaShell újraindítása"
 VITASHELL_SETTINGS_POWER             = "Energiagazdálkodás"
 VITASHELL_SETTINGS_REBOOT            = "Újraindítás"
 VITASHELL_SETTINGS_POWEROFF          = "Kikapcsolás"
 VITASHELL_SETTINGS_STANDBY           = "Készenlét"
 VITASHELL_SETTINGS_USB_MEMORY_CARD   = "Memória kártya"
 VITASHELL_SETTINGS_USB_GAME_CARD     = "Játék kártya"
+VITASHELL_SETTINGS_USB_SD2VITA       = "sd2vita"
+VITASHELL_SETTINGS_USB_PSVSD         = "psvsd"
 VITASHELL_SETTINGS_SELECT_BUTTON_USB = "USB"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
 
 # USB strings
-# USB szövegek
 USB_CONNECTED                        = "USB csatlakoztatva"
 USB_UMA0_MOUNTED                     = "uma0: felcsatolva."
 USB_UX0_MOUNTED                      = "USB ux0: felcsatolva."
 USB_UX0_UMOUNTED                     = "USB ux0: lecsatolva."
 USB_NOT_CONNECTED                    = "Csatlakoztassa ezt a rendszert egy PC számítógéppel USB kábel használatával."
-USB_CONNECTION_PERMISSION            = "Az USB csatlakozásnak szüksége van kiterjesztett engedélyekre.\Kérem aktiválja a 'Nem biztonságos homebrewek bekapcsolása' beállítást először."
 USB_CONNECTION_NOT_AVAILABLE         = "USB csatlakozás nem érhető el ezen az eszközön."
 USB_WAIT_ATTACH                      = "Kérlek csatolj fel egy USB cserélhető eszközt hogy folytasd.\Ha már fel volt csatolva, akkor csatold le\és csatold fel újra."
 
+# QR strings
+QR_SCANNING                         = "QR kódok keresése..."
+QR_OPEN_WEBSITE                     = "Megakarod nyitni ezt az URLt:\%s"
+QR_SHOW_CONTENTS                    = "QR Kód Mondja:\%s"
+QR_CONFIRM_INSTALL                  = "Telepíteni akarod ezt a csomagot:\%s\Fájl: %s\Méret: %s"
+QR_CONFIRM_DOWNLOAD                 = "Le akarod tölteni ezt a fájlt:\%s\Fájl: %s\Méret: %s"
+
 # Others
-# Egyebek
+IMC0_MOUNTED                         = "imc0: felcsatolva."
 SAFE_MODE                            = "BIZTONSÁGOS MÓD"
 UNSAFE_MODE                          = "NEM BIZTONSÁGOS MÓD"
 PLEASE_WAIT                          = "Kérlek várj..."
+MEMORY_CARD_NOT_FOUND                = "Kérlek helyezz be egy memória kártyát."
 GAME_CARD_NOT_FOUND                  = "Kérlek helyezz be egy játék kártyát."
+MICROSD_NOT_FOUND                    = "Kérlek helyezz be egy microSD kártyát."
 NO_SPACE_ERROR                       = "Nincs elég szabad hely a memória\kártyán.\Legalább %s több hely kell."
+EXTENDED_PERMISSIONS_REQUIRED        = "Ez a funkció kiterjesztett jogosultságokat kér.\Kérlek aktiváld a 'Nem biztonságos homebrewek engedélyezése' először."
 WIFI_ERROR                           = "Ehhez a művelethez Wi-Fi kapcsolatra van szükség."
 FTP_SERVER                           = "FTP szerver fut ezen a címen\ftp://%s:%i\\Nyomj 'OK' gombot a háttérben való futtatáshoz\'Mégse' gombot a kapcsolat bontásához."
-SYS_INFO                             = "Rendszer szoftver: %s\Modell: 0x%08X\MAC cím: %s\IP cím: %s\Memória kártya: %s/%s"
-UPDATE_QUESTION                      = "Új VitaShell verzió érhető el %s.\\Frissíteni szeretnéd az alkalmazást?"
+UPDATE_QUESTION                      = "VitaShell %s mostantól elérhető.\\Frissíteni szeretnéd az alkalmazást?"
 ARCHIVE_NAME                         = "Archívum neve"
 COMPRESSION_LEVEL                    = "Becsomagolás szintje (0-9)"
