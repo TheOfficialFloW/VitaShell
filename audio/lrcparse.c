@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ static char* getStringFromRegmatch(char* source,size_t so,size_t eo)
         word[0] = '\0';
     }else{
         word = malloc(sizeof(char) * (wordlength + 1));
-        memcpy((void*)word,(void*)source + so,wordlength);//copy string
+        memcpy((void*)word,(void*)(source + so),wordlength);//copy string
         word[sizeof(char) * (wordlength)] = '\0';
     }
     return word;

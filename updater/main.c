@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -20,18 +20,14 @@
 #include <psp2/kernel/processmgr.h>
 #include <psp2/io/dirent.h>
 #include <psp2/io/fcntl.h>
+#include <psp2/sysmodule.h>
+#include <psp2/promoterutil.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../sysmodule_internal.h"
-#include "../libpromoter/promoterutil.h"
-
-#define TRANSFER_SIZE 64 * 1024
-
-#define PACKAGE_PARENT "ux0:ptmp"
-#define PACKAGE_DIR PACKAGE_PARENT "/pkg"
+#define PACKAGE_DIR "ux0:data/pkg"
 #define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
 
 typedef struct SfoHeader {
@@ -61,32 +57,6 @@ int launchAppByUriExit(char *titleid) {
 	sceAppMgrLaunchAppByUri(0xFFFFF, uri);
 
 	sceKernelExitProcess(0);
-
-	return 0;
-}
-
-int copyFile(char *src_path, char *dst_path) {
-	SceUID fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
-	if (fdsrc < 0)
-		return fdsrc;
-
-	SceUID fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	if (fddst < 0) {
-		sceIoClose(fdsrc);
-		return fddst;
-	}
-
-	void *buf = malloc(TRANSFER_SIZE);
-
-	int read;
-	while ((read = sceIoRead(fdsrc, buf, TRANSFER_SIZE)) > 0) {
-		sceIoWrite(fddst, buf, read);
-	}
-
-	free(buf);
-
-	sceIoClose(fddst);
-	sceIoClose(fdsrc);
 
 	return 0;
 }
@@ -189,11 +159,10 @@ cleanup:
 int main(int argc, const char *argv[]) {
 	char *titleid = get_title_id(PACKAGE_DIR "/sce_sys/param.sfo");
 	if (titleid && strcmp(titleid, "VITASHELL") == 0) {
-		copyFile(PACKAGE_DIR "/eboot.bin", "ux0:app/MLCL00001/eboot.bin");
-
-		if (promote(PACKAGE_DIR) >= 0)
-			launchAppByUriExit("VITASHELL");
+		promote(PACKAGE_DIR);
 	}
 
-	return sceKernelExitProcess(0);
+	launchAppByUriExit("VITASHELL");
+
+	return 0;
 }

@@ -1,6 +1,6 @@
 /*
 	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+	Copyright (C) 2015-2017, TheFloW
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <psp2/types.h>
-#include <onigposix.h>
+#include <onigmoposix.h>
 #include "../file.h"
 
 #define MAX_LYRICSLINE 512

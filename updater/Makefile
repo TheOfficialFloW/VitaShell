@@ -2,7 +2,7 @@ TITLE_ID = VSUPDATER
 TARGET   = updater
 OBJS     = main.o
 
-LIBS     = -lSceAppMgr_stub ../libpromoter/libScePromoterUtil_stub.a -lSceSysmodule_stub
+LIBS     = -lSceAppMgr_stub -lScePromoterUtil_stub -lSceSysmodule_stub
 
 PREFIX   = arm-vita-eabi
 CC       = $(PREFIX)-gcc
@@ -19,7 +19,7 @@ eboot.bin: $(TARGET).velf
 	vita-make-fself $< $@
 
 %.velf: %.elf
-	vita-elf-create $< $@ ../libpromoter/promoterutil.json
+	vita-elf-create $< $@
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@

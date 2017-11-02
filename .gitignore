@@ -1,3 +1,5 @@
+\#*\#
+.\#*
 *.o
 *.a
 /eboot.bin
@@ -6,3 +8,4 @@
 *.sfo
 *.velf
 *.vpk
+build
