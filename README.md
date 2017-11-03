@@ -82,14 +82,7 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 VitaShell does automatically load the language that matches to the current system language.
 If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
 
-The english language file is provided in **'VitaShellCustomization.rar'** and available in the **'release'** section.
-
-### VitaShell themes and translations collection ###
-This is an unofficial VitaShell themes and translations collection:
-
-https://github.com/xy2iii/vitashell-themes
-
-Be sure you pull request your customized design or language file there.
+The english language file is provided in **'VitaShellCustomization.rar'** and available in the **'release'** section. Furthermore, languages files are available in the 'l10n' folder of this repository.
 
 ### In order to compile VitaShell you'll need ###
 * vitasdk: https://github.com/vitasdk
