@@ -41,7 +41,7 @@ ENTER_SEARCH_TERM                    = "Enter search term"
 
 # Context menu strings
 REFRESH_LIVEAREA                     = "Refresh livearea"
-REFRESH_LICENSE_DB                   = "Refresh license database"
+REFRESH_LICENSE_DB                   = "Refresh database"
 MOUNT_UMA0                           = "Mount uma0:"
 MOUNT_IMC0                           = "Mount imc0:"
 MOUNT_USB_UX0                        = "Mount USB ux0:"
