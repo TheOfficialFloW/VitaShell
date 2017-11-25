@@ -1,4 +1,4 @@
-# VitaShell v1.61 language file - (Português - Brasil) Rev.(0012)
+# VitaShell v1.76 language file - (Português - Brasil) Rev.(0013)
 
 # General strings
 ERROR                                = "Erro 0x%08X."
@@ -15,6 +15,7 @@ FOLDER                               = "Pasta"
 MOVING                               = "Movendo..."
 COPYING                              = "Copiando..."
 DELETING                             = "Deletando..."
+IMPORTING                            = "Importando..."
 EXPORTING                            = "Exportando..."
 INSTALLING                           = "Instalando..."
 DOWNLOADING                          = "Baixando..."
@@ -36,11 +37,13 @@ OPEN_HEX_EDITOR                      = "Abrir editor Hex"
 
 # Text editor strings
 EDIT_LINE                            = "Editar Linha"
-ENTER_SEARCH_TERM                    = "Entre com o termo de busca"
+ENTER_SEARCH_TERM                    = "Insira o termo de busca"
 
 # File browser context menu strings
 REFRESH_LIVEAREA                     = "Atualizar livearea"
+REFRESH_LICENSE_DB                   = "Atualizar banco de dados de licença"
 MOUNT_UMA0                           = "Montar uma0:"
+MOUNT_IMC0                           = "Montar imc0:"
 MOUNT_USB_UX0                        = "Montar USB ux0:"
 UMOUNT_USB_UX0                       = "Desmontar USB ux0:"
 SORT_BY                              = "Ordenar por"
@@ -61,6 +64,7 @@ COMPRESS                             = "Comprimir"
 INSTALL_ALL                          = "Instalar todos"
 INSTALL_FOLDER                       = "Instalar pasta"
 CALCULATE_SHA1                       = "Calcular SHA1"
+OPEN_DECRYPTED                       = "Abrir decrypted"
 EXPORT_MEDIA                         = "Exportar mídia"
 CUT                                  = "Recortar"
 INSERT_EMPTY_LINE                    = "Inserir linha vazia"
@@ -98,6 +102,7 @@ REFRESHED                            = "%d items atualizados."
 COPIED_FILE                          = "%d arquivo copiado."
 COPIED_FOLDER                        = "%d pasta copiada."
 COPIED_FILES_FOLDERS                 = "%d arquivos/pastas copiados."
+IMPORTED_LICENSES                    = "%d licença(s) importada(s)."
 
 # Dialog questions
 DELETE_FILE_QUESTION                 = "Tem certeza de que deseja excluir este arquivo?"
@@ -108,8 +113,12 @@ EXPORT_FOLDER_QUESTION               = "Tem certeza de que deseja exportar esta 
 EXPORT_FILES_FOLDERS_QUESTION        = "Tem certeza de que deseja exportar estes arquivos/pastas para mídia?"
 EXPORT_NO_MEDIA                      = "Não há arquivos de mídia disponíveis para exportar."
 EXPORT_SONGS_INFO                    = "%d som(s) exportado(s)."
+EXPORT_VIDEOS_INFO                   = "%d video(s) exportado(s)."
 EXPORT_PICTURES_INFO                 = "%d imagem(s) exportado(s)."
+EXPORT_SONGS_VIDEOS_INFO             = "%d som(s) e %d video(s) exportados."
 EXPORT_SONGS_PICTURES_INFO           = "%d som(s) e %d imagem(s) exportado(s)."
+EXPORT_VIDEOS_PICTURES_INFO          = "%d video(s) e %d imagem(s) exportados."
+EXPORT_SONGS_VIDEOS_PICTURES_INFO    = "%d som(s) %d video(s) e %d imagem(s) exportados."
 INSTALL_ALL_QUESTION                 = "Você deseja instalar todos os pacotes disponíveis nesta pasta?"
 INSTALL_FOLDER_QUESTION              = "Você deseja instalar esta pasta?\Cuidado: esta ação também vai apagar\a pasta após a instalação!"
 INSTALL_QUESTION                     = "Você deseja instalar este pacote?"
@@ -118,6 +127,7 @@ INSTALL_BRICK_WARNING                = "Este pacote usa funções que remontam p
 HASH_FILE_QUESTION                   = "O hashing SHA1 pode levar um longo tempo. Deseja continuar?"
 SAVE_MODIFICATIONS                   = "Deseja salvar suas modificações?"
 REFRESH_LIVEAREA_QUESTION            = "Atualizar a livearea pode levar muito tempo. Continuar?"
+REFRESH_LICENSE_DB_QUESTION          = "A atualização do banco de dados da licença pode\levar muito tempo. Continuar?"
 
 # HENkaku settings strings
 HENKAKU_SETTINGS                     = "Configurações HENkaku"
@@ -145,6 +155,8 @@ VITASHELL_SETTINGS_POWEROFF          = "Desligar"
 VITASHELL_SETTINGS_STANDBY           = "Standby"
 VITASHELL_SETTINGS_USB_MEMORY_CARD   = "Cartão de Memória"
 VITASHELL_SETTINGS_USB_GAME_CARD     = "Game Card"
+VITASHELL_SETTINGS_USB_SD2VITA       = "sd2vita"
+VITASHELL_SETTINGS_USB_PSVSD         = "psvsd"
 VITASHELL_SETTINGS_SELECT_BUTTON_USB = "USB"
 VITASHELL_SETTINGS_SELECT_BUTTON_FTP = "FTP"
 
@@ -157,11 +169,21 @@ USB_NOT_CONNECTED                    = "Conecte este sistema a um PC usando um c
 USB_CONNECTION_NOT_AVAILABLE         = "A conexão USB não está disponível neste dispositivo."
 USB_WAIT_ATTACH                      = "Por favor, anexe uma unidade flash USB para continuar.\Se ela já tiver sido anexada, por favor, desconecte\e volte a anexá-la."
 
+# QR strings
+QR_SCANNING                         = "Scaneando QR Codes..."
+QR_OPEN_WEBSITE                     = "Deseja abrir esta URL:\%s"
+QR_SHOW_CONTENTS                    = "O QR Code Diz:\%s"
+QR_CONFIRM_INSTALL                  = "Deseja instalar este pacote:\%s\Arquivo: %s\Tamanho: %s"
+QR_CONFIRM_DOWNLOAD                 = "Deseja baixar este arquivo:\%s\Arquivo: %s\Tamanho: %s"
+
 # Others
+IMC0_MOUNTED                         = "imc0: montado."
 SAFE_MODE                            = "MODO SEGURO"
-UNSAFE_MODE                          = "MODO ISEGURO"
+UNSAFE_MODE                          = "MODO INSEGURO"
 PLEASE_WAIT                          = "Por favor, aguarde..."
+MEMORY_CARD_NOT_FOUND                = "Por favor insira um Cartão de Memória."
 GAME_CARD_NOT_FOUND                  = "Por favor insira um game card."
+MICROSD_NOT_FOUND                    = "Por favor insira um microSD."
 NO_SPACE_ERROR                       = "Não há espaço livre suficiente na memória\cartão.\É necessário pelo menos mais %s de espaço livre."
 EXTENDED_PERMISSIONS_REQUIRED        = "Esse recurso requer permissões estendidas.\Por favor, ative 'Ativar homebrew inseguro' primeiro."
 WIFI_ERROR                           = "Você deve usar o Wi-Fi para fazer isso."
