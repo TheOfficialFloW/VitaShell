@@ -229,8 +229,8 @@ QR_CONFIRM_DOWNLOAD			= "下記のファイルをダウンロードしますか?
 
 # Others
 # その他
-SAFE_MODE				= "安全なモード"
-UNSAFE_MODE				= "安全ではないモード"
+SAFE_MODE				= "Safeモード"
+UNSAFE_MODE				= "Unsafeモード"
 PLEASE_WAIT				= "しばらくお待ち下さい"
 MEMORY_CARD_NOT_FOUND			= "メモリーカードを挿入して下さい"
 GAME_CARD_NOT_FOUND			= "ゲームカードを挿入して下さい"
