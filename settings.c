@@ -249,8 +249,8 @@ void drawSettingsMenu() {
   int i;
   for (i = 0; i < n_settings_entries; i++) {
     // Title
-    float x = vita2d_pgf_text_width(font, FONT_SIZE, language_container[settings_menu_entries[i].name]);
-    pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, x), y, SETTINGS_MENU_TITLE_COLOR, FONT_SIZE, language_container[settings_menu_entries[i].name]);
+    float x = pgf_text_width(language_container[settings_menu_entries[i].name]);
+    pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, x), y, SETTINGS_MENU_TITLE_COLOR, language_container[settings_menu_entries[i].name]);
 
     y += FONT_Y_SPACE;
 
@@ -264,22 +264,22 @@ void drawSettingsMenu() {
 
       if (options[j].type == SETTINGS_OPTION_TYPE_CALLBACK) {
         // Item
-        float x = vita2d_pgf_text_width(font, FONT_SIZE, language_container[options[j].name]);
-        pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, x), y, SETTINGS_MENU_ITEM_COLOR, FONT_SIZE, language_container[options[j].name]);
+        float x = pgf_text_width(language_container[options[j].name]);
+        pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, x), y, SETTINGS_MENU_ITEM_COLOR, language_container[options[j].name]);
       } else {
         // Item
-        float x = vita2d_pgf_text_width(font, FONT_SIZE, language_container[options[j].name]);
-        pgf_draw_text(ALIGN_RIGHT(SCREEN_HALF_WIDTH - 10.0f, x), y, SETTINGS_MENU_ITEM_COLOR, FONT_SIZE, language_container[options[j].name]);
+        float x = pgf_text_width(language_container[options[j].name]);
+        pgf_draw_text(ALIGN_RIGHT(SCREEN_HALF_WIDTH - 10.0f, x), y, SETTINGS_MENU_ITEM_COLOR, language_container[options[j].name]);
 
         // Option
         switch (options[j].type) {
           case SETTINGS_OPTION_TYPE_BOOLEAN:
-            pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE,
+            pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR,
                           (options[j].value && *(options[j].value)) ? language_container[ON] : language_container[OFF]);
             break;
 
           case SETTINGS_OPTION_TYPE_STRING:
-            pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].string);
+            pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, options[j].string);
             break;
 
           case SETTINGS_OPTION_TYPE_OPTIONS:
@@ -287,7 +287,7 @@ void drawSettingsMenu() {
             int value = 0;
             if (options[j].value)
               value = *(options[j].value);
-            pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, FONT_SIZE, options[j].options ? options[j].options[value] : "");
+            pgf_draw_text(SCREEN_HALF_WIDTH + 10.0f, y, SETTINGS_MENU_OPTION_COLOR, options[j].options ? options[j].options[value] : "");
             break;
           }
         }

@@ -105,12 +105,15 @@
 #define FONT_X_SPACE 15.0f
 #define FONT_Y_SPACE 23.0f
 
-#define pgf_draw_text(x, y, color, scale, text) \
-  vita2d_pgf_draw_text(font, x, (y)+20, color, scale, text)
+#define pgf_draw_text(x, y, color, text) \
+  vita2d_pgf_draw_text(font, x, (y)+20, color, FONT_SIZE, text)
 
-#define pgf_draw_textf(x, y, color, scale, ...) \
-  vita2d_pgf_draw_textf(font, x, (y)+20, color, scale, __VA_ARGS__)
+#define pgf_draw_textf(x, y, color, ...) \
+  vita2d_pgf_draw_textf(font, x, (y)+20, color, FONT_SIZE, __VA_ARGS__)
 
+#define pgf_text_width(text) \
+  vita2d_pgf_text_width(font, FONT_SIZE, text)
+  
 // Screen
 #define SCREEN_WIDTH 960
 #define SCREEN_HEIGHT 544

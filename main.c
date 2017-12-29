@@ -221,7 +221,9 @@ int refreshFileList() {
       dirUp();
     }
   } while (res < 0);
-
+  
+  // TODO: make better position correction
+  
   // Correct position after deleting the latest entry of the file list
   while ((base_pos + rel_pos) >= file_list.length) {
     if (base_pos > 0) {
@@ -240,7 +242,7 @@ int refreshFileList() {
       }
     }
   }
-
+  
   return ret;
 }
 
@@ -383,7 +385,7 @@ void drawShellInfo(const char *path) {
   if (version[3] == '0')
     version[3] = '\0';
 
-  pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, FONT_SIZE, "VitaShell %s", version);
+  pgf_draw_textf(SHELL_MARGIN_X, SHELL_MARGIN_Y, TITLE_COLOR, "VitaShell %s", version);
 
   // Status bar
   float x = SCREEN_WIDTH - SHELL_MARGIN_X;
@@ -425,8 +427,8 @@ void drawShellInfo(const char *path) {
 
   char string[64];
   snprintf(string, sizeof(string), "%s  %s", date_string, time_string);
-  float date_time_x = ALIGN_RIGHT(x, vita2d_pgf_text_width(font, FONT_SIZE, string));
-  pgf_draw_text(date_time_x, SHELL_MARGIN_Y, DATE_TIME_COLOR, FONT_SIZE, string);
+  float date_time_x = ALIGN_RIGHT(x, pgf_text_width(string));
+  pgf_draw_text(date_time_x, SHELL_MARGIN_Y, DATE_TIME_COLOR, string);
 
   x = date_time_x - STATUS_BAR_SPACE_X;
 
@@ -447,7 +449,7 @@ void drawShellInfo(const char *path) {
     char ch_width = font_size_cache[(int)path[i]];
 
     // Too long
-    if ((line_width+ch_width) >= MAX_WIDTH)
+    if ((line_width + ch_width) >= MAX_WIDTH)
       break;
 
     // Increase line width
@@ -463,12 +465,12 @@ void drawShellInfo(const char *path) {
 
   // home (SAFE/UNSAFE MODE)
   if (strcmp(path_first_line, HOME_PATH) == 0) {    
-    pgf_draw_textf(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, "%s (%s)", HOME_PATH,
-             is_safe_mode ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
+    pgf_draw_textf(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, "%s (%s)", HOME_PATH,
+                   is_safe_mode ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
   } else {
     // Path
-    pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, FONT_SIZE, path_first_line);
-    pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, PATH_COLOR, FONT_SIZE, path_second_line);
+    pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, path_first_line);
+    pgf_draw_text(SHELL_MARGIN_X, PATH_Y + FONT_Y_SPACE, PATH_COLOR, path_second_line);
   }
 }
 
@@ -1417,7 +1419,7 @@ static int fileBrowserMenuCtrl() {
         int type = handleFile(cur_file, file_entry);
 
         // Archive mode
-        if ((type == FILE_TYPE_ZIP) | (type == FILE_TYPE_RAR)) {
+        if ((type == FILE_TYPE_ZIP) || (type == FILE_TYPE_RAR)) {
           is_in_archive = 1;
           archive_type = type;
           dir_level_archive = dir_level;
@@ -1621,7 +1623,7 @@ static int shellMain() {
         float x = FILE_X;
         
         if (i == rel_pos) {
-          int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, file_entry->name);
+          int width = (int)pgf_text_width(file_entry->name);
           if (width >= MAX_NAME_WIDTH) {
             if (scroll_count < 60) {
               scroll_x = x;
@@ -1640,7 +1642,7 @@ static int shellMain() {
           }
         }
 
-        pgf_draw_text(x, y, color, FONT_SIZE, file_entry->name);
+        pgf_draw_text(x, y, color, file_entry->name);
 
         vita2d_disable_clipping();
 
@@ -1648,8 +1650,8 @@ static int shellMain() {
         if (strcmp(file_entry->name, DIR_UP) != 0) {
           if (dir_level == 0) {
             char used_size_string[16], max_size_string[16];
-            int max_size_x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, "0000.00 MB"));
-            int separator_x = ALIGN_RIGHT(max_size_x, vita2d_pgf_text_width(font, FONT_SIZE, "  /  "));
+            int max_size_x = ALIGN_RIGHT(INFORMATION_X, pgf_text_width("0000.00 MB"));
+            int separator_x = ALIGN_RIGHT(max_size_x, pgf_text_width("  /  "));
             if (file_entry->size != 0 && file_entry->size2 != 0) {
               getSizeString(used_size_string, file_entry->size2 - file_entry->size);
               getSizeString(max_size_string, file_entry->size2);
@@ -1658,11 +1660,11 @@ static int shellMain() {
               strcpy(max_size_string, "-");
             }
             
-            float x = ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, max_size_string));
-            pgf_draw_text(x, y, color, FONT_SIZE, max_size_string);
-            pgf_draw_text(separator_x, y, color, FONT_SIZE, "  /");
-            x = ALIGN_RIGHT(separator_x, vita2d_pgf_text_width(font, FONT_SIZE, used_size_string));
-            pgf_draw_text(x, y, color, FONT_SIZE, used_size_string);
+            float x = ALIGN_RIGHT(INFORMATION_X, pgf_text_width(max_size_string));
+            pgf_draw_text(x, y, color, max_size_string);
+            pgf_draw_text(separator_x, y, color, "  /");
+            x = ALIGN_RIGHT(separator_x, pgf_text_width(used_size_string));
+            pgf_draw_text(x, y, color, used_size_string);
           } else {
             char *str = NULL;
             if (!file_entry->is_folder) {
@@ -1673,7 +1675,7 @@ static int shellMain() {
             } else {
               str = language_container[FOLDER];
             }
-            pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, str)), y, color, FONT_SIZE, str);
+            pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, pgf_text_width(str)), y, color, str);
           }
 
           // Date
@@ -1686,8 +1688,8 @@ static int shellMain() {
           char string[64];
           sprintf(string, "%s %s", date_string, time_string);
 
-          float x = ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string));
-          pgf_draw_text(x, y, color, FONT_SIZE, string);
+          float x = ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, pgf_text_width(string));
+          pgf_draw_text(x, y, color, string);
         }
 
         // Next

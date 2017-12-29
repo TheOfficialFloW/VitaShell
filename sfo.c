@@ -176,7 +176,7 @@ int SFOReader(const char *file) {
       uint32_t color = (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR;
 
       char *name = (char *)buffer + sfo_header->keyofs + entries->nameofs;
-      pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, "%s", name);
+      pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, "%s", name);
 
       char string[128];
 
@@ -194,7 +194,7 @@ int SFOReader(const char *file) {
           break;
       }
 
-      pgf_draw_textf(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, string);
+      pgf_draw_textf(ALIGN_RIGHT(INFORMATION_X, pgf_text_width(string)), START_Y + (FONT_Y_SPACE * i), color, string);
     }
 
     // End drawing

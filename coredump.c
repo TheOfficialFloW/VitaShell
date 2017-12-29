@@ -279,36 +279,36 @@ int coredumpViewer(const char *file) {
     float y = START_Y;
     
     // Exception
-    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, FONT_SIZE, "Exception");
-    pgf_draw_text(COREDUMP_INFO_X, y, TEXT_COLOR, FONT_SIZE, getCauseName(cause));
+    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, "Exception");
+    pgf_draw_text(COREDUMP_INFO_X, y, TEXT_COLOR, getCauseName(cause));
     y += FONT_Y_SPACE;
     
     // Thread ID
-    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, FONT_SIZE, "Thread ID");
-    pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, FONT_SIZE, "0x%08X", thid);
+    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, "Thread ID");
+    pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, "0x%08X", thid);
     y += FONT_Y_SPACE;
     
     // Thread name
-    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, FONT_SIZE, "Thread name");
-    pgf_draw_text(COREDUMP_INFO_X, y, TEXT_COLOR, FONT_SIZE, thname);
+    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, "Thread name");
+    pgf_draw_text(COREDUMP_INFO_X, y, TEXT_COLOR, thname);
     y += FONT_Y_SPACE;
     
     // EPC
-    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, FONT_SIZE, "EPC");
+    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, "EPC");
     if (rel_epc != -1)
-      pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, FONT_SIZE, "%s + 0x%08X", modname, rel_epc);
+      pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, "%s + 0x%08X", modname, rel_epc);
     else
-      pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, FONT_SIZE, "0x%08X", epc);
+      pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, "0x%08X", epc);
     y += FONT_Y_SPACE;
     
     // Cause
-    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, FONT_SIZE, "Cause");
-    pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, FONT_SIZE, "0x%08X", cause);
+    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, "Cause");
+    pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, "0x%08X", cause);
     y += FONT_Y_SPACE;
 
     // BadVAddr
-    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, FONT_SIZE, "BadVAddr");
-    pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, FONT_SIZE, "0x%08X", bad_v_addr);
+    pgf_draw_text(SHELL_MARGIN_X, y, TEXT_COLOR, "BadVAddr");
+    pgf_draw_textf(COREDUMP_INFO_X, y, TEXT_COLOR, "0x%08X", bad_v_addr);
     y += FONT_Y_SPACE;
 
     // Registers
@@ -318,10 +318,10 @@ int coredumpViewer(const char *file) {
 
       int i;
       for (i = 0; i < 4; i++) {
-        pgf_draw_textf(x, y, TEXT_COLOR, FONT_SIZE, "%s:", regnames[j * 4 + i]);
+        pgf_draw_textf(x, y, TEXT_COLOR, "%s:", regnames[j * 4 + i]);
         x += COREDUMP_REGISTER_NAME_SPACE;
 
-        pgf_draw_textf(x, y, TEXT_COLOR, FONT_SIZE, "0x%08X", regs[j * 4 + i]);
+        pgf_draw_textf(x, y, TEXT_COLOR, "0x%08X", regs[j * 4 + i]);
         x += COREDUMP_REGISTER_SPACE;
       }
   

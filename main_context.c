@@ -176,7 +176,7 @@ void initContextMenuWidth() {
 
   // Home
   for (i = 0; i < N_MENU_HOME_ENTRIES; i++) {
-    context_menu_home.max_width = MAX(context_menu_home.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_home_entries[i].name]));
+    context_menu_home.max_width = MAX(context_menu_home.max_width, pgf_text_width(language_container[menu_home_entries[i].name]));
   }
 
   context_menu_home.max_width += 2.0f * CONTEXT_MENU_MARGIN;
@@ -184,7 +184,7 @@ void initContextMenuWidth() {
 
   // Main
   for (i = 0; i < N_MENU_MAIN_ENTRIES; i++) {
-    context_menu_main.max_width = MAX(context_menu_main.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_main_entries[i].name]));
+    context_menu_main.max_width = MAX(context_menu_main.max_width, pgf_text_width(language_container[menu_main_entries[i].name]));
 
     if (menu_main_entries[i].name == MARK_ALL) {
       menu_main_entries[i].name = UNMARK_ALL;
@@ -197,7 +197,7 @@ void initContextMenuWidth() {
 
   // Sort
   for (i = 0; i < N_MENU_SORT_ENTRIES; i++) {
-    context_menu_sort.max_width = MAX(context_menu_sort.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_sort_entries[i].name]));
+    context_menu_sort.max_width = MAX(context_menu_sort.max_width, pgf_text_width(language_container[menu_sort_entries[i].name]));
   }
 
   context_menu_sort.max_width += 2.0f * CONTEXT_MENU_MARGIN;
@@ -205,7 +205,7 @@ void initContextMenuWidth() {
 
   // More
   for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-    context_menu_more.max_width = MAX(context_menu_more.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_more_entries[i].name]));
+    context_menu_more.max_width = MAX(context_menu_more.max_width, pgf_text_width(language_container[menu_more_entries[i].name]));
   }
 
   context_menu_more.max_width += 2.0f * CONTEXT_MENU_MARGIN;

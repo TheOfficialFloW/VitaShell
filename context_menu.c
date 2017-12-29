@@ -111,7 +111,7 @@ void drawContextMenu() {
         color = INVISIBLE_COLOR;
 
       // Draw entry text
-      pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[ctx->entries[i].name]);
+      pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + CONTEXT_MENU_MARGIN, y, color, language_container[ctx->entries[i].name]);
 
       // Draw arrow for 'More'
       if (ctx->entries[i].more) {
@@ -124,11 +124,13 @@ void drawContextMenu() {
           }
         }
 
-        pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + ctx->max_width - vita2d_pgf_text_width(font, FONT_SIZE, arrow) - CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, arrow);
+        pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + ctx->max_width - pgf_text_width(arrow) - CONTEXT_MENU_MARGIN, y, color, arrow);
       }
     }
 
-    if (ctx_menu_mode == CONTEXT_MENU_MORE_CLOSING || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
+    if (ctx_menu_mode == CONTEXT_MENU_MORE_CLOSING ||
+        ctx_menu_mode == CONTEXT_MENU_MORE_OPENED ||
+        ctx_menu_mode == CONTEXT_MENU_MORE_OPENING) {
       for (i = 0; i < cur_ctx->n_entries; i++) {
         float y = START_Y + (cur_ctx->entries[i].pos * FONT_Y_SPACE);
 
@@ -144,7 +146,7 @@ void drawContextMenu() {
           color = INVISIBLE_COLOR;
 
         // Draw entry text
-        pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + ctx->max_width + CONTEXT_MENU_MARGIN, y, color, FONT_SIZE, language_container[cur_ctx->entries[i].name]);
+        pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + ctx->max_width + CONTEXT_MENU_MARGIN, y, color, language_container[cur_ctx->entries[i].name]);
       }
     }
   }

@@ -92,7 +92,7 @@ int getPropertyDialogStatus() {
 
 static float copyStringGetWidth(char *out, char *in) {
   strcpy(out, in);
-  return vita2d_pgf_text_width(font, FONT_SIZE, out);
+  return pgf_text_width(out);
 }
 
 typedef struct {
@@ -159,7 +159,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 
   for (i = 0; i < N_PROPERTIES_ENTRIES; i++) {
     if (property_entries[i].name != -1) {
-      float width = vita2d_pgf_text_width(font, FONT_SIZE, language_container[property_entries[i].name]);
+      float width = pgf_text_width(language_container[property_entries[i].name]);
       if (width > property_dialog.info_x)
         property_dialog.info_x = width;
 
@@ -433,7 +433,7 @@ void drawPropertyDialog() {
     int i;
     for (i = 0; i < N_PROPERTIES_ENTRIES; i++) {
       if (property_entries[i].visibility == PROPERTY_ENTRY_VISIBLE) {
-        pgf_draw_text(property_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, language_container[property_entries[i].name]);
+        pgf_draw_text(property_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, language_container[property_entries[i].name]);
 
         if (property_entries[i].entry != NULL) {
           uint32_t color = DIALOG_COLOR;
@@ -445,7 +445,7 @@ void drawPropertyDialog() {
           vita2d_set_clip_rectangle(x + 1.0f, string_y, x + 1.0f + max_width, string_y + FONT_Y_SPACE);
           
           if (property_entries[i].name == PROPERTY_NAME) {
-            int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, property_entries[i].entry);
+            int width = (int)pgf_text_width(property_entries[i].entry);
             if (width >= max_width) {
               if (scroll_count < 60) {
                 scroll_x = x;
@@ -464,7 +464,7 @@ void drawPropertyDialog() {
             }
           }
           
-          pgf_draw_text(x, string_y, color, FONT_SIZE, property_entries[i].entry);
+          pgf_draw_text(x, string_y, color, property_entries[i].entry);
 
           vita2d_disable_clipping();
         }
@@ -476,6 +476,6 @@ void drawPropertyDialog() {
 
     char button_string[32];
     sprintf(button_string, "%s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[OK]);
-    pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, button_string);
+    pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, pgf_text_width(button_string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, button_string);
   }
 }

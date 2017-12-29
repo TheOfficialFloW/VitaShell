@@ -104,7 +104,7 @@ typedef struct CountParams {
 void initTextContextMenuWidth() {
   int i;
   for (i = 0; i < N_TEXT_MENU_ENTRIES; i++) {
-    context_menu_text.max_width = MAX(context_menu_text.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[text_menu_entries[i].name]));
+    context_menu_text.max_width = MAX(context_menu_text.max_width, pgf_text_width(language_container[text_menu_entries[i].name]));
   }
 
   context_menu_text.max_width += 2.0f * CONTEXT_MENU_MARGIN;
@@ -961,7 +961,7 @@ int textViewer(const char *file) {
         snprintf(line_str, 5, "%04i", entry->line_number);
 
         int color = (s->rel_pos == i) ? TEXT_LINE_NUMBER_COLOR_FOCUS : TEXT_LINE_NUMBER_COLOR;
-        pgf_draw_text(SHELL_MARGIN_X, START_Y + (i * FONT_Y_SPACE), color, FONT_SIZE, line_str);
+        pgf_draw_text(SHELL_MARGIN_X, START_Y + (i * FONT_Y_SPACE), color, line_str);
       }
 
       float x = TEXT_START_X;
@@ -987,7 +987,7 @@ int textViewer(const char *file) {
           *search_highlight = '\0';
         }
 
-        int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (s->rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR, FONT_SIZE, line);
+        int width = pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), (s->rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR, line);
         line += strlen(line);
 
 
@@ -1005,7 +1005,7 @@ int textViewer(const char *file) {
           search_highlight[search_term_length] = '\0';
 
           x += width;
-          x += pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, FONT_SIZE, line);
+          x += pgf_draw_text(x, START_Y + (i * FONT_Y_SPACE), TEXT_HIGHLIGHT_COLOR, line);
           
           search_highlight[search_term_length] = tmp;
           line += strlen(s->search_term); 

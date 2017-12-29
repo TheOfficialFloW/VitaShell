@@ -361,7 +361,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 
     // Zoom text
     if ((sceKernelGetProcessTimeWide() - time) < ZOOM_TEXT_TIME)
-      pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, PHOTO_ZOOM_COLOR, FONT_SIZE, "%.0f%%", zoom * 100.0f);
+      pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, PHOTO_ZOOM_COLOR, "%.0f%%", zoom * 100.0f);
 
     // End drawing
     endDrawing();

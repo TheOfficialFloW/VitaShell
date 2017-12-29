@@ -308,14 +308,14 @@ int hexViewer(const char *file) {
     drawScrollBar(pos, n_lines);
 
     // Offset/size
-    pgf_draw_textf(HEX_CHAR_X, START_Y, HEX_OFFSET_COLOR, FONT_SIZE, "%08X/%08X", rel_pos+base_pos, size);
+    pgf_draw_textf(HEX_CHAR_X, START_Y, HEX_OFFSET_COLOR, "%08X/%08X", rel_pos+base_pos, size);
 
     // Offset x
-    pgf_draw_text(SHELL_MARGIN_X, START_Y, HEX_OFFSET_COLOR, FONT_SIZE, language_container[OFFSET]);
+    pgf_draw_text(SHELL_MARGIN_X, START_Y, HEX_OFFSET_COLOR, language_container[OFFSET]);
 
     int x;
     for (x = 0; x < 0x10; x++) {
-      pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE), START_Y, HEX_OFFSET_COLOR, FONT_SIZE, "%02X", x);
+      pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE), START_Y, HEX_OFFSET_COLOR, "%02X", x);
     }
 
     HexListEntry *entry = list.head;
@@ -343,19 +343,19 @@ int hexViewer(const char *file) {
         // Character hex
         uint8_t high_nibble = (ch >> 4) & 0xF;
         uint8_t low_nibble = ch & 0xF;
-        int w = pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE), START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && nibble_x == nibble_pos) ? HEX_NIBBLE_COLOR : color, FONT_SIZE, "%01X", high_nibble);
-        pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE) + w, START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && (nibble_x + 1) == nibble_pos) ? HEX_NIBBLE_COLOR : color, FONT_SIZE, "%01X", low_nibble);
+        int w = pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE), START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && nibble_x == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", high_nibble);
+        pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE) + w, START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && (nibble_x + 1) == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", low_nibble);
 
         // Character
         ch = (ch >= 0x20) ? ch : '.';
         int width = font_size_cache[(int)ch];
         uint8_t byte_nibble_pos = nibble_pos - (nibble_pos % 2);
-        pgf_draw_textf(HEX_CHAR_X + (x * FONT_X_SPACE) + (FONT_X_SPACE - width) / 2.0f, START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && nibble_x == byte_nibble_pos) ? HEX_NIBBLE_COLOR : color, FONT_SIZE, "%c", ch);
+        pgf_draw_textf(HEX_CHAR_X + (x * FONT_X_SPACE) + (FONT_X_SPACE - width) / 2.0f, START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && nibble_x == byte_nibble_pos) ? HEX_NIBBLE_COLOR : color, "%c", ch);
       }
 
       // Offset y
       if (x > 0)
-        pgf_draw_textf(SHELL_MARGIN_X, START_Y + ((y + 1) * FONT_Y_SPACE), HEX_OFFSET_COLOR, FONT_SIZE, "%08X", base_pos + (y * 0x10));
+        pgf_draw_textf(SHELL_MARGIN_X, START_Y + ((y + 1) * FONT_Y_SPACE), HEX_OFFSET_COLOR, "%08X", base_pos + (y * 0x10));
 
       // It's the end, break
       if (x < 0x10)

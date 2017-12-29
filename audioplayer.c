@@ -43,7 +43,7 @@ float getCenteroffset(float sx,float ex,char* string){
     return sx;
 
   float drawWidthSpace = ex - sx;
-  uint16_t stringWidth = vita2d_pgf_text_width(font,FONT_SIZE,string);
+  uint16_t stringWidth = pgf_text_width(string);
   return stringWidth > drawWidthSpace ? sx : sx + (drawWidthSpace - stringWidth) / 2 ;
 }
 
@@ -101,14 +101,14 @@ void drawLyrics(Lyrics* lyrics, const char *cur_time_string, uint64_t* totalms, 
   uint32_t m_index = *lyricsIndex >= 1 ? (*lyricsIndex - 1) : *lyricsIndex;
   float right_max_x = SCREEN_WIDTH - SHELL_MARGIN_X;
   //draw current lyrics
-  pgf_draw_textf(getCenteroffset(lrcSpaceX,right_max_x,lyrics->lrclines[m_index].word),lrcSpaceY, AUDIO_INFO_ASSIGN, FONT_SIZE, "%s",lyrics->lrclines[m_index].word);
+  pgf_draw_textf(getCenteroffset(lrcSpaceX,right_max_x,lyrics->lrclines[m_index].word),lrcSpaceY, AUDIO_INFO_ASSIGN, "%s",lyrics->lrclines[m_index].word);
 
   int i;
   for (i = 1;i < 7; i++){//draw 6 line lyrics for preview
     int n_index = m_index + i;
     if(n_index + 1 > lyrics->lyricscount)
       break;
-    pgf_draw_textf(getCenteroffset(lrcSpaceX,right_max_x,lyrics->lrclines[n_index].word),lrcSpaceY + FONT_Y_SPACE * i, AUDIO_INFO, FONT_SIZE, "%s",lyrics->lrclines[n_index].word);
+    pgf_draw_textf(getCenteroffset(lrcSpaceX,right_max_x,lyrics->lrclines[n_index].word),lrcSpaceY + FONT_Y_SPACE * i, AUDIO_INFO, "%s",lyrics->lrclines[n_index].word);
   }
 
   if (*totalms >= (lyrics->lrclines[*lyricsIndex].totalms) ){
@@ -123,7 +123,7 @@ void shortenString(char *out, const char *in, int width) {
 
   int i;
   for (i = strlen(out)-1; i > 0; i--) {
-    if (vita2d_pgf_text_width(font, FONT_SIZE, out) < width)
+    if (pgf_text_width(out) < width)
       break;
 
     out[i] = '\0';
@@ -378,11 +378,11 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
     // Info
     float x = 2.0f * SHELL_MARGIN_X + cover_size;
 
-    pgf_draw_text(x, START_Y + (0 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[TITLE]);
-    pgf_draw_text(x, START_Y + (1 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[ALBUM]);
-    pgf_draw_text(x, START_Y + (2 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[ARTIST]);
-    pgf_draw_text(x, START_Y + (3 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[GENRE]);
-    pgf_draw_text(x, START_Y + (4 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, FONT_SIZE, language_container[YEAR]);
+    pgf_draw_text(x, START_Y + (0 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, language_container[TITLE]);
+    pgf_draw_text(x, START_Y + (1 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, language_container[ALBUM]);
+    pgf_draw_text(x, START_Y + (2 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, language_container[ARTIST]);
+    pgf_draw_text(x, START_Y + (3 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, language_container[GENRE]);
+    pgf_draw_text(x, START_Y + (4 * FONT_Y_SPACE), AUDIO_INFO_ASSIGN, language_container[YEAR]);
 
     x += 120.0f;
 
@@ -392,7 +392,7 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
     float title_x = x;
     uint32_t color = AUDIO_INFO;
 
-    int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, fileinfo->title);
+    int width = (int)pgf_text_width(fileinfo->title);
     if (width >= 390.0f) {
       if (scroll_count < 60) {
         scroll_x = title_x;
@@ -410,11 +410,11 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
       title_x = scroll_x;
     }
 
-    pgf_draw_text(title_x, START_Y + (0 * FONT_Y_SPACE), color, FONT_SIZE, fileinfo->title[0] == '\0' ? "-" : fileinfo->title);    
-    pgf_draw_text(x, START_Y + (1 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->album[0] == '\0' ? "-" : fileinfo->album);
-    pgf_draw_text(x, START_Y + (2 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->artist[0] == '\0' ? "-" : fileinfo->artist);
-    pgf_draw_text(x, START_Y + (3 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->genre[0] == '\0' ? "-" : fileinfo->genre);
-    pgf_draw_text(x, START_Y + (4 * FONT_Y_SPACE), AUDIO_INFO, FONT_SIZE, fileinfo->year[0] == '\0' ? "-" : fileinfo->year);
+    pgf_draw_text(title_x, START_Y + (0 * FONT_Y_SPACE), color, fileinfo->title[0] == '\0' ? "-" : fileinfo->title);    
+    pgf_draw_text(x, START_Y + (1 * FONT_Y_SPACE), AUDIO_INFO, fileinfo->album[0] == '\0' ? "-" : fileinfo->album);
+    pgf_draw_text(x, START_Y + (2 * FONT_Y_SPACE), AUDIO_INFO, fileinfo->artist[0] == '\0' ? "-" : fileinfo->artist);
+    pgf_draw_text(x, START_Y + (3 * FONT_Y_SPACE), AUDIO_INFO, fileinfo->genre[0] == '\0' ? "-" : fileinfo->genre);
+    pgf_draw_text(x, START_Y + (4 * FONT_Y_SPACE), AUDIO_INFO, fileinfo->year[0] == '\0' ? "-" : fileinfo->year);
 
     vita2d_disable_clipping();
 
@@ -434,7 +434,7 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
         icon = fastforward_image;
       }
 
-      pgf_draw_textf(x + 45.0f, y, AUDIO_SPEED, FONT_SIZE, "%dx", abs(getPlayingSpeedFunct() + (getPlayingSpeedFunct() < 0 ? -1 : 1)));
+      pgf_draw_textf(x + 45.0f, y, AUDIO_SPEED, "%dx", abs(getPlayingSpeedFunct() + (getPlayingSpeedFunct() < 0 ? -1 : 1)));
     } else {
       if (isPlayingFunct()) {
         icon = pause_image;
@@ -448,11 +448,11 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
     // Time
     char string[32];
     sprintf(string, "%s / %s", cur_time_string, fileinfo->strLength);
-    float time_x = ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, string));
+    float time_x = ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, pgf_text_width(string));
 
-    int w = pgf_draw_text(time_x, y, AUDIO_TIME_CURRENT, FONT_SIZE, cur_time_string);
-    pgf_draw_text(time_x + (float)w, y, AUDIO_TIME_SLASH, FONT_SIZE, " /");
-    pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, vita2d_pgf_text_width(font, FONT_SIZE, fileinfo->strLength)), y, AUDIO_TIME_TOTAL, FONT_SIZE, fileinfo->strLength);
+    int w = pgf_draw_text(time_x, y, AUDIO_TIME_CURRENT, cur_time_string);
+    pgf_draw_text(time_x + (float)w, y, AUDIO_TIME_SLASH, " /");
+    pgf_draw_text(ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, pgf_text_width(fileinfo->strLength)), y, AUDIO_TIME_TOTAL, fileinfo->strLength);
 
     float length = SCREEN_WIDTH - 3.0f * SHELL_MARGIN_X - cover_size;
     vita2d_draw_rectangle(x, (y) + FONT_Y_SPACE + 10.0f, length, 8, AUDIO_TIME_BAR_BG);

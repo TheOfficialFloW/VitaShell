@@ -326,6 +326,6 @@ void loadTheme() {
     character[0] = i;
     character[1] = '\0';
 
-    font_size_cache[i] = vita2d_pgf_text_width(font, FONT_SIZE, character);
+    font_size_cache[i] = pgf_text_width(character);
   }
 }
