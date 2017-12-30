@@ -221,25 +221,21 @@ int refreshFileList() {
       dirUp();
     }
   } while (res < 0);
-  
-  // TODO: make better position correction
-  
-  // Correct position after deleting the latest entry of the file list
-  while ((base_pos + rel_pos) >= file_list.length) {
-    if (base_pos > 0) {
-      base_pos--;
-    } else if (rel_pos > 0) {
-      rel_pos--;
+    
+  // Position correction
+  if ((base_pos + rel_pos) >= file_list.length) {
+    if (file_list.length >= MAX_POSITION) {
+      base_pos = file_list.length - MAX_POSITION;
+      rel_pos = MAX_POSITION - 1;
+    } else {
+      base_pos = 0;
+      rel_pos = file_list.length - 1;
     }
   }
-
-  // Correct position after deleting an entry while the scrollbar is on the bottom
-  if (file_list.length >= MAX_POSITION) {
-    while ((base_pos + MAX_POSITION - 1) >= file_list.length) {
-      if (base_pos > 0) {
-        base_pos--;
-        rel_pos++;
-      }
+  
+  if ((base_pos + MAX_POSITION - 1) >= file_list.length) {
+    if (file_list.length >= MAX_POSITION) {
+      base_pos = file_list.length - MAX_POSITION;
     }
   }
   
@@ -1316,6 +1312,8 @@ static int fileBrowserMenuCtrl() {
   }
   
   // Move
+  int moved = 0;
+  
   if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
     int old_pos = base_pos + rel_pos;
     
@@ -1325,8 +1323,10 @@ static int fileBrowserMenuCtrl() {
       base_pos--;
     }
 
-    if (old_pos != base_pos + rel_pos)
+    if (old_pos != base_pos + rel_pos) {
+      moved = 1;
       scroll_count = 0;
+    }
   } else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
     int old_pos = base_pos + rel_pos;
 
@@ -1338,8 +1338,10 @@ static int fileBrowserMenuCtrl() {
       }
     }
 
-    if (old_pos != base_pos + rel_pos)
+    if (old_pos != base_pos + rel_pos) {
+      moved = 1;
       scroll_count = 0;
+    }
   }
 
   // Context menu trigger
@@ -1359,8 +1361,9 @@ static int fileBrowserMenuCtrl() {
 
   // Not at 'home'
   if (dir_level > 0) {
-    // Mark entry
-    if (pressed_buttons & SCE_CTRL_SQUARE) {
+    // Mark entry    
+    if (pressed_buttons & SCE_CTRL_SQUARE ||
+       (moved && (current_buttons & SCE_CTRL_SQUARE))) {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry && strcmp(file_entry->name, DIR_UP) != 0) {
         if (!fileListFindEntry(&mark_list, file_entry->name)) {

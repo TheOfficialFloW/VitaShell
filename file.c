@@ -431,10 +431,16 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
     memset(&stat, 0, sizeof(SceIoStat));
     sceIoGetstatByFd(dfd, &stat);
 
+    stat.st_mode |= SCE_S_IWUSR;
+    
     int ret = sceIoMkdir(dst_path, stat.st_mode & 0xFFF);
     if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
       sceIoDclose(dfd);
       return ret;
+    }
+    
+    if (ret == SCE_ERROR_ERRNO_EEXIST) {
+      sceIoChstat(dst_path, &stat, 0x3B);
     }
 
     if (param) {

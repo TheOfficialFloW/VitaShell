@@ -307,9 +307,11 @@ int drawUncommonDialog() {
     float string_y = uncommon_dialog.y + SHELL_MARGIN_Y - 2.0f;
 
     // Draw info
-    if (uncommon_dialog.info[0] != '\0') {
-      float x = ALIGN_RIGHT(uncommon_dialog.x+uncommon_dialog.width-SHELL_MARGIN_X, pgf_text_width(uncommon_dialog.info));
-      pgf_draw_text(x, string_y, DIALOG_COLOR, uncommon_dialog.info);
+    if (uncommon_dialog.mode == SCE_MSG_DIALOG_MODE_PROGRESS_BAR) {
+      if (uncommon_dialog.info[0] != '\0') {
+        float x = ALIGN_RIGHT(uncommon_dialog.x + uncommon_dialog.width - SHELL_MARGIN_X, pgf_text_width(uncommon_dialog.info));
+        pgf_draw_text(x, string_y, DIALOG_COLOR, uncommon_dialog.info);
+      }
     }
 
     // Draw message
@@ -343,12 +345,12 @@ int drawUncommonDialog() {
       
       case SCE_MSG_DIALOG_BUTTON_TYPE_YESNO:
         sprintf(button_string, "%s %s    %s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[YES],
-                               enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[NO]);
+                                                 enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[NO]);
         break;
         
       case SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL:
         sprintf(button_string, "%s %s    %s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[OK],
-                               enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[CANCEL]);
+                                                 enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CROSS : CIRCLE, language_container[CANCEL]);
         break;
         
       case SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL:
