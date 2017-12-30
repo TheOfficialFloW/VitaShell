@@ -32,11 +32,88 @@ char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const seg
                        const char *buffer);
 
 int archiveCheckFilesForUnsafeFself() {
-  // TODO
+  FileListEntry *archive_entry = archive_list.head;
+
+  int i;
+  for (i = 0; i < archive_list.length; i++) {
+    char path[MAX_PATH_LENGTH];
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/%s", archive_file, archive_entry->name);
+
+    // Open
+    SceUID fd = archiveFileOpen(path, SCE_O_RDONLY, 0);
+    if (fd >= 0) {
+      uint32_t magic = 0;
+      archiveFileRead(fd, &magic, sizeof(uint32_t));
+
+      // SCE magic
+      if (magic == 0x00454353) {
+        char sce_header[0x84];
+        archiveFileRead(fd, sce_header, sizeof(sce_header));
+
+        uint64_t elf1_offset = *(uint64_t *)(sce_header + 0x3C);
+        uint64_t phdr_offset = *(uint64_t *)(sce_header + 0x44);
+        uint64_t section_info_offset = *(uint64_t *)(sce_header + 0x54);
+
+        // jump to elf1
+        // Until here we have read 0x88 bytes
+        int i;
+        for (i = 0; i < elf1_offset - 0x88; i += sizeof(uint32_t)) {
+          uint32_t dummy = 0;
+          archiveFileRead(fd, &dummy, sizeof(uint32_t));
+        }
+
+        // Check imports
+        char *buffer = malloc(archive_entry->size);
+        if (buffer) {
+          archiveFileRead(fd, buffer, archive_entry->size);
+
+          Elf32_Ehdr *elf1 = (Elf32_Ehdr*)buffer;
+          Elf32_Phdr *phdr = (Elf32_Phdr*)(buffer + phdr_offset - elf1_offset);
+          segment_info *info = (segment_info*)(buffer + section_info_offset - elf1_offset);
+          
+          // segment is elf2 section
+          char *segment = buffer + info->offset - elf1_offset;
+
+          // zlib compress magic
+          char *uncompressed_buffer = NULL;
+          if (segment[0] == 0x78) {
+            // uncompressedBuffer will return elf2 section
+            uncompressed_buffer = uncompressBuffer(elf1, phdr, info, segment);
+            if (uncompressed_buffer) {
+              segment = uncompressed_buffer;
+            }
+          }
+          
+          int unsafe = checkForUnsafeImports(segment);
+
+          if (uncompressed_buffer)
+            free(uncompressed_buffer);
+          free(buffer);
+
+          if (unsafe) {
+            archiveFileClose(fd);
+            return unsafe;
+          }
+        }
+
+        // Check authid flag
+        uint64_t authid = *(uint64_t *)(sce_header + 0x7C);
+        if (authid != 0x2F00000000000002) {
+          archiveFileClose(fd);
+          return 1; // Unsafe
+        }
+      }
+
+      archiveFileClose(fd);
+    }
+
+    // Next
+    archive_entry = archive_entry->next;
+  }
+
   return 0; // Safe
 }
 
-// TODO: improve traversal
 int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   int res;
 
@@ -74,12 +151,13 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 
         strcpy(entry->name, archive_entry->name + name_length);
         
-        entry->is_folder = archive_entry->is_folder;
-        if (entry->is_folder) {
+        if (p || archive_entry->is_folder) {
           addEndSlash(entry->name);
+          entry->is_folder = 1;
           entry->type = FILE_TYPE_UNKNOWN;
           list->folders++;
         } else {
+          entry->is_folder = 0;
           entry->type = getFileType(entry->name);
           list->files++;
         }
@@ -295,7 +373,6 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
   return -1;
 }
 
-// TODO: use cache
 int archiveFileOpen(const char *file, int flags, SceMode mode) {
   int res;
 
@@ -307,6 +384,7 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
 
   // Initialize
   archive_fd = archive_read_new();
+  archive_read_support_filter_gzip(archive_fd);
   archive_read_support_format_all(archive_fd);
 
   // Open archive file
@@ -383,6 +461,7 @@ int archiveOpen(const char *file) {
 
   // Initialize
   struct archive *archive = archive_read_new();
+  archive_read_support_filter_gzip(archive);
   archive_read_support_format_all(archive);
 
   // Open archive file
@@ -401,7 +480,7 @@ int archiveOpen(const char *file) {
       archive_read_free(archive);
       return -1;
     }
-        
+    
     const char *name = archive_entry_pathname(archive_entry);
     const struct stat *stat = archive_entry_stat(archive_entry);
 

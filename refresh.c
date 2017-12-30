@@ -199,7 +199,7 @@ void app_callback(void* data, const char* dir, const char* subdir)
     return;
 
   if (refresh_data->refresh_pass) {
-    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/%s", dir, subdir);
     if (refreshNeeded(path)) {
       // Move the directory to temp for installation
       removePath(APP_TEMP, NULL);
@@ -226,7 +226,7 @@ void dlc_callback_inner(void* data, const char* dir, const char* subdir)
     return;
 
   if (dlc_data->refresh_data->refresh_pass) {
-    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/%s", dir, subdir);
     if (dlc_data->list_size < MAX_DLC_PER_TITLE)
       dlc_data->list[dlc_data->list_size++] = strdup(path);
   } else {
@@ -252,7 +252,7 @@ void dlc_callback_outer(void* data, const char* dir, const char* subdir)
     // 2. Refresh the moved dlc_data
     for (int i = 0; i < dlc_data.list_size; i++) {
       if (refreshNeeded(dlc_data.list[i])) {
-        snprintf(path, MAX_PATH_LENGTH, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
+        snprintf(path, MAX_PATH_LENGTH - 1, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
         removePath(path, NULL);
         sceIoRename(dlc_data.list[i], path);
       } else {
@@ -265,7 +265,7 @@ void dlc_callback_outer(void* data, const char* dir, const char* subdir)
     // Now that the dlc we need are out of addcont/title_id, refresh them
     for (int i = 0; i < dlc_data.list_size; i++) {
       if (dlc_data.list[i] != NULL) {
-        snprintf(path, MAX_PATH_LENGTH, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
+        snprintf(path, MAX_PATH_LENGTH - 1, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
         if (refreshApp(path) == 1)
           refresh_data->refreshed++;
         else

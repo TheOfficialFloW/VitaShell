@@ -318,7 +318,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
   if (SCE_S_ISDIR(stat.st_mode)) {
     // Check for param.sfo
-    snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/sce_sys/param.sfo", args->file);
     if (sceIoGetstat(path, &stat) < 0 || SCE_S_ISDIR(stat.st_mode)) {
       closeWaitDialog();
       errorDialog(-2);
@@ -326,7 +326,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
     }
 
     // Check permissions
-    snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/eboot.bin", args->file);
     SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
     if (fd >= 0) {
       char buffer[0x88];
@@ -388,7 +388,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
     }
 
     // Check for param.sfo
-    snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/sce_sys/param.sfo", args->file);
     if (archiveFileGetstat(path, NULL) < 0) {
       closeWaitDialog();
       errorDialog(-2);

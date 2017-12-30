@@ -260,7 +260,7 @@ void loadLanguage(int id) {
   if (use_custom_config) {
     if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
       char path[MAX_PATH_LENGTH];
-      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/language/%s.txt", lang[id]);
+      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/language/%s.txt", lang[id]);
       readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
     }
   }

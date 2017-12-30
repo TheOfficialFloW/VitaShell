@@ -594,21 +594,24 @@ typedef struct {
 
 static ExtensionType extension_types[] = {
   { ".PSP2DMP", FILE_TYPE_PSP2DMP },
-  { ".TMP",  FILE_TYPE_PSP2DMP },
-  { ".BMP",  FILE_TYPE_BMP },
-  { ".INI",  FILE_TYPE_INI },
-  { ".JPG",  FILE_TYPE_JPEG },
-  { ".JPEG", FILE_TYPE_JPEG },
-  { ".MP3",  FILE_TYPE_MP3 },
-  { ".MP4",  FILE_TYPE_MP4 },
-  { ".OGG",  FILE_TYPE_OGG },
-  { ".PNG",  FILE_TYPE_PNG },
-  { ".RAR",  FILE_TYPE_RAR },
-  { ".SFO",  FILE_TYPE_SFO },
-  { ".TXT",  FILE_TYPE_TXT },
-  { ".VPK",  FILE_TYPE_VPK },
-  { ".XML",  FILE_TYPE_XML },
-  { ".ZIP",  FILE_TYPE_ZIP },
+  { ".TMP",     FILE_TYPE_PSP2DMP },
+  { ".7Z",      FILE_TYPE_7Z },
+  { ".BMP",     FILE_TYPE_BMP },
+  { ".GZ",      FILE_TYPE_GZ },
+  { ".INI",     FILE_TYPE_INI },
+  { ".ISO",     FILE_TYPE_ISO },
+  { ".JPG",     FILE_TYPE_JPEG },
+  { ".JPEG",    FILE_TYPE_JPEG },
+  { ".MP3",     FILE_TYPE_MP3 },
+  { ".MP4",     FILE_TYPE_MP4 },
+  { ".OGG",     FILE_TYPE_OGG },
+  { ".PNG",     FILE_TYPE_PNG },
+  { ".RAR",     FILE_TYPE_RAR },
+  { ".SFO",     FILE_TYPE_SFO },
+  { ".TXT",     FILE_TYPE_TXT },
+  { ".VPK",     FILE_TYPE_VPK },
+  { ".XML",     FILE_TYPE_XML },
+  { ".ZIP",     FILE_TYPE_ZIP },
 };
 
 int getFileType(const char *file) {
@@ -623,6 +626,20 @@ int getFileType(const char *file) {
   }
 
   return FILE_TYPE_UNKNOWN;
+}
+
+int isArchiveType(int type) {
+  switch (type) {
+    case FILE_TYPE_7Z:
+    case FILE_TYPE_GZ:
+    case FILE_TYPE_ISO:
+    case FILE_TYPE_RAR:
+    case FILE_TYPE_ZIP:
+      return 1;
+      
+    default:
+      return 0;
+  }
 }
 
 int getNumberOfDevices() {

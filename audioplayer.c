@@ -137,13 +137,13 @@ vita2d_texture *getAlternativeCoverImage(const char *file) {
   if (p) {
     *p = '\0';
 
-    snprintf(path, MAX_PATH_LENGTH, "%s/cover.jpg", file);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/cover.jpg", file);
     if (checkFileExist(path)) {
       *p = '/';
       return vita2d_load_JPEG_file(path);
     }
 
-    snprintf(path, MAX_PATH_LENGTH, "%s/folder.jpg", file);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/folder.jpg", file);
     if (checkFileExist(path)) {
       *p = '/';
       return vita2d_load_JPEG_file(path);
@@ -327,7 +327,7 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
 
           if (!entry->is_folder) {
             char path[MAX_PATH_LENGTH];
-            snprintf(path, MAX_PATH_LENGTH, "%s%s", list->path, entry->name);
+            snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", list->path, entry->name);
             int type = getFileType(path);
             if (type == FILE_TYPE_MP3 || type == FILE_TYPE_OGG) {
               file = path;

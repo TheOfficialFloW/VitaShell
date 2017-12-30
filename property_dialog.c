@@ -64,7 +64,7 @@ PropertyEntry property_entries[] = {
   { PROPERTY_TYPE, PROPERTY_ENTRY_VISIBLE, property_type, sizeof(property_type) },
   { PROPERTY_FSELF_MODE, PROPERTY_ENTRY_VISIBLE, property_fself_mode, sizeof(property_fself_mode) },
   { PROPERTY_SIZE, PROPERTY_ENTRY_VISIBLE, property_size, sizeof(property_size) },
-  { PROPERTY_COMPRESSED_SIZE, PROPERTY_ENTRY_VISIBLE, property_compressed_size, sizeof(property_compressed_size) },
+  // { PROPERTY_COMPRESSED_SIZE, PROPERTY_ENTRY_VISIBLE, property_compressed_size, sizeof(property_compressed_size) },
   { PROPERTY_CONTAINS, PROPERTY_ENTRY_VISIBLE, property_contains, sizeof(property_contains) },
   { -1, PROPERTY_ENTRY_UNUSED, NULL },
   { PROPERTY_CREATION_DATE, PROPERTY_ENTRY_VISIBLE, property_creation_date, sizeof(property_creation_date) },
@@ -76,7 +76,7 @@ enum PropertyEntries {
   PROPERTY_ENTRY_TYPE,
   PROPERTY_ENTRY_FSELF_MODE,
   PROPERTY_ENTRY_SIZE,
-  PROPERTY_ENTRY_COMPRESSED_SIZE,
+  // PROPERTY_ENTRY_COMPRESSED_SIZE,
   PROPERTY_ENTRY_CONTAINS,
   PROPERTY_ENTRY_EMPTY_1,
   PROPERTY_ENTRY_CREATION_DATE,
@@ -287,18 +287,18 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
       property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_VISIBLE;
     }
 
-    property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
+    // property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
   } else {
     getSizeString(property_size, entry->size);
     property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_INVISIBLE;
-    
+    /*
     // Compressed size
     if (isInArchive()) {
       getSizeString(property_compressed_size, entry->size2);
       property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_VISIBLE;
     } else {
       property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
-    }
+    }*/
   }
 
   // Dates

@@ -436,7 +436,7 @@ void setContextMenuMoreVisibilities() {
     menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
   } else {
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH, "%s%ssce_pfs", file_list.path, file_entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%ssce_pfs", file_list.path, file_entry->name);
     
     if (!checkFolderExist(path))
       menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
@@ -713,9 +713,9 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
       int count = 1;
       while (1) {
         if (count == 1) {
-          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, language_container[NEW_FOLDER]);
+          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, language_container[NEW_FOLDER]);
         } else {
-          snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
+          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
         }
 
         if (!checkFolderExist(path))
@@ -824,7 +824,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
       int i;
       for (i = 0; i < file_list.length - 1; i++) {
         char path[MAX_PATH_LENGTH];
-        snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
 
         int type = getFileType(path);
         if (type == FILE_TYPE_VPK) {
@@ -894,14 +894,14 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 
         gameDataUmount();
 
-        snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
         res = gameDataMount(path);
         
         // In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
-        snprintf(path, MAX_PATH_LENGTH, "ux0:app/%s", file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "ux0:app/%s", file_entry->name);
         if (res < 0)
           res = gameDataMount(path);
-        snprintf(path, MAX_PATH_LENGTH, "gro:app/%s", file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "gro:app/%s", file_entry->name);
         if (res < 0)
           res = gameDataMount(path);
 

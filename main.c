@@ -74,7 +74,6 @@ int file_type = FILE_TYPE_UNKNOWN;
 // Archive
 static int is_in_archive = 0;
 static char dir_level_archive = -1;
-enum FileTypes archive_type = FILE_TYPE_ZIP;
 
 // FTP
 static char vita_ip[16];
@@ -117,10 +116,6 @@ void dirLevelUp() {
   rel_pos_list[dir_level] = 0;
   base_pos = 0;
   rel_pos = 0;
-}
-
-enum FileTypes getArchiveType(){
-  return archive_type;
 }
 
 int isInArchive() {
@@ -233,7 +228,7 @@ static void refreshMarkList() {
     FileListEntry *next = entry->next;
 
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, entry->name);
 
     // Check if the entry still exits. If not, remove it from list
     SceIoStat stat;
@@ -257,7 +252,7 @@ static void refreshCopyList() {
     FileListEntry *next = entry->next;
 
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_list.path, entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", copy_list.path, entry->name);
 
     // Check if the entry still exits. If not, remove it from list
     SceIoStat stat;
@@ -278,6 +273,9 @@ static int handleFile(const char *file, FileListEntry *entry) {
 
   switch (type) {
     case FILE_TYPE_PSP2DMP:
+    case FILE_TYPE_7Z:
+    case FILE_TYPE_GZ:
+    case FILE_TYPE_ISO:
     case FILE_TYPE_MP3:
     case FILE_TYPE_OGG:
     case FILE_TYPE_RAR:
@@ -312,10 +310,6 @@ static int handleFile(const char *file, FileListEntry *entry) {
       res = audioPlayer(file, type, &file_list, entry, &base_pos, &rel_pos);
       break;
       
-    case FILE_TYPE_RAR:
-      res = archiveOpen(file);
-      break;
-      
     case FILE_TYPE_SFO:
       res = SFOReader(file);
       break;
@@ -325,6 +319,10 @@ static int handleFile(const char *file, FileListEntry *entry) {
       setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
       break;
       
+    case FILE_TYPE_7Z:
+    case FILE_TYPE_GZ:
+    case FILE_TYPE_ISO:
+    case FILE_TYPE_RAR:
     case FILE_TYPE_ZIP:
       res = archiveOpen(file);
       break;
@@ -884,7 +882,7 @@ static int dialogSteps() {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
           char path[MAX_PATH_LENGTH];
-          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
+          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
 
           int res = sceIoMkdir(path, 0777);
           if (res < 0) {
@@ -1392,9 +1390,8 @@ static int fileBrowserMenuCtrl() {
         int type = handleFile(cur_file, file_entry);
 
         // Archive mode
-        if (type == FILE_TYPE_ZIP || type == FILE_TYPE_RAR) {
+        if (isArchiveType(type)) {
           is_in_archive = 1;
-          archive_type = type;
           dir_level_archive = dir_level;
 
           snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
@@ -1545,6 +1542,9 @@ static int shellMain() {
               icon = image_icon;
               break;
               
+            case FILE_TYPE_7Z:
+            case FILE_TYPE_GZ:
+            case FILE_TYPE_ISO:
             case FILE_TYPE_RAR:
             case FILE_TYPE_VPK:
             case FILE_TYPE_ZIP:
