@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0x01
-#define VITASHELL_VERSION_MINOR 0x76
+#define VITASHELL_VERSION_MINOR 0x77
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 

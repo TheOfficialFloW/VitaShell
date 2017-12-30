@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ static void utf8_to_utf16(const uint8_t *src, uint16_t *dst) {
   int i;
   for (i = 0; src[i];) {
     if ((src[i] & 0xE0) == 0xE0) {
-      *(dst++) = ((src[i] & 0x0F) << 12) | ((src[i + 1] & 0x3F) << 6) | (src[i+2] & 0x3F);
+      *(dst++) = ((src[i] & 0x0F) << 12) | ((src[i + 1] & 0x3F) << 6) | (src[i + 2] & 0x3F);
       i += 3;
     } else if ((src[i] & 0xC0) == 0xC0) {
       *(dst++) = ((src[i] & 0x1F) << 6) | (src[i + 1] & 0x3F);

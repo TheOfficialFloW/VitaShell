@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -63,8 +63,8 @@ static char focus_name[MAX_NAME_LENGTH], compress_name[MAX_NAME_LENGTH];
 
 // Position
 int base_pos = 0, rel_pos = 0;
-static uint8_t base_pos_list[MAX_DIR_LEVELS];
-static uint8_t rel_pos_list[MAX_DIR_LEVELS];
+static int base_pos_list[MAX_DIR_LEVELS];
+static int rel_pos_list[MAX_DIR_LEVELS];
 static int dir_level = 0;
 
 // Modes
@@ -99,7 +99,7 @@ int use_custom_config = 1;
 
 int getDialogStep() {
   sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
-  int step = dialog_step;
+  volatile int step = dialog_step;
   sceKernelUnlockLwMutex(&dialog_mutex, 1);
   return step;
 }
@@ -111,8 +111,8 @@ void setDialogStep(int step) {
 }
 
 void dirLevelUp() {
-  base_pos_list[dir_level] = (uint8_t)base_pos;
-  rel_pos_list[dir_level] = (uint8_t)rel_pos;
+  base_pos_list[dir_level] = base_pos;
+  rel_pos_list[dir_level] = rel_pos;
   dir_level++;
   base_pos_list[dir_level] = 0;
   rel_pos_list[dir_level] = 0;
@@ -144,8 +144,8 @@ void dirUpCloseArchive() {
 
 static void dirUp() {
   if (pfs_mounted_path[0] &&
-    strcmp(file_list.path, pfs_mounted_path) == 0 && // we're about to leave the pfs path
-    !strstr(copy_list.path, pfs_mounted_path)) { // nothing has been copied from pfs path
+      strcmp(file_list.path, pfs_mounted_path) == 0 && // we're about to leave the pfs path
+      !strstr(copy_list.path, pfs_mounted_path)) { // nothing has been copied from pfs path
     // Then umount
     gameDataUmount();
   }
@@ -181,30 +181,17 @@ DIR_UP_RETURN:
 
 static void setFocusOnFilename(const char *name) {
   int name_pos = fileListGetNumberByName(&file_list, name);
-  if (name_pos < file_list.length) {
-    while (1) {
-      int index = base_pos + rel_pos;
-      if (index == name_pos)
-        break;
-
-      if (index > name_pos) {
-        if (rel_pos > 0) {
-          rel_pos--;
-        } else if (base_pos > 0) {
-          base_pos--;
-        }
-      }
-
-      if (index < name_pos) {
-        if ((rel_pos + 1) < file_list.length) {
-          if ((rel_pos + 1) < MAX_POSITION) {
-            rel_pos++;
-          } else if ((base_pos + rel_pos + 1) < file_list.length) {
-            base_pos++;
-          }
-        }
-      }
-    }
+  if (name_pos < 0 || name_pos >= file_list.length)
+    return;
+  
+  if (name_pos >= base_pos && name_pos < (base_pos + MAX_POSITION)) {
+    rel_pos = name_pos - base_pos;
+  } else if (name_pos < base_pos) {
+    base_pos = name_pos;
+    rel_pos = 0;
+  } else if (name_pos >= (base_pos + MAX_POSITION)) {
+    rel_pos = MAX_POSITION - 1;
+    base_pos = name_pos - rel_pos;
   }
 }
 
@@ -223,20 +210,20 @@ int refreshFileList() {
   } while (res < 0);
     
   // Position correction
-  if ((base_pos + rel_pos) >= file_list.length) {
-    if (file_list.length >= MAX_POSITION) {
-      base_pos = file_list.length - MAX_POSITION;
+  if (file_list.length >= MAX_POSITION) {
+    if ((base_pos + rel_pos) >= file_list.length) {
       rel_pos = MAX_POSITION - 1;
-    } else {
-      base_pos = 0;
+    }
+    
+    if ((base_pos + MAX_POSITION - 1) >= file_list.length) {
+      base_pos = file_list.length - MAX_POSITION;
+    }
+  } else {
+    if ((base_pos + rel_pos) >= file_list.length) {
       rel_pos = file_list.length - 1;
     }
-  }
-  
-  if ((base_pos + MAX_POSITION - 1) >= file_list.length) {
-    if (file_list.length >= MAX_POSITION) {
-      base_pos = file_list.length - MAX_POSITION;
-    }
+    
+    base_pos = 0;
   }
   
   return ret;
@@ -581,19 +568,10 @@ static int dialogSteps() {
           if (fileListFindEntry(&mark_list, file_entry->name)) {
             fileListEmpty(&mark_list);
           }
-
-          // The name of the newly created zip
-          char *name = (char *)getImeDialogInputTextUTF8();
-
-          // Mark that entry
-          FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
-          strcpy(mark_entry->name, name);
-          mark_entry->name_length = strlen(name);
-          fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
-
+          
           // Focus
-          strcpy(focus_name, name);
-
+          strcpy(focus_name, compress_name);
+          
           refresh = REFRESH_MODE_SETFOCUS;
           setDialogStep(DIALOG_STEP_NONE);
         }
@@ -608,10 +586,10 @@ static int dialogSteps() {
       if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
         // Empty mark list
         fileListEmpty(&mark_list);
-
+        
         // Copy copy list to mark list
         FileListEntry *copy_entry = copy_list.head;
-
+        
         int i;
         for (i = 0; i < copy_list.length; i++) {
           FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
@@ -621,7 +599,7 @@ static int dialogSteps() {
           // Next
           copy_entry = copy_entry->next;
         }
-
+        
         // Focus
         strcpy(focus_name, copy_list.head->name);
 
@@ -919,7 +897,11 @@ static int dialogSteps() {
           if (res < 0) {
             errorDialog(res);
           } else {
-            refresh = REFRESH_MODE_NORMAL;
+            // Focus
+            strcpy(focus_name, name);
+            addEndSlash(focus_name);
+            
+            refresh = REFRESH_MODE_SETFOCUS;
             setDialogStep(DIALOG_STEP_NONE);
           }
         }
@@ -1311,9 +1293,7 @@ static int fileBrowserMenuCtrl() {
     setDialogStep(DIALOG_STEP_QR);
   }
   
-  // Move
-  int moved = 0;
-  
+  // Move  
   if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
     int old_pos = base_pos + rel_pos;
     
@@ -1324,7 +1304,6 @@ static int fileBrowserMenuCtrl() {
     }
 
     if (old_pos != base_pos + rel_pos) {
-      moved = 1;
       scroll_count = 0;
     }
   } else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
@@ -1339,7 +1318,6 @@ static int fileBrowserMenuCtrl() {
     }
 
     if (old_pos != base_pos + rel_pos) {
-      moved = 1;
       scroll_count = 0;
     }
   }
@@ -1362,8 +1340,7 @@ static int fileBrowserMenuCtrl() {
   // Not at 'home'
   if (dir_level > 0) {
     // Mark entry    
-    if (pressed_buttons & SCE_CTRL_SQUARE ||
-       (moved && (current_buttons & SCE_CTRL_SQUARE))) {
+    if (pressed_buttons & SCE_CTRL_SQUARE) {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry && strcmp(file_entry->name, DIR_UP) != 0) {
         if (!fileListFindEntry(&mark_list, file_entry->name)) {
@@ -1422,7 +1399,7 @@ static int fileBrowserMenuCtrl() {
         int type = handleFile(cur_file, file_entry);
 
         // Archive mode
-        if ((type == FILE_TYPE_ZIP) || (type == FILE_TYPE_RAR)) {
+        if (type == FILE_TYPE_ZIP || type == FILE_TYPE_RAR) {
           is_in_archive = 1;
           archive_type = type;
           dir_level_archive = dir_level;

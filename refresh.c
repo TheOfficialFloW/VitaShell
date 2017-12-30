@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
   Copyright (C) 2017, VitaSmith
 
   This program is free software: you can redistribute it and/or modify

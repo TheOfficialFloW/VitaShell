@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -670,7 +670,7 @@ FileListEntry *fileListGetNthEntry(FileList *list, int n) {
 
 int fileListGetNumberByName(FileList *list, const char *name) {
   if (!list)
-    return 0;
+    return -1;
 
   FileListEntry *entry = list->head;
 
@@ -680,13 +680,13 @@ int fileListGetNumberByName(FileList *list, const char *name) {
 
   while (entry) {
     if (entry->name_length == name_length && strcasecmp(entry->name, name) == 0)
-      break;
+      return n;
 
     n++;
     entry = entry->next;
   }
 
-  return n;
+  return -1;
 }
 
 void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
