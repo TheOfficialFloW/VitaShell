@@ -22,10 +22,9 @@
 #include "utils.h"
 #include "elf.h"
 
-#include "minizip/unzip.h"
-
+static char archive_file[MAX_PATH_LENGTH];
 static int archive_path_start = 0;
-static unzFile uf = NULL;
+struct archive *archive_fd = NULL;
 static FileList archive_list;
 
 int checkForUnsafeImports(void *buffer);
@@ -33,94 +32,15 @@ char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const seg
                        const char *buffer);
 
 int archiveCheckFilesForUnsafeFself() {
-  if (!uf)
-    return -1;
-
-  FileListEntry *archive_entry = archive_list.head;
-
-  int i;
-  for (i = 0; i < archive_list.length; i++) {
-    // Set pos
-    unzGoToFilePos64(uf, (unz64_file_pos *)&archive_entry->reserved);
-
-    // Open
-    if (unzOpenCurrentFile(uf) >= 0) {
-      uint32_t magic = 0;
-      archiveFileRead(ARCHIVE_FD, &magic, sizeof(uint32_t));
-
-      // SCE magic
-      if (magic == 0x00454353) {
-        char sce_header[0x84];
-        archiveFileRead(ARCHIVE_FD, sce_header, sizeof(sce_header));
-
-        uint64_t elf1_offset = *(uint64_t *)(sce_header + 0x3C);
-        uint64_t phdr_offset = *(uint64_t *)(sce_header + 0x44);
-        uint64_t section_info_offset = *(uint64_t *)(sce_header + 0x54);
-
-        int i;
-        // jump to elf1
-        // Until here we have read 0x88 bytes
-        for (i = 0; i < elf1_offset - 0x88; i += sizeof(uint32_t)) {
-          uint32_t dummy = 0;
-          archiveFileRead(ARCHIVE_FD, &dummy, sizeof(uint32_t));
-        }
-
-        // Check imports
-        char *buffer = malloc(archive_entry->size);
-        if (buffer) {
-          int size = archiveFileRead(ARCHIVE_FD, buffer, archive_entry->size);
-
-          Elf32_Ehdr *elf1 = (Elf32_Ehdr*)buffer;
-          Elf32_Phdr *phdr = (Elf32_Phdr*)(buffer + phdr_offset - elf1_offset);
-          segment_info *info = (segment_info*)(buffer + section_info_offset - elf1_offset);
-          // segment is elf2 section
-          char *segment = buffer + info->offset - elf1_offset;
-
-          // zlib compress magic
-          char *uncompressed_buffer = NULL;
-          if (segment[0] == 0x78) {
-            // uncompressedBuffer will return elf2 section
-            uncompressed_buffer = uncompressBuffer(elf1, phdr, info, segment);
-            if (uncompressed_buffer) {
-              segment = uncompressed_buffer;
-            }
-          }
-          int unsafe = checkForUnsafeImports(segment);
-
-          if (uncompressed_buffer) {
-            free(uncompressed_buffer);
-          }
-          free(buffer);
-
-
-          if (unsafe) {
-            archiveFileClose(ARCHIVE_FD);
-            return unsafe;
-          }
-        }
-
-        // Check authid flag
-        uint64_t authid = *(uint64_t *)(sce_header + 0x7C);
-        if (authid != 0x2F00000000000002) {
-          archiveFileClose(ARCHIVE_FD);
-          return 1; // Unsafe
-        }
-      }
-
-      archiveFileClose(ARCHIVE_FD);
-    }
-
-    // Next
-    archive_entry = archive_entry->next;
-  }
-
+  // TODO
   return 0; // Safe
 }
 
+// TODO: improve traversal
 int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   int res;
 
-  if (!list || !uf)
+  if (!list)
     return -1;
 
   FileListEntry *entry = malloc(sizeof(FileListEntry));
@@ -130,7 +50,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   entry->type = FILE_TYPE_UNKNOWN;
   fileListAddEntry(list, entry, sort);
 
-  const char *archive_path = path+archive_path_start;
+  const char *archive_path = path + archive_path_start;
   int name_length = strlen(archive_path);
 
   FileListEntry *archive_entry = archive_list.head;
@@ -139,28 +59,27 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   for (i = 0; i < archive_list.length; i++) {
     if (archive_entry->name_length >= name_length &&
         strncasecmp(archive_entry->name, archive_path, name_length) == 0) { // Needs a / at end
-      char *p = strchr(archive_entry->name+name_length, '/'); // it's a sub-directory if it has got a slash
+      char *p = strchr(archive_entry->name + name_length, '/'); // it's a sub-directory if it has got a slash
 
       if (p)
         *p = '\0';
 
       char name[MAX_PATH_LENGTH];
-      strcpy(name, archive_entry->name+name_length);
+      strcpy(name, archive_entry->name + name_length);
       if (p)
         addEndSlash(name);
 
       if (strlen(name) > 0 && !fileListFindEntry(list, name)) {
         FileListEntry *entry = malloc(sizeof(FileListEntry));
 
-        strcpy(entry->name, archive_entry->name+name_length);
-
-        if (p) {
+        strcpy(entry->name, archive_entry->name + name_length);
+        
+        entry->is_folder = archive_entry->is_folder;
+        if (entry->is_folder) {
           addEndSlash(entry->name);
-          entry->is_folder = 1;
           entry->type = FILE_TYPE_UNKNOWN;
           list->folders++;
         } else {
-          entry->is_folder = 0;
           entry->type = getFileType(entry->name);
           list->files++;
         }
@@ -188,9 +107,6 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 }
 
 int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
-  if (!uf)
-    return -1;
-
   SceIoStat stat;
   memset(&stat, 0, sizeof(SceIoStat));
   if (archiveFileGetstat(path, &stat) < 0) {
@@ -201,7 +117,7 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
     FileListEntry *entry = list.head->next; // Ignore ..
 
     int i;
-    for (i = 0; i < list.length-1; i++) {
+    for (i = 0; i < list.length - 1; i++) {
       char *new_path = malloc(strlen(path) + strlen(entry->name) + 2);
       snprintf(new_path, MAX_PATH_LENGTH, "%s%s", path, entry->name);
 
@@ -228,9 +144,6 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
 }
 
 int extractArchivePath(const char *src, const char *dst, FileProcessParam *param) {
-  if (!uf)
-    return -1;
-
   SceIoStat stat;
   memset(&stat, 0, sizeof(SceIoStat));
   if (archiveFileGetstat(src, &stat) < 0) {
@@ -260,7 +173,7 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
     FileListEntry *entry = list.head->next; // Ignore ..
 
     int i;
-    for (i = 0; i < list.length-1; i++) {
+    for (i = 0; i < list.length - 1; i++) {
       char *src_path = malloc(strlen(src) + strlen(entry->name) + 2);
       snprintf(src_path, MAX_PATH_LENGTH, "%s%s", src, entry->name);
 
@@ -351,14 +264,11 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
 }
 
 int archiveFileGetstat(const char *file, SceIoStat *stat) {
-  if (!uf)
-    return -1;
-
   const char *archive_path = file+archive_path_start;
   int name_length = strlen(archive_path);
 
   // Is directory
-  if (archive_path[name_length-1] == '/')
+  if (archive_path[name_length - 1] == '/')
     return -1;
 
   FileListEntry *archive_entry = archive_list.head;
@@ -385,50 +295,65 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
   return -1;
 }
 
+// TODO: use cache
 int archiveFileOpen(const char *file, int flags, SceMode mode) {
   int res;
 
-  if (!uf)
+  const char *archive_path = file + archive_path_start;  
+
+  // A file is already open
+  if (archive_fd)
     return -1;
 
-  const char *archive_path = file+archive_path_start;  
-  int name_length = strlen(archive_path);
+  // Initialize
+  archive_fd = archive_read_new();
+  archive_read_support_format_all(archive_fd);
 
-  FileListEntry *archive_entry = archive_list.head;
+  // Open archive file
+  res = archive_read_open_filename(archive_fd, archive_file, 10240);
+  if (res)
+    return -1;
 
-  int i;
-  for (i = 0; i < archive_list.length; i++) {
-    if (archive_entry->name_length == name_length && strcasecmp(archive_entry->name, archive_path) == 0) {
-      // Set pos
-      unzGoToFilePos64(uf, (unz64_file_pos *)&archive_entry->reserved);
-
-      // Open
-      res = unzOpenCurrentFile(uf);
-      if (res < 0)
-        return res;
-
+  // Go through all files
+  while (1) {
+    struct archive_entry *archive_entry;
+    res = archive_read_next_header(archive_fd, &archive_entry);
+    if (res == ARCHIVE_EOF)
+      break;
+    
+    if (res != ARCHIVE_OK) {
+      archive_read_free(archive_fd);
+      return -1;
+    }
+    
+    const char *name = archive_entry_pathname(archive_entry);
+    
+    if (strcmp(name, archive_path) == 0) {
       return ARCHIVE_FD;
     }
-
-    // Next
-    archive_entry = archive_entry->next;
   }
+
+  archive_read_free(archive_fd);
+  archive_fd = NULL;
 
   return -1;
 }
 
 int archiveFileRead(SceUID fd, void *data, SceSize size) {
-  if (!uf || fd != ARCHIVE_FD)
+  if (!archive_fd || fd != ARCHIVE_FD)
     return -1;
 
-  return unzReadCurrentFile(uf, data, size);
+  return archive_read_data(archive_fd, data, size);
 }
 
 int archiveFileClose(SceUID fd) {
-  if (!uf || fd != ARCHIVE_FD)
+  if (!archive_fd || fd != ARCHIVE_FD)
     return -1;
 
-  return unzCloseCurrentFile(uf);
+  archive_read_free(archive_fd);
+  archive_fd = NULL;
+
+  return 0;
 }
 
 int ReadArchiveFile(const char *file, void *buf, int size) {
@@ -442,70 +367,69 @@ int ReadArchiveFile(const char *file, void *buf, int size) {
 }
 
 int archiveClose() {
-  if (!uf)
-    return -1;
-
   fileListEmpty(&archive_list);
-
-  unzClose(uf);
-  uf = NULL;
-
   return 0;
 }
 
 int archiveOpen(const char *file) {
+  int res;
+
   // Start position of the archive path
   archive_path_start = strlen(file) + 1;
-
-  // Close previous zip file first
-  if (uf)
-    unzClose(uf);
-
-  // Open zip file
-  uf = unzOpen64(file);
-  if (!uf)
-    return -1;
+  strcpy(archive_file, file);
 
   // Clear archive list
   memset(&archive_list, 0, sizeof(FileList));
 
+  // Initialize
+  struct archive *archive = archive_read_new();
+  archive_read_support_format_all(archive);
+
+  // Open archive file
+  res = archive_read_open_filename(archive, file, 10240);
+  if (res)
+    return -1;
+
   // Go through all files
-  int res;
-  char name[MAX_PATH_LENGTH];
-  unz_file_info64 file_info;
+  while (1) {
+    struct archive_entry *archive_entry;
+    res = archive_read_next_header(archive, &archive_entry);
+    if (res == ARCHIVE_EOF)
+      break;
+    
+    if (res != ARCHIVE_OK) {
+      archive_read_free(archive);
+      return -1;
+    }
+        
+    const char *name = archive_entry_pathname(archive_entry);
+    const struct stat *stat = archive_entry_stat(archive_entry);
 
-  res = unzGoToFirstFile2(uf, &file_info, name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);
-  if (res < 0)
-    return res;
-
-  while (res >= 0) {
     FileListEntry *entry = malloc(sizeof(FileListEntry));
 
     // File info
     strcpy(entry->name, name);
-    entry->is_folder = 0;
-    entry->name_length = file_info.size_filename;
-    entry->size = file_info.uncompressed_size;
-    entry->size2 = file_info.compressed_size;
-
+    entry->name_length = strlen(name);
+    entry->is_folder = stat->st_mode & S_IFDIR;
+    entry->size = stat->st_size; // uncompressed size
+    entry->size2 = 0; // TODO: uncompressed size
+    
     // Time
     SceDateTime time;
-    sceRtcSetDosTime(&time, file_info.dosDate);
-    convertLocalTimeToUtc(&time, &time);
-
-    memcpy(&entry->ctime, &time, sizeof(SceDateTime));
-    memcpy(&entry->mtime, &time, sizeof(SceDateTime));
-    memcpy(&entry->atime, &time, sizeof(SceDateTime));
-
-    // Get pos
-    unzGetFilePos64(uf, (unz64_file_pos *)&entry->reserved);
-
+    
+    sceRtcSetTime_t(&time, stat->st_ctime);
+    convertLocalTimeToUtc(&entry->ctime, &time);
+    
+    sceRtcSetTime_t(&time, stat->st_mtime);
+    convertLocalTimeToUtc(&entry->mtime, &time);
+    
+    sceRtcSetTime_t(&time, stat->st_atime);
+    convertLocalTimeToUtc(&entry->atime, &time);
+    
     // Add entry
     fileListAddEntry(&archive_list, entry, SORT_BY_NAME);
-
-    // Next
-    res = unzGoToNextFile2(uf, &file_info, name, MAX_PATH_LENGTH, NULL, 0, NULL, 0);
   }
 
+  archive_read_free(archive);
   return 0;
 }

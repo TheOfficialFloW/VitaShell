@@ -118,8 +118,6 @@ add_executable(VitaShell
   libmad/stream.c
   libmad/synth.c
   libmad/timer.c
-  unrarlib/unrarlibutils.c
-  archiveRAR.c
 )
 
 target_link_libraries(VitaShell
@@ -135,8 +133,8 @@ target_link_libraries(VitaShell
   c
   quirc
   onigmo
-  unrar
-  stdc++
+  archive
+  bz2
   taihen_stub
   VitaShellUser_stub_weak
   SceAppMgr_stub

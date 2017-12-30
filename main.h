@@ -19,53 +19,23 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
-#include <psp2/appmgr.h>
-#include <psp2/apputil.h>
-#include <psp2/audioout.h>
-#include <psp2/audiodec.h>
-#include <psp2/ctrl.h>
-#include <psp2/display.h>
-#include <psp2/libssl.h>
-#include <psp2/ime_dialog.h>
-#include <psp2/message_dialog.h>
-#include <psp2/mtpif.h>
-#include <psp2/musicexport.h>
-#include <psp2/npdrm.h>
-#include <psp2/photoexport.h>
-#include <psp2/pgf.h>
-#include <psp2/power.h>
-#include <psp2/promoterutil.h>
-#include <psp2/rtc.h>
-#include <psp2/registrymgr.h>
-#include <psp2/shellutil.h>
-#include <psp2/sqlite.h>
-#include <psp2/sysmodule.h>
-#include <psp2/system_param.h>
-#include <psp2/touch.h>
-#include <psp2/types.h>
-#include <psp2/udcd.h>
-#include <psp2/usbstorvstor.h>
-#include <psp2/videoexport.h>
-#include <psp2/kernel/modulemgr.h>
-#include <psp2/kernel/processmgr.h>
-#include <psp2/io/devctl.h>
-#include <psp2/io/dirent.h>
-#include <psp2/io/fcntl.h>
-#include <psp2/net/http.h>
-#include <psp2/net/net.h>
-#include <psp2/net/netctl.h>
+#include <vitasdk.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <malloc.h>
+#include <locale.h>
 
 #include <math.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include <archive.h>
+#include <archive_entry.h>
 
 #include <zlib.h>
 
@@ -264,7 +234,7 @@ extern char archive_copy_path[MAX_PATH_LENGTH];
 extern char archive_path[MAX_PATH_LENGTH];
 
 extern int base_pos, rel_pos;
-extern int sort_mode, copy_mode, file_type;
+extern int sort_mode, copy_mode;
 
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
@@ -284,7 +254,6 @@ void drawScrollBar(int pos, int n);
 void drawShellInfo(const char *path);
 
 int isInArchive();
-enum FileTypes getArchiveType();
 
 int refreshFileList();
 

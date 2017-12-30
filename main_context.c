@@ -86,9 +86,9 @@ enum MenuSortEntrys {
 };
 
 MenuEntry menu_sort_entries[] = {
-  { BY_NAME, 13, 0, CTX_INVISIBLE },
-  { BY_SIZE, 14, 0, CTX_INVISIBLE },
-  { BY_DATE, 15, 0, CTX_INVISIBLE },
+  { BY_NAME, 12, 0, CTX_INVISIBLE },
+  { BY_SIZE, 13, 0, CTX_INVISIBLE },
+  { BY_DATE, 14, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries) / sizeof(MenuEntry))
@@ -103,12 +103,12 @@ enum MenuMoreEntrys {
 };
 
 MenuEntry menu_more_entries[] = {
-  { COMPRESS,       12, 0, CTX_INVISIBLE },
-  { INSTALL_ALL,    13, 0, CTX_INVISIBLE },
-  { INSTALL_FOLDER, 14, 0, CTX_INVISIBLE },
-  { EXPORT_MEDIA,   15, 0, CTX_INVISIBLE },
-  { CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
-  { OPEN_DECRYPTED, 17, 0, CTX_INVISIBLE },
+  { COMPRESS,       13, 0, CTX_INVISIBLE },
+  { INSTALL_ALL,    14, 0, CTX_INVISIBLE },
+  { INSTALL_FOLDER, 15, 0, CTX_INVISIBLE },
+  { EXPORT_MEDIA,   16, 0, CTX_INVISIBLE },
+  { CALCULATE_SHA1, 17, 0, CTX_INVISIBLE },
+  { OPEN_DECRYPTED, 18, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
@@ -592,7 +592,6 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
           copy_mode = isInArchive() ? COPY_MODE_EXTRACT : COPY_MODE_NORMAL;
         }
         
-        file_type = getArchiveType();
         strcpy(archive_copy_path, archive_path);
 
         // Empty copy list at first

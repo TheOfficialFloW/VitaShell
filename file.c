@@ -1000,11 +1000,7 @@ int fileListGetEntries(FileList *list, const char *path, int sort) {
     return -1;
 
   if (isInArchive()) {
-    enum FileTypes type = getArchiveType();
-    if(type == FILE_TYPE_ZIP)
-      return fileListGetArchiveEntries(list, path, sort);
-    else if(type == FILE_TYPE_RAR)
-      return fileListGetRARArchiveEntries(list,path,sort);
+    return fileListGetArchiveEntries(list, path, sort);
   }
 
   if (strcasecmp(path, HOME_PATH) == 0) {

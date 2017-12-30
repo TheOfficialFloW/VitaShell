@@ -19,7 +19,6 @@
 #ifndef __ARCHIVE_H__
 #define __ARCHIVE_H__
 
-#include "archiveRAR.h"
 #include "file.h"
 
 #define ARCHIVE_FD 0x12345678

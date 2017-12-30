@@ -30,18 +30,7 @@ static vita2d_texture *loadImage(const char *file, int type, char *buffer) {
     int size = 0;
 
     if (isInArchive()) {
-      enum FileTypes archiveType = getArchiveType();
-      switch(archiveType){
-        case FILE_TYPE_ZIP:
-          size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
-          break;
-        case FILE_TYPE_RAR:
-          size = ReadArchiveRARFile(file,buffer,BIG_BUFFER_SIZE);
-          break;
-        default:
-          size = -1;
-          break;
-        }
+      size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
     } else {
       size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
     }

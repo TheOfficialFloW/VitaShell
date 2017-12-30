@@ -18,7 +18,6 @@
 
 #include "main.h"
 #include "archive.h"
-#include "archiveRAR.h"
 #include "file.h"
 #include "text.h"
 #include "hex.h"
@@ -110,19 +109,8 @@ int SFOReader(const char *file) {
   int size = 0;
 
   if (isInArchive()) {
-    enum FileTypes archiveType = getArchiveType();
-    switch(archiveType){
-      case FILE_TYPE_ZIP: 
-        size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE); 
-        break; 
-      case FILE_TYPE_RAR: 
-        size = ReadArchiveRARFile(file,buffer,BIG_BUFFER_SIZE);
-        break;
-      default:
-        size = -1;
-        break;
-      }
-  }else {
+    size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE); 
+  } else {
     size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
   }
 
