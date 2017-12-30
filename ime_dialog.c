@@ -78,6 +78,8 @@ int initImeDialog(const char *title, const char *initial_text, int max_text_leng
   ime_initial_text = initial_text;
 
   // Convert UTF8 to UTF16
+  memset(ime_title_utf16, 0, sizeof(ime_title_utf16));
+  memset(ime_initial_text_utf16, 0, sizeof(ime_initial_text_utf16));
   utf8_to_utf16((uint8_t *)title, ime_title_utf16);
   utf8_to_utf16((uint8_t *)initial_text, ime_initial_text_utf16);
 
@@ -131,7 +133,7 @@ int updateImeDialog() {
     sceImeDialogGetResult(&result);
 
     if ((ime_dialog_option == SCE_IME_OPTION_MULTILINE && result.button == SCE_IME_DIALOG_BUTTON_CLOSE) ||
-      (ime_dialog_option != SCE_IME_OPTION_MULTILINE && result.button == SCE_IME_DIALOG_BUTTON_ENTER)) {
+        (ime_dialog_option != SCE_IME_OPTION_MULTILINE && result.button == SCE_IME_DIALOG_BUTTON_ENTER)) {
       // Convert UTF16 to UTF8
       utf16_to_utf8(ime_input_text_utf16, ime_input_text_utf8);
     } else {

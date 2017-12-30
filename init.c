@@ -285,27 +285,6 @@ static void finishNet() {
   sceNetTerm();  
 }
 
-static void loadScePaf() {
-  static uint32_t scepaf_argp[] = {
-    0x00400000,
-    0x0000EA60,
-    0x00040000,
-    0x00000000,
-    0x00000001,
-    0x00000000
-  };
-
-  uint32_t result = 0xDEADBEEF;
-
-  uint32_t buf[4];
-  buf[0] = 0;
-  buf[1] = (uint32_t)&result;
-  buf[2] = 0;
-  buf[3] = 0;
-
-  sceSysmoduleLoadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, sizeof(scepaf_argp), scepaf_argp, buf);
-}
-
 void installDefaultFiles() {
   // Make VitaShell folders
   sceIoMkdir("ux0:VitaShell", 0777);
@@ -356,9 +335,6 @@ void initVitaShell() {
   sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 
   // Load modules
-  loadScePaf();
-
-  sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
   sceSysmoduleLoadModule(SCE_SYSMODULE_VIDEO_EXPORT);
   sceSysmoduleLoadModule(SCE_SYSMODULE_PGF);
   sceSysmoduleLoadModule(SCE_SYSMODULE_MUSIC_EXPORT);
@@ -408,5 +384,4 @@ void finishVitaShell() {
   sceSysmoduleUnloadModule(SCE_SYSMODULE_MUSIC_EXPORT);
   sceSysmoduleUnloadModule(SCE_SYSMODULE_PGF);
   sceSysmoduleUnloadModule(SCE_SYSMODULE_VIDEO_EXPORT);
-  sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
 }

@@ -164,6 +164,14 @@ int stopUsb(SceUID modid) {
   // Remount Memory Card
   remount(0x800);
 
+  // Remount imc0:
+  if (checkFolderExist("imc0:"))
+    remount(0xD00);
+
+  // Remount xmc0:
+  if (checkFolderExist("xmc0:"))
+    remount(0xE00);
+
   // Remount uma0:
   if (checkFolderExist("uma0:"))
     remount(0xF00);

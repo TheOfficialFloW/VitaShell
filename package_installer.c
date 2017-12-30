@@ -29,16 +29,55 @@
 
 INCLUDE_EXTERN_RESOURCE(head_bin);
 
+static int loadScePaf() {
+  static uint32_t argp[] = { 0x180000, -1, -1, 1, -1, -1 };
+
+  int result = -1;
+
+  uint32_t buf[4];
+  buf[0] = sizeof(buf);
+  buf[1] = (uint32_t)&result;
+  buf[2] = -1;
+  buf[3] = -1;
+
+  return sceSysmoduleLoadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, sizeof(argp), argp, buf);
+}
+
+static int unloadScePaf() {
+  uint32_t buf = 0;
+  return sceSysmoduleUnloadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, 0, NULL, &buf);
+}
+
 int promoteApp(const char *path) {
   int res;
+
+  res = loadScePaf();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
 
   res = scePromoterUtilityInit();
   if (res < 0)
     return res;
 
   res = scePromoterUtilityPromotePkgWithRif(path, 1);
+  if (res < 0)
+    return res;
 
-  scePromoterUtilityExit();
+  res = scePromoterUtilityExit();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
+  res = unloadScePaf();
+  if (res < 0)
+    return res;
 
   return res;
 }
@@ -48,13 +87,33 @@ int deleteApp(const char *titleid) {
 
   sceAppMgrDestroyOtherApp();
 
+  res = loadScePaf();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
   res = scePromoterUtilityInit();
   if (res < 0)
     return res;
 
   res = scePromoterUtilityDeletePkg(titleid);
+  if (res < 0)
+    return res;
 
-  scePromoterUtilityExit();
+  res = scePromoterUtilityExit();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
+  res = unloadScePaf();
+  if (res < 0)
+    return res;
 
   return res;
 }
@@ -63,15 +122,35 @@ int checkAppExist(const char *titleid) {
   int res;
   int ret;
 
+  res = loadScePaf();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
   res = scePromoterUtilityInit();
   if (res < 0)
     return res;
 
-  res = scePromoterUtilityCheckExist(titleid, &ret);
+  ret = scePromoterUtilityCheckExist(titleid, &res);
+  if (res < 0)
+    return res;
 
-  scePromoterUtilityExit();
+  res = scePromoterUtilityExit();
+  if (res < 0)
+    return res;
 
-  return res >= 0;
+  res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
+  res = unloadScePaf();
+  if (res < 0)
+    return res;
+
+  return ret >= 0;
 }
 
 static void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
