@@ -197,7 +197,7 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
     int i;
     for (i = 0; i < list.length - 1; i++) {
       char *new_path = malloc(strlen(path) + strlen(entry->name) + 2);
-      snprintf(new_path, MAX_PATH_LENGTH, "%s%s", path, entry->name);
+      snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s", path, entry->name);
 
       getArchivePathInfo(new_path, size, folders, files);
 
@@ -253,10 +253,10 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
     int i;
     for (i = 0; i < list.length - 1; i++) {
       char *src_path = malloc(strlen(src) + strlen(entry->name) + 2);
-      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", src, entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", src, entry->name);
 
       char *dst_path = malloc(strlen(dst) + strlen(entry->name) + 2);
-      snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", dst, entry->name);
+      snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", dst, entry->name);
 
       int ret = extractArchivePath(src_path, dst_path, param);
 
@@ -373,6 +373,10 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
   return -1;
 }
 
+void waitpid() {}
+void __archive_create_child() {}
+void __archive_check_child() {}
+
 int archiveFileOpen(const char *file, int flags, SceMode mode) {
   int res;
 
@@ -383,12 +387,13 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
     return -1;
 
   // Initialize
+  setlocale(LC_ALL, "");
   archive_fd = archive_read_new();
-  archive_read_support_filter_gzip(archive_fd);
+  archive_read_support_filter_all(archive_fd);
   archive_read_support_format_all(archive_fd);
 
   // Open archive file
-  res = archive_read_open_filename(archive_fd, archive_file, 10240);
+  res = archive_read_open_filename(archive_fd, archive_file, TRANSFER_SIZE);
   if (res)
     return -1;
 
@@ -460,12 +465,13 @@ int archiveOpen(const char *file) {
   memset(&archive_list, 0, sizeof(FileList));
 
   // Initialize
+  setlocale(LC_ALL, "");
   struct archive *archive = archive_read_new();
-  archive_read_support_filter_gzip(archive);
+  archive_read_support_filter_all(archive);
   archive_read_support_format_all(archive);
 
   // Open archive file
-  res = archive_read_open_filename(archive, file, 10240);
+  res = archive_read_open_filename(archive, file, TRANSFER_SIZE);
   if (res)
     return -1;
 

@@ -134,6 +134,9 @@ target_link_libraries(VitaShell
   onigmo
   archive
   bz2
+  lzma
+  crypto
+  expat
   taihen_stub
   VitaShellUser_stub_weak
   SceAppMgr_stub

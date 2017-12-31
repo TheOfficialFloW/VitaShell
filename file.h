@@ -36,23 +36,19 @@
 
 enum FileTypes {
   FILE_TYPE_UNKNOWN,
-  FILE_TYPE_PSP2DMP,
-  FILE_TYPE_7Z,
+  FILE_TYPE_ARCHIVE,
   FILE_TYPE_BMP,
-  FILE_TYPE_GZ,
   FILE_TYPE_INI,
-  FILE_TYPE_ISO,
   FILE_TYPE_JPEG,
   FILE_TYPE_MP3,
   FILE_TYPE_MP4,
   FILE_TYPE_OGG,
   FILE_TYPE_PNG,
-  FILE_TYPE_RAR,
+  FILE_TYPE_PSP2DMP,
   FILE_TYPE_SFO,
   FILE_TYPE_TXT,
   FILE_TYPE_VPK,
   FILE_TYPE_XML,
-  FILE_TYPE_ZIP,
 };
 
 enum FileSortFlags {
@@ -114,7 +110,6 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
 int movePath(const char *src_path, const char *dst_path, int flags, FileProcessParam *param);
 
 int getFileType(const char *file);
-int isArchiveType(int type);
 
 int getNumberOfDevices();
 char **getDevices();

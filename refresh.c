@@ -57,7 +57,7 @@ int refreshNeeded(const char *app_path)
   int res, is_app = (app_path[6] == 'p');
 
   // Read param.sfo
-  snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
+  snprintf(sfo_path, MAX_PATH_LENGTH - 1, "%s/sce_sys/param.sfo", app_path);
   void *sfo_buffer = NULL;
   int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
   if (sfo_size < 0) {
@@ -84,18 +84,18 @@ int refreshNeeded(const char *app_path)
     // Check if bounded rif file exits
     _sceNpDrmGetRifName(rif_name, 0, aid);
     if (is_app)
-      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
+      snprintf(sfo_path, MAX_PATH_LENGTH - 1, "ux0:license/app/%s/%s", titleid, rif_name);
     else
-      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
+      snprintf(sfo_path, MAX_PATH_LENGTH - 1, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
     if (checkFileExist(sfo_path))
       return 0;
 
     // Check if fixed rif file exits
     _sceNpDrmGetFixedRifName(rif_name, 0, 0);
     if (is_app)
-      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
+      snprintf(sfo_path, MAX_PATH_LENGTH - 1, "ux0:license/app/%s/%s", titleid, rif_name);
     else
-      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
+      snprintf(sfo_path, MAX_PATH_LENGTH - 1, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
     if (checkFileExist(sfo_path))
       return 0;
   }
@@ -108,7 +108,7 @@ int refreshApp(const char *app_path)
   char work_bin_path[MAX_PATH_LENGTH];
   int res;
 
-  snprintf(work_bin_path, MAX_PATH_LENGTH, "%s/sce_sys/package/work.bin", app_path);
+  snprintf(work_bin_path, MAX_PATH_LENGTH - 1, "%s/sce_sys/package/work.bin", app_path);
 
   // Remove work.bin for custom homebrews
   if (isCustomHomebrew(work_bin_path)) {
@@ -117,7 +117,7 @@ int refreshApp(const char *app_path)
     // If available, restore work.bin from licenses.db
     void *sfo_buffer = NULL;
     char sfo_path[MAX_PATH_LENGTH], contentid[50];
-    snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
+    snprintf(sfo_path, MAX_PATH_LENGTH - 1, "%s/sce_sys/param.sfo", app_path);
     int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
     if (sfo_size > 0) {
       getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));

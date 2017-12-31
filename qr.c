@@ -227,7 +227,7 @@ int qr_scan_thread(SceSize args, void *argp) {
   if (ext) {
     int len = ext-fileName;
     if (len > sizeof(short_name) - 1)
-      len = sizeof(short_name)-1;
+      len = sizeof(short_name) - 1;
     strncpy(short_name, fileName, len);
     short_name[len] = '\0';
   } else {
@@ -236,9 +236,9 @@ int qr_scan_thread(SceSize args, void *argp) {
   }
   while (1) {
     if (count == 0)
-      snprintf(download_path, sizeof(download_path)-1, "ux0:download/%s", fileName);
+      snprintf(download_path, sizeof(download_path) - 1, "ux0:download/%s", fileName);
     else
-      snprintf(download_path, sizeof(download_path)-1, "ux0:download/%s (%d)%s", short_name, count, ext);
+      snprintf(download_path, sizeof(download_path) - 1, "ux0:download/%s (%d)%s", short_name, count, ext);
 
     SceIoStat stat;
     memset(&stat, 0, sizeof(SceIoStat));

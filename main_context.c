@@ -403,13 +403,13 @@ void setContextMenuMoreVisibilities() {
         break;
       }
       
-      snprintf(check_path, MAX_PATH_LENGTH, "%s%s/eboot.bin", file_list.path, file_entry->name);
+      snprintf(check_path, MAX_PATH_LENGTH - 1, "%s%s/eboot.bin", file_list.path, file_entry->name);
       if (!checkFileExist(check_path)) {
         menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
         break;
       }
       
-      snprintf(check_path, MAX_PATH_LENGTH, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
+      snprintf(check_path, MAX_PATH_LENGTH - 1, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
       if (!checkFileExist(check_path)) {
         menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
         break;
@@ -698,7 +698,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
     {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry) {
-        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
         initPropertyDialog(cur_file, file_entry);
       }
 
@@ -849,7 +849,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
     {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry) {
-        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
         initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
         setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
       }

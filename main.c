@@ -273,14 +273,10 @@ static int handleFile(const char *file, FileListEntry *entry) {
 
   switch (type) {
     case FILE_TYPE_PSP2DMP:
-    case FILE_TYPE_7Z:
-    case FILE_TYPE_GZ:
-    case FILE_TYPE_ISO:
     case FILE_TYPE_MP3:
     case FILE_TYPE_OGG:
-    case FILE_TYPE_RAR:
     case FILE_TYPE_VPK:
-    case FILE_TYPE_ZIP:
+    case FILE_TYPE_ARCHIVE:
       if (isInArchive())
         type = FILE_TYPE_UNKNOWN;
 
@@ -319,11 +315,7 @@ static int handleFile(const char *file, FileListEntry *entry) {
       setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
       break;
       
-    case FILE_TYPE_7Z:
-    case FILE_TYPE_GZ:
-    case FILE_TYPE_ISO:
-    case FILE_TYPE_RAR:
-    case FILE_TYPE_ZIP:
+    case FILE_TYPE_ARCHIVE:
       res = archiveOpen(file);
       break;
       
@@ -854,8 +846,8 @@ static int dialogSteps() {
               char old_path[MAX_PATH_LENGTH];
               char new_path[MAX_PATH_LENGTH];
 
-              snprintf(old_path, MAX_PATH_LENGTH, "%s%s", file_list.path, old_name);
-              snprintf(new_path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
+              snprintf(old_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, old_name);
+              snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
 
               int res = sceIoRename(old_path, new_path);
               if (res < 0) {
@@ -929,7 +921,7 @@ static int dialogSteps() {
         if (level[0] == '\0') {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
-          snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, compress_name);
+          snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, compress_name);
 
           CompressArguments args;
           args.file_list = &file_list;
@@ -973,7 +965,7 @@ static int dialogSteps() {
         FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
         if (file_entry) {
           // Place the full file path in cur_file
-          snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+          snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
 
           HashArguments args;
           args.file_path = cur_file;
@@ -1009,7 +1001,7 @@ static int dialogSteps() {
 
         if (install_list.length > 0) {
           FileListEntry *entry = install_list.head;
-          snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
+          snprintf(install_path, MAX_PATH_LENGTH - 1, "%s%s", install_list.path, entry->name);
           args.file = install_path;
 
           // Focus
@@ -1386,15 +1378,15 @@ static int fileBrowserMenuCtrl() {
         if (res < 0)
           errorDialog(res);
       } else {
-        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
         int type = handleFile(cur_file, file_entry);
 
         // Archive mode
-        if (isArchiveType(type)) {
+        if (type == FILE_TYPE_ARCHIVE) {
           is_in_archive = 1;
           dir_level_archive = dir_level;
 
-          snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+          snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
 
           strcat(file_list.path, file_entry->name);
           addEndSlash(file_list.path);
@@ -1542,12 +1534,8 @@ static int shellMain() {
               icon = image_icon;
               break;
               
-            case FILE_TYPE_7Z:
-            case FILE_TYPE_GZ:
-            case FILE_TYPE_ISO:
-            case FILE_TYPE_RAR:
             case FILE_TYPE_VPK:
-            case FILE_TYPE_ZIP:
+            case FILE_TYPE_ARCHIVE:
               color = ARCHIVE_COLOR;
               icon = archive_icon;
               break;

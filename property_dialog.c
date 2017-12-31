@@ -254,12 +254,8 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
       type = PROPERTY_TYPE_XML;
       break;
       
-    case FILE_TYPE_ZIP:  
-      type = PROPERTY_TYPE_ZIP;
-      break;
-      
-    case FILE_TYPE_RAR:
-      type = PROPERTY_TYPE_RAR;
+    case FILE_TYPE_ARCHIVE:  
+      type = PROPERTY_TYPE_ARCHIVE;
       break;
   }
 

@@ -187,7 +187,7 @@ int getPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *f
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (handler && handler(new_path)) {
           free(new_path);
@@ -251,7 +251,7 @@ int removePath(const char *path, FileProcessParam *param) {
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
           int ret = removePath(new_path, param);
@@ -465,10 +465,10 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-        snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
+        snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
         char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
-        snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
+        snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
         int ret = 0;
 
@@ -559,10 +559,10 @@ int movePath(const char *src_path, const char *dst_path, int flags, FileProcessP
         res = sceIoDread(dfd, &dir);
         if (res > 0) {
           char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-          snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
+          snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
           char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
-          snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
+          snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
           // Recursive move
           int ret = movePath(new_src_path, new_dst_path, flags, param);
@@ -593,30 +593,55 @@ typedef struct {
 } ExtensionType;
 
 static ExtensionType extension_types[] = {
-  { ".PSP2DMP", FILE_TYPE_PSP2DMP },
-  { ".TMP",     FILE_TYPE_PSP2DMP },
-  { ".7Z",      FILE_TYPE_7Z },
-  { ".BMP",     FILE_TYPE_BMP },
-  { ".GZ",      FILE_TYPE_GZ },
-  { ".INI",     FILE_TYPE_INI },
-  { ".ISO",     FILE_TYPE_ISO },
-  { ".JPG",     FILE_TYPE_JPEG },
-  { ".JPEG",    FILE_TYPE_JPEG },
-  { ".MP3",     FILE_TYPE_MP3 },
-  { ".MP4",     FILE_TYPE_MP4 },
-  { ".OGG",     FILE_TYPE_OGG },
-  { ".PNG",     FILE_TYPE_PNG },
-  { ".RAR",     FILE_TYPE_RAR },
-  { ".SFO",     FILE_TYPE_SFO },
-  { ".TXT",     FILE_TYPE_TXT },
-  { ".VPK",     FILE_TYPE_VPK },
-  { ".XML",     FILE_TYPE_XML },
-  { ".ZIP",     FILE_TYPE_ZIP },
+  { ".7Z",       FILE_TYPE_ARCHIVE },
+  { ".AR",       FILE_TYPE_ARCHIVE },
+  { ".BMP",      FILE_TYPE_BMP },
+  { ".CPIO",     FILE_TYPE_ARCHIVE },
+  { ".INI",      FILE_TYPE_INI },
+  { ".ISO",      FILE_TYPE_ARCHIVE },
+  { ".JPEG",     FILE_TYPE_JPEG },
+  { ".JPG",      FILE_TYPE_JPEG },
+  { ".MP3",      FILE_TYPE_MP3 },
+  { ".MP4",      FILE_TYPE_MP4 },
+  { ".MTREE",    FILE_TYPE_ARCHIVE },
+  { ".OGG",      FILE_TYPE_OGG },
+  { ".PNG",      FILE_TYPE_PNG },
+  { ".PSP2DMP",  FILE_TYPE_PSP2DMP },
+  { ".RAR",      FILE_TYPE_ARCHIVE },
+  { ".SFO",      FILE_TYPE_SFO },
+  { ".SHAR",     FILE_TYPE_ARCHIVE },
+  { ".TAR",      FILE_TYPE_ARCHIVE },
+  { ".TAR.BZ2",  FILE_TYPE_ARCHIVE },
+  { ".TAR.GZ",   FILE_TYPE_ARCHIVE },
+  { ".TAR.LZ",   FILE_TYPE_ARCHIVE },
+  { ".TAR.LZMA", FILE_TYPE_ARCHIVE },
+  { ".TAR.XZ",   FILE_TYPE_ARCHIVE },
+  { ".TAR.Z",    FILE_TYPE_ARCHIVE },
+  { ".TAZ",      FILE_TYPE_ARCHIVE },
+  { ".TBZ",      FILE_TYPE_ARCHIVE },
+  { ".TBZ2",     FILE_TYPE_ARCHIVE },
+  { ".TGZ",      FILE_TYPE_ARCHIVE },
+  { ".TLZ",      FILE_TYPE_ARCHIVE },
+  { ".TMP",      FILE_TYPE_PSP2DMP },
+  { ".TXT",      FILE_TYPE_TXT },
+  { ".TXZ",      FILE_TYPE_ARCHIVE },
+  { ".TZ",       FILE_TYPE_ARCHIVE },
+  { ".TZ2",      FILE_TYPE_ARCHIVE },
+  { ".TZMA",     FILE_TYPE_ARCHIVE },
+  { ".TZO",      FILE_TYPE_ARCHIVE },
+  { ".VPK",      FILE_TYPE_VPK },
+  { ".XAR",      FILE_TYPE_ARCHIVE },
+  { ".XML",      FILE_TYPE_XML },
+  { ".ZIP",      FILE_TYPE_ARCHIVE },
 };
 
 int getFileType(const char *file) {
   char *p = strrchr(file, '.');
   if (p) {
+    if ((p - file) >= 4 && strncmp(p - 4, ".tar", 4) == 0) {
+      p = p - 4;
+    }
+    
     int i;
     for (i = 0; i < (sizeof(extension_types) / sizeof(ExtensionType)); i++) {
       if (strcasecmp(p, extension_types[i].extension) == 0) {
@@ -626,20 +651,6 @@ int getFileType(const char *file) {
   }
 
   return FILE_TYPE_UNKNOWN;
-}
-
-int isArchiveType(int type) {
-  switch (type) {
-    case FILE_TYPE_7Z:
-    case FILE_TYPE_GZ:
-    case FILE_TYPE_ISO:
-    case FILE_TYPE_RAR:
-    case FILE_TYPE_ZIP:
-      return 1;
-      
-    default:
-      return 0;
-  }
 }
 
 int getNumberOfDevices() {
