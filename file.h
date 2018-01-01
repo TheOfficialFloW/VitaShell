@@ -82,7 +82,6 @@ typedef struct FileListEntry {
   SceDateTime ctime;
   SceDateTime mtime;
   SceDateTime atime;
-  int reserved[16];
 } FileListEntry;
 
 typedef struct {
