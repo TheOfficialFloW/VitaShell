@@ -323,4 +323,9 @@
 - Fixed Electron theme visual glitch and added new settings look (thanks to Acemad).<br>
     ]]>
   </changes>
+   <changes app_ver="01.78">
+    <![CDATA[
+- Fixed bug where archives > 2GB couldn't be opened.<br>
+    ]]>
+  </changes>
 </changeinfo>

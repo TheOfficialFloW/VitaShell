@@ -34,6 +34,93 @@ void waitpid() {}
 void __archive_create_child() {}
 void __archive_check_child() {}
 
+struct archive_data {
+  const char *filename;
+  SceUID fd;
+  void *buffer;
+  int block_size;
+};
+
+static int file_open(struct archive *a, void *client_data) {
+  struct archive_data *archive_data = client_data;
+  
+  archive_data->fd = sceIoOpen(archive_data->filename, SCE_O_RDONLY, 0);
+  if (archive_data->fd < 0)
+    return ARCHIVE_FATAL;
+  
+  archive_data->buffer = malloc(TRANSFER_SIZE);
+  archive_data->block_size = TRANSFER_SIZE;
+  
+  return ARCHIVE_OK;
+}
+
+static ssize_t file_read(struct archive *a, void *client_data, const void **buff) {
+  struct archive_data *archive_data = client_data;
+  *buff = archive_data->buffer;
+  return sceIoRead(archive_data->fd, archive_data->buffer, archive_data->block_size);
+}
+
+static int64_t file_skip(struct archive *a, void *client_data, int64_t request) {
+  struct archive_data *archive_data = client_data;
+  int64_t old_offset, new_offset;
+
+  if ((old_offset = sceIoLseek(archive_data->fd, 0, SCE_SEEK_CUR)) >= 0 &&
+      (new_offset = sceIoLseek(archive_data->fd, request, SCE_SEEK_CUR)) >= 0)
+    return new_offset - old_offset;
+
+  return -1;
+}
+
+static int64_t file_seek(struct archive *a, void *client_data, int64_t request, int whence) {
+  struct archive_data *archive_data = client_data;
+  int64_t r;
+
+  r = sceIoLseek(archive_data->fd, request, whence);
+  if (r >= 0)
+    return r;
+
+  return ARCHIVE_FATAL;
+}
+
+static int file_close2(struct archive *a, void *client_data) {
+  struct archive_data *archive_data = client_data;
+
+  if (archive_data->fd >= 0) {
+    sceIoClose(archive_data->fd);
+    archive_data->fd = -1;
+  }
+
+  free(archive_data->buffer);
+  archive_data->buffer = NULL;
+
+  return ARCHIVE_OK;
+}
+
+static int file_close(struct archive *a, void *client_data) {
+  struct archive_data *archive_data = client_data;
+  file_close2(a, client_data);
+  free(archive_data);
+  return ARCHIVE_OK;
+}
+
+static int file_switch(struct archive *a, void *client_data1, void *client_data2) {
+  file_close2(a, client_data1);
+  return file_open(a, client_data2);
+}
+
+int open_archive(struct archive *a, const char *filename) {
+  struct archive_data *archive_data = malloc(sizeof(struct archive_data));
+  archive_data->filename = filename;
+  archive_read_append_callback_data(a, archive_data);
+  archive_read_set_open_callback(a, file_open);
+  archive_read_set_read_callback(a, file_read);
+  archive_read_set_skip_callback(a, file_skip);
+  archive_read_set_close_callback(a, file_close);
+  archive_read_set_switch_callback(a, file_switch);
+  archive_read_set_seek_callback(a, file_seek);
+  return archive_read_open1(a);
+}
+
 typedef struct ArchiveFileNode {
   struct ArchiveFileNode *parent;
   struct ArchiveFileNode *child;
@@ -217,7 +304,7 @@ int archiveCheckFilesForUnsafeFself() {
   archive_read_support_format_all(archive);
 
   // Open archive file
-  res = archive_read_open_filename(archive, archive_file, 10240);
+  res = open_archive(archive, archive_file);
   if (res)
     return 0;
   
@@ -549,7 +636,7 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
   archive_read_support_format_all(archive_fd);
 
   // Open archive file
-  res = archive_read_open_filename(archive_fd, archive_file, 10240);
+  res = open_archive(archive_fd, archive_file);
   if (res)
     return -1;
 
@@ -623,7 +710,7 @@ int archiveOpen(const char *file) {
   archive_read_support_format_all(archive);
 
   // Open archive file
-  res = archive_read_open_filename(archive, file, 10240);
+  res = open_archive(archive, file);
   if (res)
     return -1;
 
