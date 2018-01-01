@@ -103,12 +103,12 @@ enum MenuMoreEntrys {
 };
 
 MenuEntry menu_more_entries[] = {
-  { COMPRESS,       13, 0, CTX_INVISIBLE },
-  { INSTALL_ALL,    14, 0, CTX_INVISIBLE },
-  { INSTALL_FOLDER, 15, 0, CTX_INVISIBLE },
-  { EXPORT_MEDIA,   16, 0, CTX_INVISIBLE },
-  { CALCULATE_SHA1, 17, 0, CTX_INVISIBLE },
-  { OPEN_DECRYPTED, 18, 0, CTX_INVISIBLE },
+  { COMPRESS,       12, 0, CTX_INVISIBLE },
+  { INSTALL_ALL,    13, 0, CTX_INVISIBLE },
+  { INSTALL_FOLDER, 14, 0, CTX_INVISIBLE },
+  { EXPORT_MEDIA,   15, 0, CTX_INVISIBLE },
+  { CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
+  { OPEN_DECRYPTED, 17, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))

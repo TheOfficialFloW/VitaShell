@@ -39,8 +39,8 @@ typedef struct ArchiveFileNode {
   struct ArchiveFileNode *child;
   struct ArchiveFileNode *next;
   char name[MAX_NAME_LENGTH];
-  int name_length;
   int is_folder;
+  SceMode mode;
   SceOff size;
   SceDateTime ctime;
   SceDateTime mtime;
@@ -75,14 +75,18 @@ ArchiveFileNode *createArchiveNode(const char *name, const struct stat *stat, in
   node->next = NULL;
   if (is_folder || stat->st_mode & S_IFDIR)
     node->is_folder = 1;
-  node->name_length = strlen(name);
   strcpy(node->name, name);
   
   if (stat) {
     SceDateTime time;
 
+    if (stat->st_mode & S_IFDIR)
+      node->mode |= SCE_S_IFDIR;
+    if (stat->st_mode & S_IFREG)
+      node->mode |= SCE_S_IFREG;
+    
     node->size = stat->st_size;
-        
+    
     sceRtcSetTime_t(&time, stat->st_ctime);
     convertLocalTimeToUtc(&node->ctime, &time);
     
@@ -336,7 +340,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
       list->files++;
     }
 
-    entry->name_length = curr->name_length;
+    entry->name_length = strlen(entry->name);
     entry->size = curr->size;
     
     memcpy(&entry->ctime, (SceDateTime *)&curr->ctime, sizeof(SceDateTime));
@@ -355,7 +359,12 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
   SceIoStat stat;
   memset(&stat, 0, sizeof(SceIoStat));
-  if (archiveFileGetstat(path, &stat) < 0) {
+
+  int res = archiveFileGetstat(path, &stat);
+  if (res < 0)
+    return res;
+  
+  if (SCE_S_ISDIR(stat.st_mode)) {
     FileList list;
     memset(&list, 0, sizeof(FileList));
     fileListGetArchiveEntries(&list, path, SORT_NONE);
@@ -392,7 +401,12 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
 int extractArchivePath(const char *src, const char *dst, FileProcessParam *param) {
   SceIoStat stat;
   memset(&stat, 0, sizeof(SceIoStat));
-  if (archiveFileGetstat(src, &stat) < 0) {
+
+  int res = archiveFileGetstat(src, &stat);
+  if (res < 0)
+    return res;
+  
+  if (SCE_S_ISDIR(stat.st_mode)) {
     FileList list;
     memset(&list, 0, sizeof(FileList));
     fileListGetArchiveEntries(&list, src, SORT_NONE);
@@ -510,15 +524,12 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
 }
 
 int archiveFileGetstat(const char *file, SceIoStat *stat) {
-  // Is directory
-  if (hasEndSlash(file + archive_path_start))
-    return -1;
-  
   ArchiveFileNode *node = findArchiveNode(file + archive_path_start);
   if (!node)
     return -1;
   
   if (stat) {
+    stat->st_mode = node->mode;
     stat->st_size = node->size;
     memcpy(&stat->st_ctime, &node->ctime, sizeof(SceDateTime));
     memcpy(&stat->st_mtime, &node->mtime, sizeof(SceDateTime));
@@ -598,8 +609,7 @@ int ReadArchiveFile(const char *file, void *buf, int size) {
 }
 
 int archiveClose() {
-  freeArchiveNodes(archive_root->child);
-  free(archive_root);
+  freeArchiveNodes(archive_root);
   return 0;
 }
 

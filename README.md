@@ -99,6 +99,12 @@ The english language file is provided in **'VitaShellCustomization.rar'** and av
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.77 ###
+- Added archive support for .7z, .tar.gz, .tar.bz2 and more by using libarchive.
+- Improved archive file system (opening archives should now be much faster).
+- Fixed keyboard freeze after using it multiple times.
+- Fixed file browser cursor correction.
+
 ### Changelog 1.76 ###
 - Added DLC refresh + restore license from Sqlite DB by VitaSmith.
 - Added license database refresh by VitaSmith.

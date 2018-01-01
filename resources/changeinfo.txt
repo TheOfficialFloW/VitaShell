@@ -314,4 +314,12 @@
 - Fixed C2-12828-1 error.<br>
     ]]>
   </changes>
+   <changes app_ver="01.77">
+    <![CDATA[
+- Added archive support for .7z, .tar.gz, .tar.bz2 and more by using libarchive.<br>
+- Improved archive file system (opening archives should now be much faster).<br>
+- Fixed keyboard freeze after using it multiple times.<br>
+- Fixed file browser cursor correction.<br>
+    ]]>
+  </changes>
 </changeinfo>
