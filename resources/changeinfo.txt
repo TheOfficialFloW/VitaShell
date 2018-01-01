@@ -320,6 +320,7 @@
 - Improved archive file system (opening archives should now be much faster).<br>
 - Fixed keyboard freeze after using it multiple times.<br>
 - Fixed file browser cursor correction.<br>
+- Fixed Electron theme visual glitch and added new settings look (thanks to Acemad).<br>
     ]]>
   </changes>
 </changeinfo>

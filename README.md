@@ -104,6 +104,7 @@ The english language file is provided in **'VitaShellCustomization.rar'** and av
 - Improved archive file system (opening archives should now be much faster).
 - Fixed keyboard freeze after using it multiple times.
 - Fixed file browser cursor correction.
+- Fixed Electron theme visual glitch and added new settings look (thanks to Acemad).
 
 ### Changelog 1.76 ###
 - Added DLC refresh + restore license from Sqlite DB by VitaSmith.

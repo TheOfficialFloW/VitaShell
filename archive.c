@@ -77,13 +77,10 @@ ArchiveFileNode *createArchiveNode(const char *name, const struct stat *stat, in
     node->is_folder = 1;
   strcpy(node->name, name);
   
+  node->mode = node->is_folder ? SCE_S_IFDIR : SCE_S_IFREG;
+  
   if (stat) {
     SceDateTime time;
-
-    if (stat->st_mode & S_IFDIR)
-      node->mode |= SCE_S_IFDIR;
-    if (stat->st_mode & S_IFREG)
-      node->mode |= SCE_S_IFREG;
     
     node->size = stat->st_size;
     

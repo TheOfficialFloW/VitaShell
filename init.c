@@ -75,6 +75,7 @@ INCLUDE_EXTERN_RESOURCE(electron_pause_png);
 INCLUDE_EXTERN_RESOURCE(electron_play_png);
 INCLUDE_EXTERN_RESOURCE(electron_sfo_icon_png);
 INCLUDE_EXTERN_RESOURCE(electron_text_icon_png);
+INCLUDE_EXTERN_RESOURCE(electron_settings_png);
 
 INCLUDE_EXTERN_RESOURCE(user_suprx);
 INCLUDE_EXTERN_RESOURCE(usbdevice_skprx);
@@ -136,6 +137,7 @@ static DefaultFile default_files[] = {
   DEFAULT_FILE("ux0:VitaShell/theme/Electron/play.png", electron_play_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Electron/sfo_icon.png", electron_sfo_icon_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Electron/text_icon.png", electron_text_icon_png, 1),
+  DEFAULT_FILE("ux0:VitaShell/theme/Electron/settings.png", electron_settings_png, 1),
 
   DEFAULT_FILE("ux0:VitaShell/module/user.suprx", user_suprx, 1),
   DEFAULT_FILE("ux0:VitaShell/module/usbdevice.skprx", usbdevice_skprx, 1),
