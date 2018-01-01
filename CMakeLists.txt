@@ -14,7 +14,7 @@ project(VitaShell)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 set(VITA_APP_NAME "VitaShell")
 set(VITA_TITLEID  "VITASHELL")
-set(VITA_VERSION  "01.76")
+set(VITA_VERSION  "01.77")
 
 # Flags and includes
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format-truncation -fno-lto")
@@ -98,7 +98,6 @@ add_executable(VitaShell
   elf.c
   sha1.c
   minizip/zip.c
-  minizip/unzip.c
   minizip/ioapi.c
   bm.c
   audio/vita_audio.c
@@ -118,8 +117,6 @@ add_executable(VitaShell
   libmad/stream.c
   libmad/synth.c
   libmad/timer.c
-  unrarlib/unrarlibutils.c
-  archiveRAR.c
 )
 
 target_link_libraries(VitaShell
@@ -135,8 +132,11 @@ target_link_libraries(VitaShell
   c
   quirc
   onigmo
-  unrar
-  stdc++
+  archive
+  bz2
+  lzma
+  crypto
+  expat
   taihen_stub
   VitaShellUser_stub_weak
   SceAppMgr_stub
@@ -189,6 +189,6 @@ add_custom_target(send
 )
 
 add_custom_target(copy
-  COMMAND cp eboot.bin F:/app/${VITA_TITLEID}/eboot.bin
+  COMMAND cp eboot.bin H:/app/${VITA_TITLEID}/eboot.bin
   DEPENDS eboot.bin
 )

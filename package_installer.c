@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -29,16 +29,55 @@
 
 INCLUDE_EXTERN_RESOURCE(head_bin);
 
+static int loadScePaf() {
+  static uint32_t argp[] = { 0x180000, -1, -1, 1, -1, -1 };
+
+  int result = -1;
+
+  uint32_t buf[4];
+  buf[0] = sizeof(buf);
+  buf[1] = (uint32_t)&result;
+  buf[2] = -1;
+  buf[3] = -1;
+
+  return sceSysmoduleLoadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, sizeof(argp), argp, buf);
+}
+
+static int unloadScePaf() {
+  uint32_t buf = 0;
+  return sceSysmoduleUnloadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, 0, NULL, &buf);
+}
+
 int promoteApp(const char *path) {
   int res;
+
+  res = loadScePaf();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
 
   res = scePromoterUtilityInit();
   if (res < 0)
     return res;
 
   res = scePromoterUtilityPromotePkgWithRif(path, 1);
+  if (res < 0)
+    return res;
 
-  scePromoterUtilityExit();
+  res = scePromoterUtilityExit();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
+  res = unloadScePaf();
+  if (res < 0)
+    return res;
 
   return res;
 }
@@ -48,13 +87,33 @@ int deleteApp(const char *titleid) {
 
   sceAppMgrDestroyOtherApp();
 
+  res = loadScePaf();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
   res = scePromoterUtilityInit();
   if (res < 0)
     return res;
 
   res = scePromoterUtilityDeletePkg(titleid);
+  if (res < 0)
+    return res;
 
-  scePromoterUtilityExit();
+  res = scePromoterUtilityExit();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
+  res = unloadScePaf();
+  if (res < 0)
+    return res;
 
   return res;
 }
@@ -63,15 +122,35 @@ int checkAppExist(const char *titleid) {
   int res;
   int ret;
 
+  res = loadScePaf();
+  if (res < 0)
+    return res;
+
+  res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
   res = scePromoterUtilityInit();
   if (res < 0)
     return res;
 
-  res = scePromoterUtilityCheckExist(titleid, &ret);
+  ret = scePromoterUtilityCheckExist(titleid, &res);
+  if (res < 0)
+    return res;
 
-  scePromoterUtilityExit();
+  res = scePromoterUtilityExit();
+  if (res < 0)
+    return res;
 
-  return res >= 0;
+  res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
+  if (res < 0)
+    return res;
+
+  res = unloadScePaf();
+  if (res < 0)
+    return res;
+
+  return ret >= 0;
 }
 
 static void fpkg_hmac(const uint8_t *data, unsigned int len, uint8_t hmac[16]) {
@@ -239,7 +318,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
   if (SCE_S_ISDIR(stat.st_mode)) {
     // Check for param.sfo
-    snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/sce_sys/param.sfo", args->file);
     if (sceIoGetstat(path, &stat) < 0 || SCE_S_ISDIR(stat.st_mode)) {
       closeWaitDialog();
       errorDialog(-2);
@@ -247,7 +326,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
     }
 
     // Check permissions
-    snprintf(path, MAX_PATH_LENGTH, "%s/eboot.bin", args->file);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/eboot.bin", args->file);
     SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
     if (fd >= 0) {
       char buffer[0x88];
@@ -309,7 +388,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
     }
 
     // Check for param.sfo
-    snprintf(path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", args->file);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s/sce_sys/param.sfo", args->file);
     if (archiveFileGetstat(path, NULL) < 0) {
       closeWaitDialog();
       errorDialog(-2);

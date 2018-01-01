@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ int qr_thread() {
 }
 
 int qr_scan_thread(SceSize args, void *argp) {
-  data = strdup(last_qr);
+  data = last_qr;
   if (last_qr_len > 4) {
     if (!(data[0] == 'h' && data[1] == 't' && data[2] == 't' && data[3] == 'p')) {
       initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK, language_container[QR_SHOW_CONTENTS], data);
@@ -126,11 +126,11 @@ int qr_scan_thread(SceSize args, void *argp) {
   char sizeString[16];
   int ret;
 
-  ret = getDownloadFileSize(strdup(data), &fileSize);
+  ret = getDownloadFileSize(data, &fileSize);
   if (ret < 0)
     goto NETWORK_FAILURE;
 
-  ret = getFieldFromHeader(strdup(data), "Content-Disposition", &headerData, &headerLen);
+  ret = getFieldFromHeader(data, "Content-Disposition", &headerData, &headerLen);
   if (ret < 0)
     goto NETWORK_FAILURE;
 
@@ -227,7 +227,7 @@ int qr_scan_thread(SceSize args, void *argp) {
   if (ext) {
     int len = ext-fileName;
     if (len > sizeof(short_name) - 1)
-      len = sizeof(short_name)-1;
+      len = sizeof(short_name) - 1;
     strncpy(short_name, fileName, len);
     short_name[len] = '\0';
   } else {
@@ -236,9 +236,9 @@ int qr_scan_thread(SceSize args, void *argp) {
   }
   while (1) {
     if (count == 0)
-      snprintf(download_path, sizeof(download_path)-1, "ux0:download/%s", fileName);
+      snprintf(download_path, sizeof(download_path) - 1, "ux0:download/%s", fileName);
     else
-      snprintf(download_path, sizeof(download_path)-1, "ux0:download/%s (%d)%s", short_name, count, ext);
+      snprintf(download_path, sizeof(download_path) - 1, "ux0:download/%s (%d)%s", short_name, count, ext);
 
     SceIoStat stat;
     memset(&stat, 0, sizeof(SceIoStat));

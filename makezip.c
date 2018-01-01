@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -197,7 +197,7 @@ static int zipAddPath(zipFile zf, const char *path, int filename_start, int leve
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         int ret = 0;
 
@@ -275,7 +275,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
 
   int i;
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
     getPathInfo(path, &size, &folders, &files, NULL);
     mark_entry = mark_entry->next;
   }
@@ -294,7 +294,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
   mark_entry = head;
 
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
 
     FileProcessParam param;
     param.value = &value;

@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -99,18 +99,17 @@ enum LanguageContainer {
   PROPERTY_CONTAINS_FILES_FOLDERS,
   PROPERTY_CREATION_DATE,
   PROPERTY_MODFICATION_DATE,
+  PROPERTY_TYPE_ARCHIVE,
   PROPERTY_TYPE_BMP,
   PROPERTY_TYPE_INI,
   PROPERTY_TYPE_JPEG,
   PROPERTY_TYPE_MP3,
   PROPERTY_TYPE_OGG,
   PROPERTY_TYPE_PNG,
-  PROPERTY_TYPE_RAR,
   PROPERTY_TYPE_SFO,
   PROPERTY_TYPE_TXT,
   PROPERTY_TYPE_VPK,
   PROPERTY_TYPE_XML,
-  PROPERTY_TYPE_ZIP,
   PROPERTY_TYPE_FSELF,
   PROPERTY_FSELF_MODE_SAFE,
   PROPERTY_FSELF_MODE_UNSAFE,

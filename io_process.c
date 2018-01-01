@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #include "main.h"
 #include "io_process.h"
 #include "archive.h"
-#include "archiveRAR.h"
 #include "file.h"
 #include "message_dialog.h"
 #include "uncommon_dialog.h"
@@ -118,7 +117,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 
   int i;
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
     getPathInfo(path, NULL, &folders, &files, NULL);
     mark_entry = mark_entry->next;
   }
@@ -132,7 +131,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
   mark_entry = head;
 
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
 
     FileProcessParam param;
     param.value = &value;
@@ -193,8 +192,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
     int i;
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
-      snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, copy_entry->name);
 
       int res = movePath(src_path, dst_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
       if (res < 0) {
@@ -225,17 +224,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
   } else { // Copy
     // Open archive, because when you copy from an archive, you leave the archive to paste
     if (args->copy_mode == COPY_MODE_EXTRACT) {
-      int res = -1;
-      switch(args->file_type){
-        case FILE_TYPE_ZIP:
-          res = archiveOpen(args->archive_path);
-          break;
-        case FILE_TYPE_RAR:
-          res = archiveRAROpen(args->archive_path);
-          break;
-        default:
-          res = -1;
-      }
+      int res = archiveOpen(args->archive_path);
       if (res < 0) {
         closeWaitDialog();
         errorDialog(res);
@@ -251,19 +240,10 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
     int i;
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
 
       if (args->copy_mode == COPY_MODE_EXTRACT) {
-      switch(args->file_type){
-        case FILE_TYPE_ZIP:
-          getArchivePathInfo(src_path, &size, &folders, &files);
-          break;
-        case FILE_TYPE_RAR:
-          getRARArchivePathInfo(src_path,&size,&folders,&files);
-          break;
-        default:
-          break;
-        }
+        getArchivePathInfo(src_path, &size, &folders, &files);
       } else {
         getPathInfo(src_path, &size, &folders, &files, NULL);
       }
@@ -284,8 +264,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
     copy_entry = args->copy_list->head;
 
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
-      snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, copy_entry->name);
 
       FileProcessParam param;
       param.value = &value;
@@ -294,17 +274,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
       param.cancelHandler = cancelHandler;
 
       if (args->copy_mode == COPY_MODE_EXTRACT) {
-          int res = -1;
-          switch(args->file_type){
-            case FILE_TYPE_ZIP:
-              res = extractArchivePath(src_path, dst_path, &param);
-              break;
-          case FILE_TYPE_RAR:
-            res = extractRARArchivePath(src_path,dst_path,&param);
-            break;
-          default:
-            break;
-          }
+        int res = extractArchivePath(src_path, dst_path, &param);
         if (res <= 0) {
           closeWaitDialog();
           setDialogStep(DIALOG_STEP_CANCELLED);
@@ -326,17 +296,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
     // Close archive
     if (args->copy_mode == COPY_MODE_EXTRACT) {
-      int res = -1;
-      switch(args->file_type){
-        case FILE_TYPE_ZIP:
-          res = archiveClose();
-          break;
-        case FILE_TYPE_RAR:
-          res = archiveRARClose();
-          break;
-        default:
-          break;
-        }
+      int res = archiveClose();
       if (res < 0) {
         closeWaitDialog();
         errorDialog(res);
@@ -367,8 +327,8 @@ EXIT:
 static int mediaPathHandler(const char *path) {
   // Avoid export-ception
   if (strncasecmp(path, "ux0:music/", 10) == 0 ||
-    strncasecmp(path, "ux0:video/", 10) == 0 ||
-    strncasecmp(path, "ux0:picture/", 12) == 0) {
+      strncasecmp(path, "ux0:video/", 10) == 0 ||
+      strncasecmp(path, "ux0:picture/", 12) == 0) {
     return 1;
   }
 
@@ -493,7 +453,7 @@ int exportPath(char *path, uint32_t *songs, uint32_t *videos, uint32_t *pictures
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
           int ret = exportPath(new_path, songs, videos, pictures, param);
@@ -571,7 +531,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 
   int i;
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
     getPathInfo(path, &size, NULL, &files, mediaPathHandler);
     mark_entry = mark_entry->next;
   }
@@ -597,7 +557,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
   mark_entry = head;
 
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
 
     FileProcessParam param;
     param.value = &value;

@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ static void utf8_to_utf16(const uint8_t *src, uint16_t *dst) {
   int i;
   for (i = 0; src[i];) {
     if ((src[i] & 0xE0) == 0xE0) {
-      *(dst++) = ((src[i] & 0x0F) << 12) | ((src[i + 1] & 0x3F) << 6) | (src[i+2] & 0x3F);
+      *(dst++) = ((src[i] & 0x0F) << 12) | ((src[i + 1] & 0x3F) << 6) | (src[i + 2] & 0x3F);
       i += 3;
     } else if ((src[i] & 0xC0) == 0xC0) {
       *(dst++) = ((src[i] & 0x1F) << 6) | (src[i + 1] & 0x3F);
@@ -78,6 +78,8 @@ int initImeDialog(const char *title, const char *initial_text, int max_text_leng
   ime_initial_text = initial_text;
 
   // Convert UTF8 to UTF16
+  memset(ime_title_utf16, 0, sizeof(ime_title_utf16));
+  memset(ime_initial_text_utf16, 0, sizeof(ime_initial_text_utf16));
   utf8_to_utf16((uint8_t *)title, ime_title_utf16);
   utf8_to_utf16((uint8_t *)initial_text, ime_initial_text_utf16);
 
@@ -131,7 +133,7 @@ int updateImeDialog() {
     sceImeDialogGetResult(&result);
 
     if ((ime_dialog_option == SCE_IME_OPTION_MULTILINE && result.button == SCE_IME_DIALOG_BUTTON_CLOSE) ||
-      (ime_dialog_option != SCE_IME_OPTION_MULTILINE && result.button == SCE_IME_DIALOG_BUTTON_ENTER)) {
+        (ime_dialog_option != SCE_IME_OPTION_MULTILINE && result.button == SCE_IME_DIALOG_BUTTON_ENTER)) {
       // Convert UTF16 to UTF8
       utf16_to_utf8(ime_input_text_utf16, ime_input_text_utf8);
     } else {

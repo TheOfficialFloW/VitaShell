@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -140,18 +140,17 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(PROPERTY_CONTAINS_FILES_FOLDERS),
     LANGUAGE_ENTRY(PROPERTY_CREATION_DATE),
     LANGUAGE_ENTRY(PROPERTY_MODFICATION_DATE),
+    LANGUAGE_ENTRY(PROPERTY_TYPE_ARCHIVE),
     LANGUAGE_ENTRY(PROPERTY_TYPE_BMP),
     LANGUAGE_ENTRY(PROPERTY_TYPE_INI),
     LANGUAGE_ENTRY(PROPERTY_TYPE_JPEG),
     LANGUAGE_ENTRY(PROPERTY_TYPE_MP3),
     LANGUAGE_ENTRY(PROPERTY_TYPE_OGG),
     LANGUAGE_ENTRY(PROPERTY_TYPE_PNG),
-    LANGUAGE_ENTRY(PROPERTY_TYPE_RAR),
     LANGUAGE_ENTRY(PROPERTY_TYPE_SFO),
     LANGUAGE_ENTRY(PROPERTY_TYPE_TXT),
     LANGUAGE_ENTRY(PROPERTY_TYPE_VPK),
     LANGUAGE_ENTRY(PROPERTY_TYPE_XML),
-    LANGUAGE_ENTRY(PROPERTY_TYPE_ZIP),
     LANGUAGE_ENTRY(PROPERTY_TYPE_FSELF),
     LANGUAGE_ENTRY(PROPERTY_FSELF_MODE_SAFE),
     LANGUAGE_ENTRY(PROPERTY_FSELF_MODE_UNSAFE),
@@ -260,7 +259,7 @@ void loadLanguage(int id) {
   if (use_custom_config) {
     if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
       char path[MAX_PATH_LENGTH];
-      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/language/%s.txt", lang[id]);
+      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/language/%s.txt", lang[id]);
       readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
     }
   }

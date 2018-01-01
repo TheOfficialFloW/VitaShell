@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 
 #include "main.h"
 #include "archive.h"
-#include "archiveRAR.h"
 #include "file.h"
 #include "text.h"
 #include "hex.h"
@@ -110,19 +109,8 @@ int SFOReader(const char *file) {
   int size = 0;
 
   if (isInArchive()) {
-    enum FileTypes archiveType = getArchiveType();
-    switch(archiveType){
-      case FILE_TYPE_ZIP: 
-        size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE); 
-        break; 
-      case FILE_TYPE_RAR: 
-        size = ReadArchiveRARFile(file,buffer,BIG_BUFFER_SIZE);
-        break;
-      default:
-        size = -1;
-        break;
-      }
-  }else {
+    size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE); 
+  } else {
     size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
   }
 
@@ -176,7 +164,7 @@ int SFOReader(const char *file) {
       uint32_t color = (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR;
 
       char *name = (char *)buffer + sfo_header->keyofs + entries->nameofs;
-      pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, "%s", name);
+      pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, "%s", name);
 
       char string[128];
 
@@ -194,7 +182,7 @@ int SFOReader(const char *file) {
           break;
       }
 
-      pgf_draw_textf(ALIGN_RIGHT(INFORMATION_X, vita2d_pgf_text_width(font, FONT_SIZE, string)), START_Y + (FONT_Y_SPACE * i), color, FONT_SIZE, string);
+      pgf_draw_textf(ALIGN_RIGHT(INFORMATION_X, pgf_text_width(string)), START_Y + (FONT_Y_SPACE * i), color, string);
     }
 
     // End drawing

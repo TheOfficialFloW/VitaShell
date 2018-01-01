@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -163,6 +163,14 @@ int stopUsb(SceUID modid) {
 
   // Remount Memory Card
   remount(0x800);
+
+  // Remount imc0:
+  if (checkFolderExist("imc0:"))
+    remount(0xD00);
+
+  // Remount xmc0:
+  if (checkFolderExist("xmc0:"))
+    remount(0xE00);
 
   // Remount uma0:
   if (checkFolderExist("uma0:"))

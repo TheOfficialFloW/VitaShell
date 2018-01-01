@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 
 #include "main.h"
 #include "archive.h"
-#include "archiveRAR.h"
 #include "init.h"
 #include "theme.h"
 #include "language.h"
@@ -65,7 +64,7 @@ PropertyEntry property_entries[] = {
   { PROPERTY_TYPE, PROPERTY_ENTRY_VISIBLE, property_type, sizeof(property_type) },
   { PROPERTY_FSELF_MODE, PROPERTY_ENTRY_VISIBLE, property_fself_mode, sizeof(property_fself_mode) },
   { PROPERTY_SIZE, PROPERTY_ENTRY_VISIBLE, property_size, sizeof(property_size) },
-  { PROPERTY_COMPRESSED_SIZE, PROPERTY_ENTRY_VISIBLE, property_compressed_size, sizeof(property_compressed_size) },
+  // { PROPERTY_COMPRESSED_SIZE, PROPERTY_ENTRY_VISIBLE, property_compressed_size, sizeof(property_compressed_size) },
   { PROPERTY_CONTAINS, PROPERTY_ENTRY_VISIBLE, property_contains, sizeof(property_contains) },
   { -1, PROPERTY_ENTRY_UNUSED, NULL },
   { PROPERTY_CREATION_DATE, PROPERTY_ENTRY_VISIBLE, property_creation_date, sizeof(property_creation_date) },
@@ -77,7 +76,7 @@ enum PropertyEntries {
   PROPERTY_ENTRY_TYPE,
   PROPERTY_ENTRY_FSELF_MODE,
   PROPERTY_ENTRY_SIZE,
-  PROPERTY_ENTRY_COMPRESSED_SIZE,
+  // PROPERTY_ENTRY_COMPRESSED_SIZE,
   PROPERTY_ENTRY_CONTAINS,
   PROPERTY_ENTRY_EMPTY_1,
   PROPERTY_ENTRY_CREATION_DATE,
@@ -92,7 +91,7 @@ int getPropertyDialogStatus() {
 
 static float copyStringGetWidth(char *out, char *in) {
   strcpy(out, in);
-  return vita2d_pgf_text_width(font, FONT_SIZE, out);
+  return pgf_text_width(out);
 }
 
 typedef struct {
@@ -159,7 +158,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 
   for (i = 0; i < N_PROPERTIES_ENTRIES; i++) {
     if (property_entries[i].name != -1) {
-      float width = vita2d_pgf_text_width(font, FONT_SIZE, language_container[property_entries[i].name]);
+      float width = pgf_text_width(language_container[property_entries[i].name]);
       if (width > property_dialog.info_x)
         property_dialog.info_x = width;
 
@@ -187,18 +186,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
   uint32_t buffer[0x88/4];
 
   if (isInArchive()) {
-    enum FileTypes archiveType = getArchiveType();
-    switch(archiveType){
-      case FILE_TYPE_ZIP:
-        size = ReadArchiveFile(path, buffer, sizeof(buffer));
-        break;
-      case FILE_TYPE_RAR:
-        size = ReadArchiveRARFile(path,buffer,sizeof(buffer));
-        break;
-      default:
-        size = -1;
-        break;
-    }
+    size = ReadArchiveFile(path, buffer, sizeof(buffer));
   } else {
     size = ReadFile(path, buffer, sizeof(buffer));
   }
@@ -266,12 +254,8 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
       type = PROPERTY_TYPE_XML;
       break;
       
-    case FILE_TYPE_ZIP:  
-      type = PROPERTY_TYPE_ZIP;
-      break;
-      
-    case FILE_TYPE_RAR:
-      type = PROPERTY_TYPE_RAR;
+    case FILE_TYPE_ARCHIVE:  
+      type = PROPERTY_TYPE_ARCHIVE;
       break;
   }
 
@@ -299,18 +283,18 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
       property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_VISIBLE;
     }
 
-    property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
+    // property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
   } else {
     getSizeString(property_size, entry->size);
     property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_INVISIBLE;
-    
+    /*
     // Compressed size
     if (isInArchive()) {
       getSizeString(property_compressed_size, entry->size2);
       property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_VISIBLE;
     } else {
       property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
-    }
+    }*/
   }
 
   // Dates
@@ -433,7 +417,7 @@ void drawPropertyDialog() {
     int i;
     for (i = 0; i < N_PROPERTIES_ENTRIES; i++) {
       if (property_entries[i].visibility == PROPERTY_ENTRY_VISIBLE) {
-        pgf_draw_text(property_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, FONT_SIZE, language_container[property_entries[i].name]);
+        pgf_draw_text(property_dialog.x + SHELL_MARGIN_X, string_y, DIALOG_COLOR, language_container[property_entries[i].name]);
 
         if (property_entries[i].entry != NULL) {
           uint32_t color = DIALOG_COLOR;
@@ -445,7 +429,7 @@ void drawPropertyDialog() {
           vita2d_set_clip_rectangle(x + 1.0f, string_y, x + 1.0f + max_width, string_y + FONT_Y_SPACE);
           
           if (property_entries[i].name == PROPERTY_NAME) {
-            int width = (int)vita2d_pgf_text_width(font, FONT_SIZE, property_entries[i].entry);
+            int width = (int)pgf_text_width(property_entries[i].entry);
             if (width >= max_width) {
               if (scroll_count < 60) {
                 scroll_x = x;
@@ -464,7 +448,7 @@ void drawPropertyDialog() {
             }
           }
           
-          pgf_draw_text(x, string_y, color, FONT_SIZE, property_entries[i].entry);
+          pgf_draw_text(x, string_y, color, property_entries[i].entry);
 
           vita2d_disable_clipping();
         }
@@ -476,6 +460,6 @@ void drawPropertyDialog() {
 
     char button_string[32];
     sprintf(button_string, "%s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[OK]);
-    pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, vita2d_pgf_text_width(font, FONT_SIZE, button_string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, FONT_SIZE, button_string);
+    pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, pgf_text_width(button_string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, button_string);
   }
 }

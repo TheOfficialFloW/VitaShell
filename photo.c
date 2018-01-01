@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -30,18 +30,7 @@ static vita2d_texture *loadImage(const char *file, int type, char *buffer) {
     int size = 0;
 
     if (isInArchive()) {
-      enum FileTypes archiveType = getArchiveType();
-      switch(archiveType){
-        case FILE_TYPE_ZIP:
-          size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
-          break;
-        case FILE_TYPE_RAR:
-          size = ReadArchiveRARFile(file,buffer,BIG_BUFFER_SIZE);
-          break;
-        default:
-          size = -1;
-          break;
-        }
+      size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
     } else {
       size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
     }
@@ -235,7 +224,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 
         if (!entry->is_folder) {
           char path[MAX_PATH_LENGTH];
-          snprintf(path, MAX_PATH_LENGTH, "%s%s", list->path, entry->name);
+          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", list->path, entry->name);
           int type = getFileType(path);
           if (type == FILE_TYPE_BMP || type == FILE_TYPE_JPEG || type == FILE_TYPE_PNG) {
             vita2d_wait_rendering_done();
@@ -361,7 +350,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 
     // Zoom text
     if ((sceKernelGetProcessTimeWide() - time) < ZOOM_TEXT_TIME)
-      pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, PHOTO_ZOOM_COLOR, FONT_SIZE, "%.0f%%", zoom * 100.0f);
+      pgf_draw_textf(SHELL_MARGIN_X, SCREEN_HEIGHT - 3.0f * SHELL_MARGIN_Y, PHOTO_ZOOM_COLOR, "%.0f%%", zoom * 100.0f);
 
     // End drawing
     endDrawing();

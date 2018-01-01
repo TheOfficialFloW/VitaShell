@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #ifndef __ARCHIVE_H__
 #define __ARCHIVE_H__
 
-#include "archiveRAR.h"
 #include "file.h"
 
 #define ARCHIVE_FD 0x12345678

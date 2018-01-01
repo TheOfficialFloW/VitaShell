@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -86,9 +86,9 @@ enum MenuSortEntrys {
 };
 
 MenuEntry menu_sort_entries[] = {
-  { BY_NAME, 13, 0, CTX_INVISIBLE },
-  { BY_SIZE, 14, 0, CTX_INVISIBLE },
-  { BY_DATE, 15, 0, CTX_INVISIBLE },
+  { BY_NAME, 12, 0, CTX_INVISIBLE },
+  { BY_SIZE, 13, 0, CTX_INVISIBLE },
+  { BY_DATE, 14, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries) / sizeof(MenuEntry))
@@ -103,12 +103,12 @@ enum MenuMoreEntrys {
 };
 
 MenuEntry menu_more_entries[] = {
-  { COMPRESS,       12, 0, CTX_INVISIBLE },
-  { INSTALL_ALL,    13, 0, CTX_INVISIBLE },
-  { INSTALL_FOLDER, 14, 0, CTX_INVISIBLE },
-  { EXPORT_MEDIA,   15, 0, CTX_INVISIBLE },
-  { CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
-  { OPEN_DECRYPTED, 17, 0, CTX_INVISIBLE },
+  { COMPRESS,       13, 0, CTX_INVISIBLE },
+  { INSTALL_ALL,    14, 0, CTX_INVISIBLE },
+  { INSTALL_FOLDER, 15, 0, CTX_INVISIBLE },
+  { EXPORT_MEDIA,   16, 0, CTX_INVISIBLE },
+  { CALCULATE_SHA1, 17, 0, CTX_INVISIBLE },
+  { OPEN_DECRYPTED, 18, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
@@ -176,7 +176,7 @@ void initContextMenuWidth() {
 
   // Home
   for (i = 0; i < N_MENU_HOME_ENTRIES; i++) {
-    context_menu_home.max_width = MAX(context_menu_home.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_home_entries[i].name]));
+    context_menu_home.max_width = MAX(context_menu_home.max_width, pgf_text_width(language_container[menu_home_entries[i].name]));
   }
 
   context_menu_home.max_width += 2.0f * CONTEXT_MENU_MARGIN;
@@ -184,7 +184,7 @@ void initContextMenuWidth() {
 
   // Main
   for (i = 0; i < N_MENU_MAIN_ENTRIES; i++) {
-    context_menu_main.max_width = MAX(context_menu_main.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_main_entries[i].name]));
+    context_menu_main.max_width = MAX(context_menu_main.max_width, pgf_text_width(language_container[menu_main_entries[i].name]));
 
     if (menu_main_entries[i].name == MARK_ALL) {
       menu_main_entries[i].name = UNMARK_ALL;
@@ -197,7 +197,7 @@ void initContextMenuWidth() {
 
   // Sort
   for (i = 0; i < N_MENU_SORT_ENTRIES; i++) {
-    context_menu_sort.max_width = MAX(context_menu_sort.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_sort_entries[i].name]));
+    context_menu_sort.max_width = MAX(context_menu_sort.max_width, pgf_text_width(language_container[menu_sort_entries[i].name]));
   }
 
   context_menu_sort.max_width += 2.0f * CONTEXT_MENU_MARGIN;
@@ -205,7 +205,7 @@ void initContextMenuWidth() {
 
   // More
   for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
-    context_menu_more.max_width = MAX(context_menu_more.max_width, vita2d_pgf_text_width(font, FONT_SIZE, language_container[menu_more_entries[i].name]));
+    context_menu_more.max_width = MAX(context_menu_more.max_width, pgf_text_width(language_container[menu_more_entries[i].name]));
   }
 
   context_menu_more.max_width += 2.0f * CONTEXT_MENU_MARGIN;
@@ -403,13 +403,13 @@ void setContextMenuMoreVisibilities() {
         break;
       }
       
-      snprintf(check_path, MAX_PATH_LENGTH, "%s%s/eboot.bin", file_list.path, file_entry->name);
+      snprintf(check_path, MAX_PATH_LENGTH - 1, "%s%s/eboot.bin", file_list.path, file_entry->name);
       if (!checkFileExist(check_path)) {
         menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
         break;
       }
       
-      snprintf(check_path, MAX_PATH_LENGTH, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
+      snprintf(check_path, MAX_PATH_LENGTH - 1, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
       if (!checkFileExist(check_path)) {
         menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
         break;
@@ -436,7 +436,7 @@ void setContextMenuMoreVisibilities() {
     menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
   } else {
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH, "%s%ssce_pfs", file_list.path, file_entry->name);
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%ssce_pfs", file_list.path, file_entry->name);
     
     if (!checkFolderExist(path))
       menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
@@ -592,7 +592,6 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
           copy_mode = isInArchive() ? COPY_MODE_EXTRACT : COPY_MODE_NORMAL;
         }
         
-        file_type = getArchiveType();
         strcpy(archive_copy_path, archive_path);
 
         // Empty copy list at first
@@ -699,7 +698,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
     {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry) {
-        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
         initPropertyDialog(cur_file, file_entry);
       }
 
@@ -714,9 +713,9 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
       int count = 1;
       while (1) {
         if (count == 1) {
-          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, language_container[NEW_FOLDER]);
+          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, language_container[NEW_FOLDER]);
         } else {
-          snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
+          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s (%d)", file_list.path, language_container[NEW_FOLDER], count);
         }
 
         if (!checkFolderExist(path))
@@ -825,7 +824,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
       int i;
       for (i = 0; i < file_list.length - 1; i++) {
         char path[MAX_PATH_LENGTH];
-        snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
 
         int type = getFileType(path);
         if (type == FILE_TYPE_VPK) {
@@ -850,7 +849,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
     {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry) {
-        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
         initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
         setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
       }
@@ -895,14 +894,14 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 
         gameDataUmount();
 
-        snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
         res = gameDataMount(path);
         
         // In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
-        snprintf(path, MAX_PATH_LENGTH, "ux0:app/%s", file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "ux0:app/%s", file_entry->name);
         if (res < 0)
           res = gameDataMount(path);
-        snprintf(path, MAX_PATH_LENGTH, "gro:app/%s", file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "gro:app/%s", file_entry->name);
         if (res < 0)
           res = gameDataMount(path);
 

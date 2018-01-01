@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 
 enum FileTypes {
   FILE_TYPE_UNKNOWN,
-  FILE_TYPE_PSP2DMP,
+  FILE_TYPE_ARCHIVE,
   FILE_TYPE_BMP,
   FILE_TYPE_INI,
   FILE_TYPE_JPEG,
@@ -44,12 +44,11 @@ enum FileTypes {
   FILE_TYPE_MP4,
   FILE_TYPE_OGG,
   FILE_TYPE_PNG,
-  FILE_TYPE_RAR,
+  FILE_TYPE_PSP2DMP,
   FILE_TYPE_SFO,
   FILE_TYPE_TXT,
   FILE_TYPE_VPK,
   FILE_TYPE_XML,
-  FILE_TYPE_ZIP,
 };
 
 enum FileSortFlags {
@@ -61,7 +60,7 @@ enum FileSortFlags {
 
 enum FileMoveFlags {
   MOVE_INTEGRATE  = 0x1, // Integrate directories
-  MOVE_REPLACE  = 0x2, // Replace files
+  MOVE_REPLACE    = 0x2, // Replace files
 };
 
 typedef struct {
@@ -83,7 +82,6 @@ typedef struct FileListEntry {
   SceDateTime ctime;
   SceDateTime mtime;
   SceDateTime atime;
-  int reserved[16];
 } FileListEntry;
 
 typedef struct {

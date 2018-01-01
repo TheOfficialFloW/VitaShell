@@ -1,6 +1,6 @@
 /*
   VitaShell
-  Copyright (C) 2015-2017, TheFloW
+  Copyright (C) 2015-2018, TheFloW
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -241,16 +241,16 @@ void loadTheme() {
 
     if (theme_name) {
       // Load colors config
-      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
+      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
       readConfig(path, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
       
       // Font
-      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
+      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
        font = vita2d_load_custom_pgf(path);
       
       // Load theme
       for (i = 0; i < N_THEME_IMAGES; i++) {
-        snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/%s", theme_name, theme_images[i].name);
+        snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/%s", theme_name, theme_images[i].name);
         if (theme_images[i].texture && *(theme_images[i].texture) == NULL)
           *(theme_images[i].texture) = vita2d_load_PNG_file(path);
       }
@@ -326,6 +326,6 @@ void loadTheme() {
     character[0] = i;
     character[1] = '\0';
 
-    font_size_cache[i] = vita2d_pgf_text_width(font, FONT_SIZE, character);
+    font_size_cache[i] = pgf_text_width(character);
   }
 }
