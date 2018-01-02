@@ -113,6 +113,21 @@ static int file_switch(struct archive *a, void *client_data1, void *client_data2
   return file_open(a, client_data2);
 }
 
+int append_archive(struct archive *a, const char *filename) {
+  struct archive_data *archive_data = malloc(sizeof(struct archive_data));
+  if (archive_data) {
+    archive_data->filename = malloc(strlen(filename) + 1);
+    strcpy(archive_data->filename, filename);
+    if (archive_read_append_callback_data(a, archive_data) != ARCHIVE_OK) {
+      free(archive_data->filename);
+      free(archive_data);
+      return ARCHIVE_FATAL;
+    }
+  }
+  
+  return ARCHIVE_OK;
+}
+
 struct archive *open_archive(const char *filename) {
   struct archive *a = archive_read_new();
   if (!a)
@@ -157,9 +172,8 @@ struct archive *open_archive(const char *filename) {
   strncpy(name, p + 1, q - (p + 1));
   name[q - (p + 1)] = '\0';
   
-  // Scan for multivolume archives (.rXX, .rXXX, .partXX.rar, .partXXX.rar)
+  // Check for .partXXXX.rar archives
   for (part_format = 0; part_format < 4; part_format++) {
-    // Check for .partXXXX.rar
     strcpy(format, "%s%s.part%0Xd.rar");
     format[11] = '1' + part_format;
     snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, 1);
@@ -167,48 +181,43 @@ struct archive *open_archive(const char *filename) {
       type = 1;
       break;
     }
-
-    // Check for .rXXXX
-    strcpy(format, "%s%s.r%0Xd");
-    format[8] = '1' + part_format;
-    snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, 1);
+  }
+  
+  // Check for .rXX archives
+  if (type == 0) {
+    snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s.r00", path, name);
     if (checkFileExist(new_path)) {
+      strcpy(format, "%s%s.r%02d");
       type = 2;
-      break;
     }
   }
   
   if (type == 0) {
-    struct archive_data *archive_data = malloc(sizeof(struct archive_data));
-    archive_data->filename = malloc(strlen(filename) + 1);
-    strcpy(archive_data->filename, filename);
-    archive_read_append_callback_data(a, archive_data);
+    if (append_archive(a, filename) != ARCHIVE_OK) {
+      archive_read_free(a);
+      return NULL;
+    }
   } else {
-    if (type == 1) {
-      strcpy(format, "%s%s.part%0Xd.rar");
-      format[11] = '1' + part_format;
-    } else if (type == 2) {
-      strcpy(format, "%s%s.r%0Xd");
-      format[8] = '1' + part_format;
-      
+    int i = 1;
+    
+    if (type == 2) {
+      i = 0; // this type begins with .r00
       snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s.rar", path, name);
-      
-      struct archive_data *archive_data = malloc(sizeof(struct archive_data));
-      archive_data->filename = malloc(strlen(new_path) + 1);
-      strcpy(archive_data->filename, new_path);
-      archive_read_append_callback_data(a, archive_data);
+      if (append_archive(a, new_path) != ARCHIVE_OK) {
+        archive_read_free(a);
+        return NULL;
+      }
     }
     
-    int i = 0;
     while (1) {
       snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, i);
       if (!checkFileExist(new_path))
         break;
       
-      struct archive_data *archive_data = malloc(sizeof(struct archive_data));
-      archive_data->filename = malloc(strlen(new_path) + 1);
-      strcpy(archive_data->filename, new_path);
-      archive_read_append_callback_data(a, archive_data);
+      if (append_archive(a, new_path) != ARCHIVE_OK) {
+        archive_read_free(a);
+        return NULL;
+      }
       
       i++;
     }
