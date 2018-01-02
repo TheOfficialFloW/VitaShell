@@ -25,7 +25,6 @@
 static char archive_file[MAX_PATH_LENGTH];
 static int archive_path_start = 0;
 struct archive *archive_fd = NULL;
-SceUID test_fd = -1;
 
 int checkForUnsafeImports(void *buffer);
 char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const segment_info *segment,
@@ -36,7 +35,7 @@ void __archive_create_child() {}
 void __archive_check_child() {}
 
 struct archive_data {
-  const char *filename;
+  char *filename;
   SceUID fd;
   void *buffer;
   int block_size;
@@ -50,7 +49,6 @@ static int file_open(struct archive *a, void *client_data) {
   struct archive_data *archive_data = client_data;
   
   archive_data->fd = sceIoOpen(archive_data->filename, SCE_O_RDONLY, 0);
-  test_fd = archive_data->fd;
   if (archive_data->fd < 0)
     return ARCHIVE_FATAL;
   
@@ -105,6 +103,7 @@ static int file_close2(struct archive *a, void *client_data) {
 static int file_close(struct archive *a, void *client_data) {
   struct archive_data *archive_data = client_data;
   file_close2(a, client_data);
+  free(archive_data->filename);
   free(archive_data);
   return ARCHIVE_OK;
 }
@@ -130,12 +129,95 @@ struct archive *open_archive(const char *filename) {
   archive_read_set_switch_callback(a, file_switch);
   archive_read_set_seek_callback(a, file_seek);
   
-  struct archive_data *archive_data = malloc(sizeof(struct archive_data));
-  archive_data->filename = filename;
-  archive_read_append_callback_data(a, archive_data);
+  // Get path and name of filename
+  char path[MAX_PATH_LENGTH];
+  char name[MAX_NAME_LENGTH];
+  char new_path[MAX_PATH_LENGTH];
+  char format[24];
+  int part_format = 0;
+  int type = 0;
   
-  if (archive_read_open1(a))
+  char *p = strrchr(filename, '/');
+  if (!p)
+    p = strrchr(filename, ':');
+  if (!p) {
+    archive_read_free(a);
     return NULL;
+  }
+
+  strncpy(path, filename, p - filename + 1);
+  path[p - filename + 1] = '\0';
+  
+  char *q = strchr(p + 1, '.');
+  if (!q) {
+    archive_read_free(a);
+    return NULL;
+  }
+
+  strncpy(name, p + 1, q - (p + 1));
+  name[q - (p + 1)] = '\0';
+  
+  // Scan for multivolume archives (.rXX, .rXXX, .partXX.rar, .partXXX.rar)
+  for (part_format = 0; part_format < 4; part_format++) {
+    // Check for .partXXXX.rar
+    strcpy(format, "%s%s.part%0Xd.rar");
+    format[11] = '1' + part_format;
+    snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, 1);
+    if (checkFileExist(new_path)) {
+      type = 1;
+      break;
+    }
+
+    // Check for .rXXXX
+    strcpy(format, "%s%s.r%0Xd");
+    format[8] = '1' + part_format;
+    snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, 1);
+    if (checkFileExist(new_path)) {
+      type = 2;
+      break;
+    }
+  }
+  
+  if (type == 0) {
+    struct archive_data *archive_data = malloc(sizeof(struct archive_data));
+    archive_data->filename = malloc(strlen(filename) + 1);
+    strcpy(archive_data->filename, filename);
+    archive_read_append_callback_data(a, archive_data);
+  } else {
+    if (type == 1) {
+      strcpy(format, "%s%s.part%0Xd.rar");
+      format[11] = '1' + part_format;
+    } else if (type == 2) {
+      strcpy(format, "%s%s.r%0Xd");
+      format[8] = '1' + part_format;
+      
+      snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s.rar", path, name);
+      
+      struct archive_data *archive_data = malloc(sizeof(struct archive_data));
+      archive_data->filename = malloc(strlen(new_path) + 1);
+      strcpy(archive_data->filename, new_path);
+      archive_read_append_callback_data(a, archive_data);
+    }
+    
+    int i = 0;
+    while (1) {
+      snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, i);
+      if (!checkFileExist(new_path))
+        break;
+      
+      struct archive_data *archive_data = malloc(sizeof(struct archive_data));
+      archive_data->filename = malloc(strlen(new_path) + 1);
+      strcpy(archive_data->filename, new_path);
+      archive_read_append_callback_data(a, archive_data);
+      
+      i++;
+    }
+  }
+  
+  if (archive_read_open1(a)) {
+    archive_read_free(a);
+    return NULL;
+  }
   
   return a;
 }
