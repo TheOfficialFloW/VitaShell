@@ -121,6 +121,7 @@ void vitaAudioSetVolume(int channel, int left, int right);
 int vitaAudioSetFrequency(int channel, unsigned short freq);
 void vitaAudioSetChannelCallback(int channel, vitaAudioCallback callback, void *data);
 int vitaAudioInit(int priority);
+void vitaAudioShutdown(void);
 
 #ifdef __cplusplus
 }

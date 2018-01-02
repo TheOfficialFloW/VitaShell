@@ -1,31 +1,36 @@
 /*
-	VitaShell
-	Copyright (C) 2015-2016, TheFloW
+  VitaShell
+  Copyright (C) 2015-2018, TheFloW
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef __THEME_H__
 #define __THEME_H__
-
-#define MAX_WALLPAPERS 10
 
 // Shell colors
 extern int BACKGROUND_COLOR;
 extern int TITLE_COLOR;
 extern int PATH_COLOR;
 extern int DATE_TIME_COLOR;
+
+// Settings colors
+extern int SETTINGS_MENU_COLOR;
+extern int SETTINGS_MENU_FOCUS_COLOR;
+extern int SETTINGS_MENU_TITLE_COLOR;
+extern int SETTINGS_MENU_ITEM_COLOR;
+extern int SETTINGS_MENU_OPTION_COLOR;
 
 // File browser colors
 extern int FOCUS_COLOR;
@@ -77,21 +82,13 @@ extern int AUDIO_TIME_TOTAL;
 extern int AUDIO_TIME_BAR;
 extern int AUDIO_TIME_BAR_BG;
 
-extern vita2d_texture *default_wallpaper, *game_card_storage_image, *game_card_image, *memory_card_image,
-					  *run_file_image, *img_file_image, *unknown_file_image, *sa0_image, *ur0_image, *vd0_image, 
-					  *vs0_image, *savedata0_image, *pd0_image, *folder_image, *app0_image, *ud0_image, *mark_image,
-					  *music_image, *os0_image, *zip_file_image, *txt_file_image, *title_bar_bg_image, *updir_image ;
-
-
 extern vita2d_texture *folder_icon, *file_icon, *archive_icon, *image_icon, *audio_icon, *sfo_icon, *text_icon,
-					  *wifi_image, *ftp_image, *dialog_image, *context_image, *context_more_image, *battery_image, *battery_bar_red_image,
-					  *battery_bar_green_image, *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image,
-					  *bg_photo_image, *bg_audio_image, *cover_image, *play_image, *pause_image, *fastforward_image, *fastrewind_image;
+            *ftp_image, *dialog_image, *context_image, *context_more_image, *settings_image, *battery_image,
+            *battery_bar_red_image, *battery_bar_green_image, *battery_bar_charge_image, *bg_browser_image, *bg_hex_image, *bg_text_image,
+            *bg_photo_image, *bg_audio_image, *cover_image, *play_image, *pause_image, *fastforward_image, *fastrewind_image;
 
-extern vita2d_texture *wallpaper_image[MAX_WALLPAPERS];
+extern vita2d_texture *wallpaper_image;
 extern vita2d_texture *previous_wallpaper_image, *current_wallpaper_image;
-
-extern int wallpaper_count;
 
 void loadTheme();
 
