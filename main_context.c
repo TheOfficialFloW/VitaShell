@@ -560,9 +560,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 
           int i;
           for (i = 0; i < file_list.length-1; i++) {
-            FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
-            memcpy(mark_entry, file_entry, sizeof(FileListEntry));
-            fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+            fileListAddEntry(&mark_list, fileListCopyEntry(file_entry), SORT_NONE);
 
             // Next
             file_entry = file_entry->next;
@@ -604,17 +602,13 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 
           int i;
           for (i = 0; i < mark_list.length; i++) {
-            FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
-            memcpy(copy_entry, mark_entry, sizeof(FileListEntry));
-            fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
+            fileListAddEntry(&copy_list, fileListCopyEntry(mark_entry), SORT_NONE);
 
             // Next
             mark_entry = mark_entry->next;
           }
         } else {
-          FileListEntry *copy_entry = malloc(sizeof(FileListEntry));
-          memcpy(copy_entry, file_entry, sizeof(FileListEntry));
-          fileListAddEntry(&copy_list, copy_entry, SORT_NONE);
+          fileListAddEntry(&copy_list, fileListCopyEntry(file_entry), SORT_NONE);
         }
 
         strcpy(copy_list.path, file_list.path);
@@ -828,9 +822,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
 
         int type = getFileType(path);
         if (type == FILE_TYPE_VPK) {
-          FileListEntry *install_entry = malloc(sizeof(FileListEntry));
-          memcpy(install_entry, file_entry, sizeof(FileListEntry));
-          fileListAddEntry(&install_list, install_entry, SORT_NONE);
+          fileListAddEntry(&install_list, fileListCopyEntry(file_entry), SORT_NONE);
         }
 
         // Next

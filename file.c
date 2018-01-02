@@ -661,6 +661,15 @@ char **getDevices() {
   return devices;
 }
 
+FileListEntry *fileListCopyEntry(FileListEntry *src) {
+  FileListEntry *dst = malloc(sizeof(FileListEntry));
+  if (!dst)
+    return NULL;
+
+  memcpy(dst, src, sizeof(FileListEntry));
+  return dst;
+}
+
 FileListEntry *fileListFindEntry(FileList *list, const char *name) {
   if (!list)
     return NULL;
@@ -936,33 +945,35 @@ int fileListGetDeviceEntries(FileList *list) {
       memset(&stat, 0, sizeof(SceIoStat));
       if (sceIoGetstat(devices[i], &stat) >= 0) {
         FileListEntry *entry = malloc(sizeof(FileListEntry));
-        strcpy(entry->name, devices[i]);
-        entry->name_length = strlen(entry->name);
-        entry->is_folder = 1;
-        entry->type = FILE_TYPE_UNKNOWN;
+        if (entry) {
+          strcpy(entry->name, devices[i]);
+          entry->name_length = strlen(entry->name);
+          entry->is_folder = 1;
+          entry->type = FILE_TYPE_UNKNOWN;
 
-        SceIoDevInfo info;
-        memset(&info, 0, sizeof(SceIoDevInfo));
-        int res = sceIoDevctl(entry->name, 0x3001, NULL, 0, &info, sizeof(SceIoDevInfo));
-        if (res >= 0) {
-          entry->size = info.free_size;
-          entry->size2 = info.max_size;
-        } else {
-          if (strcmp(devices[i], "ux0:") == 0) {
-            sceAppMgrGetDevInfo("ux0:", (uint64_t *)&entry->size2, (uint64_t *)&entry->size);
+          SceIoDevInfo info;
+          memset(&info, 0, sizeof(SceIoDevInfo));
+          int res = sceIoDevctl(entry->name, 0x3001, NULL, 0, &info, sizeof(SceIoDevInfo));
+          if (res >= 0) {
+            entry->size = info.free_size;
+            entry->size2 = info.max_size;
           } else {
-            entry->size = 0;
-            entry->size2 = 0;
+            if (strcmp(devices[i], "ux0:") == 0) {
+              sceAppMgrGetDevInfo("ux0:", (uint64_t *)&entry->size2, (uint64_t *)&entry->size);
+            } else {
+              entry->size = 0;
+              entry->size2 = 0;
+            }
           }
+
+          memcpy(&entry->ctime, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
+          memcpy(&entry->mtime, (SceDateTime *)&stat.st_mtime, sizeof(SceDateTime));
+          memcpy(&entry->atime, (SceDateTime *)&stat.st_atime, sizeof(SceDateTime));
+
+          fileListAddEntry(list, entry, SORT_BY_NAME);
+
+          list->folders++;
         }
-
-        memcpy(&entry->ctime, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
-        memcpy(&entry->mtime, (SceDateTime *)&stat.st_mtime, sizeof(SceDateTime));
-        memcpy(&entry->atime, (SceDateTime *)&stat.st_atime, sizeof(SceDateTime));
-
-        fileListAddEntry(list, entry, SORT_BY_NAME);
-
-        list->folders++;
       }
     }
   }
@@ -979,11 +990,13 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
     return dfd;
 
   FileListEntry *entry = malloc(sizeof(FileListEntry));
-  strcpy(entry->name, DIR_UP);
-  entry->name_length = strlen(entry->name);
-  entry->is_folder = 1;
-  entry->type = FILE_TYPE_UNKNOWN;
-  fileListAddEntry(list, entry, sort);
+  if (entry) {
+    strcpy(entry->name, DIR_UP);
+    entry->name_length = strlen(entry->name);
+    entry->is_folder = 1;
+    entry->type = FILE_TYPE_UNKNOWN;
+    fileListAddEntry(list, entry, sort);
+  }
 
   int res = 0;
 
@@ -994,27 +1007,28 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
     res = sceIoDread(dfd, &dir);
     if (res > 0) {
       FileListEntry *entry = malloc(sizeof(FileListEntry));
+      if (entry) {
+        strcpy(entry->name, dir.d_name);
 
-      strcpy(entry->name, dir.d_name);
+        entry->is_folder = SCE_S_ISDIR(dir.d_stat.st_mode);
+        if (entry->is_folder) {
+          addEndSlash(entry->name);
+          entry->type = FILE_TYPE_UNKNOWN;
+          list->folders++;
+        } else {
+          entry->type = getFileType(entry->name);
+          list->files++;
+        }
 
-      entry->is_folder = SCE_S_ISDIR(dir.d_stat.st_mode);
-      if (entry->is_folder) {
-        addEndSlash(entry->name);
-        entry->type = FILE_TYPE_UNKNOWN;
-        list->folders++;
-      } else {
-        entry->type = getFileType(entry->name);
-        list->files++;
+        entry->name_length = strlen(entry->name);
+        entry->size = dir.d_stat.st_size;
+
+        memcpy(&entry->ctime, (SceDateTime *)&dir.d_stat.st_ctime, sizeof(SceDateTime));
+        memcpy(&entry->mtime, (SceDateTime *)&dir.d_stat.st_mtime, sizeof(SceDateTime));
+        memcpy(&entry->atime, (SceDateTime *)&dir.d_stat.st_atime, sizeof(SceDateTime));
+
+        fileListAddEntry(list, entry, sort);
       }
-
-      entry->name_length = strlen(entry->name);
-      entry->size = dir.d_stat.st_size;
-
-      memcpy(&entry->ctime, (SceDateTime *)&dir.d_stat.st_ctime, sizeof(SceDateTime));
-      memcpy(&entry->mtime, (SceDateTime *)&dir.d_stat.st_mtime, sizeof(SceDateTime));
-      memcpy(&entry->atime, (SceDateTime *)&dir.d_stat.st_atime, sizeof(SceDateTime));
-
-      fileListAddEntry(list, entry, sort);
     }
   } while (res > 0);
 

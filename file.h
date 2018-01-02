@@ -113,6 +113,7 @@ int getFileType(const char *file);
 int getNumberOfDevices();
 char **getDevices();
 
+FileListEntry *fileListCopyEntry(FileListEntry *src);
 FileListEntry *fileListFindEntry(FileList *list, const char *name);
 FileListEntry *fileListGetNthEntry(FileList *list, int n);
 int fileListGetNumberByName(FileList *list, const char *name);

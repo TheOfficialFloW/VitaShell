@@ -25,6 +25,7 @@
 static char archive_file[MAX_PATH_LENGTH];
 static int archive_path_start = 0;
 struct archive *archive_fd = NULL;
+SceUID test_fd = -1;
 
 int checkForUnsafeImports(void *buffer);
 char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const segment_info *segment,
@@ -40,11 +41,16 @@ struct archive_data {
   void *buffer;
   int block_size;
 };
-
+/*
+static const char *file_passphrase(struct archive *a, void *client_data) {
+  return "TODO";
+}
+*/
 static int file_open(struct archive *a, void *client_data) {
   struct archive_data *archive_data = client_data;
   
   archive_data->fd = sceIoOpen(archive_data->filename, SCE_O_RDONLY, 0);
+  test_fd = archive_data->fd;
   if (archive_data->fd < 0)
     return ARCHIVE_FATAL;
   
@@ -108,24 +114,36 @@ static int file_switch(struct archive *a, void *client_data1, void *client_data2
   return file_open(a, client_data2);
 }
 
-int open_archive(struct archive *a, const char *filename) {
-  struct archive_data *archive_data = malloc(sizeof(struct archive_data));
-  archive_data->filename = filename;
-  archive_read_append_callback_data(a, archive_data);
+struct archive *open_archive(const char *filename) {
+  struct archive *a = archive_read_new();
+  if (!a)
+    return NULL;
+  
+  archive_read_support_filter_all(a);
+  archive_read_support_format_all(a);
+  
+  // archive_read_set_passphrase_callback(a, file_passphrase);
   archive_read_set_open_callback(a, file_open);
   archive_read_set_read_callback(a, file_read);
   archive_read_set_skip_callback(a, file_skip);
   archive_read_set_close_callback(a, file_close);
   archive_read_set_switch_callback(a, file_switch);
   archive_read_set_seek_callback(a, file_seek);
-  return archive_read_open1(a);
+  
+  struct archive_data *archive_data = malloc(sizeof(struct archive_data));
+  archive_data->filename = filename;
+  archive_read_append_callback_data(a, archive_data);
+  
+  if (archive_read_open1(a))
+    return NULL;
+  
+  return a;
 }
 
 typedef struct ArchiveFileNode {
-  struct ArchiveFileNode *parent;
   struct ArchiveFileNode *child;
   struct ArchiveFileNode *next;
-  char name[MAX_NAME_LENGTH];
+  char *name;
   int is_folder;
   SceMode mode;
   SceOff size;
@@ -140,8 +158,10 @@ char *serializePathName(char *name, char **p) {
   if (!p)
     return name;
   
-  if (*p)
+  if (*p) {
+    **p = '/'; // restore
     name = *p + 1;
+  }
   
   *p = strchr(name, '/');
   if (*p)
@@ -150,20 +170,27 @@ char *serializePathName(char *name, char **p) {
   return name;
 }
 
-ArchiveFileNode *createArchiveNode(const char *name, const struct stat *stat, int is_folder, ArchiveFileNode *parent) {
+ArchiveFileNode *createArchiveNode(const char *name, const struct stat *stat, int is_folder) {
   ArchiveFileNode *node = malloc(sizeof(ArchiveFileNode));
   if (!node)
     return NULL;
   
   memset(node, 0, sizeof(ArchiveFileNode));
+
+  node->name = malloc(strlen(name) + 1);
+  if (!node->name) {
+    free(node);
+    return NULL;
+  }
   
-  node->parent = parent;
-  node->child = NULL;
-  node->next = NULL;
-  if (is_folder || stat->st_mode & S_IFDIR)
-    node->is_folder = 1;
   strcpy(node->name, name);
   
+  node->child = NULL;
+  node->next = NULL;
+  
+  if (is_folder || stat->st_mode & S_IFDIR)
+    node->is_folder = 1;
+    
   node->mode = node->is_folder ? SCE_S_IFDIR : SCE_S_IFREG;
   
   if (stat) {
@@ -259,7 +286,7 @@ int addArchiveNodeRecursive(ArchiveFileNode *parent, char *name, const struct st
     return 0;
   
   // Create new node
-  ArchiveFileNode *node = createArchiveNode(name, stat, !!p, parent);  
+  ArchiveFileNode *node = createArchiveNode(name, stat, !!p);  
   if (!parent->child) { // First child
     parent->child = node;
   } else {              // Neighbour
@@ -290,28 +317,22 @@ void freeArchiveNodes(ArchiveFileNode *curr) {
     
     // Get next entry in this directory
     ArchiveFileNode *next = curr->next;
+    free(curr->name);
     free(curr);
     curr = next;
   }
 }
 
-int archiveCheckFilesForUnsafeFself() {
-  int res;
-  
-  // Initialize
-  struct archive *archive = archive_read_new();
-  archive_read_support_filter_all(archive);
-  archive_read_support_format_all(archive);
-
+int archiveCheckFilesForUnsafeFself() {  
   // Open archive file
-  res = open_archive(archive, archive_file);
-  if (res)
+  struct archive *archive = open_archive(archive_file);
+  if (!archive)
     return 0;
   
   // Traverse
   while (1) {
     struct archive_entry *archive_entry;
-    res = archive_read_next_header(archive, &archive_entry);
+    int res = archive_read_next_header(archive, &archive_entry);
     if (res == ARCHIVE_EOF)
       break;
     
@@ -399,11 +420,13 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
     return -1;
 
   FileListEntry *entry = malloc(sizeof(FileListEntry));
-  strcpy(entry->name, DIR_UP);
-  entry->name_length = strlen(entry->name);
-  entry->is_folder = 1;
-  entry->type = FILE_TYPE_UNKNOWN;
-  fileListAddEntry(list, entry, sort);
+  if (entry) {
+    strcpy(entry->name, DIR_UP);
+    entry->name_length = strlen(entry->name);
+    entry->is_folder = 1;
+    entry->type = FILE_TYPE_UNKNOWN;
+    fileListAddEntry(list, entry, sort);
+  }
   
   // Traverse
   ArchiveFileNode *curr = findArchiveNode(path + archive_path_start);
@@ -411,27 +434,28 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
     curr = curr->child;
   while (curr) {
     FileListEntry *entry = malloc(sizeof(FileListEntry));
+    if (entry) {
+      strcpy(entry->name, curr->name);
+      
+      entry->is_folder = curr->is_folder;
+      if (entry->is_folder) {
+        addEndSlash(entry->name);
+        entry->type = FILE_TYPE_UNKNOWN;
+        list->folders++;
+      } else {
+        entry->type = getFileType(entry->name);
+        list->files++;
+      }
 
-    strcpy(entry->name, curr->name);
-    
-    entry->is_folder = curr->is_folder;
-    if (entry->is_folder) {
-      addEndSlash(entry->name);
-      entry->type = FILE_TYPE_UNKNOWN;
-      list->folders++;
-    } else {
-      entry->type = getFileType(entry->name);
-      list->files++;
+      entry->name_length = strlen(entry->name);
+      entry->size = curr->size;
+      
+      memcpy(&entry->ctime, (SceDateTime *)&curr->ctime, sizeof(SceDateTime));
+      memcpy(&entry->mtime, (SceDateTime *)&curr->mtime, sizeof(SceDateTime));
+      memcpy(&entry->atime, (SceDateTime *)&curr->atime, sizeof(SceDateTime));
+      
+      fileListAddEntry(list, entry, sort);
     }
-
-    entry->name_length = strlen(entry->name);
-    entry->size = curr->size;
-    
-    memcpy(&entry->ctime, (SceDateTime *)&curr->ctime, sizeof(SceDateTime));
-    memcpy(&entry->mtime, (SceDateTime *)&curr->mtime, sizeof(SceDateTime));
-    memcpy(&entry->atime, (SceDateTime *)&curr->atime, sizeof(SceDateTime));
-    
-    fileListAddEntry(list, entry, sort);
     
     // Get next entry in this directory
     curr = curr->next;
@@ -623,27 +647,20 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
   return 0;
 }
 
-int archiveFileOpen(const char *file, int flags, SceMode mode) {
-  int res;
-  
+int archiveFileOpen(const char *file, int flags, SceMode mode) {  
   // A file is already open
   if (archive_fd)
     return -1;
 
-  // Initialize
-  archive_fd = archive_read_new();
-  archive_read_support_filter_all(archive_fd);
-  archive_read_support_format_all(archive_fd);
-
   // Open archive file
-  res = open_archive(archive_fd, archive_file);
-  if (res)
+  archive_fd = open_archive(archive_file);
+  if (!archive_fd)
     return -1;
 
   // Traverse
   while (1) {
     struct archive_entry *archive_entry;
-    res = archive_read_next_header(archive_fd, &archive_entry);
+    int res = archive_read_next_header(archive_fd, &archive_entry);
     if (res == ARCHIVE_EOF)
       break;
     
@@ -698,29 +715,22 @@ int archiveClose() {
 }
 
 int archiveOpen(const char *file) {
-  int res;
-
   // Start position of the archive path
   archive_path_start = strlen(file) + 1;
   strcpy(archive_file, file);
-  
-  // Initialize
-  struct archive *archive = archive_read_new();
-  archive_read_support_filter_all(archive);
-  archive_read_support_format_all(archive);
 
   // Open archive file
-  res = open_archive(archive, file);
-  if (res)
+  struct archive *archive = open_archive(file);
+  if (!archive)
     return -1;
 
   // Create archive root
-  archive_root = createArchiveNode("/", NULL, 1, NULL);
+  archive_root = createArchiveNode("/", NULL, 1);
   
   // Traverse
   while (1) {
     struct archive_entry *archive_entry;
-    res = archive_read_next_header(archive, &archive_entry);
+    int res = archive_read_next_header(archive, &archive_entry);
     if (res == ARCHIVE_EOF)
       break;
     

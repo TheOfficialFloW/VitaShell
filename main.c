@@ -575,9 +575,7 @@ static int dialogSteps() {
         
         int i;
         for (i = 0; i < copy_list.length; i++) {
-          FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
-          memcpy(mark_entry, copy_entry, sizeof(FileListEntry));
-          fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+          fileListAddEntry(&mark_list, fileListCopyEntry(copy_entry), SORT_NONE);
 
           // Next
           copy_entry = copy_entry->next;
@@ -1327,9 +1325,7 @@ static int fileBrowserMenuCtrl() {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry && strcmp(file_entry->name, DIR_UP) != 0) {
         if (!fileListFindEntry(&mark_list, file_entry->name)) {
-          FileListEntry *mark_entry = malloc(sizeof(FileListEntry));
-          memcpy(mark_entry, file_entry, sizeof(FileListEntry));
-          fileListAddEntry(&mark_list, mark_entry, SORT_NONE);
+          fileListAddEntry(&mark_list, fileListCopyEntry(file_entry), SORT_NONE);
         } else {
           fileListRemoveEntryByName(&mark_list, file_entry->name);
         }

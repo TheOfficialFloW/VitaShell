@@ -59,7 +59,7 @@ static int update_thread(SceSize args_size, UpdateArguments *args) {
     }
 
     double progress = (double)((100.0 * (double)current_value) / (double)args->max);
-    sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (int)progress);
+    sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (uint32_t)progress);
 
     sceKernelDelayThread(COUNTUP_WAIT);
   }
@@ -102,8 +102,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
     head = args->mark_list->head;
   } else {
     count = 1;
-    mark_entry_one = malloc(sizeof(FileListEntry));
-    strcpy(mark_entry_one->name, file_entry->name);
+    mark_entry_one = fileListCopyEntry(file_entry);
     head = mark_entry_one;
   }
 
@@ -135,7 +134,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 
     FileProcessParam param;
     param.value = &value;
-    param.max = folders+files;
+    param.max = folders + files;
     param.SetProgress = SetProgress;
     param.cancelHandler = cancelHandler;
     int res = removePath(path, &param);
@@ -256,7 +255,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
       goto EXIT;
 
     // Update thread
-    thid = createStartUpdateThread(size + folders*DIRECTORY_SIZE, 1);
+    thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE, 1);
 
     // Copy process
     uint64_t value = 0;
@@ -269,7 +268,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
       FileProcessParam param;
       param.value = &value;
-      param.max = size + folders*DIRECTORY_SIZE;
+      param.max = size + folders * DIRECTORY_SIZE;
       param.SetProgress = SetProgress;
       param.cancelHandler = cancelHandler;
 
@@ -364,7 +363,7 @@ static void musicExportProgress(void *data, int progress) {
   FileProcessParam *param = (FileProcessParam *)args[2];
   if (param) {
     if (param->value)
-      (*param->value) += (*value-old_value);
+      (*param->value) += (*value - old_value);
 
     if (param->SetProgress)
       param->SetProgress(param->value ? *param->value : 0, param->max);
@@ -514,9 +513,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
     head = args->mark_list->head;
   } else {
     count = 1;
-    mark_entry_one = malloc(sizeof(FileListEntry));
-    strcpy(mark_entry_one->name, file_entry->name);
-    mark_entry_one->type = file_entry->type;
+    mark_entry_one = fileListCopyEntry(file_entry);
     head = mark_entry_one;
   }
 

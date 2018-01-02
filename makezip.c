@@ -258,9 +258,7 @@ int compress_thread(SceSize args_size, CompressArguments *args) {
     head = args->mark_list->head;
   } else {
     count = 1;
-    mark_entry_one = malloc(sizeof(FileListEntry));
-    strcpy(mark_entry_one->name, file_entry->name);
-    mark_entry_one->type = file_entry->type;
+    mark_entry_one = fileListCopyEntry(file_entry);
     head = mark_entry_one;
   }
 
