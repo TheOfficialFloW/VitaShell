@@ -99,6 +99,9 @@ The english language file is provided in **'VitaShellCustomization.rar'** and av
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.78 ###
+- Fixed bug where archives > 2GB couldn't be opened.
+
 ### Changelog 1.77 ###
 - Added archive support for .7z, .tar.gz, .tar.bz2 and more by using libarchive.
 - Improved archive file system (opening archives should now be much faster).
