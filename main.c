@@ -519,6 +519,7 @@ static int dialogSteps() {
     {
       if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
           msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+        refresh = REFRESH_MODE_NORMAL;
         setDialogStep(DIALOG_STEP_NONE);
       }
 
@@ -652,7 +653,9 @@ static int dialogSteps() {
         }
       } else {
         if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
-            msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {          
+            msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+          setDialogStep(DIALOG_STEP_NONE);
+          
           if (checkFileExist("sdstor0:uma-lp-act-entire")) {
             int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
             if (res < 0)
@@ -661,8 +664,6 @@ static int dialogSteps() {
               infoDialog(language_container[USB_UMA0_MOUNTED]);
             refresh = REFRESH_MODE_NORMAL;
           }
-          
-          setDialogStep(DIALOG_STEP_NONE);
         }
       }
       
