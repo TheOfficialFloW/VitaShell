@@ -24,7 +24,7 @@
 #define IME_DIALOG_RESULT_FINISHED 2
 #define IME_DIALOG_RESULT_CANCELED 3
 
-int initImeDialog(const char *title, const char *initial_text, int max_text_length, int type, int option);
+int initImeDialog(const char *title, const char *initial_text, int max_text_length, int type, int option, int password);
 uint16_t *getImeDialogInputTextUTF16();
 uint8_t *getImeDialogInputTextUTF8();
 const char *getImeDialogInitialText();

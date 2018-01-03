@@ -53,7 +53,7 @@
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0x01
-#define VITASHELL_VERSION_MINOR 0x78
+#define VITASHELL_VERSION_MINOR 0x79
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 
@@ -225,6 +225,8 @@ enum DialogSteps {
   DIALOG_STEP_QR_DOWNLOADED_VPK,
   DIALOG_STEP_QR_OPEN_WEBSITE,
   DIALOG_STEP_QR_SHOW_CONTENTS,
+  
+  DIALOG_STEP_ENTER_PASSWORD,
 };
 
 extern FileList file_list, mark_list, copy_list, install_list;

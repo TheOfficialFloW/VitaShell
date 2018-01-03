@@ -316,7 +316,12 @@ static int handleFile(const char *file, FileListEntry *entry) {
       break;
       
     case FILE_TYPE_ARCHIVE:
+      archiveClearPassword();
       res = archiveOpen(file);
+      if (res >= 0 && archiveNeedPassword()) {
+        initImeDialog(language_container[ENTER_PASSWORD], "", 128, SCE_IME_TYPE_BASIC_LATIN, 0, 1);
+        setDialogStep(DIALOG_STEP_ENTER_PASSWORD);
+      }
       break;
       
     default:
@@ -512,7 +517,8 @@ static int dialogSteps() {
     case DIALOG_STEP_INFO:
     case DIALOG_STEP_SYSTEM:
     {
-      if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+      if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
+          msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
         setDialogStep(DIALOG_STEP_NONE);
       }
 
@@ -526,7 +532,8 @@ static int dialogSteps() {
       
     case DIALOG_STEP_DELETED:
     {
-      if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+      if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
+          msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
         FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
         if (file_entry) {
           // Empty mark list if on marked entry
@@ -535,8 +542,9 @@ static int dialogSteps() {
           }
 
           refresh = REFRESH_MODE_NORMAL;
-          setDialogStep(DIALOG_STEP_NONE);
         }
+        
+        setDialogStep(DIALOG_STEP_NONE);
       }
 
       break;
@@ -544,7 +552,8 @@ static int dialogSteps() {
     
     case DIALOG_STEP_COMPRESSED:
     {
-      if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+      if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
+          msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
         FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
         if (file_entry) {
           // Empty mark list if on marked entry
@@ -556,8 +565,9 @@ static int dialogSteps() {
           strcpy(focus_name, compress_name);
           
           refresh = REFRESH_MODE_SETFOCUS;
-          setDialogStep(DIALOG_STEP_NONE);
         }
+        
+        setDialogStep(DIALOG_STEP_NONE);
       }
 
       break;
@@ -566,7 +576,8 @@ static int dialogSteps() {
     case DIALOG_STEP_COPIED:
     case DIALOG_STEP_MOVED:
     {
-      if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+      if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
+          msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
         // Empty mark list
         fileListEmpty(&mark_list);
         
@@ -640,9 +651,8 @@ static int dialogSteps() {
           sceMsgDialogClose();
         }
       } else {
-        if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
-          setDialogStep(DIALOG_STEP_NONE);
-          
+        if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
+            msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {          
           if (checkFileExist("sdstor0:uma-lp-act-entire")) {
             int res = vshIoMount(0xF00, NULL, 0, 0, 0, 0);
             if (res < 0)
@@ -651,6 +661,8 @@ static int dialogSteps() {
               infoDialog(language_container[USB_UMA0_MOUNTED]);
             refresh = REFRESH_MODE_NORMAL;
           }
+          
+          setDialogStep(DIALOG_STEP_NONE);
         }
       }
       
@@ -670,7 +682,8 @@ static int dialogSteps() {
           }
         }
       } else {
-        if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+        if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
+            msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
           setDialogStep(DIALOG_STEP_NONE);
 
           // Dialog
@@ -711,7 +724,8 @@ static int dialogSteps() {
           sceMsgDialogClose();
         }
       } else {
-        if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+        if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
+            msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
           setDialogStep(DIALOG_STEP_NONE);
 
           SceUdcdDeviceState state;
@@ -833,27 +847,30 @@ static int dialogSteps() {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
           FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-          if (file_entry) {
-            char old_name[MAX_NAME_LENGTH];
-            strcpy(old_name, file_entry->name);
-            removeEndSlash(old_name);
+          if (!file_entry) {
+            setDialogStep(DIALOG_STEP_NONE);
+            break;
+          }
+          
+          char old_name[MAX_NAME_LENGTH];
+          strcpy(old_name, file_entry->name);
+          removeEndSlash(old_name);
 
-            if (strcasecmp(old_name, name) == 0) { // No change
-              setDialogStep(DIALOG_STEP_NONE);
+          if (strcasecmp(old_name, name) == 0) { // No change
+            setDialogStep(DIALOG_STEP_NONE);
+          } else {
+            char old_path[MAX_PATH_LENGTH];
+            char new_path[MAX_PATH_LENGTH];
+
+            snprintf(old_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, old_name);
+            snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
+
+            int res = sceIoRename(old_path, new_path);
+            if (res < 0) {
+              errorDialog(res);
             } else {
-              char old_path[MAX_PATH_LENGTH];
-              char new_path[MAX_PATH_LENGTH];
-
-              snprintf(old_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, old_name);
-              snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
-
-              int res = sceIoRename(old_path, new_path);
-              if (res < 0) {
-                errorDialog(res);
-              } else {
-                refresh = REFRESH_MODE_NORMAL;
-                setDialogStep(DIALOG_STEP_NONE);
-              }
+              refresh = REFRESH_MODE_NORMAL;
+              setDialogStep(DIALOG_STEP_NONE);
             }
           }
         }
@@ -902,7 +919,7 @@ static int dialogSteps() {
         } else {
           strcpy(compress_name, name);
 
-          initImeDialog(language_container[COMPRESSION_LEVEL], "6", 1, SCE_IME_TYPE_NUMBER, 0);
+          initImeDialog(language_container[COMPRESSION_LEVEL], "6", 1, SCE_IME_TYPE_NUMBER, 0, 0);
           setDialogStep(DIALOG_STEP_COMPRESS_LEVEL);
         }
       } else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
@@ -961,20 +978,23 @@ static int dialogSteps() {
       if (msg_result == MESSAGE_DIALOG_RESULT_RUNNING) {
         // User has confirmed desire to hash, get requested file entry
         FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-        if (file_entry) {
-          // Place the full file path in cur_file
-          snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
-
-          HashArguments args;
-          args.file_path = cur_file;
-
-          setDialogStep(DIALOG_STEP_HASHING);
-
-          // Create a thread to run out actual sum
-          SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x100000, 0, 0, NULL);
-          if (thid >= 0)
-            sceKernelStartThread(thid, sizeof(HashArguments), &args);
+        if (!file_entry) {
+          setDialogStep(DIALOG_STEP_NONE);
+          break;
         }
+        
+        // Place the full file path in cur_file
+        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+
+        HashArguments args;
+        args.file_path = cur_file;
+
+        setDialogStep(DIALOG_STEP_HASHING);
+
+        // Create a thread to run out actual sum
+        SceUID thid = sceKernelCreateThread("hash_thread", (SceKernelThreadEntry)hash_thread, 0x40, 0x100000, 0, 0, NULL);
+        if (thid >= 0)
+          sceKernelStartThread(thid, sizeof(HashArguments), &args);
       }
 
       break;
@@ -1050,15 +1070,16 @@ static int dialogSteps() {
     
     case DIALOG_STEP_INSTALLED:
     {
-      if (msg_result == MESSAGE_DIALOG_RESULT_NONE || msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+      if (msg_result == MESSAGE_DIALOG_RESULT_NONE ||
+          msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
         if (install_list.length > 0) {
           initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[INSTALLING]);
           setDialogStep(DIALOG_STEP_INSTALL_CONFIRMED);
           break;
         }
 
-        setDialogStep(DIALOG_STEP_NONE);
         refresh = REFRESH_MODE_NORMAL;
+        setDialogStep(DIALOG_STEP_NONE);
       }
 
       break;
@@ -1213,6 +1234,42 @@ static int dialogSteps() {
         setDialogStep(DIALOG_STEP_NONE);
       }
       
+      break;
+    }
+    
+    case DIALOG_STEP_ENTER_PASSWORD:
+    {
+      if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+        char *password = (char *)getImeDialogInputTextUTF8();
+        if (password[0] == '\0') {
+          setDialogStep(DIALOG_STEP_NONE);
+        } else {
+          // TODO: verify password
+          archiveSetPassword(password);
+          
+          FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+          if (!file_entry) {
+            setDialogStep(DIALOG_STEP_NONE);
+            break;
+          }
+          
+          is_in_archive = 1;
+          dir_level_archive = dir_level;
+
+          snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+
+          strcat(file_list.path, file_entry->name);
+          addEndSlash(file_list.path);
+
+          dirLevelUp();
+          
+          refresh = REFRESH_MODE_NORMAL;
+          setDialogStep(DIALOG_STEP_NONE);
+        }
+      } else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+        setDialogStep(DIALOG_STEP_NONE);
+      }
+
       break;
     }
   }
@@ -1378,7 +1435,7 @@ static int fileBrowserMenuCtrl() {
         int type = handleFile(cur_file, file_entry);
 
         // Archive mode
-        if (type == FILE_TYPE_ARCHIVE) {
+        if (type == FILE_TYPE_ARCHIVE && getDialogStep() != DIALOG_STEP_ENTER_PASSWORD) {
           is_in_archive = 1;
           dir_level_archive = dir_level;
 

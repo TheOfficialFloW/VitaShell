@@ -329,7 +329,7 @@ void settingsMenuCtrl() {
         break;
       
       case SETTINGS_OPTION_TYPE_STRING:
-        initImeDialog(language_container[option->name], option->string, option->size_string, SCE_IME_TYPE_EXTENDED_NUMBER, 0);
+        initImeDialog(language_container[option->name], option->string, option->size_string, SCE_IME_TYPE_EXTENDED_NUMBER, 0, 0);
         setDialogStep(DIALOG_STEP_SETTINGS_STRING);
         break;
         

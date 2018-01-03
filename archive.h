@@ -37,6 +37,9 @@ int ReadArchiveFile(const char *file, void *buf, int size);
 
 int archiveClose();
 int archiveOpen(const char *file);
+int archiveNeedPassword();
+void archiveClearPassword();
+void archiveSetPassword(char *string);
 
 int archiveCheckFilesForUnsafeFself();
 

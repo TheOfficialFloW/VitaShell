@@ -71,7 +71,7 @@ static void utf8_to_utf16(const uint8_t *src, uint16_t *dst) {
   *dst = '\0';
 }
 
-int initImeDialog(const char *title, const char *initial_text, int max_text_length, int type, int option) {
+int initImeDialog(const char *title, const char *initial_text, int max_text_length, int type, int option, int password) {
   if (ime_dialog_running)
     return -1;
 
@@ -92,6 +92,7 @@ int initImeDialog(const char *title, const char *initial_text, int max_text_leng
   param.option = option;
   if (option == SCE_IME_OPTION_MULTILINE)
     param.dialogMode = SCE_IME_DIALOG_DIALOG_MODE_WITH_CANCEL;
+  param.textBoxMode = password ? SCE_IME_DIALOG_TEXTBOX_MODE_PASSWORD : SCE_IME_DIALOG_TEXTBOX_MODE_DEFAULT;
   param.title = ime_title_utf16;
   param.maxTextLength = max_text_length;
   param.initialText = ime_initial_text_utf16;

@@ -359,7 +359,7 @@ static int contextMenuEnterCallback(int sel, void *context) {
 
   switch (sel) {
     case TEXT_MENU_ENTRY_SEARCH:
-      initImeDialog(language_container[ENTER_SEARCH_TERM], "", MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, 0);
+      initImeDialog(language_container[ENTER_SEARCH_TERM], "", MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, 0, 0);
       state->search_term_input = 1;
       break;
 
@@ -761,7 +761,7 @@ int textViewer(const char *file) {
             char line[MAX_LINE_CHARACTERS];
             textReadLine(s->buffer, line_start, s->size, line);
 
-            initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, SCE_IME_OPTION_MULTILINE);
+            initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, SCE_IME_OPTION_MULTILINE, 0);
 
             s->edit_line = s->base_pos+s->rel_pos;
           }

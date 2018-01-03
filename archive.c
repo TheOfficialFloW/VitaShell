@@ -25,6 +25,8 @@
 static char archive_file[MAX_PATH_LENGTH];
 static int archive_path_start = 0;
 struct archive *archive_fd = NULL;
+static int need_password = 0;
+static char password[128];
 
 int checkForUnsafeImports(void *buffer);
 char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const segment_info *segment,
@@ -40,11 +42,11 @@ struct archive_data {
   void *buffer;
   int block_size;
 };
-/*
+
 static const char *file_passphrase(struct archive *a, void *client_data) {
-  return "TODO";
+  return password;
 }
-*/
+
 static int file_open(struct archive *a, void *client_data) {
   struct archive_data *archive_data = client_data;
   
@@ -136,7 +138,7 @@ struct archive *open_archive(const char *filename) {
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
   
-  // archive_read_set_passphrase_callback(a, file_passphrase);
+  archive_read_set_passphrase_callback(a, NULL, file_passphrase);
   archive_read_set_open_callback(a, file_open);
   archive_read_set_read_callback(a, file_read);
   archive_read_set_skip_callback(a, file_skip);
@@ -811,6 +813,19 @@ int ReadArchiveFile(const char *file, void *buf, int size) {
   return read;
 }
 
+int archiveNeedPassword() {
+  return need_password;
+}
+
+void archiveClearPassword() {
+  memset(password, 0, sizeof(password));
+}
+
+void archiveSetPassword(char *string) {
+  strncpy(password, string, sizeof(password) - 1);
+  password[sizeof(password) - 1] = '\0';
+}
+
 int archiveClose() {
   freeArchiveNodes(archive_root);
   return 0;
@@ -825,7 +840,12 @@ int archiveOpen(const char *file) {
   struct archive *archive = open_archive(file);
   if (!archive)
     return -1;
-
+  
+  // Need password?
+  need_password = 0;
+  if (archive_read_has_encrypted_entries(archive) == 1)
+    need_password = 1;
+  
   // Create archive root
   archive_root = createArchiveNode("/", NULL, 1);
   
@@ -841,6 +861,10 @@ int archiveOpen(const char *file) {
       return -1;
     }
     
+    // // Need password?
+    if (archive_entry_is_encrypted(archive_entry))
+      need_password = 1;
+      
     // Get entry information
     const char *name = archive_entry_pathname(archive_entry);
     const struct stat *stat = archive_entry_stat(archive_entry);

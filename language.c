@@ -250,6 +250,7 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(UPDATE_QUESTION),
     LANGUAGE_ENTRY(ARCHIVE_NAME),
     LANGUAGE_ENTRY(COMPRESSION_LEVEL),
+    LANGUAGE_ENTRY(ENTER_PASSWORD),
   };
 
   // Load default config file
