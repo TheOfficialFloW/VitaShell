@@ -195,7 +195,7 @@ void app_callback(void* data, const char* dir, const char* subdir)
   refresh_data_t *refresh_data = (refresh_data_t*)data;
   char path[MAX_PATH_LENGTH];
 
-  if (strcmp(subdir, vitashell_titleid) == 0)
+  if (strcasecmp(subdir, vitashell_titleid) == 0)
     return;
 
   if (refresh_data->refresh_pass) {
@@ -222,7 +222,7 @@ void dlc_callback_inner(void* data, const char* dir, const char* subdir)
   char path[MAX_PATH_LENGTH];
 
   // Ignore  "sce_sys" and "sce_pfs" directories
-  if (strncmp(subdir, "sce_", 4) == 0)
+  if (strncasecmp(subdir, "sce_", 4) == 0)
     return;
 
   if (dlc_data->refresh_data->refresh_pass) {
@@ -343,7 +343,7 @@ void license_file_callback(void* data, const char* dir, const char* file)
   char path[MAX_PATH_LENGTH];
 
   // Ignore non rif content
-  if ((strlen(file) < 4) || (strcmp(&file[strlen(file) - 4], ".rif") != 0))
+  if ((strlen(file) < 4) || (strcasecmp(&file[strlen(file) - 4], ".rif") != 0))
     return;
   if (license_data->copy_pass) {
     snprintf(path, sizeof(path), "%s/%s", dir, file);

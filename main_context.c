@@ -398,7 +398,7 @@ void setContextMenuMoreVisibilities() {
     char check_path[MAX_PATH_LENGTH];
 
     do {
-      if (strcmp(file_list.path, "ux0:app/") == 0 || strcmp(file_list.path, "ux0:patch/") == 0) {
+      if (strcasecmp(file_list.path, "ux0:app/") == 0 || strcasecmp(file_list.path, "ux0:patch/") == 0) {
         menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
         break;
       }

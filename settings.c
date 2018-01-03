@@ -181,7 +181,7 @@ void openSettingsMenu() {
         res = sceIoDread(dfd, &dir);
         if (res > 0) {
           if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
-            if (theme_name && strcmp(dir.d_name, theme_name) == 0)
+            if (theme_name && strcasecmp(dir.d_name, theme_name) == 0)
               theme = theme_count;
             
             strncpy(theme_options[theme_count], dir.d_name, MAX_THEME_LENGTH);

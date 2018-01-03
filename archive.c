@@ -145,84 +145,95 @@ struct archive *open_archive(const char *filename) {
   archive_read_set_seek_callback(a, file_seek);
   
   // Get path and name of filename
-  char path[MAX_PATH_LENGTH];
-  char name[MAX_NAME_LENGTH];
-  char new_path[MAX_PATH_LENGTH];
-  char format[24];
-  int part_format = 0;
   int type = 0;
   
   char *p = strrchr(filename, '/');
   if (!p)
     p = strrchr(filename, ':');
-  if (!p) {
-    archive_read_free(a);
-    return NULL;
-  }
-
-  strncpy(path, filename, p - filename + 1);
-  path[p - filename + 1] = '\0';
-  
-  char *q = strchr(p + 1, '.');
-  if (!q) {
-    archive_read_free(a);
-    return NULL;
-  }
-
-  strncpy(name, p + 1, q - (p + 1));
-  name[q - (p + 1)] = '\0';
-  
-  // Check for .partXXXX.rar archives
-  for (part_format = 0; part_format < 4; part_format++) {
-    strcpy(format, "%s%s.part%0Xd.rar");
-    format[11] = '1' + part_format;
-    snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, 1);
-    if (checkFileExist(new_path)) {
-      type = 1;
-      break;
+  if (p) {
+    char *q = strrchr(p + 1, '.');
+    if (q) {
+      char path[MAX_PATH_LENGTH];
+      char name[MAX_NAME_LENGTH];
+      char new_path[MAX_PATH_LENGTH];
+      char format[24];
+      int part_format = 0;
+      
+      strncpy(path, filename, p - filename + 1);
+      path[p - filename + 1] = '\0';
+      
+      strncpy(name, p + 1, q - (p + 1));
+      name[q - (p + 1)] = '\0';
+      
+      // Check for multi volume rar
+      if (strcasecmp(q, ".rar") == 0) {
+        // Check for .partXXXX.rar archives
+        q = strrchr(name, '.');
+        if (q) {
+          if (strncasecmp(q + 1, "part", 4) == 0) {
+            name[q - name] = '\0';
+            
+            for (part_format = 0; part_format < 4; part_format++) {
+              strcpy(format, "%s%s.part%0Xd.rar");
+              format[11] = '1' + part_format;
+              snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, 1);
+              if (checkFileExist(new_path)) {
+                type = 1;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Check for .rXX archives
+        if (type == 0) {
+          snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s.r00", path, name);
+          if (checkFileExist(new_path)) {
+            strcpy(format, "%s%s.r%02d");
+            type = 2;
+          }
+        }
+        
+        if (type != 0) {
+          int num = 1;
+          
+          if (type == 2) {
+            num = 0; // this type begins with .r00
+            
+            // Append .rar as first archive
+            if (append_archive(a, filename) != ARCHIVE_OK) {
+              archive_read_free(a);
+              return NULL;
+            }
+          }
+          
+          // Append other parts
+          while (1) {
+            snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, num);
+            if (!checkFileExist(new_path))
+              break;
+            
+            if (append_archive(a, new_path) != ARCHIVE_OK) {
+              archive_read_free(a);
+              return NULL;
+            }
+            
+            num++;
+          }
+        }
+      }
     }
   }
   
-  // Check for .rXX archives
-  if (type == 0) {
-    snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s.r00", path, name);
-    if (checkFileExist(new_path)) {
-      strcpy(format, "%s%s.r%02d");
-      type = 2;
-    }
-  }
-  
+  // Single volume
   if (type == 0) {
     if (append_archive(a, filename) != ARCHIVE_OK) {
       archive_read_free(a);
       return NULL;
     }
-  } else {
-    int i = 1;
-    
-    if (type == 2) {
-      i = 0; // this type begins with .r00
-      snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s.rar", path, name);
-      if (append_archive(a, new_path) != ARCHIVE_OK) {
-        archive_read_free(a);
-        return NULL;
-      }
-    }
-    
-    while (1) {
-      snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, i);
-      if (!checkFileExist(new_path))
-        break;
-      
-      if (append_archive(a, new_path) != ARCHIVE_OK) {
-        archive_read_free(a);
-        return NULL;
-      }
-      
-      i++;
-    }
   }
   
+  // Open archive
   if (archive_read_open1(a)) {
     archive_read_free(a);
     return NULL;
@@ -321,7 +332,7 @@ ArchiveFileNode *_findArchiveNode(ArchiveFileNode *parent, char *name, ArchiveFi
   ArchiveFileNode *curr = parent->child;
   while (curr) {
     // Found name
-    if (strcmp(curr->name, name) == 0) {
+    if (strcasecmp(curr->name, name) == 0) {
       // Found node
       if (!p)
         return curr;
@@ -762,7 +773,7 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
     
     // Compare pathname
     const char *name = archive_entry_pathname(archive_entry);
-    if (strcmp(name, file + archive_path_start) == 0) {
+    if (strcasecmp(name, file + archive_path_start) == 0) {
       return ARCHIVE_FD;
     }
   }

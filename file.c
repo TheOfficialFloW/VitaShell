@@ -638,7 +638,7 @@ static ExtensionType extension_types[] = {
 int getFileType(const char *file) {
   char *p = strrchr(file, '.');
   if (p) {
-    if ((p - file) >= 4 && strncmp(p - 4, ".tar", 4) == 0) {
+    if ((p - file) >= 4 && strncasecmp(p - 4, ".tar", 4) == 0) {
       p = p - 4;
     }
     
@@ -744,7 +744,7 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
       while (p) {
         // Get the minimum length without /
         int len = MIN(entry->name_length, p->name_length);
-        if (entry->name[len-1] == '/' || p->name[len-1] == '/')
+        if (entry->name[len - 1] == '/' || p->name[len - 1] == '/')
           len--;
 
         // '..' is always at first
