@@ -274,8 +274,9 @@ void setContextMenuMainVisibilities() {
   }
 
   // Invisible 'Paste' if nothing is copied yet
-  if (copy_list.length == 0)
+  if (copy_list.length == 0) {
     menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
+  }
 
   // Invisible 'Paste' if the files to move are not from the same partition
   if (copy_mode == COPY_MODE_MOVE) {
@@ -296,7 +297,7 @@ void setContextMenuMainVisibilities() {
     }
   }
 
-  // Invisble write operations in archives or pfs mounted paths
+  // Invisible write operations in archives or pfs mounted paths
   // TODO: read-only mount points
   if (isInArchive() || (pfs_mounted_path[0] && strstr(file_list.path, pfs_mounted_path))) {
     menu_main_entries[MENU_MAIN_ENTRY_MOVE].visibility = CTX_INVISIBLE;
@@ -579,8 +580,8 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
       if (file_entry) {
         // Umount if last path copied from is the pfs mounted path
         if (pfs_mounted_path[0] &&
-          !strstr(file_list.path, pfs_mounted_path) &&
-          strstr(copy_list.path, pfs_mounted_path)) {
+            !strstr(file_list.path, pfs_mounted_path) &&
+             strstr(copy_list.path, pfs_mounted_path)) {
           gameDataUmount();
         }
 

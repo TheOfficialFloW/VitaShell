@@ -869,6 +869,7 @@ int fileListRemoveEntry(FileList *list, FileListEntry *entry) {
   }
 
   list->length--;
+  free(entry->name);
   free(entry);
 
   if (list->length == 0) {
@@ -901,6 +902,7 @@ int fileListRemoveEntryByName(FileList *list, const char *name) {
       }
 
       list->length--;
+      free(entry->name);
       free(entry);
 
       if (list->length == 0) {
@@ -926,6 +928,7 @@ void fileListEmpty(FileList *list) {
 
   while (entry) {
     FileListEntry *next = entry->next;
+    free(entry->name);
     free(entry);
     entry = next;
   }
