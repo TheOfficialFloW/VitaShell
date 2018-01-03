@@ -125,6 +125,7 @@ int update_extract_thread(SceSize args, void *argp) {
   sceIoMkdir(PACKAGE_DIR, 0777);
 
   // Open archive
+  archiveClearPassword();
   int res = archiveOpen(VITASHELL_UPDATE_FILE);
   if (res < 0) {
     closeWaitDialog();

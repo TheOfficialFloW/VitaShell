@@ -260,6 +260,7 @@ int installPackage(const char *file) {
   removePath(PACKAGE_DIR, NULL);
 
   // Open archive
+  archiveClearPassword();
   res = archiveOpen(file);
   if (res < 0)
     return res;
@@ -371,6 +372,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
     isFolder = 1;
   } else {
     // Open archive
+    archiveClearPassword();
     res = archiveOpen(args->file);
     if (res < 0) {
       closeWaitDialog();
