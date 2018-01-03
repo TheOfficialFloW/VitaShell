@@ -72,10 +72,14 @@ static int getHexdecimal(const char *str) {
 }
 
 static int getBoolean(const char *str) {
-  if (strcasecmp(str, "false") == 0 || strcasecmp(str, "off") == 0 || strcasecmp(str, "no") == 0)
+  if (strcasecmp(str, "false") == 0 ||
+      strcasecmp(str, "off") == 0 ||
+      strcasecmp(str, "no") == 0)
     return 0;
 
-  if (strcasecmp(str, "true") == 0 || strcasecmp(str, "on") == 0 || strcasecmp(str, "yes") == 0)
+  if (strcasecmp(str, "true") == 0 ||
+      strcasecmp(str, "on") == 0 ||
+      strcasecmp(str, "yes") == 0)
     return 1;
 
   return -1;
@@ -131,7 +135,7 @@ static int readEntry(const char *line, ConfigEntry *entries, int n_entries) {
   char name[MAX_CONFIG_NAME_LENGTH];
   int len = p - line;
   if (len > MAX_CONFIG_NAME_LENGTH - 1)
-    len = MAX_CONFIG_NAME_LENGTH-1;
+    len = MAX_CONFIG_NAME_LENGTH - 1;
   strncpy(name, line, len);
   name[len] = '\0';
 

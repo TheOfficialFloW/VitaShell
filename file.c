@@ -333,7 +333,7 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
 
   // The destination is a subfolder of the source folder
   int len = strlen(src_path);
-  if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len-1] == '/')) {
+  if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
     return -2;
   }
 
@@ -421,7 +421,7 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
 
   // The destination is a subfolder of the source folder
   int len = strlen(src_path);
-  if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len-1] == '/')) {
+  if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
     return -2;
   }
 
@@ -504,7 +504,7 @@ int movePath(const char *src_path, const char *dst_path, int flags, FileProcessP
 
   // The destination is a subfolder of the source folder
   int len = strlen(src_path);
-  if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len-1] == '/')) {
+  if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
     return -2;
   }
 
@@ -671,6 +671,8 @@ FileListEntry *fileListCopyEntry(FileListEntry *src) {
     return NULL;
 
   memcpy(dst, src, sizeof(FileListEntry));
+  dst->name = malloc(src->name_length + 1);
+  strcpy(dst->name, src->name);
   return dst;
 }
 
@@ -950,8 +952,9 @@ int fileListGetDeviceEntries(FileList *list) {
       if (sceIoGetstat(devices[i], &stat) >= 0) {
         FileListEntry *entry = malloc(sizeof(FileListEntry));
         if (entry) {
+          entry->name_length = strlen(devices[i]);
+          entry->name = malloc(entry->name_length + 1);
           strcpy(entry->name, devices[i]);
-          entry->name_length = strlen(entry->name);
           entry->is_folder = 1;
           entry->type = FILE_TYPE_UNKNOWN;
 
@@ -995,8 +998,9 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
 
   FileListEntry *entry = malloc(sizeof(FileListEntry));
   if (entry) {
+    entry->name_length = strlen(DIR_UP);
+    entry->name = malloc(entry->name_length + 1);
     strcpy(entry->name, DIR_UP);
-    entry->name_length = strlen(entry->name);
     entry->is_folder = 1;
     entry->type = FILE_TYPE_UNKNOWN;
     fileListAddEntry(list, entry, sort);
@@ -1012,19 +1016,22 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
     if (res > 0) {
       FileListEntry *entry = malloc(sizeof(FileListEntry));
       if (entry) {
-        strcpy(entry->name, dir.d_name);
-
         entry->is_folder = SCE_S_ISDIR(dir.d_stat.st_mode);
         if (entry->is_folder) {
+          entry->name_length = strlen(dir.d_name) + 1;
+          entry->name = malloc(entry->name_length + 1);
+          strcpy(entry->name, dir.d_name);
           addEndSlash(entry->name);
           entry->type = FILE_TYPE_UNKNOWN;
           list->folders++;
         } else {
+          entry->name_length = strlen(dir.d_name);
+          entry->name = malloc(entry->name_length + 1);
+          strcpy(entry->name, dir.d_name);
           entry->type = getFileType(entry->name);
           list->files++;
         }
 
-        entry->name_length = strlen(entry->name);
         entry->size = dir.d_stat.st_size;
 
         memcpy(&entry->ctime, (SceDateTime *)&dir.d_stat.st_ctime, sizeof(SceDateTime));

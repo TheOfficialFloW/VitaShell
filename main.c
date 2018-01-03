@@ -364,7 +364,7 @@ void drawShellInfo(const char *path) {
   // Battery
   if (sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
     float battery_x = ALIGN_RIGHT(x, vita2d_texture_get_width(battery_image));
-    vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y+3.0f);
+    vita2d_draw_texture(battery_image, battery_x, SHELL_MARGIN_Y + 3.0f);
 
     vita2d_texture *battery_bar_image = battery_bar_green_image;
 
@@ -376,7 +376,7 @@ void drawShellInfo(const char *path) {
 
     float width = vita2d_texture_get_width(battery_bar_image);
     vita2d_draw_texture_part(battery_bar_image, battery_x + 3.0f + (1.0f - percent) * width,
-                             SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent*width,
+                             SHELL_MARGIN_Y + 5.0f, (1.0f - percent) * width, 0.0f, percent * width,
                              vita2d_texture_get_height(battery_bar_image));
 
     if (scePowerIsBatteryCharging()) {

@@ -525,8 +525,9 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 
   FileListEntry *entry = malloc(sizeof(FileListEntry));
   if (entry) {
+    entry->name_length = strlen(DIR_UP);
+    entry->name = malloc(entry->name_length + 1);
     strcpy(entry->name, DIR_UP);
-    entry->name_length = strlen(entry->name);
     entry->is_folder = 1;
     entry->type = FILE_TYPE_UNKNOWN;
     fileListAddEntry(list, entry, sort);
@@ -539,19 +540,22 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   while (curr) {
     FileListEntry *entry = malloc(sizeof(FileListEntry));
     if (entry) {
-      strcpy(entry->name, curr->name);
-      
       entry->is_folder = curr->is_folder;
       if (entry->is_folder) {
+        entry->name_length = strlen(curr->name) + 1;
+        entry->name = malloc(entry->name_length + 1);
+        strcpy(entry->name, curr->name);
         addEndSlash(entry->name);
         entry->type = FILE_TYPE_UNKNOWN;
         list->folders++;
       } else {
+        entry->name_length = strlen(curr->name);
+        entry->name = malloc(entry->name_length + 1);
+        strcpy(entry->name, curr->name);
         entry->type = getFileType(entry->name);
         list->files++;
       }
 
-      entry->name_length = strlen(entry->name);
       entry->size = curr->size;
       
       memcpy(&entry->ctime, (SceDateTime *)&curr->ctime, sizeof(SceDateTime));

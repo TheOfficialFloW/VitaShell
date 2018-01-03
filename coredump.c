@@ -145,7 +145,7 @@ static int decompressGzip(uint8_t *dst, int size_dst, uint8_t *src, int size_src
   z.avail_out = size_dst;
   z.next_out = dst;
 
-  if (inflateInit2(&z, 15+32) != Z_OK)
+  if (inflateInit2(&z, 15 + 32) != Z_OK)
     return -1;
 
   if (inflate(&z, Z_FINISH) != Z_STREAM_END) {

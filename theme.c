@@ -246,7 +246,7 @@ void loadTheme() {
       
       // Font
       snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
-       font = vita2d_load_custom_pgf(path);
+      font = vita2d_load_custom_pgf(path);
       
       // Load theme
       for (i = 0; i < N_THEME_IMAGES; i++) {

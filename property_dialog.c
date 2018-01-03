@@ -433,7 +433,7 @@ void drawPropertyDialog() {
             if (width >= max_width) {
               if (scroll_count < 60) {
                 scroll_x = x;
-              } else if (scroll_count < width+90) {
+              } else if (scroll_count < width + 90) {
                 scroll_x--;
               } else if (scroll_count < width + 120) {
                 color = (color & 0x00FFFFFF) | ((((color >> 24) * (scroll_count - width - 90)) / 30) << 24); // fade-in in 0.5s

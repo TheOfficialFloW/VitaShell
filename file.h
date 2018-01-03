@@ -73,7 +73,7 @@ typedef struct {
 typedef struct FileListEntry {
   struct FileListEntry *next;
   struct FileListEntry *previous;
-  char name[MAX_NAME_LENGTH];
+  char *name;
   int name_length;
   int is_folder;
   int type;

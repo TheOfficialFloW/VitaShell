@@ -164,27 +164,27 @@ void readPad() {
   memset(&pad, 0, sizeof(SceCtrlData));
   sceCtrlPeekBufferPositive(0, &pad, 1);
 
-  if (pad.ly < ANALOG_CENTER-ANALOG_THRESHOLD) {
+  if (pad.ly < ANALOG_CENTER - ANALOG_THRESHOLD) {
     pad.buttons |= SCE_CTRL_LEFT_ANALOG_UP;
-  } else if (pad.ly > ANALOG_CENTER+ANALOG_THRESHOLD) {
+  } else if (pad.ly > ANALOG_CENTER + ANALOG_THRESHOLD) {
     pad.buttons |= SCE_CTRL_LEFT_ANALOG_DOWN;
   }
 
-  if (pad.lx < ANALOG_CENTER-ANALOG_THRESHOLD) {
+  if (pad.lx < ANALOG_CENTER - ANALOG_THRESHOLD) {
     pad.buttons |= SCE_CTRL_LEFT_ANALOG_LEFT;
-  } else if (pad.lx > ANALOG_CENTER+ANALOG_THRESHOLD) {
+  } else if (pad.lx > ANALOG_CENTER + ANALOG_THRESHOLD) {
     pad.buttons |= SCE_CTRL_LEFT_ANALOG_RIGHT;
   }
 
-  if (pad.ry < ANALOG_CENTER-ANALOG_THRESHOLD) {
+  if (pad.ry < ANALOG_CENTER - ANALOG_THRESHOLD) {
     pad.buttons |= SCE_CTRL_RIGHT_ANALOG_UP;
-  } else if (pad.ry > ANALOG_CENTER+ANALOG_THRESHOLD) {
+  } else if (pad.ry > ANALOG_CENTER + ANALOG_THRESHOLD) {
     pad.buttons |= SCE_CTRL_RIGHT_ANALOG_DOWN;
   }
 
-  if (pad.rx < ANALOG_CENTER-ANALOG_THRESHOLD) {
+  if (pad.rx < ANALOG_CENTER - ANALOG_THRESHOLD) {
     pad.buttons |= SCE_CTRL_RIGHT_ANALOG_LEFT;
-  } else if (pad.rx > ANALOG_CENTER+ANALOG_THRESHOLD) {
+  } else if (pad.rx > ANALOG_CENTER + ANALOG_THRESHOLD) {
     pad.buttons |= SCE_CTRL_RIGHT_ANALOG_RIGHT;
   }
 
@@ -251,7 +251,8 @@ int addEndSlash(char *path) {
   int len = strlen(path);
   if (len < MAX_PATH_LENGTH - 2) {
     if (path[len - 1] != '/') {
-      strcat(path, "/");
+      path[len] = '/';
+      path[len + 1] = '\0';
       return 1;
     }
   }
@@ -311,7 +312,7 @@ void getTimeString(char string[16], int time_format, SceDateTime *time) {
 
   switch(time_format) {
     case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
-      snprintf(string, 16, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour-12) : ((time_local.hour == 0) ? 12 : time_local.hour), time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
+      snprintf(string, 16, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour - 12) : ((time_local.hour == 0) ? 12 : time_local.hour), time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
       break;
 
     case SCE_SYSTEM_PARAM_TIME_FORMAT_24HR:
@@ -328,7 +329,7 @@ int debugPrintf(const char *text, ...) {
   vsnprintf(string, sizeof(string), text, list);
   va_end(list);
 
-  SceUID fd = sceIoOpen("tm0:vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
+  SceUID fd = sceIoOpen("ux0:data/vitashell_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777);
   if (fd >= 0) {
     sceIoWrite(fd, string, strlen(string));
     sceIoClose(fd);

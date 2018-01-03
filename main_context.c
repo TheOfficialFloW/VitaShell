@@ -398,7 +398,8 @@ void setContextMenuMoreVisibilities() {
     char check_path[MAX_PATH_LENGTH];
 
     do {
-      if (strcasecmp(file_list.path, "ux0:app/") == 0 || strcasecmp(file_list.path, "ux0:patch/") == 0) {
+      if (strcasecmp(file_list.path, "ux0:app/") == 0 ||
+          strcasecmp(file_list.path, "ux0:patch/") == 0) {
         menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
         break;
       }
@@ -559,7 +560,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
           FileListEntry *file_entry = file_list.head->next; // Ignore '..'
 
           int i;
-          for (i = 0; i < file_list.length-1; i++) {
+          for (i = 0; i < file_list.length - 1; i++) {
             fileListAddEntry(&mark_list, fileListCopyEntry(file_entry), SORT_NONE);
 
             // Next

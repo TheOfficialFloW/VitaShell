@@ -22,7 +22,7 @@
 
 INCLUDE_EXTERN_RESOURCE(english_us_txt);
 
-static char *lang[] ={
+static char *lang[] = {
   "japanese",
   "english_us",
   "french",

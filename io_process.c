@@ -620,7 +620,7 @@ int hash_thread(SceSize args_size, HashArguments *args) {
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
   sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
-  uint64_t max = (uint64_t) (getFileSize(args->file_path)/(TRANSFER_SIZE));
+  uint64_t max = (uint64_t)(getFileSize(args->file_path) / TRANSFER_SIZE);
 
   // SHA1 process
   uint64_t value = 0;

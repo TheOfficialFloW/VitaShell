@@ -57,7 +57,7 @@ int getSfoString(void *buffer, const char *name, char *string, int length) {
     if (strcmp(buffer + header->keyofs + entries[i].nameofs, name) == 0) {
       memset(string, 0, length);
       strncpy(string, buffer + header->valofs + entries[i].dataofs, length);
-      string[length-1] = '\0';
+      string[length - 1] = '\0';
       return 0;
     }
   }

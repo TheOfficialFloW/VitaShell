@@ -151,9 +151,9 @@ int checkForUnsafeImports(void *buffer) {
 char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const segment_info *segment,
          const char *buffer) {
   if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
-    ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
-    ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
-    ehdr->e_ident[EI_MAG3] != ELFMAG3) {
+      ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
+      ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
+      ehdr->e_ident[EI_MAG3] != ELFMAG3) {
     return NULL;
   }
 
@@ -181,7 +181,7 @@ char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const seg
       continue;
     }
     uLongf buf_len = size;
-    int ret = uncompress((Bytef*)buf, &buf_len, (const Bytef*)buffer + offset, (segment + i)->length);
+    int ret = uncompress((Bytef *)buf, &buf_len, (const Bytef *)buffer + offset, (segment + i)->length);
     if (ret != Z_OK) {
       free(out);
       return NULL;
@@ -190,4 +190,3 @@ char *uncompressBuffer(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, const seg
   }
   return out;
 }
-

@@ -81,8 +81,8 @@ static int isHorizontal(float rad) {
 
 static void photoMode(float *zoom, float width, float height, float rad, int mode) {
   int horizontal = isHorizontal(rad);
-  float h = (horizontal ? height : width);
-  float w = (horizontal ? width : height);
+  float h = horizontal ? height : width;
+  float w = horizontal ? width : height;
 
   switch (mode) {
     case MODE_CUSTOM:
@@ -90,9 +90,9 @@ static void photoMode(float *zoom, float width, float height, float rad, int mod
       
     case MODE_PERFECT: // this is only used for showing image the first time
       if (h > SCREEN_HEIGHT) { // first priority, fit height
-        *zoom = SCREEN_HEIGHT/h;
+        *zoom = SCREEN_HEIGHT / h;
       } else if (w > SCREEN_WIDTH) { // second priority, fit screen
-        *zoom = SCREEN_WIDTH/w;
+        *zoom = SCREEN_WIDTH / w;
       } else { // otherwise, original size
         *zoom = 1.0f;
       }
@@ -104,11 +104,11 @@ static void photoMode(float *zoom, float width, float height, float rad, int mod
       break;
       
     case MODE_FIT_HEIGHT:
-      *zoom = SCREEN_HEIGHT/h;
+      *zoom = SCREEN_HEIGHT / h;
       break;
       
     case MODE_FIT_WIDTH:
-      *zoom = SCREEN_WIDTH/w;
+      *zoom = SCREEN_WIDTH / w;
       break;
   }
 }
@@ -216,7 +216,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
           if ((*rel_pos + 1) < list->length) {
             if ((*rel_pos + 1) < MAX_POSITION) {
               (*rel_pos)++;
-            } else if ((*base_pos+*rel_pos + 1) < list->length) {
+            } else if ((*base_pos + *rel_pos + 1) < list->length) {
               (*base_pos)++;
             }
           }
@@ -298,7 +298,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 
     // Move
     if (pad.lx < (ANALOG_CENTER - ANALOG_SENSITIVITY) || pad.lx > (ANALOG_CENTER + ANALOG_SENSITIVITY)) {
-      float d = ((pad.lx-ANALOG_CENTER) / MOVE_DIVISION) / zoom;
+      float d = ((pad.lx - ANALOG_CENTER) / MOVE_DIVISION) / zoom;
 
       if (isHorizontal(rad)) {
         x += cosf(rad) * d;
@@ -308,7 +308,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
     }
 
     if (pad.ly < (ANALOG_CENTER - ANALOG_SENSITIVITY) || pad.ly > (ANALOG_CENTER + ANALOG_SENSITIVITY)) {
-      float d = ((pad.ly-ANALOG_CENTER) / MOVE_DIVISION) / zoom;
+      float d = ((pad.ly - ANALOG_CENTER) / MOVE_DIVISION) / zoom;
 
       if (isHorizontal(rad)) {
         y += cosf(rad) * d;
