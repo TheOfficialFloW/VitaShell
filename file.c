@@ -596,11 +596,19 @@ static ExtensionType extension_types[] = {
   { ".7Z",       FILE_TYPE_ARCHIVE },
   { ".AR",       FILE_TYPE_ARCHIVE },
   { ".BMP",      FILE_TYPE_BMP },
+  { ".BZ2",      FILE_TYPE_ARCHIVE },
   { ".CPIO",     FILE_TYPE_ARCHIVE },
+  { ".GRZ",      FILE_TYPE_ARCHIVE },
+  { ".GZ",       FILE_TYPE_ARCHIVE },
   { ".INI",      FILE_TYPE_INI },
   { ".ISO",      FILE_TYPE_ARCHIVE },
   { ".JPEG",     FILE_TYPE_JPEG },
   { ".JPG",      FILE_TYPE_JPEG },
+  { ".LRZ",      FILE_TYPE_ARCHIVE },
+  { ".LZ",       FILE_TYPE_ARCHIVE },
+  { ".LZ4",      FILE_TYPE_ARCHIVE },
+  { ".LZMA",     FILE_TYPE_ARCHIVE },
+  { ".LZO",      FILE_TYPE_ARCHIVE },
   { ".MP3",      FILE_TYPE_MP3 },
   { ".MP4",      FILE_TYPE_MP4 },
   { ".MTREE",    FILE_TYPE_ARCHIVE },
@@ -611,12 +619,6 @@ static ExtensionType extension_types[] = {
   { ".SFO",      FILE_TYPE_SFO },
   { ".SHAR",     FILE_TYPE_ARCHIVE },
   { ".TAR",      FILE_TYPE_ARCHIVE },
-  { ".TAR.BZ2",  FILE_TYPE_ARCHIVE },
-  { ".TAR.GZ",   FILE_TYPE_ARCHIVE },
-  { ".TAR.LZ",   FILE_TYPE_ARCHIVE },
-  { ".TAR.LZMA", FILE_TYPE_ARCHIVE },
-  { ".TAR.XZ",   FILE_TYPE_ARCHIVE },
-  { ".TAR.Z",    FILE_TYPE_ARCHIVE },
   { ".TAZ",      FILE_TYPE_ARCHIVE },
   { ".TBZ",      FILE_TYPE_ARCHIVE },
   { ".TBZ2",     FILE_TYPE_ARCHIVE },
@@ -629,19 +631,21 @@ static ExtensionType extension_types[] = {
   { ".TZ2",      FILE_TYPE_ARCHIVE },
   { ".TZMA",     FILE_TYPE_ARCHIVE },
   { ".TZO",      FILE_TYPE_ARCHIVE },
+  { ".TZST",     FILE_TYPE_ARCHIVE },
+  { ".UU",       FILE_TYPE_ARCHIVE },
   { ".VPK",      FILE_TYPE_VPK },
+  { ".WAR",      FILE_TYPE_ARCHIVE },
   { ".XAR",      FILE_TYPE_ARCHIVE },
   { ".XML",      FILE_TYPE_XML },
+  { ".XZ",       FILE_TYPE_ARCHIVE },
+  { ".Z",        FILE_TYPE_ARCHIVE },
   { ".ZIP",      FILE_TYPE_ARCHIVE },
+  { ".ZST",      FILE_TYPE_ARCHIVE },
 };
 
 int getFileType(const char *file) {
   char *p = strrchr(file, '.');
   if (p) {
-    if ((p - file) >= 4 && strncasecmp(p - 4, ".tar", 4) == 0) {
-      p = p - 4;
-    }
-    
     int i;
     for (i = 0; i < (sizeof(extension_types) / sizeof(ExtensionType)); i++) {
       if (strcasecmp(p, extension_types[i].extension) == 0) {
