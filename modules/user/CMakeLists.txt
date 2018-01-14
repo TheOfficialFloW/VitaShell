@@ -18,6 +18,8 @@ add_executable(user
   main.c
 )
 
+add_dependencies(user vitashell_kernel_stubs)
+
 target_link_libraries(user
   SceLibKernel_stub
   SceIofilemgr_stub
@@ -26,7 +28,7 @@ target_link_libraries(user
 
 vita_create_self(user.suprx user CONFIG exports.yml UNSAFE)
 
-vita_create_stubs(stubs user ${CMAKE_SOURCE_DIR}/exports.yml)
+vita_create_stubs(vitashell_user_stubs user exports.yml)
 
 install(DIRECTORY ${CMAKE_BINARY_DIR}/stubs/
   DESTINATION lib
@@ -37,7 +39,3 @@ install(FILES vitashell_user.h
   DESTINATION include
 )
 
-add_custom_target(copy
-  COMMAND cp user.suprx ../../../resources/user.suprx
-  DEPENDS user.suprx
-)
