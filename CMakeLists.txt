@@ -158,7 +158,7 @@ target_link_libraries(VitaShell
   crypto
   expat
   taihen_stub
-  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/VitaShellUser_stub_weak.a
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/vitashell_user_stubs/libVitaShellUser_stub_weak.a
   SceAppMgr_stub
   SceAppUtil_stub
   SceAudio_stub
