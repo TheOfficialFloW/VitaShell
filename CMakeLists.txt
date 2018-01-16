@@ -12,6 +12,24 @@ endif()
 # Project start
 project(VitaShell)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
+
+
+add_subdirectory(modules/kernel)
+
+link_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/kernel/vitashell_kernel_stubs
+)
+
+include_directories(
+    modules/kernel
+)
+
+add_subdirectory(modules/user)
+
+include_directories(
+    modules/user
+)
+
 set(VITA_APP_NAME "VitaShell")
 set(VITA_TITLEID  "VITASHELL")
 set(VITA_VERSION  "01.79")
@@ -22,8 +40,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+ + 11 -fno-rtti -fno-exceptions")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2808000000000000")
 
-include_directories(
-)
 
 link_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -50,6 +66,8 @@ ENDFUNCTION()
 
 file(GLOB res_files RELATIVE
   ${CMAKE_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/kernel/kernel.skprx
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/user.skprx
   resources/default/*.png
   resources/default/*.txt
   resources/electron/*.png
@@ -119,6 +137,8 @@ add_executable(VitaShell
   libmad/timer.c
 )
 
+add_dependencies(VitaShell vitashell_user_stubs)
+
 target_link_libraries(VitaShell
   ftpvita
   vita2d
@@ -138,7 +158,7 @@ target_link_libraries(VitaShell
   crypto
   expat
   taihen_stub
-  VitaShellUser_stub_weak
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/vitashell_user_stubs/libVitaShellUser_stub_weak.a
   SceAppMgr_stub
   SceAppUtil_stub
   SceAudio_stub
