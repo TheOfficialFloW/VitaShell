@@ -433,5 +433,6 @@ EXIT:
   // Unlock power timers
   powerUnlock();
 
+  free(license_data.rif);
   return sceKernelExitDeleteThread(0);
 }
