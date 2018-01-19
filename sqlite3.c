@@ -56,15 +56,25 @@ static int vita_xWrite(sqlite3_file *file, const void *buf, int count, sqlite_in
 {
   vfs_file *p = (vfs_file*)file;
   int seek = sceIoLseek(*p->fd, offset, SCE_SEEK_SET);
-  LOG("seek %x %x => %x\n", *p->fd, offset, seek);
+  LOG("seek %08x %x => %x\n", *p->fd, offset, seek);
   if (seek != offset)
     return SQLITE_IOERR_WRITE;
   int write = sceIoWrite(*p->fd, buf, count);
-  LOG("write %x %x %x => %x\n", *p->fd, buf, count);
+  LOG("write %08x %08x %x => %x\n", *p->fd, buf, count, write);
   if (write != count) {
     LOG("write error %08x\n", write);
     return SQLITE_IOERR_WRITE;
   }
+  return SQLITE_OK;
+}
+
+static int vita_xSync(sqlite3_file *file, int flags)
+{
+  vfs_file *p = (vfs_file*)file;
+  int r = sceIoSyncByFd(*p->fd);
+  LOG("xSync %x, %x => %x\n", *p->fd, flags, r);
+  if (IS_ERROR(r))
+    return SQLITE_IOERR_FSYNC;
   return SQLITE_OK;
 }
 
@@ -81,6 +91,8 @@ static int vita_xOpen(sqlite3_vfs *vfs, const char *name, sqlite3_file *file, in
       fd = sceIoOpen(name, SCE_O_WRONLY | SCE_O_CREAT, 0777);
     if (!IS_ERROR(fd))
       sceIoClose(fd);
+    else
+      LOG("create error: %08x\n", fd);
   }
 
   // Call the original xOpen()
@@ -98,12 +110,13 @@ static int vita_xOpen(sqlite3_vfs *vfs, const char *name, sqlite3_file *file, in
       if (IS_ERROR(*p->fd))
         return SQLITE_IOERR_WRITE;
     }
-    // Need to override xWrite() as well
+    // Need to override xWrite() and xSync() as well
     if (rw_methods == NULL) {
       rw_methods = malloc(sizeof(sqlite3_io_methods));
       if (rw_methods != NULL) {
         memcpy(rw_methods, file->pMethods, sizeof(sqlite3_io_methods));
         rw_methods->xWrite = vita_xWrite;
+        rw_methods->xSync = vita_xSync;
       }
     }
     if (rw_methods != NULL)
@@ -112,7 +125,7 @@ static int vita_xOpen(sqlite3_vfs *vfs, const char *name, sqlite3_file *file, in
   return r;
 }
 
-int vita_xDelete(sqlite3_vfs *vfs, const char *name, int syncDir)
+static int vita_xDelete(sqlite3_vfs *vfs, const char *name, int syncDir)
 {
   int ret = sceIoRemove(name);
   LOG("delete %s: 0x%08x\n", name, ret);
