@@ -190,3 +190,4 @@ FTP_SERVER                           = "Il server FTP è ora attivo all'indirizz
 UPDATE_QUESTION                      = "VitaShell %s è disponibile.\\Vuoi aggiornare l'applicazione?"
 ARCHIVE_NAME                         = "Nome archivio"
 COMPRESSION_LEVEL                    = "Livello di compressione (0-9)"
+ENTER_PASSWORD                       = "Inserire password"
