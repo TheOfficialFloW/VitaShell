@@ -176,8 +176,9 @@ static void initSceAppUtil() {
   sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_TIME_FORMAT, &time_format);
 
   if (enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE) {
-    SCE_CTRL_ENTER = SCE_CTRL_CIRCLE;
-    SCE_CTRL_CANCEL = SCE_CTRL_CROSS;
+    setEnterButton(1);
+  } else {
+    setEnterButton(0);
   }
 
   // Set common dialog config

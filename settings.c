@@ -319,7 +319,7 @@ void settingsMenuCtrl() {
   }
 
   // Change options
-  if (pressed_buttons & (SCE_CTRL_ENTER | SCE_CTRL_LEFT | SCE_CTRL_RIGHT)) {
+  if (pressed_pad[PAD_ENTER] || pressed_pad[PAD_LEFT] || pressed_pad[PAD_RIGHT]) {
     changed = 1;
 
     switch (option->type) {
@@ -341,12 +341,12 @@ void settingsMenuCtrl() {
       case SETTINGS_OPTION_TYPE_OPTIONS:
       {
         if (option->value) {
-          if (pressed_buttons & SCE_CTRL_LEFT) {
+          if (pressed_pad[PAD_LEFT]) {
             if (*(option->value) > 0)
               (*(option->value))--;
             else
               *(option->value) = option->n_options - 1;
-          } else if (pressed_buttons & (SCE_CTRL_ENTER | SCE_CTRL_RIGHT)) {
+          } else if (pressed_pad[PAD_ENTER] || pressed_pad[PAD_RIGHT]) {
             if (*(option->value) < option->n_options - 1)
               (*(option->value))++;
             else
@@ -360,14 +360,14 @@ void settingsMenuCtrl() {
   }
 
   // Move
-  if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+  if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     if (settings_menu.option_sel > 0) {
       settings_menu.option_sel--;
     } else if (settings_menu.entry_sel > 0) {
       settings_menu.entry_sel--;
       settings_menu.option_sel = settings_menu_entries[settings_menu.entry_sel].n_options - 1;
     }
-  } else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+  } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
     if (settings_menu.option_sel < settings_menu_entries[settings_menu.entry_sel].n_options - 1) {
       settings_menu.option_sel++;
     } else if (settings_menu.entry_sel < n_settings_entries - 1) {
@@ -377,7 +377,7 @@ void settingsMenuCtrl() {
   }
 
   // Close
-  if (pressed_buttons & (SCE_CTRL_CANCEL | SCE_CTRL_START)) {
+  if (pressed_pad[PAD_START] || pressed_pad[PAD_CANCEL]) {
     closeSettingsMenu();
   }
 }

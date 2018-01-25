@@ -74,7 +74,7 @@ static HexListEntry *hexListGetNthEntry(HexList *list, int n) {
 int hexViewer(const char *file) {
   int text_viewer = 0;
 
-  uint8_t *buffer = memalign(64, BIG_BUFFER_SIZE);
+  uint8_t *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
     return -1;
 
@@ -116,7 +116,7 @@ int hexViewer(const char *file) {
     readPad();
 
     if (!isMessageDialogRunning()) {
-      if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+      if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
         if (rel_pos > 0) {
           rel_pos -= 0x10;
         } else if (base_pos > 0) {
@@ -137,7 +137,7 @@ int hexViewer(const char *file) {
           // Read
           memcpy(list.head->data, buffer+base_pos, 0x10);
         }
-      } else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+      } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
         if ((rel_pos+0x10) < size) {
           if ((rel_pos+0x10) < ((MAX_POSITION - 1) * 0x10)) {
             rel_pos += 0x10;
@@ -163,7 +163,7 @@ int hexViewer(const char *file) {
       }
 
       // Page skip
-      if (hold_buttons & SCE_CTRL_LTRIGGER) {
+      if (hold_pad[PAD_LTRIGGER]) {
         if ((base_pos + rel_pos) != 0) {
           if ((base_pos-0x10*0x10) >= 0) {
             base_pos -= 0x10*0x10;
@@ -182,7 +182,7 @@ int hexViewer(const char *file) {
         }
       }
 
-      if (hold_buttons & SCE_CTRL_RTRIGGER) {
+      if (hold_pad[PAD_RTRIGGER]) {
         if (size >= 0xF0) {
           if ((base_pos + rel_pos+0x1F0) < size) {
             base_pos += 0x10*0x10;
@@ -217,17 +217,17 @@ int hexViewer(const char *file) {
         nibble_pos = max_nibble;
       }
 
-      if (hold_buttons & SCE_CTRL_LEFT || hold2_buttons & SCE_CTRL_LEFT_ANALOG_LEFT) {
+      if (hold_pad[PAD_LEFT] || hold2_pad[PAD_LEFT_ANALOG_LEFT]) {
         if (nibble_pos > 0)
           nibble_pos--;
-      } else if (hold_buttons & SCE_CTRL_RIGHT || hold2_buttons & SCE_CTRL_LEFT_ANALOG_RIGHT) {
+      } else if (hold_pad[PAD_RIGHT] || hold2_pad[PAD_LEFT_ANALOG_RIGHT]) {
         if (nibble_pos < max_nibble)
           nibble_pos++;
       }
 
       // Cancel or switch to text viewer
-      if (pressed_buttons & SCE_CTRL_CANCEL || pressed_buttons & SCE_CTRL_SQUARE) {
-        if (pressed_buttons & SCE_CTRL_CANCEL) {
+      if (pressed_pad[PAD_CANCEL] || pressed_pad[PAD_SQUARE]) {
+        if (pressed_pad[PAD_CANCEL]) {
           text_viewer = 0;
         } else {
           text_viewer = 1;
@@ -241,7 +241,7 @@ int hexViewer(const char *file) {
       }
 
       // Increase nibble
-      if (modify_allowed && hold_buttons & SCE_CTRL_ENTER) {
+      if (modify_allowed && hold_pad[PAD_ENTER]) {
         changed = 1;
         int cur_pos = rel_pos + base_pos + nibble_pos / 2;
 

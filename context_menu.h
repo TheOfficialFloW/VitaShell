@@ -27,10 +27,15 @@ enum ContextMenuVisibilities {
   CTX_VISIBLE,
 };
 
+enum ContextMenuFlags {
+  CTX_FLAG_MORE = 0x1,
+  CTX_FLAG_BARRIER = 0x2,
+};
+
 typedef struct {
   int name;
   int pos;
-  int more;
+  int flags;
   int visibility;
 } MenuEntry;
 

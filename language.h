@@ -78,6 +78,8 @@ enum LanguageContainer {
   RENAME,
   NEW_FOLDER,
   PROPERTIES,
+  SEND,
+  RECEIVE,
   MORE,
   COMPRESS,
   INSTALL_ALL,

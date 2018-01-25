@@ -62,6 +62,8 @@ enum MenuMainEntrys {
   MENU_MAIN_ENTRY_PROPERTIES,
   MENU_MAIN_ENTRY_SORT_BY,
   MENU_MAIN_ENTRY_MORE,
+  MENU_MAIN_ENTRY_SEND,
+  MENU_MAIN_ENTRY_RECEIVE,
 };
 
 MenuEntry menu_main_entries[] = {
@@ -73,8 +75,10 @@ MenuEntry menu_main_entries[] = {
   { RENAME,     7, 0, CTX_INVISIBLE },
   { NEW_FOLDER, 9, 0, CTX_INVISIBLE },
   { PROPERTIES, 10, 0, CTX_INVISIBLE },
-  { SORT_BY,    12, 1, CTX_VISIBLE },
-  { MORE,       13, 1, CTX_INVISIBLE },
+  { SORT_BY,    12, CTX_FLAG_MORE, CTX_VISIBLE },
+  { MORE,       13, CTX_FLAG_MORE, CTX_INVISIBLE },
+  { SEND,       17, CTX_FLAG_BARRIER, CTX_INVISIBLE },
+  { RECEIVE,    18, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries) / sizeof(MenuEntry))

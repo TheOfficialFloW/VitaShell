@@ -168,7 +168,7 @@ static void resetImageInfo(vita2d_texture *tex, float *width, float *height, flo
 }
 
 int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
-  char *buffer = memalign(64, BIG_BUFFER_SIZE);
+  char *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
     return -1;
 
@@ -190,19 +190,19 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
     readPad();
 
     // Cancel
-    if (pressed_buttons & SCE_CTRL_CANCEL) {
+    if (pressed_pad[PAD_CANCEL]) {
       break;
     }
 
     // Previous/next image.
-    if (pressed_buttons & SCE_CTRL_LEFT || pressed_buttons & SCE_CTRL_RIGHT) {
+    if (pressed_pad[PAD_LEFT] || pressed_pad[PAD_RIGHT]) {
       int available = 0;
 
       int old_base_pos = *base_pos;
       int old_rel_pos = *rel_pos;
       FileListEntry *old_entry = entry;
 
-      int previous = pressed_buttons & SCE_CTRL_LEFT;
+      int previous = pressed_pad[PAD_LEFT];
       while (previous ? entry->previous : entry->next) {
         entry = previous ? entry->previous : entry->next;
 
@@ -252,7 +252,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
     }
 
     // Photo mode
-    if (pressed_buttons & SCE_CTRL_ENTER) {
+    if (pressed_pad[PAD_ENTER]) {
       time = sceKernelGetProcessTimeWide();
 
       x = width / 2.0f;
@@ -263,13 +263,13 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
     }
 
     // Rotate
-    if (pressed_buttons & SCE_CTRL_LTRIGGER) {
+    if (pressed_pad[PAD_LTRIGGER]) {
       rad -= M_PI_2;
       if (rad < 0)
         rad += M_TWOPI;
 
       photoMode(&zoom, width, height, rad, mode);
-    } else if (pressed_buttons & SCE_CTRL_RTRIGGER) {
+    } else if (pressed_pad[PAD_RTRIGGER]) {
       rad += M_PI_2;
       if (rad >= M_TWOPI)
         rad -= M_TWOPI;
@@ -278,11 +278,11 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
     }
 
     // Zoom
-    if (current_buttons & SCE_CTRL_RIGHT_ANALOG_DOWN) {
+    if (current_pad[PAD_RIGHT_ANALOG_DOWN]) {
       time = sceKernelGetProcessTimeWide();
       mode = MODE_CUSTOM;
       zoom /= ZOOM_FACTOR;
-    } else if (current_buttons & SCE_CTRL_RIGHT_ANALOG_UP) {
+    } else if (current_pad[PAD_RIGHT_ANALOG_UP]) {
       time = sceKernelGetProcessTimeWide();
       mode = MODE_CUSTOM;
       zoom *= ZOOM_FACTOR;

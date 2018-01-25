@@ -76,7 +76,7 @@ static int zipAddFile(zipFile zf, const char *path, int filename_start, int leve
   }
 
   // Add file to zip
-  void *buf = memalign(64, TRANSFER_SIZE);
+  void *buf = memalign(4096, TRANSFER_SIZE);
 
   uint64_t seek = 0;
 

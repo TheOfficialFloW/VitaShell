@@ -1287,12 +1287,12 @@ static int fileBrowserMenuCtrl() {
   int refresh = 0;
 
   // Settings menu
-  if (pressed_buttons & SCE_CTRL_START) {
+  if (pressed_pad[PAD_START]) {
     openSettingsMenu();
   }
 
   // SELECT button
-  if (pressed_buttons & SCE_CTRL_SELECT) {
+  if (pressed_pad[PAD_SELECT]) {
     if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB && sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
       if (is_safe_mode) {
         infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
@@ -1331,14 +1331,14 @@ static int fileBrowserMenuCtrl() {
   }
 
   // QR
-  if (hold2_buttons & SCE_CTRL_LTRIGGER && hold2_buttons & SCE_CTRL_RTRIGGER && enabledQR()) {
+  if (hold_pad[PAD_LTRIGGER] && hold_pad[PAD_RTRIGGER] && enabledQR()) {
     startQR();
     initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
     setDialogStep(DIALOG_STEP_QR);
   }
   
   // Move  
-  if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+  if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     int old_pos = base_pos + rel_pos;
     
     if (rel_pos > 0) {
@@ -1350,7 +1350,7 @@ static int fileBrowserMenuCtrl() {
     if (old_pos != base_pos + rel_pos) {
       scroll_count = 0;
     }
-  } else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+  } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
     int old_pos = base_pos + rel_pos;
 
     if ((rel_pos + 1) < file_list.length) {
@@ -1367,7 +1367,7 @@ static int fileBrowserMenuCtrl() {
   }
 
   // Context menu trigger
-  if (pressed_buttons & SCE_CTRL_TRIANGLE) {
+  if (pressed_pad[PAD_TRIANGLE]) {
     if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
       if (dir_level > 0) {
         setContextMenu(&context_menu_main);
@@ -1384,7 +1384,7 @@ static int fileBrowserMenuCtrl() {
   // Not at 'home'
   if (dir_level > 0) {
     // Mark entry    
-    if (pressed_buttons & SCE_CTRL_SQUARE) {
+    if (pressed_pad[PAD_SQUARE]) {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry && strcmp(file_entry->name, DIR_UP) != 0) {
         if (!fileListFindEntry(&mark_list, file_entry->name)) {
@@ -1396,7 +1396,7 @@ static int fileBrowserMenuCtrl() {
     }
 
     // Back
-    if (pressed_buttons & SCE_CTRL_CANCEL) {
+    if (pressed_pad[PAD_CANCEL]) {
       scroll_count = 0;
       fileListEmpty(&mark_list);
       dirUp();
@@ -1406,7 +1406,7 @@ static int fileBrowserMenuCtrl() {
   }
 
   // Handle
-  if (pressed_buttons & SCE_CTRL_ENTER) {
+  if (pressed_pad[PAD_ENTER]) {
     scroll_count = 0;
 
     fileListEmpty(&mark_list);
@@ -1759,7 +1759,7 @@ int main(int argc, const char *argv[]) {
 
   // No custom config, in case they are damaged or unuseable
   readPad();
-  if (current_buttons & SCE_CTRL_LTRIGGER)
+  if (current_pad[PAD_LTRIGGER])
     use_custom_config = 0;
 
   // Load settings

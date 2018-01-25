@@ -102,7 +102,7 @@ int setSfoString(void *buffer, const char *name, const char *string) {
 }
 
 int SFOReader(const char *file) {
-  uint8_t *buffer = memalign(64, BIG_BUFFER_SIZE);
+  uint8_t *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
     return -1;
 
@@ -128,17 +128,17 @@ int SFOReader(const char *file) {
   while (1) {
     readPad();
 
-    if (pressed_buttons & SCE_CTRL_CANCEL) {
+    if (pressed_pad[PAD_CANCEL]) {
       break;  
     }
 
-    if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+    if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
       if (rel_pos > 0) {
         rel_pos--;
       } else if (base_pos > 0) {
         base_pos--;
       }
-    } else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+    } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
       if ((rel_pos + 1) < sfo_header->count) {
         if ((rel_pos + 1) < MAX_POSITION) {
           rel_pos++;

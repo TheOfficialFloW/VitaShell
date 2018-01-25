@@ -508,7 +508,7 @@ int textViewer(const char *file) {
   if (!s) 
     return -1;
 
-  char *buffer_base = memalign(64, BIG_BUFFER_SIZE);
+  char *buffer_base = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer_base)
     return -1;
 
@@ -599,7 +599,7 @@ int textViewer(const char *file) {
         contextMenuCtrl();
       } else {
         // Context menu trigger
-        if (pressed_buttons & SCE_CTRL_TRIANGLE) {
+        if (pressed_pad[PAD_TRIANGLE]) {
           if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
             setContextMenu(&context_menu_text);
             setContextMenuVisibilities(s);
@@ -607,7 +607,7 @@ int textViewer(const char *file) {
           }
         }
 
-        if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+        if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
           if (s->rel_pos > 0) {
             s->rel_pos--;
           } else {
@@ -637,7 +637,7 @@ int textViewer(const char *file) {
             }
           }
           s->copy_reset = 1;
-        } else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+        } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
           if (s->offset_list[s->rel_pos + 1] < s->size) {
             if ((s->rel_pos + 1) < MAX_POSITION) {
               if (s->base_pos+s->rel_pos < s->n_lines - 1) 
@@ -687,7 +687,7 @@ int textViewer(const char *file) {
           int target_offset = 0;
 
           // Skip to next search result
-          if (pressed_buttons & SCE_CTRL_RTRIGGER) {
+          if (pressed_pad[PAD_RTRIGGER]) {
             for (i = 0; i < s->n_search_results; i++) {
               if (s->search_result_offsets[i] > entry_end_offset) {
                 target_offset = s->search_result_offsets[i] - entry_start_offset;
@@ -695,7 +695,7 @@ int textViewer(const char *file) {
               }
             }
           } // Skip to next last result
-          else if (pressed_buttons & SCE_CTRL_LTRIGGER) {
+          else if (pressed_pad[PAD_LTRIGGER]) {
             for (i = s->n_search_results-1; i >= 0; i--) {
               if (s->search_result_offsets[i] < entry_start_offset) {
                 target_offset = s->search_result_offsets[i] - entry_start_offset;
@@ -732,9 +732,9 @@ int textViewer(const char *file) {
           }
         } else {
           // Page skip
-          if (hold_buttons & SCE_CTRL_LTRIGGER || hold_buttons & SCE_CTRL_RTRIGGER) {
+          if (hold_pad[PAD_LTRIGGER] || hold_pad[PAD_RTRIGGER]) {
 
-            if (hold_buttons & SCE_CTRL_LTRIGGER) {  // Skip page up
+            if (hold_pad[PAD_LTRIGGER]) {  // Skip page up
               s->base_pos = s->base_pos-MAX_ENTRIES;
               if (s->base_pos < 0) {
                 s->base_pos = 0;
@@ -755,7 +755,7 @@ int textViewer(const char *file) {
       
         // buffer modifying actions
         if (s->modify_allowed && !s->search_running) {
-          if(s->edit_line <= 0 && pressed_buttons & SCE_CTRL_ENTER) {
+          if(s->edit_line <= 0 && pressed_pad[PAD_ENTER]) {
             int line_start = s->offset_list[s->base_pos+s->rel_pos];
             
             char line[MAX_LINE_CHARACTERS];
@@ -767,18 +767,18 @@ int textViewer(const char *file) {
           }
 
           // Delete line
-          if (pressed_buttons & SCE_CTRL_LEFT && s->n_copied_lines < MAX_COPY_BUFFER_SIZE) {
+          if (pressed_pad[PAD_LEFT] && s->n_copied_lines < MAX_COPY_BUFFER_SIZE) {
             delete_line(s, s->base_pos+s->rel_pos);
           } 
 
           // Insert new line
-          if (pressed_buttons & SCE_CTRL_RIGHT) {
+          if (pressed_pad[PAD_RIGHT]) {
             insert_line(s, "\n", s->base_pos+s->rel_pos + 1);
           }
         }
 
         // Cancel
-        if (pressed_buttons & SCE_CTRL_CANCEL) {
+        if (pressed_pad[PAD_CANCEL]) {
           if (s->n_search_results) {
             s->n_search_results = 0;
           } else {
@@ -792,7 +792,7 @@ int textViewer(const char *file) {
         }
 
         // (De-)select current line
-        if (pressed_buttons & SCE_CTRL_SQUARE) {
+        if (pressed_pad[PAD_SQUARE]) {
           int cur_line = s->base_pos+s->rel_pos;
           int line_selected = 1;
 

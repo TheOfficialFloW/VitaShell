@@ -351,7 +351,7 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 }
 
 void propertyDialogCtrl() {
-  if (pressed_buttons & SCE_CTRL_ENTER) {
+  if (pressed_pad[PAD_ENTER]) {
     info_done = 1;
     sceKernelWaitThreadEnd(info_thid, NULL, NULL);
     property_dialog.status = PROPERTY_DIALOG_CLOSING;

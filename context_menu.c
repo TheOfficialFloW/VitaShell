@@ -114,7 +114,7 @@ void drawContextMenu() {
       pgf_draw_text(SCREEN_WIDTH - ctx_cur_menu_width + CONTEXT_MENU_MARGIN, y, color, language_container[ctx->entries[i].name]);
 
       // Draw arrow for 'More'
-      if (ctx->entries[i].more) {
+      if (ctx->entries[i].flags & CTX_FLAG_MORE) {
         char *arrow = RIGHT_ARROW;
         
         if (ctx->sel == i) {
@@ -156,7 +156,7 @@ void contextMenuCtrl() {
   if (!cur_ctx)
     return;
 
-  if (hold_buttons & SCE_CTRL_UP || hold2_buttons & SCE_CTRL_LEFT_ANALOG_UP) {
+  if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     if (ctx_menu_mode == CONTEXT_MENU_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
       int i;
       for (i = cur_ctx->n_entries - 1; i >= 0; i--) {
@@ -168,7 +168,7 @@ void contextMenuCtrl() {
         }
       }
     }
-  } else if (hold_buttons & SCE_CTRL_DOWN || hold2_buttons & SCE_CTRL_LEFT_ANALOG_DOWN) {
+  } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
     if (ctx_menu_mode == CONTEXT_MENU_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
       int i;
       for (i = 0; i < cur_ctx->n_entries; i++) {
@@ -183,12 +183,12 @@ void contextMenuCtrl() {
   }
 
   // Close
-  if (pressed_buttons & SCE_CTRL_TRIANGLE) {
+  if (pressed_pad[PAD_TRIANGLE]) {
     ctx_menu_mode = CONTEXT_MENU_CLOSING;
   }
 
   // Back
-  if (pressed_buttons & SCE_CTRL_CANCEL || pressed_buttons & SCE_CTRL_LEFT) {
+  if (pressed_pad[PAD_CANCEL] || pressed_pad[PAD_LEFT]) {
     if (ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
       ctx_menu_mode = CONTEXT_MENU_MORE_CLOSING;
     } else {
@@ -197,7 +197,7 @@ void contextMenuCtrl() {
   }
 
   // Handle
-  if (pressed_buttons & SCE_CTRL_ENTER || pressed_buttons & SCE_CTRL_RIGHT) {
+  if (pressed_pad[PAD_ENTER] || pressed_pad[PAD_RIGHT]) {
     if (ctx_menu_mode == CONTEXT_MENU_OPENED || ctx_menu_mode == CONTEXT_MENU_MORE_OPENED) {
       if (cur_ctx->callback)
         ctx_menu_mode = cur_ctx->callback(cur_ctx->sel, cur_ctx->context);

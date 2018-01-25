@@ -180,7 +180,7 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
     switch (uncommon_dialog.buttonType) {
       case SCE_MSG_DIALOG_BUTTON_TYPE_OK:
       {
-        if (pressed_buttons & SCE_CTRL_ENTER) {
+        if (pressed_pad[PAD_ENTER]) {
           uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
           uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_OK;
         }
@@ -190,12 +190,12 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
       
       case SCE_MSG_DIALOG_BUTTON_TYPE_YESNO:
       {
-        if (pressed_buttons & SCE_CTRL_ENTER) {
+        if (pressed_pad[PAD_ENTER]) {
           uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
           uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_YES;
         }
 
-        if (pressed_buttons & SCE_CTRL_CANCEL) {
+        if (pressed_pad[PAD_CANCEL]) {
           uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
           uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_NO;
         }
@@ -205,12 +205,12 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
       
       case SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL:
       {
-        if (pressed_buttons & SCE_CTRL_ENTER) {
+        if (pressed_pad[PAD_ENTER]) {
           uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
           uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_YES;
         }
 
-        if (pressed_buttons & SCE_CTRL_CANCEL) {
+        if (pressed_pad[PAD_CANCEL]) {
           uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
           uncommon_dialog.buttonId = SCE_MSG_DIALOG_BUTTON_ID_NO;
         }
@@ -220,7 +220,7 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
       
       case SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL:
       {
-        if (pressed_buttons & SCE_CTRL_CANCEL) {
+        if (pressed_pad[PAD_CANCEL]) {
           uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
         }
 

@@ -229,17 +229,17 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
     readPad();
 
     // Cancel
-    if (pressed_buttons & SCE_CTRL_CANCEL) {
+    if (pressed_pad[PAD_CANCEL]) {
       break;
     }
 
     // Display off
-    if (pressed_buttons & SCE_CTRL_TRIANGLE) {
+    if (pressed_pad[PAD_TRIANGLE]) {
       scePowerRequestDisplayOff();
     }
 
     // Toggle play/pause
-    if (pressed_buttons & SCE_CTRL_ENTER) {
+    if (pressed_pad[PAD_ENTER]) {
       if (isPlayingFunct() && getPlayingSpeedFunct() == 0) {
         pauseFunct();
       } else {
@@ -248,10 +248,10 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
       }
     }
 
-    if (pressed_buttons & SCE_CTRL_LEFT || pressed_buttons & SCE_CTRL_RIGHT) {
+    if (pressed_pad[PAD_LEFT] || pressed_pad[PAD_RIGHT]) {
       int speed = getPlayingSpeedFunct();
 
-      if (pressed_buttons & SCE_CTRL_LEFT) {
+      if (pressed_pad[PAD_LEFT]) {
         int i;
         for (i = 0; i < N_SPEED; i++) {
           if (speed_list[i] == speed) {
@@ -262,7 +262,7 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
         }
       }
 
-      if (pressed_buttons & SCE_CTRL_RIGHT) {
+      if (pressed_pad[PAD_RIGHT]) {
         int i;
         for (i = 0; i < N_SPEED; i++) {
           if (speed_list[i] == speed) {
@@ -280,8 +280,8 @@ int audioPlayer(const char *file, int type, FileList *list, FileListEntry *entry
 
     // Previous/next song.
     if (getPercentageFunct() == 100.0f || endOfStreamFunct() ||
-      pressed_buttons & SCE_CTRL_LTRIGGER || pressed_buttons & SCE_CTRL_RTRIGGER) {
-      int previous = pressed_buttons & SCE_CTRL_LTRIGGER;
+      pressed_pad[PAD_LTRIGGER] || pressed_pad[PAD_RTRIGGER]) {
+      int previous = pressed_pad[PAD_LTRIGGER];
       if (previous && strcmp(cur_time_string, "00:00:00") != 0) {
         lrcParseClose(lyrics);
         endFunct();
