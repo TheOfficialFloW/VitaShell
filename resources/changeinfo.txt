@@ -328,4 +328,15 @@
 - Fixed bug where archives > 2GB couldn't be opened.<br>
     ]]>
   </changes>
+   <changes app_ver="01.79">
+    <![CDATA[
+- Added ability to open .psarc files.<br>
+- Added support for multi volume rar archives.<br>
+- Added support for password encrypted zip archives.<br>
+- Added support for file property in archives, now it can show size and contains.<br>
+- Added natural sorting for filenames.<br>
+- Fixed bug where size of files in archives over 2GB where shown as 16EB.<br>
+- Fixed refresh license DB when ran from ur0:.<br>
+    ]]>
+  </changes>
 </changeinfo>

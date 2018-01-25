@@ -106,6 +106,7 @@ The english language file is provided in **'VitaShellCustomization.rar'** and av
 - Added support for file property in archives, now it can show size and contains.
 - Added natural sorting for filenames.
 - Fixed bug where size of files in archives over 2GB where shown as 16EB.
+- Fixed refresh license DB when ran from ur0:.
 
 ### Changelog 1.78 ###
 - Fixed bug where archives > 2GB couldn't be opened.

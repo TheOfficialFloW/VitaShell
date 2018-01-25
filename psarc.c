@@ -352,7 +352,6 @@ int getPsarcPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32
 
 int extractPsarcFile(const char *src_path, const char *dst_path, FileProcessParam *param) {
   SceUID fdsrc = psarcFileOpen(src_path, SCE_O_RDONLY, 0);
-  debugPrintf("psarcFileOpen %s: 0x%08X\n", src_path, fdsrc);
   if (fdsrc < 0)
     return fdsrc;
 
@@ -425,9 +424,7 @@ int extractPsarcFile(const char *src_path, const char *dst_path, FileProcessPara
 int extractPsarcPath(const char *src_path, const char *dst_path, FileProcessParam *param) {
   SceFiosDH dh = -1;
   SceFiosBuffer buf = SCE_FIOS_BUFFER_INITIALIZER;
-  int ret = sceFiosDHOpenSync(NULL, &dh, src_path, buf);
-  debugPrintf("sceFiosDHOpenSync %s: 0x%08X\n", src_path, ret);
-  if (ret >= 0) {
+  if (sceFiosDHOpenSync(NULL, &dh, src_path, buf) >= 0) {
     int ret = sceIoMkdir(dst_path, 0777);
     if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
       sceFiosDHCloseSync(NULL, dh);
