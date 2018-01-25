@@ -22,6 +22,7 @@
 #include "file.h"
 #include "utils.h"
 #include "sha1.h"
+#include "strnatcmp.h"
 
 static char *devices[] = {
   "gro0:",
@@ -747,17 +748,20 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
       FileListEntry *p = list->head;
       FileListEntry *previous = NULL;
 
+      char entry_name[MAX_NAME_LENGTH];
+      strcpy(entry_name, entry->name);
+      removeEndSlash(entry_name);
+      
       while (p) {
-        // Get the minimum length without /
-        int len = MIN(entry->name_length, p->name_length);
-        if (entry->name[len - 1] == '/' || p->name[len - 1] == '/')
-          len--;
-
+        char p_name[MAX_NAME_LENGTH];
+        strcpy(p_name, p->name);
+        removeEndSlash(p_name);
+        
         // '..' is always at first
-        if (strcmp(entry->name, "..") == 0)
+        if (strcmp(entry_name, "..") == 0)
           break;
 
-        if (strcmp(p->name, "..") == 0) {
+        if (strcmp(p_name, "..") == 0) {
           previous = p;
           p = p->next;
           continue;
@@ -777,16 +781,14 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
         if (sort == SORT_BY_NAME) {
           // Sort by name within the same type
           if (entry->is_folder == p->is_folder) {
-            int diff = strncasecmp(entry->name, p->name, len);
-            if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
+            if (strnatcasecmp(entry_name, p_name) < 0) {
               break;
             }
           }
         } else if (sort == SORT_BY_SIZE) {
           // Sort by name for folders
           if (entry->is_folder && p->is_folder) {
-            int diff = strncasecmp(entry->name, p->name, len);
-            if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
+            if (strnatcasecmp(entry_name, p_name) < 0) {
               break;
             }
           } else if (!entry->is_folder && !p->is_folder) {
@@ -796,8 +798,7 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 
             // Sort by name for files with the same size
             if (entry->size == p->size) {
-              int diff = strncasecmp(entry->name, p->name, len);
-              if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
+              if (strnatcasecmp(entry_name, p_name) < 0) {
                 break;
               }
             }
@@ -814,8 +815,7 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
 
             // Sort by name for files and folders with the same date
             if (entry_tick.tick == p_tick.tick) {
-              int diff = strncasecmp(entry->name, p->name, len);
-              if (diff < 0 || (diff == 0 && entry->name_length < p->name_length)) {
+              if (strnatcasecmp(entry_name, p_name) < 0) {
                 break;
               }
             }

@@ -100,6 +100,7 @@ add_executable(VitaShell
   minizip/zip.c
   minizip/ioapi.c
   bm.c
+  strnatcmp.c
   audio/vita_audio.c
   audio/player.c
   audio/id3.c

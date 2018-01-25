@@ -242,7 +242,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
       snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
 
       if (args->copy_mode == COPY_MODE_EXTRACT) {
-        getArchivePathInfo(src_path, &size, &folders, &files);
+        getArchivePathInfo(src_path, &size, &folders, &files, NULL);
       } else {
         getPathInfo(src_path, &size, &folders, &files, NULL);
       }

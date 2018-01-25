@@ -139,10 +139,10 @@ int update_extract_thread(SceSize args, void *argp) {
   // Get archive path info
   uint64_t size = 0;
   uint32_t folders = 0, files = 0;
-  getArchivePathInfo(src_path, &size, &folders, &files);
+  getArchivePathInfo(src_path, &size, &folders, &files, NULL);
 
   // Update thread
-  thid = createStartUpdateThread(size + folders*DIRECTORY_SIZE, 1);
+  thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE, 1);
 
   // Extract process
   uint64_t value = 0;

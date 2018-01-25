@@ -110,7 +110,11 @@ static int info_thread(SceSize args_size, InfoArguments *args) {
   uint32_t folders = 0, files = 0;
 
   info_done = 0;
-  getPathInfo(args->path, &size, &folders, &files, propertyCancelHandler);
+  if (isInArchive()) {
+    getArchivePathInfo(args->path, &size, &folders, &files, propertyCancelHandler);
+  } else {
+    getPathInfo(args->path, &size, &folders, &files, propertyCancelHandler);
+  }
   info_done = 1;
 
   if (folders > 0)
@@ -265,23 +269,18 @@ int initPropertyDialog(char *path, FileListEntry *entry) {
 
   // Size & contains
   if (entry->is_folder) {
-    if (isInArchive()) {
-      property_entries[PROPERTY_ENTRY_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
-      property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_INVISIBLE;
-    } else {
-      strcpy(property_size, "...");
-      strcpy(property_contains, "...");
+    strcpy(property_size, "...");
+    strcpy(property_contains, "...");
 
-      // Info thread
-      InfoArguments info_args;
-      info_args.path = path;
+    // Info thread
+    InfoArguments info_args;
+    info_args.path = path;
 
-      info_thid = sceKernelCreateThread("info_thread", (SceKernelThreadEntry)info_thread, 0x10000100, 0x100000, 0, 0, NULL);
-      if (info_thid >= 0)
-        sceKernelStartThread(info_thid, sizeof(InfoArguments), &info_args);
-      
-      property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_VISIBLE;
-    }
+    info_thid = sceKernelCreateThread("info_thread", (SceKernelThreadEntry)info_thread, 0x10000100, 0x100000, 0, 0, NULL);
+    if (info_thid >= 0)
+      sceKernelStartThread(info_thid, sizeof(InfoArguments), &info_args);
+    
+    property_entries[PROPERTY_ENTRY_CONTAINS].visibility = PROPERTY_ENTRY_VISIBLE;
 
     // property_entries[PROPERTY_ENTRY_COMPRESSED_SIZE].visibility = PROPERTY_ENTRY_INVISIBLE;
   } else {

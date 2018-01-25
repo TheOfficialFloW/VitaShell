@@ -555,7 +555,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   return 0;
 }
 
-int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files) {
+int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path)) {
   SceIoStat stat;
   memset(&stat, 0, sizeof(SceIoStat));
 
@@ -571,15 +571,18 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
     FileListEntry *entry = list.head->next; // Ignore ..
 
     int i;
-    for (i = 0; i < list.length - 1; i++) {
+    for (i = 0; i < list.length - 1; i++, entry = entry->next) {
       char *new_path = malloc(strlen(path) + strlen(entry->name) + 2);
       snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s", path, entry->name);
-
-      getArchivePathInfo(new_path, size, folders, files);
+      
+      if (handler && handler(new_path)) {
+        free(new_path);
+        continue;
+      }
+      
+      getArchivePathInfo(new_path, size, folders, files, handler);
 
       free(new_path);
-
-      entry = entry->next;
     }
 
     if (folders)
@@ -587,6 +590,9 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
 
     fileListEmpty(&list);
   } else {
+    if (handler && handler(path))
+      return 1;
+    
     if (size)
       (*size) += stat.st_size;
 
@@ -632,7 +638,7 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
     FileListEntry *entry = list.head->next; // Ignore ..
 
     int i;
-    for (i = 0; i < list.length - 1; i++) {
+    for (i = 0; i < list.length - 1; i++, entry = entry->next) {
       char *src_path = malloc(strlen(src) + strlen(entry->name) + 2);
       snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", src, entry->name);
 
@@ -648,8 +654,6 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
         fileListEmpty(&list);
         return ret;
       }
-
-      entry = entry->next;
     }
 
     fileListEmpty(&list);
