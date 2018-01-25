@@ -100,6 +100,7 @@ The english language file is provided in **'VitaShellCustomization.rar'** and av
 * Everybody who contributed on vitasdk
 
 ### Changelog 1.79 ###
+- Added ability to open .psarc files.
 - Added support for multi volume rar archives.
 - Added support for password encrypted zip archives.
 - Added support for file property in archives, now it can show size and contains.

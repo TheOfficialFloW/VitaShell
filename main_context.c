@@ -614,7 +614,8 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
         }
 
         strcpy(copy_list.path, file_list.path);
-
+        copy_list.is_in_archive = isInArchive();
+        
         char *message;
 
         // On marked entry

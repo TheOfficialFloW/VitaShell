@@ -91,6 +91,7 @@ typedef struct {
   char path[MAX_PATH_LENGTH];
   int files;
   int folders;
+  int is_in_archive;
 } FileList;
 
 int allocateReadFile(const char *file, void **buffer);

@@ -218,6 +218,9 @@ int refreshFileList() {
 }
 
 static void refreshMarkList() {
+  if (isInArchive())
+    return;
+  
   FileListEntry *entry = mark_list.head;
 
   int length = mark_list.length;
@@ -242,6 +245,9 @@ static void refreshMarkList() {
 }
 
 static void refreshCopyList() {
+  if (copy_list.is_in_archive)
+    return;
+  
   FileListEntry *entry = copy_list.head;
 
   int length = copy_list.length;
@@ -257,8 +263,7 @@ static void refreshCopyList() {
     // Check if the entry still exits. If not, remove it from list
     SceIoStat stat;
     memset(&stat, 0, sizeof(SceIoStat));
-    int res = sceIoGetstat(path, &stat);
-    if (res < 0 && res != 0x80010014)
+    if (sceIoGetstat(path, &stat) < 0)
       fileListRemoveEntry(&copy_list, entry);
 
     // Next
@@ -1745,7 +1750,7 @@ void ftpvita_PROM(ftpvita_client_info_t *client) {
   }
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char *argv[]) {  
   // Create mutex
   sceKernelCreateLwMutex(&dialog_mutex, "dialog_mutex", 2, 0, NULL);
 

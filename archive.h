@@ -26,7 +26,7 @@
 int fileListGetArchiveEntries(FileList *list, const char *path, int sort);
 
 int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path));
-int extractArchivePath(const char *src, const char *dst, FileProcessParam *param);
+int extractArchivePath(const char *src_path, const char *dst_path, FileProcessParam *param);
 
 int archiveFileGetstat(const char *file, SceIoStat *stat);
 int archiveFileOpen(const char *file, int flags, SceMode mode);

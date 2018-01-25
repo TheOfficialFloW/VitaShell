@@ -227,7 +227,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
       if (res < 0) {
         closeWaitDialog();
         errorDialog(res);
-        goto EXIT;
+        goto EXIT_ARCHIVE_OPEN;
       }
     }
 
@@ -293,16 +293,6 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
       copy_entry = copy_entry->next;
     }
 
-    // Close archive
-    if (args->copy_mode == COPY_MODE_EXTRACT) {
-      int res = archiveClose();
-      if (res < 0) {
-        closeWaitDialog();
-        errorDialog(res);
-        goto EXIT;
-      }
-    }
-
     // Set progress to 100%
     sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
     sceKernelDelayThread(COUNTUP_WAIT);
@@ -314,6 +304,11 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
   }
 
 EXIT:
+  // Close archive
+  if (args->copy_mode == COPY_MODE_EXTRACT)
+    archiveClose();
+  
+EXIT_ARCHIVE_OPEN:
   if (thid >= 0)
     sceKernelWaitThreadEnd(thid, NULL, NULL);
 

@@ -18,10 +18,12 @@
 
 #include "main.h"
 #include "archive.h"
+#include "psarc.h"
 #include "file.h"
 #include "utils.h"
 #include "elf.h"
 
+static int is_psarc = 0;
 static char archive_file[MAX_PATH_LENGTH];
 static int archive_path_start = 0;
 struct archive *archive_fd = NULL;
@@ -501,6 +503,9 @@ int archiveCheckFilesForUnsafeFself() {
 }
 
 int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
+  if (is_psarc)
+    return fileListGetPsarcEntries(list, path, sort);
+  
   int res;
 
   if (!list)
@@ -556,6 +561,9 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
 }
 
 int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path)) {
+  if (is_psarc)
+    return getPsarcPathInfo(path, size, folders, files, handler);
+  
   SceIoStat stat;
   memset(&stat, 0, sizeof(SceIoStat));
 
@@ -580,7 +588,20 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
         continue;
       }
       
-      getArchivePathInfo(new_path, size, folders, files, handler);
+      if (entry->is_folder) {
+        int ret = getArchivePathInfo(new_path, size, folders, files, handler);
+        if (ret <= 0) {
+          free(new_path);
+          fileListEmpty(&list);
+          return ret;
+        }
+      } else {
+        if (size)
+          (*size) += entry->size;
+
+        if (files)
+          (*files)++;
+      }
 
       free(new_path);
     }
@@ -603,20 +624,94 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
   return 0;
 }
 
-int extractArchivePath(const char *src, const char *dst, FileProcessParam *param) {
+int extractArchiveFile(const char *src_path, const char *dst_path, FileProcessParam *param) {
+  SceUID fdsrc = archiveFileOpen(src_path, SCE_O_RDONLY, 0);
+  if (fdsrc < 0)
+    return fdsrc;
+
+  SceUID fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+  if (fddst < 0) {
+    psarcFileClose(fdsrc);
+    return fddst;
+  }
+
+  void *buf = malloc(TRANSFER_SIZE);
+
+  while (1) {
+    int read = archiveFileRead(fdsrc, buf, TRANSFER_SIZE);
+
+    if (read < 0) {
+      free(buf);
+
+      sceIoClose(fddst);
+      archiveFileClose(fdsrc);
+
+      sceIoRemove(dst_path);
+
+      return read;
+    }
+
+    if (read == 0)
+      break;
+
+    int written = sceIoWrite(fddst, buf, read);
+
+    if (written < 0) {
+      free(buf);
+
+      sceIoClose(fddst);
+      archiveFileClose(fdsrc);
+
+      sceIoRemove(dst_path);
+
+      return written;
+    }
+
+    if (param) {
+      if (param->value)
+        (*param->value) += read;
+
+      if (param->SetProgress)
+        param->SetProgress(param->value ? *param->value : 0, param->max);
+
+      if (param->cancelHandler && param->cancelHandler()) {
+        free(buf);
+
+        sceIoClose(fddst);
+        archiveFileClose(fdsrc);
+
+        sceIoRemove(dst_path);
+
+        return 0;
+      }
+    }
+  }
+
+  free(buf);
+
+  sceIoClose(fddst);
+  archiveFileClose(fdsrc);
+
+  return 1;
+}
+
+int extractArchivePath(const char *src_path, const char *dst_path, FileProcessParam *param) {
+  if (is_psarc)
+    return extractPsarcPath(src_path, dst_path, param);
+  
   SceIoStat stat;
   memset(&stat, 0, sizeof(SceIoStat));
 
-  int res = archiveFileGetstat(src, &stat);
+  int res = archiveFileGetstat(src_path, &stat);
   if (res < 0)
     return res;
   
   if (SCE_S_ISDIR(stat.st_mode)) {
     FileList list;
     memset(&list, 0, sizeof(FileList));
-    fileListGetArchiveEntries(&list, src, SORT_NONE);
+    fileListGetArchiveEntries(&list, src_path, SORT_NONE);
 
-    int ret = sceIoMkdir(dst, 0777);
+    int ret = sceIoMkdir(dst_path, 0777);
     if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
       fileListEmpty(&list);
       return ret;
@@ -639,16 +734,22 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
 
     int i;
     for (i = 0; i < list.length - 1; i++, entry = entry->next) {
-      char *src_path = malloc(strlen(src) + strlen(entry->name) + 2);
-      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", src, entry->name);
+      char *new_src_path = malloc(strlen(src_path) + strlen(entry->name) + 2);
+      snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s", src_path, entry->name);
 
-      char *dst_path = malloc(strlen(dst) + strlen(entry->name) + 2);
-      snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", dst, entry->name);
+      char *new_dst_path = malloc(strlen(dst_path) + strlen(entry->name) + 2);
+      snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s", dst_path, entry->name);
 
-      int ret = extractArchivePath(src_path, dst_path, param);
-
-      free(dst_path);
-      free(src_path);
+      int ret = 0;
+      
+      if (entry->is_folder) {
+        ret = extractArchivePath(new_src_path, new_dst_path, param);
+      } else {
+        ret = extractArchiveFile(new_src_path, new_dst_path, param);
+      }
+        
+      free(new_dst_path);
+      free(new_src_path);
 
       if (ret <= 0) {
         fileListEmpty(&list);
@@ -658,75 +759,16 @@ int extractArchivePath(const char *src, const char *dst, FileProcessParam *param
 
     fileListEmpty(&list);
   } else {
-    SceUID fdsrc = archiveFileOpen(src, SCE_O_RDONLY, 0);
-    if (fdsrc < 0)
-      return fdsrc;
-
-    SceUID fddst = sceIoOpen(dst, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-    if (fddst < 0) {
-      archiveFileClose(fdsrc);
-      return fddst;
-    }
-
-    void *buf = malloc(TRANSFER_SIZE);
-
-    uint64_t seek = 0;
-
-    while (1) {
-      int read = archiveFileRead(fdsrc, buf, TRANSFER_SIZE);
-      if (read < 0) {
-        free(buf);
-
-        sceIoClose(fddst);
-        archiveFileClose(fdsrc);
-
-        return read;
-      }
-
-      if (read == 0)
-        break;
-
-      int written = sceIoWrite(fddst, buf, read);
-
-      if (written < 0) {
-        free(buf);
-
-        sceIoClose(fddst);
-        archiveFileClose(fdsrc);
-
-        return written;
-      }
-
-      seek += written;
-
-      if (param) {
-        if (param->value)
-          (*param->value) += read;
-
-        if (param->SetProgress)
-          param->SetProgress(param->value ? *param->value : 0, param->max);
-
-        if (param->cancelHandler && param->cancelHandler()) {
-          free(buf);
-
-          sceIoClose(fddst);
-          archiveFileClose(fdsrc);
-
-          return 0;
-        }
-      }
-    }
-
-    free(buf);
-
-    sceIoClose(fddst);
-    archiveFileClose(fdsrc);
+    return extractArchiveFile(src_path, dst_path, param);
   }
 
   return 1;
 }
 
 int archiveFileGetstat(const char *file, SceIoStat *stat) {
+  if (is_psarc)
+    return psarcFileGetstat(file, stat);
+    
   ArchiveFileNode *node = findArchiveNode(file + archive_path_start);
   if (!node)
     return -1;
@@ -737,7 +779,10 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
   return 0;
 }
 
-int archiveFileOpen(const char *file, int flags, SceMode mode) {  
+int archiveFileOpen(const char *file, int flags, SceMode mode) {
+  if (is_psarc)
+    return psarcFileOpen(file, flags, mode);
+    
   // A file is already open
   if (archive_fd)
     return -1;
@@ -773,6 +818,9 @@ int archiveFileOpen(const char *file, int flags, SceMode mode) {
 }
 
 int archiveFileRead(SceUID fd, void *data, SceSize size) {
+  if (is_psarc)
+    return psarcFileRead(fd, data, size);
+  
   if (!archive_fd || fd != ARCHIVE_FD)
     return -1;
 
@@ -780,6 +828,9 @@ int archiveFileRead(SceUID fd, void *data, SceSize size) {
 }
 
 int archiveFileClose(SceUID fd) {
+  if (is_psarc)
+    return psarcFileClose(fd);
+  
   if (!archive_fd || fd != ARCHIVE_FD)
     return -1;
 
@@ -813,6 +864,9 @@ void archiveSetPassword(char *string) {
 }
 
 int archiveClose() {
+  if (is_psarc)
+    return psarcClose();
+  
   freeArchiveNodes(archive_root);
   return 0;
 }
@@ -827,6 +881,19 @@ SceMode convert_stat_mode(mode_t mode) {
 }
 
 int archiveOpen(const char *file) {
+  // Read magic
+  uint32_t magic;
+  int read = ReadFile(file, &magic, sizeof(uint32_t));
+  if (read < 0)
+    return read;
+  
+  // PSARC file
+  is_psarc = 0;
+  if (magic == 0x52415350) {
+    is_psarc = 1;
+    return psarcOpen(file);
+  }
+  
   // Start position of the archive path
   archive_path_start = strlen(file) + 1;
   strcpy(archive_file, file);
