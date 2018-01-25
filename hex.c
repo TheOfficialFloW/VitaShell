@@ -74,7 +74,7 @@ static HexListEntry *hexListGetNthEntry(HexList *list, int n) {
 int hexViewer(const char *file) {
   int text_viewer = 0;
 
-  uint8_t *buffer = malloc(BIG_BUFFER_SIZE);
+  uint8_t *buffer = memalign(64, BIG_BUFFER_SIZE);
   if (!buffer)
     return -1;
 

@@ -361,7 +361,7 @@ int extractPsarcFile(const char *src_path, const char *dst_path, FileProcessPara
     return fddst;
   }
 
-  void *buf = malloc(TRANSFER_SIZE);
+  void *buf = memalign(64, TRANSFER_SIZE);
 
   while (1) {
     int read = psarcFileRead(fdsrc, buf, TRANSFER_SIZE);

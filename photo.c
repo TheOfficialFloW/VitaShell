@@ -168,7 +168,7 @@ static void resetImageInfo(vita2d_texture *tex, float *width, float *height, flo
 }
 
 int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
-  char *buffer = malloc(BIG_BUFFER_SIZE);
+  char *buffer = memalign(64, BIG_BUFFER_SIZE);
   if (!buffer)
     return -1;
 

@@ -125,7 +125,7 @@ int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param) {
     return fd;
 
   // Open up the buffer for copying data into
-  void *buf = malloc(TRANSFER_SIZE);
+  void *buf = memalign(64, TRANSFER_SIZE);
 
   // Actually take the SHA1 sum
   while (1) {
@@ -348,7 +348,7 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
     return fddst;
   }
 
-  void *buf = malloc(TRANSFER_SIZE);
+  void *buf = memalign(64, TRANSFER_SIZE);
 
   while (1) {
     int read = sceIoRead(fdsrc, buf, TRANSFER_SIZE);

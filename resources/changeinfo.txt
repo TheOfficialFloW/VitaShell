@@ -339,4 +339,10 @@
 - Fixed refresh license DB when ran from ur0:.<br>
     ]]>
   </changes>
+   <changes app_ver="01.8">
+    <![CDATA[
+- Aligned memory to 64bit for optimal I/O.<br>
+- Fixed crash when using FTP.<br>
+    ]]>
+  </changes>
 </changeinfo>

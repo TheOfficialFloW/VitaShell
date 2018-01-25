@@ -99,6 +99,10 @@ The english language file is provided in **'VitaShellCustomization.rar'** and av
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.8 ###
+- Aligned memory to 64bit for optimal I/O.
+- Fixed crash when using FTP.
+
 ### Changelog 1.79 ###
 - Added ability to open .psarc files.
 - Added support for multi volume rar archives.

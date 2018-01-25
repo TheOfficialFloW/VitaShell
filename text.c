@@ -508,7 +508,7 @@ int textViewer(const char *file) {
   if (!s) 
     return -1;
 
-  char *buffer_base = malloc(BIG_BUFFER_SIZE);
+  char *buffer_base = memalign(64, BIG_BUFFER_SIZE);
   if (!buffer_base)
     return -1;
 

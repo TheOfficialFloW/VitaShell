@@ -158,14 +158,14 @@ static int decompressGzip(uint8_t *dst, int size_dst, uint8_t *src, int size_src
 }
 
 int coredumpViewer(const char *file) {
-  void *buffer = malloc(BIG_BUFFER_SIZE);
+  void *buffer = memalign(64, BIG_BUFFER_SIZE);
   if (!buffer)
     return -1;
 
   int size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
 
   if (*(uint16_t *)buffer == 0x8B1F) {
-    void *out_buf = malloc(BIG_BUFFER_SIZE);
+    void *out_buf = memalign(64, BIG_BUFFER_SIZE);
     if (!out_buf) {
       free(buffer);
       return -2;

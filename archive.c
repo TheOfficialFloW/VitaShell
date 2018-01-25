@@ -56,7 +56,7 @@ static int file_open(struct archive *a, void *client_data) {
   if (archive_data->fd < 0)
     return ARCHIVE_FATAL;
   
-  archive_data->buffer = malloc(TRANSFER_SIZE);
+  archive_data->buffer = memalign(64, TRANSFER_SIZE);
   archive_data->block_size = TRANSFER_SIZE;
   
   return ARCHIVE_OK;
@@ -635,7 +635,7 @@ int extractArchiveFile(const char *src_path, const char *dst_path, FileProcessPa
     return fddst;
   }
 
-  void *buf = malloc(TRANSFER_SIZE);
+  void *buf = memalign(64, TRANSFER_SIZE);
 
   while (1) {
     int read = archiveFileRead(fdsrc, buf, TRANSFER_SIZE);

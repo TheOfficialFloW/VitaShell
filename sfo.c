@@ -102,7 +102,7 @@ int setSfoString(void *buffer, const char *name, const char *string) {
 }
 
 int SFOReader(const char *file) {
-  uint8_t *buffer = malloc(BIG_BUFFER_SIZE);
+  uint8_t *buffer = memalign(64, BIG_BUFFER_SIZE);
   if (!buffer)
     return -1;
 
