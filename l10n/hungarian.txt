@@ -190,3 +190,4 @@ FTP_SERVER                           = "FTP szerver fut ezen a címen\ftp://%s:%
 UPDATE_QUESTION                      = "VitaShell %s mostantól elérhető.\\Frissíteni szeretnéd az alkalmazást?"
 ARCHIVE_NAME                         = "Archívum neve"
 COMPRESSION_LEVEL                    = "Becsomagolás szintje (0-9)"
+ENTER_PASSWORD                       = "Írd be a jelszót"
