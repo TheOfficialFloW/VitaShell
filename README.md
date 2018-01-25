@@ -102,6 +102,7 @@ The english language file is provided in **'VitaShellCustomization.rar'** and av
 ### Changelog 1.79 ###
 - Added support for multi volume rar archives.
 - Added support for password encrypted zip archives.
+- Fixed bug where size of files in archives over 2GB where shown as 16EB.
 
 ### Changelog 1.78 ###
 - Fixed bug where archives > 2GB couldn't be opened.
