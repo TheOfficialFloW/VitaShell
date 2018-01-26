@@ -23,6 +23,7 @@
 #include "language.h"
 #include "utils.h"
 #include "property_dialog.h"
+#include "uncommon_dialog.h"
 
 typedef struct {
   int status;

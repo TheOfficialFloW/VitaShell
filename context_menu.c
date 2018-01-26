@@ -174,7 +174,8 @@ void contextMenuCtrl() {
       for (i = 0; i < cur_ctx->n_entries; i++) {
         if (cur_ctx->entries[i].visibility == CTX_VISIBLE) {
           if (i > cur_ctx->sel) {
-            cur_ctx->sel = i;
+            if (!(cur_ctx->entries[i].flags & CTX_FLAG_BARRIER) || (hold_count[PAD_DOWN] <= 1 && hold2_count[PAD_LEFT_ANALOG_DOWN] <= 1))
+              cur_ctx->sel = i;
             break;
           }
         }

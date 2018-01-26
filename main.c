@@ -33,8 +33,10 @@
 #include "text.h"
 #include "hex.h"
 #include "settings.h"
+#include "adhoc_dialog.h"
 #include "property_dialog.h"
 #include "message_dialog.h"
+#include "netcheck_dialog.h"
 #include "ime_dialog.h"
 #include "theme.h"
 #include "language.h"
@@ -514,10 +516,11 @@ static int dialogSteps() {
   int refresh = REFRESH_MODE_NONE;
 
   int msg_result = updateMessageDialog();
+  int netcheck_result = updateNetCheckDialog();
   int ime_result = updateImeDialog();
+  int adhoc_result = updateAdhocDialog();
 
   switch (getDialogStep()) {
-    // Without refresh
     case DIALOG_STEP_ERROR:
     case DIALOG_STEP_INFO:
     case DIALOG_STEP_SYSTEM:
@@ -1278,6 +1281,34 @@ static int dialogSteps() {
 
       break;
     }
+    
+    case DIALOG_STEP_ADHOC_SEND_NETCHECK:
+    {
+      if (netcheck_result == NETCHECK_DIALOG_RESULT_CONNECTED) {
+        initAdhocDialog();
+        setDialogStep(DIALOG_STEP_ADHOC_SEND_SEARCHING);
+      } else if (netcheck_result == NETCHECK_DIALOG_RESULT_NOT_CONNECTED) {
+        setDialogStep(DIALOG_STEP_NONE);
+      }
+      
+      break;
+    }
+    
+    case DIALOG_STEP_ADHOC_RECEIVE_NETCHECK:
+    {
+      if (netcheck_result == NETCHECK_DIALOG_RESULT_CONNECTED) {
+        setDialogStep(DIALOG_STEP_ADHOC_RECEIVE_SEARCHING);
+      } else if (netcheck_result == NETCHECK_DIALOG_RESULT_NOT_CONNECTED) {
+        setDialogStep(DIALOG_STEP_NONE);
+      }
+      
+      break;
+    }
+    
+    case DIALOG_STEP_ADHOC_RECEIVE_SEARCHING:
+    {
+      break;
+    }
   }
 
   return refresh;
@@ -1528,6 +1559,8 @@ static int shellMain() {
     if (getDialogStep() != DIALOG_STEP_NONE) {
       refresh = dialogSteps();
       // scroll_count = 0;
+    } else if (getAdhocDialogStatus() != ADHOC_DIALOG_CLOSED) {
+      adhocDialogCtrl();
     } else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
       propertyDialogCtrl();
       scroll_count = 0;
@@ -1708,7 +1741,7 @@ static int shellMain() {
           char string[64];
           sprintf(string, "%s %s", date_string, time_string);
 
-          float x = ALIGN_RIGHT(SCREEN_WIDTH-SHELL_MARGIN_X, pgf_text_width(string));
+          float x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, pgf_text_width(string));
           pgf_draw_text(x, y, color, string);
         }
 
@@ -1723,6 +1756,9 @@ static int shellMain() {
     // Draw context menu
     drawContextMenu();
 
+    // Draw adhoc dialog
+    drawAdhocDialog();
+    
     // Draw property dialog
     drawPropertyDialog();
 

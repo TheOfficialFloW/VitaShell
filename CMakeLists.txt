@@ -88,9 +88,11 @@ add_executable(VitaShell
   sqlite3.c
   coredump.c
   settings.c
+  adhoc_dialog.c
   property_dialog.c
   uncommon_dialog.c
   message_dialog.c
+  netcheck_dialog.c
   ime_dialog.c
   config.c
   theme.c
@@ -167,6 +169,7 @@ target_link_libraries(VitaShell
   ScePgf_stub
   ScePhotoExport_stub
   ScePower_stub
+  ScePspnetAdhoc_stub
   ScePromoterUtil_stub
   SceTouch_stub
   SceUdcd_stub

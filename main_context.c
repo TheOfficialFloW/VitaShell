@@ -24,6 +24,7 @@
 #include "language.h"
 #include "property_dialog.h"
 #include "message_dialog.h"
+#include "netcheck_dialog.h"
 #include "ime_dialog.h"
 #include "utils.h"
 #include "usb.h"
@@ -267,6 +268,9 @@ void setContextMenuMainVisibilities() {
   if (!file_entry)
     return;
 
+  menu_main_entries[MENU_MAIN_ENTRY_SEND].flags = CTX_FLAG_BARRIER;
+  menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].flags = 0;
+  
   // Invisble entries when on '..'
   if (strcmp(file_entry->name, DIR_UP) == 0) {
     menu_main_entries[MENU_MAIN_ENTRY_MARK_UNMARK_ALL].visibility = CTX_INVISIBLE;
@@ -275,6 +279,8 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_DELETE].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_RENAME].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_PROPERTIES].visibility = CTX_INVISIBLE;
+    menu_main_entries[MENU_MAIN_ENTRY_SEND].visibility = CTX_INVISIBLE;
+    menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].flags = CTX_FLAG_BARRIER;
   }
 
   // Invisible 'Paste' if nothing is copied yet
@@ -309,6 +315,7 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_DELETE].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_RENAME].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_NEW_FOLDER].visibility = CTX_INVISIBLE;
+    menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].visibility = CTX_INVISIBLE;
   }
 
   // Mark/Unmark all text
@@ -742,6 +749,20 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
       setContextMenu(&context_menu_sort);
       setContextMenuSortVisibilities();
       return CONTEXT_MENU_MORE_OPENING;
+    }
+    
+    case MENU_MAIN_ENTRY_SEND:
+    {
+      initNetCheckDialog();
+      setDialogStep(DIALOG_STEP_ADHOC_SEND_NETCHECK);
+      break;
+    }
+    
+    case MENU_MAIN_ENTRY_RECEIVE:
+    {
+      initNetCheckDialog();
+      setDialogStep(DIALOG_STEP_ADHOC_RECEIVE_NETCHECK);
+      break;
     }
   }
 

@@ -265,7 +265,7 @@ static int finishSQLite() {
 }
 
 static void initNet() {
-  static char memory[16 * 1024];
+  static char memory[48 * 1024];
 
   SceNetInitParam param;
   param.memory = memory;
@@ -279,9 +279,19 @@ static void initNet() {
   sceHttpInit(40 * 1024);
 
   sceHttpsDisableOption(SCE_HTTPS_FLAG_SERVER_VERIFY);
+
+  sceNetAdhocInit();
+
+  SceNetAdhocctlAdhocId adhocId;
+  memset(&adhocId, 0, sizeof(SceNetAdhocctlAdhocId));
+  adhocId.type = SCE_NET_ADHOCCTL_ADHOCTYPE_RESERVED;
+  memcpy(&adhocId.data[0], "VITASHELL", SCE_NET_ADHOCCTL_ADHOCID_LEN);
+  sceNetAdhocctlInit(&adhocId);
 }
 
 static void finishNet() {
+  sceNetAdhocctlTerm();
+  sceNetAdhocTerm();
   sceSslTerm();
   sceHttpTerm();
   sceNetCtlTerm();
@@ -344,6 +354,7 @@ void initVitaShell() {
   sceSysmoduleLoadModule(SCE_SYSMODULE_PHOTO_EXPORT);
   sceSysmoduleLoadModule(SCE_SYSMODULE_NET);
   sceSysmoduleLoadModule(SCE_SYSMODULE_HTTPS);
+  sceSysmoduleLoadModule(SCE_SYSMODULE_PSPNET_ADHOC);
   sceSysmoduleLoadModule(SCE_SYSMODULE_SQLITE);
 
   // Init
@@ -381,6 +392,8 @@ void finishVitaShell() {
   vitaAudioShutdown();
   
   // Unload modules
+  sceSysmoduleUnloadModule(SCE_SYSMODULE_SQLITE);
+  sceSysmoduleUnloadModule(SCE_SYSMODULE_PSPNET_ADHOC);
   sceSysmoduleUnloadModule(SCE_SYSMODULE_HTTPS);
   sceSysmoduleUnloadModule(SCE_SYSMODULE_NET);
   sceSysmoduleUnloadModule(SCE_SYSMODULE_PHOTO_EXPORT);

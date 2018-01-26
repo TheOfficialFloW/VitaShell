@@ -16,27 +16,20 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PROPERTY_DIALOG_H__
-#define __PROPERTY_DIALOG_H__
+#ifndef __ADHOC_DIALOG_H__
+#define __ADHOC_DIALOG_H__
 
-#include "file.h"
-
-enum PropertyEntryVisibilities {
-  PROPERTY_ENTRY_UNUSED,
-  PROPERTY_ENTRY_INVISIBLE,
-  PROPERTY_ENTRY_VISIBLE,
+enum AdhocDialogStatus {
+  ADHOC_DIALOG_CLOSED,
+  ADHOC_DIALOG_CLOSING,
+  ADHOC_DIALOG_OPENED,
+  ADHOC_DIALOG_OPENING,
 };
 
-enum PropertyDialogStatus {
-  PROPERTY_DIALOG_CLOSED,
-  PROPERTY_DIALOG_CLOSING,
-  PROPERTY_DIALOG_OPENED,
-  PROPERTY_DIALOG_OPENING,
-};
-
-int getPropertyDialogStatus();
-int initPropertyDialog(char *path, FileListEntry *entry);
-void propertyDialogCtrl();
-void drawPropertyDialog();
+int getAdhocDialogStatus();
+int initAdhocDialog();
+int updateAdhocDialog();
+void adhocDialogCtrl();
+void drawAdhocDialog();
 
 #endif

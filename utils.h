@@ -58,6 +58,7 @@ typedef uint8_t Pad[PAD_N_BUTTONS];
 
 extern SceCtrlData pad;
 extern Pad old_pad, current_pad, pressed_pad, released_pad, hold_pad, hold2_pad;
+extern Pad hold_count, hold2_count;
 
 float easeOut(float x0, float x1, float a, float b);
 

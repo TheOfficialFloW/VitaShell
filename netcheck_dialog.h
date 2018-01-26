@@ -16,27 +16,17 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PROPERTY_DIALOG_H__
-#define __PROPERTY_DIALOG_H__
+#ifndef __NETCHECK_DIALOG_H__
+#define __NETCHECK_DIALOG_H__
 
-#include "file.h"
+#define NETCHECK_DIALOG_RESULT_NONE 0
+#define NETCHECK_DIALOG_RESULT_RUNNING 1
+#define NETCHECK_DIALOG_RESULT_FINISHED 2
+#define NETCHECK_DIALOG_RESULT_CONNECTED 3
+#define NETCHECK_DIALOG_RESULT_NOT_CONNECTED 4
 
-enum PropertyEntryVisibilities {
-  PROPERTY_ENTRY_UNUSED,
-  PROPERTY_ENTRY_INVISIBLE,
-  PROPERTY_ENTRY_VISIBLE,
-};
-
-enum PropertyDialogStatus {
-  PROPERTY_DIALOG_CLOSED,
-  PROPERTY_DIALOG_CLOSING,
-  PROPERTY_DIALOG_OPENED,
-  PROPERTY_DIALOG_OPENING,
-};
-
-int getPropertyDialogStatus();
-int initPropertyDialog(char *path, FileListEntry *entry);
-void propertyDialogCtrl();
-void drawPropertyDialog();
+int initNetCheckDialog();
+int isNetCheckDialogRunning();
+int updateNetCheckDialog();
 
 #endif
