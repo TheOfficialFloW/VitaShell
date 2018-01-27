@@ -621,7 +621,7 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
       (*files)++;
   }
 
-  return 0;
+  return 1;
 }
 
 int extractArchiveFile(const char *src_path, const char *dst_path, FileProcessParam *param) {
