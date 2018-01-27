@@ -44,6 +44,7 @@ typedef struct {
 int send_thread(SceSize args_size, SendArguments *args);
 int receive_thread(SceSize args_size, ReceiveArguments *args);
 
+void adhocAlertSockets();
 void adhocCloseSockets();
 int adhocUpdatePeerList();
 int adhocSendServerResponse(char *response);

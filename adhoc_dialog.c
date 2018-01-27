@@ -26,7 +26,16 @@
 #include "uncommon_dialog.h"
 #include "io_process.h"
 
-#define RECEIVE_WAIT 200 * 1000
+#define SHARE_MAGIC 0x574F4C46
+#define SHARE_TYPE_FOLDER 0
+#define SHARE_TYPE_FILE 1
+
+// 700 KB/s
+#define SOCKET_BUFSIZE 128 * 1024
+#define SHARE_SIZE 4096
+#define RECEIVE_WAIT 100 * 1000
+
+#define PEERLIST_MAX 4
 
 typedef struct {
   int status;
@@ -39,8 +48,6 @@ typedef struct {
   float scale;
 } AdhocDialog;
 
-#define PEERLIST_MAX 4
-
 static AdhocDialog adhoc_dialog;
 
 static SceNetAdhocctlPeerInfo  peer_list[PEERLIST_MAX];
@@ -52,13 +59,6 @@ static int client_socket = -1, server_socket = -1;
 static SceUID client_waiting_thid = -1;
 static int server_request_result = 0;
 static char client_response[4];
-
-#define SHARE_MAGIC 0x574F4C46
-#define SHARE_TYPE_FOLDER 0
-#define SHARE_TYPE_FILE 1
-
-#define SHARE_SIZE 1024
-#define SERVER_PORT 1
 
 typedef struct {
   int magic;
@@ -76,7 +76,6 @@ int adhocRecv(int socket, void *buf, int *size) {
 }
 
 int sendFile(const char *src_path, FileProcessParam *param) {
-
   SceUID fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
   if (fdsrc < 0)
     return fdsrc;
@@ -221,7 +220,7 @@ int send_thread(SceSize args_size, SendArguments *args) {
   SceUID thid = -1;
 
   // Lock power timers
-  // powerLock();
+  powerLock();
 
   // Set progress to 0%
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
@@ -258,12 +257,12 @@ int send_thread(SceSize args_size, SendArguments *args) {
     mark_entry = mark_entry->next;
   }
 
-  // TEST
-  adhocSend(client_socket, &size, 1024);
-  
-  // Send total size
-  uint64_t total_size = size + folders * DIRECTORY_SIZE;
-  res = adhocSend(client_socket, &total_size, sizeof(uint64_t));
+  // Send total size and path length of cwd
+  ShareInfo info;
+  info.magic = SHARE_MAGIC;
+  info.path_len = strlen(args->file_list->path);
+  info.file_size = size + folders * DIRECTORY_SIZE;
+  res = adhocSend(client_socket, &info, sizeof(ShareInfo));
   if (res < 0) {
     closeWaitDialog();
     setDialogStep(DIALOG_STEP_CANCELLED);
@@ -272,7 +271,7 @@ int send_thread(SceSize args_size, SendArguments *args) {
   }
 
   // Update thread
-  thid = createStartUpdateThread(total_size, 1);
+  thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE, 1);
 
   // Send process
   uint64_t value = 0;
@@ -298,6 +297,32 @@ int send_thread(SceSize args_size, SendArguments *args) {
     mark_entry = mark_entry->next;
   }
 
+  // In case server finished earlier
+  while (1) {
+    // Cancel
+    if (cancelHandler()) {
+      closeWaitDialog();
+      setDialogStep(DIALOG_STEP_CANCELLED);
+      goto EXIT;
+    }
+    
+    uint32_t sync;
+    int len = sizeof(uint32_t);
+    int res = adhocRecv(client_socket, &sync, &len);
+    if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
+      closeWaitDialog();
+      setDialogStep(DIALOG_STEP_CANCELLED);
+      errorDialog(res);
+      goto EXIT;
+    }
+    
+    if (res == 0) {
+      break;
+    }
+
+    sceKernelDelayThread(RECEIVE_WAIT);
+  }
+
   // Set progress to 100%
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
   sceKernelDelayThread(COUNTUP_WAIT);
@@ -315,12 +340,12 @@ EXIT:
     sceKernelWaitThreadEnd(thid, NULL, NULL);
 
   // Unlock power timers
-  // powerUnlock();
+  powerUnlock();
 
   // Close sockets and disconnect
   adhocCloseSockets();
   sceNetCtlAdhocDisconnect();
-
+ 
   return sceKernelExitDeleteThread(0);
 }
 
@@ -329,40 +354,15 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
   uint64_t timeout;
 
   // Lock power timers
-  // powerLock();
+  powerLock();
 
   // Set progress to 0%
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
   sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
-  // Test
-  while (1) {
-    // Cancel
-    if (cancelHandler()) {
-      closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
-      goto EXIT;
-    }
-    
-    int len = 1024;
-    char buf[1024];
-    int res = adhocRecv(server_socket, buf, &len);
-    if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
-      closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
-      errorDialog(res);
-      goto EXIT;
-    }
-    
-    if (res == 0) {
-      break;
-    }
+  // Receive total size and and path length of cwd
+  ShareInfo server_info;
 
-    sceKernelDelayThread(RECEIVE_WAIT);
-  }
-  
-  // Receive total size
-  uint64_t size = 0;
   while (1) {
     // Cancel
     if (cancelHandler()) {
@@ -371,8 +371,8 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
       goto EXIT;
     }
     
-    int len = sizeof(uint64_t);
-    int res = adhocRecv(server_socket, &size, &len);
+    int len = sizeof(ShareInfo);
+    int res = adhocRecv(server_socket, &server_info, &len);
     if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
       closeWaitDialog();
       setDialogStep(DIALOG_STEP_CANCELLED);
@@ -381,6 +381,14 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
     }
     
     if (res == 0) {
+      // Wrong magic
+      if (server_info.magic != SHARE_MAGIC || server_info.path_len >= MAX_PATH_LENGTH) {
+        closeWaitDialog();
+        setDialogStep(DIALOG_STEP_CANCELLED);
+        errorDialog(-1);
+        goto EXIT;
+      }
+      
       break;
     }
 
@@ -388,14 +396,15 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
   }
 
   // Update thread
-  thid = createStartUpdateThread(size, 1);
+  thid = createStartUpdateThread(server_info.file_size, 1);
 
   // Receive process
   uint64_t value = 0;
-
-  while (value < size) {
+  while (value < server_info.file_size) {
     ShareInfo info;
+    
     char path[MAX_PATH_LENGTH];
+    memset(path, 0, sizeof(path));
 
     // Receive share info
     while (1) {
@@ -430,9 +439,7 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
       sceKernelDelayThread(RECEIVE_WAIT);
     }
 
-    // Receive path
-    memset(path, 0, sizeof(path));
-    
+    // Receive path    
     while (1) {
       // Cancel
       if (cancelHandler()) {
@@ -441,7 +448,8 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
         goto EXIT;
       }
       
-      int res = adhocRecv(server_socket, path, (int *)&info.path_len);
+      int len = (int)info.path_len;
+      int res = adhocRecv(server_socket, path, &len);
       if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
         closeWaitDialog();
         setDialogStep(DIALOG_STEP_CANCELLED);
@@ -456,15 +464,35 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
       sceKernelDelayThread(RECEIVE_WAIT);
     }
     
+    // New path
+    char dst_path[MAX_PATH_LENGTH];
+    snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, path + server_info.path_len);
+
     // Folder
     if (info.type == SHARE_TYPE_FOLDER) {
+      int res = sceIoMkdir(dst_path, 0777);
+      if (res < 0 && res != SCE_ERROR_ERRNO_EEXIST) {
+        closeWaitDialog();
+        setDialogStep(DIALOG_STEP_CANCELLED);
+        errorDialog(res);
+        goto EXIT;
+      }
+      
       value += DIRECTORY_SIZE;
-      SetProgress(value, size);
+      SetProgress(value, server_info.file_size);
       continue;
     }
     
     // Receive file
-    if (info.type == SHARE_TYPE_FILE) {      
+    if (info.type == SHARE_TYPE_FILE) {
+      SceUID fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+      if (fddst < 0) {
+        closeWaitDialog();
+        setDialogStep(DIALOG_STEP_CANCELLED);
+        errorDialog(fddst);
+        goto EXIT;
+      }
+
       void *buf = memalign(4096, SHARE_SIZE);
 
       uint64_t recv_offset = 0;
@@ -477,7 +505,8 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
           goto EXIT;
         }
         
-        int len = SHARE_SIZE;
+        uint64_t remain = info.file_size - recv_offset;
+        int len = (remain < SHARE_SIZE) ? (int)remain : SHARE_SIZE;
         int res = adhocRecv(server_socket, buf, &len);
         if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
           closeWaitDialog();
@@ -488,17 +517,32 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
         }
         
         if (res == 0) {
+          int written = sceIoWrite(fddst, buf, len);
+          if (written < 0) {
+            closeWaitDialog();
+            setDialogStep(DIALOG_STEP_CANCELLED);
+            errorDialog(written);
+            free(buf);
+            goto EXIT;
+          }
+
           recv_offset += len;
           value += len;
-          SetProgress(value, size);
+          SetProgress(value, server_info.file_size);
+          continue;
         }
-        
+
         sceKernelDelayThread(RECEIVE_WAIT);
       }
       
       free(buf);
+      sceIoClose(fddst);
     }
   }
+
+  // In case server finished earlier
+  uint32_t sync = 0x12345678;
+  adhocSend(server_socket, &sync, sizeof(uint32_t));
 
   // Set progress to 100%
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
@@ -514,7 +558,7 @@ EXIT:
     sceKernelWaitThreadEnd(thid, NULL, NULL);
 
   // Unlock power timers
-  // powerUnlock();
+  powerUnlock();
 
   // Close sockets and disconnect
   adhocCloseSockets();
@@ -526,7 +570,7 @@ EXIT:
 int client_waiting_thread(SceSize args, void *argp) {
   // Create PTP socket and wait for connection
   sceNetAdhocctlGetEtherAddr(&client_addr);
-  client_socket = sceNetAdhocPtpListen(&client_addr, SERVER_PORT, SHARE_SIZE, RECEIVE_WAIT, 300, 1, 0);
+  client_socket = sceNetAdhocPtpListen(&client_addr, 1, SOCKET_BUFSIZE, RECEIVE_WAIT, 50, 1, 0);
   if (client_socket < 0) {
     server_request_result = client_socket;
     goto EXIT;
@@ -553,12 +597,16 @@ EXIT:
   return sceKernelExitDeleteThread(0);
 }
 
-void adhocCloseSockets() {
+void adhocAlertSockets() {
   if (client_socket >= 0)
     sceNetAdhocSetSocketAlert(client_socket, SCE_NET_ADHOC_F_ALERTALL);
 
   if (server_socket >= 0)
-    sceNetAdhocSetSocketAlert(server_socket, SCE_NET_ADHOC_F_ALERTALL);
+    sceNetAdhocSetSocketAlert(server_socket, SCE_NET_ADHOC_F_ALERTALL);  
+}
+
+void adhocCloseSockets() {
+  adhocAlertSockets();
 
   if (client_waiting_thid >= 0) {
     sceKernelWaitThreadEnd(client_waiting_thid, NULL, NULL);
@@ -573,7 +621,7 @@ void adhocCloseSockets() {
   if (server_socket >= 0) {
     sceNetAdhocPtpClose(server_socket, 0);
     server_socket = -1;
-  }  
+  }
 }
 
 int adhocUpdatePeerList() {
@@ -720,7 +768,7 @@ void adhocDialogCtrl() {
     if (adhoc_dialog.result == ADHOC_DIALOG_RESULT_WAITING_FOR_RESPONSE) {      
       // Create PTP socket and start connection
       sceNetAdhocctlGetEtherAddr(&server_addr);
-      client_socket = sceNetAdhocPtpOpen(&server_addr, 0, &client_addr, SERVER_PORT, SHARE_SIZE, RECEIVE_WAIT, 300, 0);
+      client_socket = sceNetAdhocPtpOpen(&server_addr, 0, &client_addr, 1, SOCKET_BUFSIZE, RECEIVE_WAIT, 50, 0);
       if (client_socket < 0) {
         sceNetCtlAdhocDisconnect();
         errorDialog(client_socket);
@@ -728,7 +776,6 @@ void adhocDialogCtrl() {
       }
       
       // Establish PTP connection
-      // sceNetAdhocPtpConnect(client_socket, 0, 0);
       /*int res = sceNetAdhocPtpConnect(client_socket, 0, SCE_NET_ADHOC_F_NONBLOCK);
       if (res < 0) {
         sceNetAdhocPtpClose(client_socket, 0);

@@ -258,12 +258,16 @@ static int finishSQLite() {
   return sqlite_exit();
 }
 
+#define NET_MEMORY_SIZE (4 * 1024 * 1024)
+
+static char *net_memory = NULL;
+
 static void initNet() {
-  static char memory[48 * 1024];
+  net_memory = malloc(NET_MEMORY_SIZE);
 
   SceNetInitParam param;
-  param.memory = memory;
-  param.size = sizeof(memory);
+  param.memory = net_memory;
+  param.size = NET_MEMORY_SIZE;
   param.flags = 0;
 
   sceNetInit(&param);
@@ -289,7 +293,8 @@ static void finishNet() {
   sceSslTerm();
   sceHttpTerm();
   sceNetCtlTerm();
-  sceNetTerm();  
+  sceNetTerm();
+  free(net_memory);
 }
 
 void installDefaultFiles() {

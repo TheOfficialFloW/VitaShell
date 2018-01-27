@@ -620,20 +620,6 @@ static int dialogSteps() {
       break;
     }
     
-    case DIALOG_STEP_ADHOC_SENDED:
-    {
-      refresh = REFRESH_MODE_SETFOCUS;
-      setDialogStep(DIALOG_STEP_NONE);
-      break;
-    }
-    
-    case DIALOG_STEP_ADHOC_RECEIVED:
-    {
-      refresh = REFRESH_MODE_SETFOCUS;
-      setDialogStep(DIALOG_STEP_NONE);
-      break;
-    }
-    
     case DIALOG_STEP_REFRESH_LIVEAREA_QUESTION:
     {
       if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
@@ -1325,7 +1311,7 @@ static int dialogSteps() {
           initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[SENDING]);
           setDialogStep(DIALOG_STEP_ADHOC_SENDING);
 
-          SceUID thid = sceKernelCreateThread("send_thread", (SceKernelThreadEntry)send_thread, 0x40, 0x100000, 0, 0, NULL);
+          SceUID thid = sceKernelCreateThread("send_thread", (SceKernelThreadEntry)send_thread, 0x10000100, 0x4000, 0, 0, NULL);
           if (thid >= 0)
             sceKernelStartThread(thid, sizeof(SendArguments), &args);
         } else if (strcmp(adhocReceiveClientReponse(), "NO") == 0) {
@@ -1406,7 +1392,7 @@ static int dialogSteps() {
           initMessageDialog(MESSAGE_DIALOG_PROGRESS_BAR, language_container[RECEIVING]);
           setDialogStep(DIALOG_STEP_ADHOC_RECEIVING);
 
-          SceUID thid = sceKernelCreateThread("receive_thread", (SceKernelThreadEntry)receive_thread, 0x40, 0x100000, 0, 0, NULL);
+          SceUID thid = sceKernelCreateThread("receive_thread", (SceKernelThreadEntry)receive_thread, 0x10000100, 0x4000, 0, 0, NULL);
           if (thid >= 0)
             sceKernelStartThread(thid, sizeof(ReceiveArguments), &args);
         }
@@ -1420,6 +1406,31 @@ static int dialogSteps() {
         setDialogStep(DIALOG_STEP_ADHOC_RECEIVE_SEARCHING);
       }
 
+      break;
+    }
+    
+    case DIALOG_STEP_ADHOC_SENDED:
+    {
+      refresh = REFRESH_MODE_NORMAL;
+      setDialogStep(DIALOG_STEP_NONE);
+      break;
+    }
+    
+    case DIALOG_STEP_ADHOC_RECEIVED:
+    {
+      refresh = REFRESH_MODE_NORMAL;
+      setDialogStep(DIALOG_STEP_NONE);
+      break;
+    }
+    
+    case DIALOG_STEP_ADHOC_SENDING:
+    case DIALOG_STEP_ADHOC_RECEIVING:
+    {
+      if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+        // Alert sockets
+        adhocAlertSockets();
+      }
+      
       break;
     }
   }
