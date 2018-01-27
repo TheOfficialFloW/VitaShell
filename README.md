@@ -99,6 +99,11 @@ The english language file is provided in **'VitaShellCustomization.rar'** and av
 * sakya for Lightmp3
 * Everybody who contributed on vitasdk
 
+### Changelog 1.81 ###
+- Added adhoc file transfer feature.
+- Fixed bug where it didn't count files and folders in archives correctly.
+- Improved controls code.
+
 ### Changelog 1.8 ###
 - Aligned memory to 64bit for optimal I/O.
 - Fixed crash when using FTP.

@@ -339,10 +339,17 @@
 - Fixed refresh license DB when ran from ur0:.<br>
     ]]>
   </changes>
-   <changes app_ver="01.8">
+   <changes app_ver="01.80">
     <![CDATA[
 - Aligned memory to 64bit for optimal I/O.<br>
 - Fixed crash when using FTP.<br>
+    ]]>
+  </changes>
+   <changes app_ver="01.81">
+    <![CDATA[
+- Added adhoc file transfer feature.<br>
+- Fixed bug where it didn't count files and folders in archives correctly.<br>
+- Improved controls code.<br>
     ]]>
   </changes>
 </changeinfo>
