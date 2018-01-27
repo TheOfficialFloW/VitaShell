@@ -21,7 +21,7 @@
 
 static int netcheck_dialog_running = 0;
 
-int initNetCheckDialog() {
+int initNetCheckDialog(int mode, int timeoutUs) {
   if (netcheck_dialog_running)
     return -1;
 
@@ -31,10 +31,11 @@ int initNetCheckDialog() {
   SceNetAdhocctlGroupName groupName;
   memset(groupName.data, 0, SCE_NET_ADHOCCTL_GROUPNAME_LEN);
   param.groupName = &groupName;
-  memcpy(&param.npCommunicationId.data, "VITASHELL", 9);
+  memcpy(&param.npCommunicationId.data, VITASHELL_TITLEID, 9);
   param.npCommunicationId.term = '\0';
   param.npCommunicationId.num = 0;
-  param.mode = SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_CONN;
+  param.mode = mode;
+  param.timeoutUs = timeoutUs;
 
   int res = sceNetCheckDialogInit(&param);
   if (res >= 0) {

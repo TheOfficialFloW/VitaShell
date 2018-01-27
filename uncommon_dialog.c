@@ -336,7 +336,7 @@ int drawUncommonDialog() {
     }
     
     // Dialog type
-    char button_string[32];
+    char button_string[128];
 
     switch (uncommon_dialog.buttonType) {
       case SCE_MSG_DIALOG_BUTTON_TYPE_OK:

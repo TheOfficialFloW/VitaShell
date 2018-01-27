@@ -23,6 +23,8 @@ EXTRACTING                           = "Extracting..."
 COMPRESSING                          = "Compressing..."
 HASHING                              = "Hashing..."
 REFRESHING                           = "Refreshing..."
+SENDING                              = "Sending..."
+RECEIVING                            = "Receiving..."
 
 # Audio player strings
 TITLE                                = "Title"
@@ -178,10 +180,10 @@ QR_CONFIRM_INSTALL                   = "Do you want to install this package:\%s\
 QR_CONFIRM_DOWNLOAD                  = "Do you want to download this file:\%s\File: %s\Size: %s"
 
 # Adhoc strings
-ADHOC_SEARCHING_PSVITA_SEND          = "Searching for a PS Vita to send to...\Please wait."
-ADHOC_SEARCHING_PSVITA_RECEIVE       = "Searching for a PS Vita to receive from...\Please wait."
-ADHOC_SELECT_PSVITA                  = "Select PS Vita"
+ADHOC_RECEIVE_SEARCHING_PSVITA       = "Searching for a PS Vita to receive from...\Please wait."
+ADHOC_SELECT_PSVITA                  = "Select a PS Vita:"
 ADHOC_RECEIVE_QUESTION               = "Do you want to receive from %s?"
+ADHOC_CLIENT_DECLINED                = "The client has declined your request."
 
 # Others
 IMC0_MOUNTED                         = "imc0: mounted."

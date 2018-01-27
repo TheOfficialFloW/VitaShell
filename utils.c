@@ -29,7 +29,6 @@
 SceCtrlData pad;
 Pad old_pad, current_pad, pressed_pad, released_pad, hold_pad, hold2_pad;
 Pad hold_count, hold2_count;
-int circle_enter_button = 0;
 
 static int netdbg_sock = -1;
 static void *net_memory = NULL;
@@ -160,10 +159,6 @@ void powerUnlock() {
     lock_power = 0;
 }
 
-void setEnterButton(int enter_button) {
-  circle_enter_button = enter_button;
-}
-
 void readPad() {
   memset(&pad, 0, sizeof(SceCtrlData));
   sceCtrlPeekBufferPositive(0, &pad, 1);
@@ -247,7 +242,7 @@ void readPad() {
     }
   }
   
-  if (circle_enter_button) {
+  if (enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE) {
     old_pad[PAD_ENTER] = old_pad[PAD_CIRCLE];
     current_pad[PAD_ENTER] = current_pad[PAD_CIRCLE];
     pressed_pad[PAD_ENTER] = pressed_pad[PAD_CIRCLE];

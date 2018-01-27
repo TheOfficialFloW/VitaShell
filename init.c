@@ -175,12 +175,6 @@ static void initSceAppUtil() {
   sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_DATE_FORMAT, &date_format);
   sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_TIME_FORMAT, &time_format);
 
-  if (enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE) {
-    setEnterButton(1);
-  } else {
-    setEnterButton(0);
-  }
-
   // Set common dialog config
   SceCommonDialogConfigParam config;
   sceCommonDialogConfigParamInit(&config);
@@ -285,7 +279,7 @@ static void initNet() {
   SceNetAdhocctlAdhocId adhocId;
   memset(&adhocId, 0, sizeof(SceNetAdhocctlAdhocId));
   adhocId.type = SCE_NET_ADHOCCTL_ADHOCTYPE_RESERVED;
-  memcpy(&adhocId.data[0], "VITASHELL", SCE_NET_ADHOCCTL_ADHOCID_LEN);
+  memcpy(&adhocId.data[0], VITASHELL_TITLEID, SCE_NET_ADHOCCTL_ADHOCID_LEN);
   sceNetAdhocctlInit(&adhocId);
 }
 

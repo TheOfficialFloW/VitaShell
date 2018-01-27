@@ -122,7 +122,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
   }
 
   // Update thread
-  thid = createStartUpdateThread(folders+files, 0);
+  thid = createStartUpdateThread(folders + files, 0);
 
   // Remove process
   uint64_t value = 0;

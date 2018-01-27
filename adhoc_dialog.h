@@ -19,6 +19,9 @@
 #ifndef __ADHOC_DIALOG_H__
 #define __ADHOC_DIALOG_H__
 
+#define ADHOC_DIALOG_RESULT_NONE 0
+#define ADHOC_DIALOG_RESULT_WAITING_FOR_RESPONSE 1
+
 enum AdhocDialogStatus {
   ADHOC_DIALOG_CLOSED,
   ADHOC_DIALOG_CLOSING,
@@ -26,9 +29,31 @@ enum AdhocDialogStatus {
   ADHOC_DIALOG_OPENING,
 };
 
+typedef struct {
+  FileList *file_list;
+  FileList *mark_list;
+  int index;
+} SendArguments;
+
+typedef struct {
+  FileList *file_list;
+  FileList *mark_list;
+  int index;
+} ReceiveArguments;
+
+int send_thread(SceSize args_size, SendArguments *args);
+int receive_thread(SceSize args_size, ReceiveArguments *args);
+
+void adhocCloseSockets();
+int adhocUpdatePeerList();
+int adhocSendServerResponse(char *response);
+char *adhocReceiveClientReponse();
+int adhocReceiveServerRequest();
+void adhocWaitingForServerRequest();
+char *adhocGetServerNickname();
+
 int getAdhocDialogStatus();
 int initAdhocDialog();
-int updateAdhocDialog();
 void adhocDialogCtrl();
 void drawAdhocDialog();
 

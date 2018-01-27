@@ -25,7 +25,7 @@
 #define NETCHECK_DIALOG_RESULT_CONNECTED 3
 #define NETCHECK_DIALOG_RESULT_NOT_CONNECTED 4
 
-int initNetCheckDialog();
+int initNetCheckDialog(int mode, int timeoutUs);
 int isNetCheckDialogRunning();
 int updateNetCheckDialog();
 

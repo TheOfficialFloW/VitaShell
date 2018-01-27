@@ -78,7 +78,7 @@ MenuEntry menu_main_entries[] = {
   { PROPERTIES, 10, 0, CTX_INVISIBLE },
   { SORT_BY,    12, CTX_FLAG_MORE, CTX_VISIBLE },
   { MORE,       13, CTX_FLAG_MORE, CTX_INVISIBLE },
-  { SEND,       17, CTX_FLAG_BARRIER, CTX_INVISIBLE },
+  { SEND,       17, 0, CTX_INVISIBLE }, // CTX_FLAG_BARRIER
   { RECEIVE,    18, 0, CTX_INVISIBLE },
 };
 
@@ -268,8 +268,8 @@ void setContextMenuMainVisibilities() {
   if (!file_entry)
     return;
 
-  menu_main_entries[MENU_MAIN_ENTRY_SEND].flags = CTX_FLAG_BARRIER;
-  menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].flags = 0;
+  // menu_main_entries[MENU_MAIN_ENTRY_SEND].flags = CTX_FLAG_BARRIER;
+  // menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].flags = 0;
   
   // Invisble entries when on '..'
   if (strcmp(file_entry->name, DIR_UP) == 0) {
@@ -280,7 +280,7 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_RENAME].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_PROPERTIES].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_SEND].visibility = CTX_INVISIBLE;
-    menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].flags = CTX_FLAG_BARRIER;
+    // menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].flags = CTX_FLAG_BARRIER;
   }
 
   // Invisible 'Paste' if nothing is copied yet
@@ -315,6 +315,7 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_DELETE].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_RENAME].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_NEW_FOLDER].visibility = CTX_INVISIBLE;
+    menu_main_entries[MENU_MAIN_ENTRY_SEND].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].visibility = CTX_INVISIBLE;
   }
 
@@ -753,14 +754,14 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
     
     case MENU_MAIN_ENTRY_SEND:
     {
-      initNetCheckDialog();
+      initNetCheckDialog(SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_JOIN, 60 * 1000 * 1000);
       setDialogStep(DIALOG_STEP_ADHOC_SEND_NETCHECK);
       break;
     }
     
     case MENU_MAIN_ENTRY_RECEIVE:
     {
-      initNetCheckDialog();
+      initNetCheckDialog(SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_CONN, 0);
       setDialogStep(DIALOG_STEP_ADHOC_RECEIVE_NETCHECK);
       break;
     }

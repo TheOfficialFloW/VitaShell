@@ -458,7 +458,7 @@ void drawPropertyDialog() {
         string_y += FONT_Y_SPACE;
     }
 
-    char button_string[32];
+    char button_string[128];
     sprintf(button_string, "%s %s", enter_button == SCE_SYSTEM_PARAM_ENTER_BUTTON_CIRCLE ? CIRCLE : CROSS, language_container[OK]);
     pgf_draw_text(ALIGN_CENTER(SCREEN_WIDTH, pgf_text_width(button_string)), string_y + FONT_Y_SPACE, DIALOG_COLOR, button_string);
   }
