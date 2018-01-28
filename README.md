@@ -6,7 +6,8 @@ This homebrew was an entry of the Revitalize PS Vita homebrew competition and wo
 
 Donation
 --------
-In case you want to support my work on the vita, you can always spend me some beer. Any cent is highly appreciated: [Donation link](http://goo.gl/uAIPIY)
+All my work is voluntary and nonprofit, however you can support my work by making a small donation - no matter how small, I'd be very thankful!
+[Donation Link](https://www.paypal.me/PSVitaTheFloW)
 
 How to use an USB flash drive as Memory Card on a PS TV
 -------------------------------------------------------
