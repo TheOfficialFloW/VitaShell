@@ -23,6 +23,8 @@ EXTRACTING                           = "Kicsomagolás..."
 COMPRESSING                          = "Becsomagolás..."
 HASHING                              = "Hashelés..."
 REFRESHING                           = "Frissítés..."
+SENDING                              = "Elküldés..."
+RECEIVING                            = "Fogadás..."
 
 # Audio player strings
 TITLE                                = "Cím"
@@ -59,6 +61,8 @@ DELETE                               = "Töröl"
 RENAME                               = "Átnevez"
 NEW_FOLDER                           = "Új mappa"
 PROPERTIES                           = "Tulajdonságok"
+SEND                                 = "Küldés"
+RECEIVE                              = "Fogadás"
 MORE                                 = "Több"
 COMPRESS                             = "Becsomagol"
 INSTALL_ALL                          = "Összes telepítése"
@@ -174,6 +178,12 @@ QR_OPEN_WEBSITE                     = "Megakarod nyitni ezt az URLt:\%s"
 QR_SHOW_CONTENTS                    = "QR Kód Mondja:\%s"
 QR_CONFIRM_INSTALL                  = "Telepíteni akarod ezt a csomagot:\%s\Fájl: %s\Méret: %s"
 QR_CONFIRM_DOWNLOAD                 = "Le akarod tölteni ezt a fájlt:\%s\Fájl: %s\Méret: %s"
+
+# Adhoc strings
+ADHOC_RECEIVE_SEARCHING_PSVITA       = "PS Vita keresése fogadásra...\Kérlek várj."
+ADHOC_SELECT_PSVITA                  = "Válassz egy PS Vitát:"
+ADHOC_RECEIVE_QUESTION               = "Akarsz fogadni %s-tól?"
+ADHOC_CLIENT_DECLINED                = "A kliens elutasította a kérésed."
 
 # Others
 IMC0_MOUNTED                         = "imc0: felcsatolva."
