@@ -252,7 +252,7 @@ int downloadFileProcess(const char *url, const char *dest, int successStep) {
   if (res <= 0) {
     sceIoRemove(dest);
     closeWaitDialog();
-    setDialogStep(DIALOG_STEP_CANCELLED);
+    setDialogStep(DIALOG_STEP_CANCELED);
     errorDialog(res);
     goto EXIT;
   }

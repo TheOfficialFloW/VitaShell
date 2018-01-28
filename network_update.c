@@ -156,7 +156,7 @@ int update_extract_thread(SceSize args, void *argp) {
   res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
   if (res <= 0) {
     closeWaitDialog();
-    setDialogStep(DIALOG_STEP_CANCELLED);
+    setDialogStep(DIALOG_STEP_CANCELED);
     errorDialog(res);
     goto EXIT;
   }

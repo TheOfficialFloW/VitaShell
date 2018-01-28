@@ -140,7 +140,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
     int res = removePath(path, &param);
     if (res <= 0) {
       closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
+      setDialogStep(DIALOG_STEP_CANCELED);
       errorDialog(res);
       goto EXIT;
     }
@@ -205,7 +205,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
       if (cancelHandler()) {
         closeWaitDialog();
-        setDialogStep(DIALOG_STEP_CANCELLED);
+        setDialogStep(DIALOG_STEP_CANCELED);
         goto EXIT;
       }
 
@@ -276,7 +276,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
         int res = extractArchivePath(src_path, dst_path, &param);
         if (res <= 0) {
           closeWaitDialog();
-          setDialogStep(DIALOG_STEP_CANCELLED);
+          setDialogStep(DIALOG_STEP_CANCELED);
           errorDialog(res);
           goto EXIT;
         }
@@ -284,7 +284,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
         int res = copyPath(src_path, dst_path, &param);
         if (res <= 0) {
           closeWaitDialog();
-          setDialogStep(DIALOG_STEP_CANCELLED);
+          setDialogStep(DIALOG_STEP_CANCELED);
           errorDialog(res);
           goto EXIT;
         }
@@ -560,7 +560,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
     int res = exportPath(path, &songs, &videos, &pictures, &param);
     if (res <= 0) {
       closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
+      setDialogStep(DIALOG_STEP_CANCELED);
       errorDialog(res);
       goto EXIT;
     }
@@ -632,9 +632,9 @@ int hash_thread(SceSize args_size, HashArguments *args) {
   uint8_t sha1out[20];
   int res = getFileSha1(args->file_path, sha1out, &param);
   if (res <= 0) {
-    // SHA1 Didn't complete successfully, or was cancelled
+    // SHA1 Didn't complete successfully, or was canceled
     closeWaitDialog();
-    setDialogStep(DIALOG_STEP_CANCELLED);
+    setDialogStep(DIALOG_STEP_CANCELED);
     errorDialog(res);
     goto EXIT;
   }

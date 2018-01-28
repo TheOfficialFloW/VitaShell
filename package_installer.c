@@ -347,8 +347,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
           sceKernelDelayThread(10 * 1000);
         }
 
-        // Cancelled
-        if (getDialogStep() == DIALOG_STEP_CANCELLED) {
+        // Canceled
+        if (getDialogStep() == DIALOG_STEP_CANCELED) {
           closeWaitDialog();
           goto EXIT;
         }
@@ -362,7 +362,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
     res = sceIoRename(args->file, PACKAGE_DIR);
     if (res < 0) {
       closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
+      setDialogStep(DIALOG_STEP_CANCELED);
       errorDialog(res);
       goto EXIT;
     }
@@ -380,12 +380,12 @@ int install_thread(SceSize args_size, InstallArguments *args) {
       goto EXIT;
     }
 
-    // If you cancelled at the time archiveOpen was working,
+    // If you canceled at the time archiveOpen was working,
     // it would still open the full permission dialog instead of termiating.
     // So terminate now
     if (cancelHandler()) {
       closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
+      setDialogStep(DIALOG_STEP_CANCELED);
       goto EXIT;
     }
 
@@ -410,8 +410,8 @@ int install_thread(SceSize args_size, InstallArguments *args) {
         sceKernelDelayThread(10 * 1000);
       }
 
-      // Cancelled
-      if (getDialogStep() == DIALOG_STEP_CANCELLED) {
+      // Canceled
+      if (getDialogStep() == DIALOG_STEP_CANCELED) {
         closeWaitDialog();
         goto EXIT;
       }
@@ -450,7 +450,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
     res = extractArchivePath(src_path, PACKAGE_DIR "/", &param);
     if (res <= 0) {
       closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
+      setDialogStep(DIALOG_STEP_CANCELED);
       errorDialog(res);
       goto EXIT;
     }

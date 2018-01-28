@@ -264,10 +264,7 @@ int send_thread(SceSize args_size, SendArguments *args) {
   info.file_size = size + folders * DIRECTORY_SIZE;
   res = adhocSend(client_socket, &info, sizeof(ShareInfo));
   if (res < 0) {
-    closeWaitDialog();
-    setDialogStep(DIALOG_STEP_CANCELLED);
-    errorDialog(res);
-    goto EXIT;
+    goto CANCELED;
   }
 
   // Update thread
@@ -286,12 +283,9 @@ int send_thread(SceSize args_size, SendArguments *args) {
     param.max = folders + files;
     param.SetProgress = SetProgress;
     param.cancelHandler = cancelHandler;
-    int res = sendPath(path, &param);
+    res = sendPath(path, &param);
     if (res <= 0) {
-      closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
-      errorDialog(res);
-      goto EXIT;
+      goto CANCELED;
     }
 
     mark_entry = mark_entry->next;
@@ -301,19 +295,15 @@ int send_thread(SceSize args_size, SendArguments *args) {
   while (1) {
     // Cancel
     if (cancelHandler()) {
-      closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
-      goto EXIT;
+      res = 0;
+      goto CANCELED;
     }
     
     uint32_t sync;
     int len = sizeof(uint32_t);
-    int res = adhocRecv(client_socket, &sync, &len);
+    res = adhocRecv(client_socket, &sync, &len);
     if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
-      closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
-      errorDialog(res);
-      goto EXIT;
+      goto CANCELED;
     }
     
     if (res == 0) {
@@ -331,6 +321,12 @@ int send_thread(SceSize args_size, SendArguments *args) {
   sceMsgDialogClose();
 
   setDialogStep(DIALOG_STEP_ADHOC_SENDED);
+  goto EXIT;
+  
+CANCELED:
+  closeWaitDialog();
+  setDialogStep(DIALOG_STEP_CANCELED);
+  errorDialog(res);
 
 EXIT:
   if (mark_entry_one)
@@ -350,6 +346,7 @@ EXIT:
 }
 
 int receive_thread(SceSize args_size, ReceiveArguments *args) {
+  int res;
   SceUID thid = -1;
   uint64_t timeout;
 
@@ -366,27 +363,21 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
   while (1) {
     // Cancel
     if (cancelHandler()) {
-      closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
-      goto EXIT;
+      res = 0;
+      goto CANCELED;
     }
     
     int len = sizeof(ShareInfo);
-    int res = adhocRecv(server_socket, &server_info, &len);
+    res = adhocRecv(server_socket, &server_info, &len);
     if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
-      closeWaitDialog();
-      setDialogStep(DIALOG_STEP_CANCELLED);
-      errorDialog(res);
-      goto EXIT;
+      goto CANCELED;
     }
     
     if (res == 0) {
       // Wrong magic
       if (server_info.magic != SHARE_MAGIC || server_info.path_len >= MAX_PATH_LENGTH) {
-        closeWaitDialog();
-        setDialogStep(DIALOG_STEP_CANCELLED);
-        errorDialog(-1);
-        goto EXIT;
+        res = -1;
+        goto CANCELED;
       }
       
       break;
@@ -410,27 +401,21 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
     while (1) {
       // Cancel
       if (cancelHandler()) {
-        closeWaitDialog();
-        setDialogStep(DIALOG_STEP_CANCELLED);
-        goto EXIT;
+        res = 0;
+        goto CANCELED;
       }
       
       int len = sizeof(ShareInfo);
-      int res = adhocRecv(server_socket, &info, &len);
+      res = adhocRecv(server_socket, &info, &len);
       if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
-        closeWaitDialog();
-        setDialogStep(DIALOG_STEP_CANCELLED);
-        errorDialog(res);
-        goto EXIT;
+        goto CANCELED;
       }
       
       if (res == 0) {
         // Wrong magic
         if (info.magic != SHARE_MAGIC || info.path_len >= MAX_PATH_LENGTH) {
-          closeWaitDialog();
-          setDialogStep(DIALOG_STEP_CANCELLED);
-          errorDialog(-1);
-          goto EXIT;
+          res = -1;
+          goto CANCELED;
         }
         
         break;
@@ -443,18 +428,14 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
     while (1) {
       // Cancel
       if (cancelHandler()) {
-        closeWaitDialog();
-        setDialogStep(DIALOG_STEP_CANCELLED);
-        goto EXIT;
+        res = 0;
+        goto CANCELED;
       }
       
       int len = (int)info.path_len;
-      int res = adhocRecv(server_socket, path, &len);
+      res = adhocRecv(server_socket, path, &len);
       if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
-        closeWaitDialog();
-        setDialogStep(DIALOG_STEP_CANCELLED);
-        errorDialog(res);
-        goto EXIT;
+        goto CANCELED;
       }
       
       if (res == 0) {
@@ -470,12 +451,9 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
 
     // Folder
     if (info.type == SHARE_TYPE_FOLDER) {
-      int res = sceIoMkdir(dst_path, 0777);
+      res = sceIoMkdir(dst_path, 0777);
       if (res < 0 && res != SCE_ERROR_ERRNO_EEXIST) {
-        closeWaitDialog();
-        setDialogStep(DIALOG_STEP_CANCELLED);
-        errorDialog(res);
-        goto EXIT;
+        goto CANCELED;
       }
       
       value += DIRECTORY_SIZE;
@@ -487,10 +465,8 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
     if (info.type == SHARE_TYPE_FILE) {
       SceUID fddst = sceIoOpen(dst_path, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
       if (fddst < 0) {
-        closeWaitDialog();
-        setDialogStep(DIALOG_STEP_CANCELLED);
-        errorDialog(fddst);
-        goto EXIT;
+        res = fddst;
+        goto CANCELED;
       }
 
       void *buf = memalign(4096, SHARE_SIZE);
@@ -499,31 +475,25 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
       while (recv_offset < info.file_size) {
         // Cancel
         if (cancelHandler()) {
-          closeWaitDialog();
-          setDialogStep(DIALOG_STEP_CANCELLED);
+          res = 0;
           free(buf);
-          goto EXIT;
+          goto CANCELED;
         }
         
         uint64_t remain = info.file_size - recv_offset;
         int len = (remain < SHARE_SIZE) ? (int)remain : SHARE_SIZE;
-        int res = adhocRecv(server_socket, buf, &len);
+        res = adhocRecv(server_socket, buf, &len);
         if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
-          closeWaitDialog();
-          setDialogStep(DIALOG_STEP_CANCELLED);
-          errorDialog(res);
           free(buf);
-          goto EXIT;
+          goto CANCELED;
         }
         
         if (res == 0) {
           int written = sceIoWrite(fddst, buf, len);
           if (written < 0) {
-            closeWaitDialog();
-            setDialogStep(DIALOG_STEP_CANCELLED);
-            errorDialog(written);
+            res = written;
             free(buf);
-            goto EXIT;
+            goto CANCELED;
           }
 
           recv_offset += len;
@@ -552,6 +522,12 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
   sceMsgDialogClose();
 
   setDialogStep(DIALOG_STEP_ADHOC_RECEIVED);
+  goto EXIT;
+  
+CANCELED:
+  closeWaitDialog();
+  setDialogStep(DIALOG_STEP_CANCELED);
+  errorDialog(res);
 
 EXIT:
   if (thid >= 0)

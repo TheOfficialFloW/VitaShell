@@ -533,7 +533,7 @@ static int dialogSteps() {
       break;
     }
     
-    case DIALOG_STEP_CANCELLED:
+    case DIALOG_STEP_CANCELED:
       refresh = REFRESH_MODE_NORMAL;
       setDialogStep(DIALOG_STEP_NONE);
       break;
@@ -1070,7 +1070,7 @@ static int dialogSteps() {
       if (msg_result == MESSAGE_DIALOG_RESULT_YES) {
         setDialogStep(DIALOG_STEP_INSTALL_WARNING_AGREED);
       } else if (msg_result == MESSAGE_DIALOG_RESULT_NO) {
-        setDialogStep(DIALOG_STEP_CANCELLED);
+        setDialogStep(DIALOG_STEP_CANCELED);
       }
 
       break;

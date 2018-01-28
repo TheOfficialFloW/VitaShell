@@ -150,7 +150,7 @@ int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param) {
       if (param->SetProgress)
         param->SetProgress(param->value ? *param->value : 0, param->max);
 
-      // Check to see if param->cancelHandler exists, if so call it and free memory if cancelled
+      // Check to see if param->cancelHandler exists, if so call it and free memory if canceled
       if (param->cancelHandler && param->cancelHandler()) {
         free(buf);
         sceIoClose(fd);

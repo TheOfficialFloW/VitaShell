@@ -156,7 +156,7 @@ int parse_dir_with_callback(int target_type, const char* path, void(*callback)(v
           callback(data, path, dir.d_name);
           if (cancelHandler()) {
             closeWaitDialog();
-            setDialogStep(DIALOG_STEP_CANCELLED);
+            setDialogStep(DIALOG_STEP_CANCELED);
             return -1;
           }
         }
