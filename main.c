@@ -1411,15 +1411,21 @@ static int dialogSteps() {
     
     case DIALOG_STEP_ADHOC_SENDED:
     {
-      refresh = REFRESH_MODE_NORMAL;
-      setDialogStep(DIALOG_STEP_NONE);
+      if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+        refresh = REFRESH_MODE_NORMAL;
+        setDialogStep(DIALOG_STEP_NONE);
+      }
+      
       break;
     }
     
     case DIALOG_STEP_ADHOC_RECEIVED:
     {
-      refresh = REFRESH_MODE_NORMAL;
-      setDialogStep(DIALOG_STEP_NONE);
+      if (msg_result == MESSAGE_DIALOG_RESULT_FINISHED) {
+        refresh = REFRESH_MODE_NORMAL;
+        setDialogStep(DIALOG_STEP_NONE);
+      }
+      
       break;
     }
     
