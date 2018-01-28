@@ -42,7 +42,7 @@ EDIT_LINE                            = "Edit line"
 ENTER_SEARCH_TERM                    = "Enter search term"
 
 # Context menu strings
-REFRESH_LIVEAREA                     = "Refresh livearea"
+REFRESH_LIVEAREA                     = "Refresh LiveArea™"
 REFRESH_LICENSE_DB                   = "Refresh license database"
 MOUNT_UMA0                           = "Mount uma0:"
 MOUNT_IMC0                           = "Mount imc0:"
@@ -81,7 +81,7 @@ PROPERTY_FSELF_MODE                  = "FSELF mode"
 PROPERTY_SIZE                        = "Size"
 PROPERTY_COMPRESSED_SIZE             = "Compressed size"
 PROPERTY_CONTAINS                    = "Contains"
-PROPERTY_CONTAINS_FILES_FOLDERS      = "%d files / %d folders"
+PROPERTY_CONTAINS_FILES_FOLDERS      = "%d files, %d folders"
 PROPERTY_CREATION_DATE               = "Creation date"
 PROPERTY_MODFICATION_DATE            = "Modification date"
 PROPERTY_TYPE_ARCHIVE                = "Archive"
@@ -129,7 +129,7 @@ INSTALL_WARNING                      = "This package requests extended permissio
 INSTALL_BRICK_WARNING                = "This package uses functions that remounts\partitions and can potentially brick your device.\If you did not obtain it from a trusted source,\please proceed at your own caution.\\Would you like to continue the install?"
 HASH_FILE_QUESTION                   = "SHA1 hashing may take a long time. Continue?"
 SAVE_MODIFICATIONS                   = "Do you want to save your modifications?"
-REFRESH_LIVEAREA_QUESTION            = "Refreshing the livearea may take a long time. Continue?"
+REFRESH_LIVEAREA_QUESTION            = "Refreshing the LiveArea™ may take a long time. Continue?"
 REFRESH_LICENSE_DB_QUESTION          = "Refreshing the license database may take a long time. Continue?"
 
 # HENkaku settings strings
