@@ -105,7 +105,7 @@ REFRESHED                            = "Opdaterede %d elementer."
 COPIED_FILE                          = "Kopierede %d fil(er)."
 COPIED_FOLDER                        = "Kopierede %d folder(e)."
 COPIED_FILES_FOLDERS                 = "Kopierede %d fil(er)/folder(e)."
-IMPORTED_LICENSES                    = "Importerede %d license(r)."
+IMPORTED_LICENSES                    = "Importerede %d licens(er)."
 
 # Dialog questions
 DELETE_FILE_QUESTION                 = "Er du sikker på at du vil slette denne fil?"
