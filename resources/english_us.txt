@@ -1,7 +1,7 @@
 # VitaShell language file
 
 # General strings
-ERROR                                = "Error code: 0x%08X"
+ERROR                                = "Error 0x%08X."
 OK                                   = "OK"
 YES                                  = "Yes"
 NO                                   = "No"
