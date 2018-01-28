@@ -477,6 +477,8 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
         if (cancelHandler()) {
           res = 0;
           free(buf);
+          sceIoClose(fddst);
+          sceIoRemove(dst_path);
           goto CANCELED;
         }
         
@@ -485,6 +487,8 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
         res = adhocRecv(server_socket, buf, &len);
         if (res < 0 && res != SCE_ERROR_NET_ADHOC_WOULD_BLOCK) {
           free(buf);
+          sceIoClose(fddst);
+          sceIoRemove(dst_path);
           goto CANCELED;
         }
         
@@ -493,6 +497,8 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
           if (written < 0) {
             res = written;
             free(buf);
+            sceIoClose(fddst);
+            sceIoRemove(dst_path);
             goto CANCELED;
           }
 
