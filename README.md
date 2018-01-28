@@ -55,17 +55,15 @@ You can customize those files:
 | text_icon.png          | Text icon                   |
 | wallpaper.png          | Wallpaper                   |
 
-**Theme setting:** VitaShell will load the theme that is set in **'ux0:VitaShell/theme/theme.txt'** (THEME_NAME = "YOUR_THEME_NAME")
+**Theme setting:** VitaShell will load the theme that is set in `ux0:VitaShell/theme/theme.txt` (`THEME_NAME = "YOUR_THEME_NAME"`)
 
 **General info:** You don't need to have all these files in your custom theme, if one of them is missing, the default image file will be loaded instead.
 
-**Dialog and context image:** If these files are not available, the colors **DIALOG_BG_COLOR** and **CONTEXT_MENU_COLOR** from **'colors.txt'** will be used instead.
-
-The standard VitaShell theme is provided in **'VitaShellCustomization.rar'** and available in the **'release'** section.
+**Dialog and context image:** If these files are not available, the colors `DIALOG_BG_COLOR` and `CONTEXT_MENU_COLOR` from `colors.txt` will be used instead.
 
 Multi-language
 --------------
-Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file must be UTF-8 encoded and 'x' is one of the language listed below:**
+Put your language file at `ux0:VitaShell/language/x.txt`, where the file must be UTF-8 encoded and `x` is one of the language listed below:
 
 - japanese
 - english_us
@@ -88,14 +86,14 @@ Put your language file at **'ux0:VitaShell/language/x.txt'**, **where the file m
 - turkish
 
 VitaShell does automatically load the language that matches to the current system language.
-If your system language is for example french, it will load from 'ux0:VitaShell/language/french.txt'.
+If your system language is for example french, it will load from `ux0:VitaShell/language/french.txt`.
 
-The english language file is provided in **'VitaShellCustomization.rar'** and available in the **'release'** section. Furthermore, languages files are available in the 'l10n' folder of this repository.
+Languages files are available in the `l10n` folder of this repository.
 
 For developers
 --------------
 1. Install [vitasdk](https://github.com/vitasdk)
-2. Clone this repository and compile the kernel first at `VitaShell/modules/kernel` then the user module at `VitaShell/modules/user`. Both times compile it using `mkdir build && cd build && cmake .. && make install`
+2. Clone this repository and compile the kernel module first at `VitaShell/modules/kernel` then the user module at `VitaShell/modules/user`. Both times compile it using `mkdir build && cd build && cmake .. && make install`
 3. After these modules have been successfully compiled, return to the main directory and compile with `mkdir build && cd build && cmake .. && make`
 
 Credits
@@ -143,7 +141,7 @@ Changelog
 - Fixed C2-12828-1 error.
 
 ### Changelog 1.75
-- Fixed bug where Memory Card was umounted after closing USB (fixed 'The file is corrupt' error).
+- Fixed bug where Memory Card was umounted after closing USB (fixed `The file is corrupt` error).
 - Fixed QR download of URLs that link to files.
 
 ### Changelog 1.74
@@ -164,9 +162,9 @@ Changelog
 
 ### Changelog 1.7
 - Added QR Code scanner and file downloader by cxziaho (press L+R to open the camera).
-- Added option in 'More->' to open applications in decrypted mode (bypass PFS). Thanks to frangarcj.
+- Added option in `More->` to open applications in decrypted mode (bypass PFS). Thanks to frangarcj.
 - Added ability to mount sd2vita and psvsd as usb device.
-- Fixed bug where 'imc0:' could not be mounted if the Memory Card was not available.
+- Fixed bug where `imc0:` could not be mounted if the Memory Card was not available.
 - Fixed bug where accessing the settings menu crashed if there was no Memory Card available.
 - Fixed bug where automatic usb connection was not blocked, after leaving and resuming VitaShell.
 - PS TV will now always open FTP when pressing SELECT.
@@ -180,7 +178,7 @@ Changelog
 - Fixed bug where the cursor was moving too fast when the headphone was plugged in.
 
 ### Changelog 1.61
-- Fixed database corruption crash by inheriting 'calendar', 'mms' and 'mtp' when mounting USB ux0:.
+- Fixed database corruption crash by inheriting `calendar`, `mms` and `mtp` when mounting USB ux0:.
 - Fixed bug where insufficent memory dialog appeared on uma0:.
 - Fixed bug where pressing triangle crashed if unsafe mode was disabled.
 
@@ -189,8 +187,8 @@ Changelog
 - Added ability to mount game card as usb device.
 - Added possibility to refresh the livearea.
 - Added scrolling text for long filenames.
-- Added 'Sort by' option to context menu (R trigger combo removed).
-- Added 'Electron' theme by Acemad, the winner of the VitaShell theme contest.
+- Added `Sort by` option to context menu (R trigger combo removed).
+- Added `Electron` theme by Acemad, the winner of the VitaShell theme contest.
 - Added theme selector.
 - Improved property dialog animation.
 - Fixed text editor bugs.
@@ -202,9 +200,9 @@ Changelog
 - Made control smoother.
 
 ### Changelog 1.51
-- Fixed bug where 'Please wait...' was shown instead of a specifc USB message.
+- Fixed bug where `Please wait...` was shown instead of a specifc USB message.
 - Fixed VPK installation crash.
-- Fixed bug where 'theme.txt' was always resetted.
+- Fixed bug where `theme.txt` was always resetted.
 - Updated to newest libftpvita.
 
 ### Changelog 1.50
@@ -222,7 +220,7 @@ Changelog
   This adds the ability to disable auto-update and power options have been added where you can
   reboot, enter standby or turn off your device.
 - Fixed local date being incorrect.
-- The name 'molecularShell' will now be displayed if it's runned as molecularShell, otherwise 'VitaShell'.
+- The name `molecularShell` will now be displayed if it's runned as molecularShell, otherwise `VitaShell`.
   This will help differentiating the two applications, as molecularShell is from now on a safe homebrew
   and doesn't have the full range of features like VitaShell. Additionally in molecularShell you can see
   the HENkaku settings section which are hidden in VitaShell (note that both still share the same eboot.bin,
@@ -230,12 +228,12 @@ Changelog
 
 ### Changelog 1.41
 - Added ability to sort files and folders by size and date. Press R to switch sort method.
-- Added the long desired 'Properties' feature. You can also check whether an eboot.bin is safe or not.
+- Added the long desired `Properties` feature. You can also check whether an eboot.bin is safe or not.
 
 ### Changelog 1.4
 - Added group RW permissions on files and folders when moving.
   Safe homebrews like RetroArch will now recognize files and folders
-  that you have moved from 'ux0:video'.
+  that you have moved from `ux0:video`.
 - Added scanning for dangerous functions in packages.
 - Added possibility to choose compression level.
 - Fixed time information in zip archives.
@@ -248,10 +246,10 @@ Changelog
 - Added scanning for unsafe fself's and imports.
 - Added lrc support for audio player by Mayoshiroi.
 - Added partition used/total size information, thanks to littlebalup.
-- Added 'Install folder' by soarqin.
+- Added `Install folder` by soarqin.
 
 ### Changelog 1.2
-- Added ability to export photo and music files ('More' -> 'Export media').
+- Added ability to export photo and music files (`More` -> `Export media`).
 - Added battery percentage to system information (thanks to littlebalup).
 - Added toolbox where more features will have place, by theorywrong (press START).
 - Improved stability for file browser delete operation.
@@ -262,7 +260,7 @@ Changelog
 - Added cover.jpg and folder.jpg as alternative cover image.
 - Fixed ID3 tag parsing.
 - Play and pause icons where swapped, fixed.
-- FTP does now show 'Please wait...' until it has been connected to Wi-Fi.
+- FTP does now show `Please wait...` until it has been connected to Wi-Fi.
 
 ### Changelog 1.0
 - Added audio player with .MP3 and .OGG support (Press /\ to turn off the display while listening to music. Graphics by Valle).
@@ -271,7 +269,7 @@ Changelog
 - Added memory card free space check. A message will pop up if you don't have enough free space for copying or installing.
 - Leaving to livearea or suspending the device does no longer corrupt an IO process anymore (while copying things you can now leave VitaShell and resume).
 - Improved text editor and added search feature to context menu (press /\).
-- The temporary folder 'ptmp/pkg' is now cleared after cancelling or unsuccesful installation.
+- The temporary folder `ptmp/pkg` is now cleared after cancelling or unsuccesful installation.
 - Fixed bug where copying to different partitions didn't work.
 - Fixed network update bug.
 
@@ -279,11 +277,11 @@ Changelog
 - Added ability to install update files as .vpk (for Vitamin).
 - Added patch to make .vpk installation appearing as full version instead of test version.
 - Added text editor by BigBoot (WIP).
-- Added 'More' entry to the context menu.
-- Added 'Install all' feature to install all packages available in the folder (by ribbid987).
-- Added 'Calculate SHA1' feature by xerpia64.
+- Added `More` entry to the context menu.
+- Added `Install all` feature to install all packages available in the folder (by ribbid987).
+- Added `Calculate SHA1` feature by xerpia64.
 - Added support for ftp promoting for https://github.com/soywiz/vitaorganizer.
-- Fixed 'Move' operation. Now it does integrate into folders and replace files.
+- Fixed `Move` operation. Now it does integrate into folders and replace files.
 - Dropped GENERAL_COLOR, now all colors are adjustable.
 
 ### Changelog 0.91
@@ -299,7 +297,6 @@ Changelog
 - Added charging battery icon by ribbid987.
 - Added sfo reader by theorywrong.
 - Added translation support for turkish (english_gb uses the same id as turkish, fix it Sony!).
-- ~~Updated to latest libftpvita which fixed file size string > 2GB and added APPE command.~~
 - Fixed bug where copied files and folders of archives didn't stay on clipboard.
 - Allow auto screen-off.
 - System information trigger combo changed to START instead of L+R+START.
@@ -314,7 +311,7 @@ Changelog
 ### Changelog 0.85
 - Added customization possibility for ftp icon, battery, dialog and context menu.
 - Added random wallpaper feature.
-- Changed location of themes to 'ux0:VitaShell/theme/YOUR_THEME_NAME'.
+- Changed location of themes to `ux0:VitaShell/theme/YOUR_THEME_NAME`.
 - Fixed russian and korean language support.
 
 ### Changelog 0.8
@@ -329,7 +326,7 @@ Changelog
 - Added custom dialogs.
 - Added graphics by Freakler.
 - Added possibility to use FTP in background.
-- I/O operations can now be cancelled.
+- I/O operations can now be canceled.
 - Removed misc stuff, shader compiler, homebrew loading, PBOOT.PBP signing, network host.
 - Fixed various bugs.
 
@@ -344,7 +341,7 @@ Changelog
 - Finished photo viewer. Use the right analog stick to zoom in/out. Left analog stick to move.
   L/R to rotate and X/O to change display mode.
 - Updated to newest vita2dlib which fixed many bugs with images.
-- Improved 'New folder' by extending to 'New folder (X)', where 'X' is an increasing number.
+- Improved `New folder` by extending to `New folder (X)`, where `X` is an increasing number.
 - Improved message dialog texts.
 - Limited filenames so it doesn't overlap with the size/folder text. 
 - Fixed infinite loop when copying the src to its subfolder by an error result.
@@ -364,7 +361,7 @@ Changelog
 - Added translation support. See translation_readme.txt for more details.
 - Added move ability (only possible within same partition).
 - Added tabulator support in text viewer.
-- Removed 'Paste', 'Delete', 'Rename' and 'New folder' in read-only partitions.
+- Removed `Paste`, `Delete`, `Rename` and `New folder` in read-only partitions.
 - Fixed size string of files over 1GB.
 - Fixed alphabetical sorting.
 - Fixed battery percent bug being -1% on PSM Dev Assistant.

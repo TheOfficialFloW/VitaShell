@@ -23,7 +23,7 @@
 - Added translation support. See translation_readme.txt for more details.<br>
 - Added move ability (only possible within same partition).<br>
 - Added tabulator support in text viewer.<br>
-- Removed 'Paste', 'Delete', 'Rename' and 'New folder' in read-only partitions.<br>
+- Removed `Paste`, `Delete`, `Rename` and `New folder` in read-only partitions.<br>
 - Fixed size string of files over 1GB.<br>
 - Fixed alphabetical sorting.<br>
 - Fixed battery percent bug being -1% on PSM Dev Assistant.<br>
@@ -48,7 +48,7 @@
 - Finished photo viewer. Use the right analog stick to zoom in/out. Left analog stick to move.<br>
   L/R to rotate and X/O to change display mode.<br>
 - Updated to newest vita2dlib which fixed many bugs with images.<br>
-- Improved 'New folder' by extending to 'New folder (X)', where 'X' is an increasing number.<br>
+- Improved `New folder` by extending to `New folder (X)`, where `X` is an increasing number.<br>
 - Improved message dialog texts.<br>
 - Limited filenames so it doesn't overlap with the size/folder text. <br>
 - Fixed infinite loop when copying the src to its subfolder by an error result.<br>
@@ -68,7 +68,7 @@
 - Added custom dialogs.<br>
 - Added graphics by Freakler.<br>
 - Added possibility to use FTP in background.<br>
-- I/O operations can now be cancelled.<br>
+- I/O operations can now be canceled.<br>
 - Removed misc stuff, shader compiler, homebrew loading, PBOOT.PBP signing, network host.<br>
 - Fixed various bugs.<br>
     ]]>
@@ -86,7 +86,7 @@
     <![CDATA[
 - Added customization possibility for ftp icon, battery, dialog and context menu.<br>
 - Added random wallpaper feature.<br>
-- Changed location of themes to 'ux0:VitaShell/theme/YOUR_THEME_NAME'.<br>
+- Changed location of themes to `ux0:VitaShell/theme/YOUR_THEME_NAME`.<br>
 - Fixed russian and korean language support.<br>
     ]]>
   </changes>
@@ -124,11 +124,11 @@
 - Added ability to install update files as .vpk (for Vitamin).<br>
 - Added patch to make .vpk installation appearing as full version instead of test version.<br>
 - Added text editor by BigBoot (WIP).<br>
-- Added 'More' entry to the context menu.<br>
-- Added 'Install all' feature to install all packages available in the folder (by ribbid987).<br>
-- Added 'Calculate SHA1' feature by xerpia64.<br>
+- Added `More` entry to the context menu.<br>
+- Added `Install all` feature to install all packages available in the folder (by ribbid987).<br>
+- Added `Calculate SHA1` feature by xerpia64.<br>
 - Added support for ftp promoting for https://github.com/soywiz/vitaorganizer.<br>
-- Fixed 'Move' operation. Now it does integrate into folders and replace files.<br>
+- Fixed `Move` operation. Now it does integrate into folders and replace files.<br>
 - Dropped GENERAL_COLOR, now all colors are adjustable.<br>
     ]]>
   </changes>
@@ -140,7 +140,7 @@
 - Added memory card free space check. A message will pop up if you don't have enough free space for copying or installing.<br>
 - Leaving to livearea or suspending the device does now no longer corrupt an IO process anymore (while copying things you can leave now VitaShell and resume).<br>
 - Improved text editor and added search feature to context menu (press /\).<br>
-- The temporary folder 'ptmp/pkg' is now cleared after cancelling or unsuccesful installation.<br>
+- The temporary folder `ptmp/pkg` is now cleared after cancelling or unsuccesful installation.<br>
 - Fixed bug where copying to different partitions didn't work.<br>
 - Fixed network update bug.<br>
     ]]>
@@ -150,12 +150,12 @@
 - Added cover.jpg and folder.jpg as alternative cover image.<br>
 - Fixed ID3 tag parsing.<br>
 - Play and pause icons where swapped, fixed.<br>
-- FTP does now show 'Please wait...' until it has been connected to Wi-Fi.<br>
+- FTP does now show `Please wait...` until it has been connected to Wi-Fi.<br>
     ]]>
   </changes>
    <changes app_ver="01.20">
     <![CDATA[
-- Added ability to export photo and music files ('More' -> 'Export media').<br>
+- Added ability to export photo and music files (`More` -> `Export media`).<br>
 - Added battery percentage to system information (thanks to littlebalup).<br>
 - Added toolbox where more features will have place, by theorywrong (press START).<br>
 - Improved stability for file browser delete operation.<br>
@@ -169,7 +169,7 @@
 - Added scanning for unsafe fself's and imports.<br>
 - Added lrc support for audio player by Mayoshiroi.<br>
 - Added partition used/total size information, thanks to littlebalup.<br>
-- Added 'Install folder' by soarqin.<br>
+- Added `Install folder` by soarqin.<br>
     ]]>
   </changes>
    <changes app_ver="01.31">
@@ -181,7 +181,7 @@
     <![CDATA[
 - Added group RW permissions on files and folders when moving.<br>
   Safe homebrews like RetroArch will now recognize files and folders<br>
-  that you have moved from 'ux0:video'.<br>
+  that you have moved from `ux0:video`.<br>
 - Added scanning for dangerous functions in packages.<br>
 - Added possibility to choose compression level.<br>
 - Fixed time information in zip archives.<br>
@@ -190,7 +190,7 @@
    <changes app_ver="01.41">
     <![CDATA[
 - Added ability to sort files and folders by size and date. Press R to switch sort method.<br>
-- Added the long desired 'Properties' feature. You can also check whether an eboot.bin is safe or not.<br>
+- Added the long desired `Properties` feature. You can also check whether an eboot.bin is safe or not.<br>
     ]]>
   </changes>
    <changes app_ver="01.42">
@@ -199,7 +199,7 @@
   This adds the ability to disable auto-update and power options have been added where you can<br>
   reboot, enter standby or turn off your device.<br>
 - Fixed local date being incorrect.<br>
-- The name 'molecularShell' will now be displayed if it's runned as molecularShell, otherwise 'VitaShell'.<br>
+- The name `molecularShell` will now be displayed if it's runned as molecularShell, otherwise `VitaShell`.<br>
   This will help differentiating the two applications, as molecularShell is from now on a safe homebrew<br>
   and doesn't have the full range of features like VitaShell. Additionally in molecularShell you can see<br>
   the HENkaku settings section which are hidden in VitaShell (note that both still share the same eboot.bin,<br>
@@ -222,9 +222,9 @@
   </changes>
    <changes app_ver="01.51">
     <![CDATA[
-- Fixed bug where 'Please wait...' was shown instead of a specifc USB message.<br>
+- Fixed bug where `Please wait...` was shown instead of a specifc USB message.<br>
 - Fixed VPK installation crash.<br>
-- Fixed bug where 'theme.txt' was always resetted.<br>
+- Fixed bug where `theme.txt` was always resetted.<br>
 - Updated to newest libftpvita.<br>
     ]]>
   </changes>
@@ -234,8 +234,8 @@
 - Added ability to mount game card as usb device.<br>
 - Added possibility to refresh the livearea.<br>
 - Added scrolling text for long filenames.<br>
-- Added 'Sort by' option to context menu (R trigger combo removed).<br>
-- Added 'Electron' theme by Acemad, the winner of the VitaShell theme contest.<br>
+- Added `Sort by` option to context menu (R trigger combo removed).<br>
+- Added `Electron` theme by Acemad, the winner of the VitaShell theme contest.<br>
 - Added theme selector.<br>
 - Improved property dialog animation.<br>
 - Fixed text editor bugs.<br>
@@ -249,7 +249,7 @@
   </changes>
    <changes app_ver="01.61">
     <![CDATA[
-- Fixed database corruption crash by inheriting 'calendar', 'mms' and 'mtp' when mounting USB ux0:.<br>
+- Fixed database corruption crash by inheriting `calendar`, `mms` and `mtp` when mounting USB ux0:.<br>
 - Fixed bug where insufficent memory dialog appeared on uma0:.<br>
 - Fixed bug where pressing triangle crashed if unsafe mode was disabled.<br>
     ]]>
@@ -269,9 +269,9 @@
    <changes app_ver="01.70">
     <![CDATA[
 - Added QR Code scanner and file downloader by cxziaho (press L+R to open the camera).<br>
-- Added option in 'More->' to open applications in decrypted mode (bypass PFS). Thanks to frangarcj.<br>
+- Added option in `More->` to open applications in decrypted mode (bypass PFS). Thanks to frangarcj.<br>
 - Added ability to mount sd2vita and psvsd as usb device.<br>
-- Fixed bug where 'imc0:' could not be mounted if the Memory Card was not available.<br>
+- Fixed bug where `imc0:` could not be mounted if the Memory Card was not available.<br>
 - Fixed bug where accessing the settings menu crashed if there was no Memory Card available.<br>
 - Fixed bug where automatic usb connection was not blocked, after leaving and resuming VitaShell.<br>
 - PS TV will now always open FTP when pressing SELECT.<br>
@@ -303,7 +303,7 @@
   </changes>
    <changes app_ver="01.75">
     <![CDATA[
-- Fixed bug where Memory Card was umounted after closing USB (fixed 'The file is corrupt' error).<br>
+- Fixed bug where Memory Card was umounted after closing USB (fixed `The file is corrupt` error).<br>
 - Fixed QR download of URLs that link to files.<br>
     ]]>
   </changes>
