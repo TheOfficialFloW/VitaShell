@@ -64,7 +64,7 @@ INSTALL_FOLDER                       = "Installera mapp"
 CALCULATE_SHA1                       = "Beräkna SHA1"
 EXPORT_MEDIA                         = "Exportera media"
 CUT                                  = "Klipp ut"
-INSERT_EMPTY_LINE                    = "Infoga tom rad""
+INSERT_EMPTY_LINE                    = "Infoga tom rad"
 SEARCH                               = "Sök"
 
 # File browser properties strings
