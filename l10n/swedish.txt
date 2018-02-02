@@ -22,6 +22,8 @@ EXTRACTING                           = "Extraherar..."
 COMPRESSING                          = "Komprimerar..."
 HASHING                              = "Hashar..."
 REFRESHING                           = "Uppdaterar..."
+SENDING                              = "Skickar"
+RECEIVING                            = "Tar Emot"
 
 # Audio player strings
 TITLE                                = "Titel"
