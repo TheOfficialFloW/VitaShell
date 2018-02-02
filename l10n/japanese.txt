@@ -1,7 +1,7 @@
 # VitaShell language file
 
 # General strings
-ERROR                                = "エラー 0x%08X。"
+ERROR                                = "エラー 0x%08X"
 OK                                   = "OK"
 YES                                  = "はい"
 NO                                   = "いいえ"
@@ -125,8 +125,8 @@ EXPORT_SONGS_VIDEOS_PICTURES_INFO    = "%d曲の楽曲と%d本のビデオと%d�
 INSTALL_ALL_QUESTION                 = "このフォルダー内にある、すべてのパッケージをインストールしてもよろしいですか？"
 INSTALL_FOLDER_QUESTION              = "このフォルダーをインストールしますか？\警告: インストール後にフォルダーも削除されます！"
 INSTALL_QUESTION                     = "このパッケージをインストールしてもよろしいですか？"
-INSTALL_WARNING                      = "このパッケージは、拡張パーティションへのアクセス権や、個人情報へのアクセス権を要求します。\信頼可能なソース以外から入手した場合のインストールは、\自己判断で行ってください。\\インストールを続行しますか？"
-INSTALL_BRICK_WARNING                = "このパッケージには、システム領域等に接続する機能が使用されており、\端末を破壊する危険性が含まれている可能性があります。\信頼可能なソース以外から入手した場合のインストールは\自己判断で行ってください。\\インストールを続行しますか？"
+INSTALL_WARNING                      = "このパッケージは、\拡張パーティションへのアクセス権や、個人情報へのアクセス権限を要求します。\信頼できるソース以外から入手した場合のインストールは、自己判断で行ってください。\\インストールを続行しますか？"
+INSTALL_BRICK_WARNING                = "このパッケージには、\システム領域等に接続する機能が使用されており、端末を破壊する危険性があります。\信頼できるソース以外から入手した場合のインストールは、自己判断で行ってください。\\インストールを続行しますか？"
 HASH_FILE_QUESTION                   = "SHA1のハッシングには時間がかかる場合があります。続行しますか？"
 SAVE_MODIFICATIONS                   = "変更を保存しますか？"
 REFRESH_LIVEAREA_QUESTION            = "LiveArea™のリフレッシュには時間がかかる場合があります。続行しますか？"
@@ -142,7 +142,7 @@ HENKAKU_RESTORE_DEFAULT_SETTINGS     = "既定の設定を復元"
 HENKAKU_RELOAD_CONFIG                = "taiHENのconfig.txtの再読込み"
 HENKAKU_RESTORE_DEFAULT_MESSAGE      = "既定の設定が正常に復元されました"
 HENKAKU_RELOAD_CONFIG_MESSAGE        = "taiHENのconfig.txtが正常に再読込されました"
-HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "悪意のある改変が含まれていたり、誤って設定、使用された場合、\UNSAFEのHomebrewは端末に永久的なダメージを与える可能性があります。\\インストールの際には注意してください。"
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "悪意のある改変が含まれていたり、誤って設定・使用された場合、\UNSAFEのHomebrewは端末に永久的なダメージを与える可能性があります。\\インストールの際には注意してください。"
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "主な設定"
@@ -199,5 +199,5 @@ WIFI_ERROR                           = "Wi-Fiを有効にする必要があり�
 FTP_SERVER                           = "FTPサーバーは、現在\ftp://%s:%i\で動作しています。\\「OK」を選択するとバックグラウンドで動作します。\「キャンセル」を選択すると接続を解除します。"
 UPDATE_QUESTION                      = "VitaShell %sが利用可能です。\\VitaShellを更新しますか？"
 ARCHIVE_NAME                         = "アーカイブ名"
-COMPRESSION_LEVEL                    = "圧縮率 (0-9)"
+COMPRESSION_LEVEL                    = "圧縮率(0-9)"
 ENTER_PASSWORD                       = "パスワードを入力"
