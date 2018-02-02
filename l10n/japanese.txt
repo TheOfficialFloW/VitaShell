@@ -1,7 +1,7 @@
 # VitaShell language file
 
 # General strings
-ERROR                                = "エラー 0x%08X。"
+ERROR                                = "エラー 0x%08X"
 OK                                   = "OK"
 YES                                  = "はい"
 NO                                   = "いいえ"
@@ -199,5 +199,5 @@ WIFI_ERROR                           = "Wi-Fiを有効にする必要があり�
 FTP_SERVER                           = "FTPサーバーは、現在\ftp://%s:%i\で動作しています。\\「OK」を選択するとバックグラウンドで動作します。\「キャンセル」を選択すると接続を解除します。"
 UPDATE_QUESTION                      = "VitaShell %sが利用可能です。\\VitaShellを更新しますか？"
 ARCHIVE_NAME                         = "アーカイブ名"
-COMPRESSION_LEVEL                    = "圧縮率 (0-9)"
+COMPRESSION_LEVEL                    = "圧縮率(0-9)"
 ENTER_PASSWORD                       = "パスワードを入力"
