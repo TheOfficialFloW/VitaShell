@@ -103,6 +103,7 @@ REFRESHED                            = "Uppdaterade %d objekt."
 COPIED_FILE                          = "Kopierade %d fil."
 COPIED_FOLDER                        = "Kopierade %d mapp."
 COPIED_FILES_FOLDERS                 = "Kopierade %d filer/mappar."
+IMPORTED_LICENSES                    = "%d Importerade Licenser"
 
 # Dialog questions
 DELETE_FILE_QUESTION                 = "Är du säker på att du vill Radera den här filen?"
