@@ -1,4 +1,4 @@
-# VitaShell language file
+# VitaShell norwegian translation by habibi
 
 # General strings
 ERROR                                = "Feilmelding 0x%08X."
