@@ -126,8 +126,8 @@ INSTALL_ALL_QUESTION                 = "Vil du installere alle pakkene i denne m
 INSTALL_FOLDER_QUESTION              = "Vil du installere denne mappen?\Varsel: denne handling vil også slette\mappen etter installasjon!"
 INSTALL_QUESTION                     = "Vil du installere denne pakken?"
 INSTALL_WARNING                      = "Denne pakken krever utvidede tillatelser.\Den vil ha tilgang til dine personlige opplysninger.\Hvis du ikke fikk den av en trygg kilde,\fortsett på egen risiko.\\Vil du fortsette installasjonen?"
-INSTALL_BRICK_WARNING                = "Denne pakken bruker funksjoner som remonterer\partisjoner og kan potensielt ødellege din maskin.\Hvis du ikke fikk den av en trygg kilde,\fortsett på egen risiko.\\Vil du fortsette installasjonen?"
-HASH_FILE_QUESTION                   = "SHA1-hashing kan ta lang tid. Fortsette?"
+INSTALL_BRICK_WARNING                = "Denne pakken bruker funksjoner som remonterer\partisjoner og kan potensielt ødellege din enhet.\Hvis du ikke fikk den av en trygg kilde,\fortsett på egen risiko.\\Vil du fortsette installasjonen?"
+HASH_FILE_QUESTION                   = "SHA1-hashing vil ta lang tid. Fortsette?"
 SAVE_MODIFICATIONS                   = "Lagre endringer?"
 REFRESH_LIVEAREA_QUESTION            = "Oppdatering av LiveArea™ kan ta lang tid. Fortsette?"
 REFRESH_LICENSE_DB_QUESTION          = "Oppdatering av lisensdatabase kan ta lang tid. Fortsette?"
@@ -174,13 +174,13 @@ USB_WAIT_ATTACH                      = "Koble til USB-enhet for å fortsette.\Hv
 
 # QR strings
 QR_SCANNING                          = "Leter etter QR koder..."
-QR_OPEN_WEBSITE                      = "Vil du åpne denne lenken:\%s"
+QR_OPEN_WEBSITE                      = "Vil du åpne denne lenken?\%s"
 QR_SHOW_CONTENTS                     = "QR Code sier:\%s"
-QR_CONFIRM_INSTALL                   = "Vil du installere denne pakken:\%s\Fil: %s\Størrelse: %s"
-QR_CONFIRM_DOWNLOAD                  = "Vil du laste ned denne filen:\%s\Fil: %s\Størrelse: %s"
+QR_CONFIRM_INSTALL                   = "Vil du installere denne pakken?\%s\Fil: %s\Størrelse: %s"
+QR_CONFIRM_DOWNLOAD                  = "Vil du laste ned denne filen?\%s\Fil: %s\Størrelse: %s"  
 
 # Adhoc strings
-ADHOC_RECEIVE_SEARCHING_PSVITA       = "Leter etter PS Vita\Vennligst vent."
+ADHOC_RECEIVE_SEARCHING_PSVITA       = "Leter etter PS Vita.\Vennligst vent..."
 ADHOC_SELECT_PSVITA                  = "Velg PS Vita:"
 ADHOC_RECEIVE_QUESTION               = "Vil du motta fra %s?"
 ADHOC_CLIENT_DECLINED                = "Klienten har nektet forespørselen."
