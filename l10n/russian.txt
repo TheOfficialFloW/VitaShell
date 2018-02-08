@@ -1,4 +1,4 @@
-# VitaShell language file 1.76 ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus
+# VitaShell language file ■ класть в "ux0:VitaShell/language/" ■ перевод by lupus (1.76) и Yaroslav Chvanov (1.81)
 
 # General strings
 ERROR                                         = "Ошибка 0x%08X."
@@ -23,6 +23,8 @@ EXTRACTING                                    = "Извлечение..."
 COMPRESSING                                   = "Упаковка..."
 HASHING                                       = "Вычисление хеша..."
 REFRESHING                                    = "Обновление данных..."
+SENDING                                       = "Отправление..."
+RECEIVING                                     = "Приём..."
 
 # Audio player strings
 TITLE                                         = "Название"
@@ -59,6 +61,8 @@ DELETE                                        = "Удалить"
 RENAME                                        = "Переименовать"
 NEW_FOLDER                                    = "Создать папку"
 PROPERTIES                                    = "Свойства"
+SEND                                          = "Отправить"
+RECEIVE                                       = "Принять"
 MORE                                          = "Дополнительно"
 COMPRESS                                      = "Архивировать"
 INSTALL_ALL                                   = "Установить все .vpk"
@@ -80,18 +84,17 @@ PROPERTY_CONTAINS                             = "Содержимое"
 PROPERTY_CONTAINS_FILES_FOLDERS               = "Файлов: %d, папок: %d"
 PROPERTY_CREATION_DATE                        = "Дата создания"
 PROPERTY_MODFICATION_DATE                     = "Дата изменения"
+PROPERTY_TYPE_ARCHIVE                         = "Архив"
 PROPERTY_TYPE_BMP                             = "Точечный рисунок"
 PROPERTY_TYPE_INI                             = "Файл настроек"
 PROPERTY_TYPE_JPEG                            = "Изображение JPEG"
 PROPERTY_TYPE_MP3                             = "Аудиофайл MP3"
 PROPERTY_TYPE_OGG                             = "Аудиофайл OGG"
 PROPERTY_TYPE_PNG                             = "Изображение PNG"
-PROPERTY_TYPE_RAR                             = "Архив RAR"
 PROPERTY_TYPE_SFO                             = "Файл SFO"
 PROPERTY_TYPE_TXT                             = "Документ TXT"
 PROPERTY_TYPE_VPK                             = "Пакет VPK"
 PROPERTY_TYPE_XML                             = "Документ XML"
-PROPERTY_TYPE_ZIP                             = "Архив ZIP"
 PROPERTY_TYPE_FSELF                           = "Файл FSELF"
 PROPERTY_FSELF_MODE_SAFE                      = "Безопасный"
 PROPERTY_FSELF_MODE_UNSAFE                    = "Небезопасный"
@@ -122,14 +125,14 @@ EXPORT_SONGS_VIDEOS_PICTURES_INFO             = "Отчёт:\\Экспортир
 INSTALL_ALL_QUESTION                          = "Установка vpk\\Установить все .vpk из этой папки?"
 INSTALL_FOLDER_QUESTION                       = "Установка из папки\\Использовать данную папку в качестве источника\для установки пакета?\Внимание:\По окончанию процесса установки папка и её\содержимое будут удалены!"
 INSTALL_QUESTION                              = "Установка vpk\\Установить данный пакет?"
-INSTALL_WARNING                               = "Внимание!\\Установка пакета требует доступа к системным разделам.\Это позволяет получить доступ к вашим личным данным.\Пакеты, скачанные из непроверенных источников, могут\содержать вредоносный код.\\Продолжить установку?"
-INSTALL_BRICK_WARNING                         = "Внимание!\\Установка пакета требует доступа к системным разделам.\При наличии вредоносного кода, ваше устройство может\быть безвозвратно выведено из строя.\Установка пакетов, скачанных из непроверенных источников,\производится на ваш страх и риск.\\Продолжить установку?"
+INSTALL_WARNING                               = "Внимание!\\Установка пакета требует доступа к системным разделам.\Это позволяет получить доступ к Вашим личным данным.\Пакеты, скачанные из непроверенных источников, могут\содержать вредоносный код.\\Продолжить установку?"
+INSTALL_BRICK_WARNING                         = "Внимание!\\Установка пакета требует доступа к системным разделам.\При наличии вредоносного кода, Ваше устройство может\быть безвозвратно выведено из строя.\Установка пакетов, скачанных из непроверенных источников,\производится на Ваш страх и риск.\\Продолжить установку?"
 HASH_FILE_QUESTION                            = "Внимание!\\Рассчёт хеша SHA1 может занять длительное время.\Продолжить?"
 SAVE_MODIFICATIONS                            = "Запрос:\\Сохранить внесённые изменения?"
 REFRESH_LIVEAREA_QUESTION                     = "Запрос:\\Обновления данных LiveArea может занять длительное время.\Продолжить?"
 REFRESH_LICENSE_DB_QUESTION                   = "Запрос:\\Обновления базы данных лицензий может занять длительное время.\Продолжить??"
 
-# HENkaku configuration strings
+# HENkaku settings strings
 HENKAKU_SETTINGS                              = "Настройки HENkaku"
 HENKAKU_ENABLE_PSN_SPOOFING                   = "Включить PSN спуффинг"
 HENKAKU_ENABLE_UNSAFE_HOMEBREW                = "Разрешить небезопасные homebrew"
@@ -139,7 +142,7 @@ HENKAKU_RESTORE_DEFAULT_SETTINGS              = "Восстановить ста
 HENKAKU_RELOAD_CONFIG                         = "Перезагрузить taiHEN config.txt"
 HENKAKU_RESTORE_DEFAULT_MESSAGE               = "Стандартные настройки восстановлены."
 HENKAKU_RELOAD_CONFIG_MESSAGE                 = "Данные taiHEN config.txt обновлены."
-HENKAKU_UNSAFE_HOMEBREW_MESSAGE               = "Небезопасные homebrew могут нанести вред вашему устройству\или привести к его поломке.\Внимательно отнеситесь к данному предупреждению."
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE               = "Небезопасные homebrew могут нанести вред Вашему устройству\или привести к его поломке.\Внимательно отнеситесь к данному предупреждению."
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN                       = "Основные настройки"
@@ -176,6 +179,12 @@ QR_SHOW_CONTENTS                              = "Отчёт:\\Содержимо
 QR_CONFIRM_INSTALL                            = "Запрос:\\Выполнить установку пакета?\%s"
 QR_CONFIRM_DOWNLOAD                           = "Запрос:\\Выполнить загрузку данных?\%s\Файл: %s\Размер: %s"
 
+# Adhoc strings
+ADHOC_RECEIVE_SEARCHING_PSVITA                = "Поиск PS Vita от которой будем получать...\Пожалуйста, подождите."
+ADHOC_SELECT_PSVITA                           = "Выберите PS Vita:"
+ADHOC_RECEIVE_QUESTION                        = "Вы ходите получить что-то от %s?"
+ADHOC_CLIENT_DECLINED                         = "Клиент отклонил Ваш запрос."
+
 # Others
 IMC0_MOUNTED                                  = "Отчёт:\\Раздел imc0: смонтирован."
 SAFE_MODE                                     = "БЕЗОПАСНЫЙ РЕЖИМ"
@@ -191,3 +200,4 @@ FTP_SERVER                                    = "Передача данных:\
 UPDATE_QUESTION                               = "Сетевое обновление:\\Для установки доступна VitaShell версии %s.\\Выполнить обновление?"
 ARCHIVE_NAME                                  = "Имя архива"
 COMPRESSION_LEVEL                             = "Уровень сжатия (0-9)"
+ENTER_PASSWORD                                = "Введите пароль"
