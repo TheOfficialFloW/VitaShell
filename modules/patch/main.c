@@ -31,8 +31,17 @@ int module_start(SceSize args, void *argp) {
 
   // Patch to allow Memory Card remount
   uint32_t nop_nop_opcode = 0xBF00BF00;
-  hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB338, &nop_nop_opcode, 4);
-  hooks[1] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB368, &nop_nop_opcode, 2);
+  switch (info.module_nid) {
+    case 0xDBB29DB7: // 3.60 retail
+      hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB338, &nop_nop_opcode, 4);
+      hooks[1] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB368, &nop_nop_opcode, 2);
+      break;
+      
+    case 0x54E2E984: // 3.67 retail
+      hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB344, &nop_nop_opcode, 4);
+      hooks[1] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB374, &nop_nop_opcode, 2);
+      break;
+  }
 
   return SCE_KERNEL_START_SUCCESS;
 }

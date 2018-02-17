@@ -148,7 +148,18 @@ int module_start(SceSize args, void *argp) {
     return SCE_KERNEL_START_SUCCESS;
 
   // Get important function
-  module_get_offset(KERNEL_PID, info.modid, 0, 0x138C1, (uintptr_t *)&sceIoFindMountPoint);
+  switch (info.module_nid) {
+    case 0x9642948C: // 3.60 retail
+      module_get_offset(KERNEL_PID, info.modid, 0, 0x138C1, (uintptr_t *)&sceIoFindMountPoint);
+      break;
+      
+    case 0x3347A95F: // 3.67 retail
+      module_get_offset(KERNEL_PID, info.modid, 0, 0x182F5, (uintptr_t *)&sceIoFindMountPoint);
+      break;
+      
+    default:
+      return SCE_KERNEL_START_SUCCESS;
+  }
 
   // Fake safe mode so that SceUsbMass can be loaded
   tmp1 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSysrootIsSafeModeRef, "SceSysmem", 0x2ED7F97A, 0x834439A7, ksceSysrootIsSafeModePatched);
