@@ -180,9 +180,9 @@ QR_CONFIRM_INSTALL                            = "Запрос:\\Выполнит
 QR_CONFIRM_DOWNLOAD                           = "Запрос:\\Выполнить загрузку данных?\%s\Файл: %s\Размер: %s"
 
 # Adhoc strings
-ADHOC_RECEIVE_SEARCHING_PSVITA                = "Поиск PS Vita от которой будем получать...\Пожалуйста, подождите."
+ADHOC_RECEIVE_SEARCHING_PSVITA                = "Поиск PS Vita, от которой будем получать...\Пожалуйста, подождите."
 ADHOC_SELECT_PSVITA                           = "Выберите PS Vita:"
-ADHOC_RECEIVE_QUESTION                        = "Вы ходите получить что-то от %s?"
+ADHOC_RECEIVE_QUESTION                        = "Вы хотите получить что-то от %s?"
 ADHOC_CLIENT_DECLINED                         = "Клиент отклонил Ваш запрос."
 
 # Others
