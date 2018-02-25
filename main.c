@@ -1514,7 +1514,7 @@ static int fileBrowserMenuCtrl() {
   } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
     int old_pos = base_pos + rel_pos;
 
-    if ((rel_pos + 1) < file_list.length) {
+    if ((old_pos + 1) < file_list.length) {
       if ((rel_pos + 1) < MAX_POSITION) {
         rel_pos++;
       } else if ((base_pos + rel_pos + 1) < file_list.length) {
