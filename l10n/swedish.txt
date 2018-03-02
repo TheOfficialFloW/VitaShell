@@ -179,3 +179,4 @@ FTP_SERVER                           = "FTP-server körs nu på\ftp://%s:%i\\Try
 UPDATE_QUESTION                      = "VitaShell %s är nu tillgänglig.\\Vill du uppdatera applikationen?"
 ARCHIVE_NAME                         = "Arkivnamn"
 COMPRESSION_LEVEL                    = "Komprimeringsgrad (0–9)"
+ENTER_PASSWORD                       = "Ange Lösernord"
