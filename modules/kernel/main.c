@@ -153,6 +153,7 @@ int module_start(SceSize args, void *argp) {
       module_get_offset(KERNEL_PID, info.modid, 0, 0x138C1, (uintptr_t *)&sceIoFindMountPoint);
       break;
       
+    case 0xA96ACE9D: // 3.65 retail
     case 0x3347A95F: // 3.67 retail
       module_get_offset(KERNEL_PID, info.modid, 0, 0x182F5, (uintptr_t *)&sceIoFindMountPoint);
       break;
