@@ -352,4 +352,9 @@
 - Improved controls code.<br>
     ]]>
   </changes>
+   <changes app_ver="01.82">
+    <![CDATA[
+- Added support for firmware 3.65/3.67.<br>
+    ]]>
+  </changes>
 </changeinfo>

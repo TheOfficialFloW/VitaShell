@@ -107,6 +107,9 @@ Credits
 Changelog
 ---------
 
+### Changelog 1.82
+- Added support for firmware 3.65/3.67.
+
 ### Changelog 1.81
 - Added adhoc file transfer feature.
 - Fixed bug where it didn't count files and folders in archives correctly.
