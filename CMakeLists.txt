@@ -189,11 +189,6 @@ vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} eboot.bin
      pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
 )
 
-add_custom_target(release
-  COMMAND cp VitaShell.vpk ../release/VitaShell.vpk
-  DEPENDS VitaShell.vpk
-)
-
 add_custom_target(send
   COMMAND curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/${VITA_TITLEID}/
   DEPENDS eboot.bin
