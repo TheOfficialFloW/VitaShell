@@ -160,7 +160,9 @@ ContextMenu context_menu_more = {
 };
 
 int gameDataMount(const char *path) {
-  return sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+  int res = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+	debugPrintf("res: 0x%08X, %s\n", res, pfs_mount_point);
+	return res;
 }
 
 int gameDataUmount() {

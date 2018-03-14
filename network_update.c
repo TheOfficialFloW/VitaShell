@@ -27,8 +27,8 @@
 #include "language.h"
 #include "utils.h"
 
-#define BASE_ADDRESS "https://github.com/TheOfficialFloW/VitaShell/releases/download"
-#define VERSION_URL "/0.2/version.bin"
+#define BASE_ADDRESS "https://cdn.rawgit.com/TheOfficialFloW/VitaShell/release"
+#define VERSION_URL "/version.bin"
 #define VITASHELL_UPDATE_FILE "ux0:VitaShell/internal/VitaShell.vpk"
 #define VITASHELL_VERSION_FILE "ux0:VitaShell/internal/version.bin"
 
@@ -75,11 +75,8 @@ int network_update_thread(SceSize args, void *argp) {
           goto EXIT;
         }
 
-        char url[128];
-        snprintf(url, sizeof(url), BASE_ADDRESS "/%s/VitaShell.vpk", version_string);
-
         // Yes
-        return downloadFileProcess(url, VITASHELL_UPDATE_FILE, DIALOG_STEP_DOWNLOADED);
+        return downloadFileProcess(BASE_ADDRESS "/VitaShell.vpk", VITASHELL_UPDATE_FILE, DIALOG_STEP_DOWNLOADED);
       }
     }
   }
