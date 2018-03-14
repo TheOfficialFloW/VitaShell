@@ -83,8 +83,6 @@ INCLUDE_EXTERN_RESOURCE(kernel_skprx);
 INCLUDE_EXTERN_RESOURCE(umass_skprx);
 INCLUDE_EXTERN_RESOURCE(patch_skprx);
 
-INCLUDE_EXTERN_RESOURCE(changeinfo_txt);
-
 #define DEFAULT_FILE(path, name, replace) { path, (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size, replace }
 
 static DefaultFile default_files[] = {
@@ -144,8 +142,6 @@ static DefaultFile default_files[] = {
   DEFAULT_FILE("ux0:VitaShell/module/kernel.skprx", kernel_skprx, 1),
   DEFAULT_FILE("ux0:VitaShell/module/umass.skprx", umass_skprx, 1),
   DEFAULT_FILE("ux0:VitaShell/module/patch.skprx", patch_skprx, 1),
-
-  DEFAULT_FILE("ux0:patch/VITASHELL/sce_sys/changeinfo/changeinfo.xml", changeinfo_txt, 1),
 };
 
 char vitashell_titleid[12];
@@ -306,11 +302,6 @@ void installDefaultFiles() {
   sceIoMkdir("ux0:VitaShell/theme", 0777);
   sceIoMkdir("ux0:VitaShell/theme/Default", 0777);
   sceIoMkdir("ux0:VitaShell/theme/Electron", 0777);
-
-  sceIoMkdir("ux0:patch", 0006);
-  sceIoMkdir("ux0:patch/VITASHELL", 0006);
-  sceIoMkdir("ux0:patch/VITASHELL/sce_sys", 0006);
-  sceIoMkdir("ux0:patch/VITASHELL/sce_sys/changeinfo", 0006);
 
   // Write default files if they don't exist
   int i;

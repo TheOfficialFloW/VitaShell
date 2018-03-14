@@ -276,6 +276,9 @@ static void refreshCopyList() {
 static int handleFile(const char *file, FileListEntry *entry) {
   int res = 0;
 
+	// try to fix GPU freeze
+	vita2d_wait_rendering_done();
+
   int type = getFileType(file);
 
   switch (type) {
@@ -1152,6 +1155,7 @@ static int dialogSteps() {
     
     case DIALOG_STEP_EXTRACTED:
     {
+			removePath("ux0:patch/VITASHELL", NULL);
       launchAppByUriExit("VSUPDATER");
       setDialogStep(DIALOG_STEP_NONE);
       break;

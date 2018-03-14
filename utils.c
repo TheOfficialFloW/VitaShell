@@ -400,11 +400,7 @@ int launchAppByUriExit(const char *titleid) {
   char uri[32];
   snprintf(uri, sizeof(uri), "psgm:play?titleid=%s", titleid);
 
-  sceKernelDelayThread(10000);
   sceAppMgrLaunchAppByUri(0xFFFFF, uri);
-  sceKernelDelayThread(10000);
-  sceAppMgrLaunchAppByUri(0xFFFFF, uri);
-
   sceKernelExitProcess(0);
 
   return 0;

@@ -107,6 +107,10 @@ Credits
 Changelog
 ---------
 
+### Changelog 1.83
+- Fixed automatic network update by using rawgit. This was needed because github removed support for TLS 1.0/1.1.
+- Removed changelog support, because the files at ux0:patch must now be pfs encrypted.
+
 ### Changelog 1.82
 - Added support for firmware 3.65/3.67.
 
