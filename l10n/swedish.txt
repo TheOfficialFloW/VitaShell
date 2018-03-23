@@ -165,6 +165,12 @@ USB_NOT_CONNECTED                    = "Anslut det här systemet till en PC med 
 USB_CONNECTION_NOT_AVAILABLE         = "USB-anslutning är inte tillgänglig på den här enheten."
 USB_WAIT_ATTACH                      = "Sätt in ett USB-minne för att fortsätta.\Om ett redan satts in, ta ut\och sätt in det igen."
 
+# Adhoc strings
+ADHOC_RECEIVE_SEARCHING_PSVITA       = "Söker Efter PS Vita."
+ADHOC_SELECT_PSVITA                  = "Välj PS Vita:"
+ADHOC_RECEIVE_QUESTION               = "Ta Emot %s?"
+ADHOC_CLIENT_DECLINED                = "Klienten Nekade."
+
 # Others
 IMC0_MOUNTED                         = "imc0: monterad."
 SAFE_MODE                            = "SÄKERT LÄGE"
