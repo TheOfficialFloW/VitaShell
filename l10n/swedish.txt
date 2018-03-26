@@ -165,6 +165,13 @@ USB_NOT_CONNECTED                    = "Anslut det här systemet till en PC med 
 USB_CONNECTION_NOT_AVAILABLE         = "USB-anslutning är inte tillgänglig på den här enheten."
 USB_WAIT_ATTACH                      = "Sätt in ett USB-minne för att fortsätta.\Om ett redan satts in, ta ut\och sätt in det igen."
 
+# QR strings
+QR_SCANNING                         = "Skanna En QR kod?"
+QR_OPEN_WEBSITE                     = "Vill Du Öpnna Denna Websida:\%s"
+QR_SHOW_CONTENTS                    = "QR Koden Innehåller Dem Här Filerna:\%s"
+QR_CONFIRM_INSTALL                  = "Vill Du Installera Detta/Dessa Program:\%s\Fil: %s\Storlek: %s"
+QR_CONFIRM_DOWNLOAD                 = "Vill Du Ladda ner Denna/Dessa Filer:\%s\Fil: %s\Storlek: %s"
+
 # Adhoc strings
 ADHOC_RECEIVE_SEARCHING_PSVITA       = "Söker Efter PS Vita."
 ADHOC_SELECT_PSVITA                  = "Välj PS Vita:"
