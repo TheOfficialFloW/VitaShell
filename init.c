@@ -329,6 +329,7 @@ void initVitaShell() {
 
   // Allow writing to ux0:app/VITASHELL
   sceAppMgrUmount("app0:");
+  sceAppMgrUmount("savedata0:");
 
   // Is safe mode
   if (sceIoDevctl("ux0:", 0x3001, NULL, 0, NULL, 0) == 0x80010030)

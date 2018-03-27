@@ -13,3 +13,5 @@ VitaShellUser:
         - shellUserIsUx0Redirected
         - shellUserRedirectUx0
         - shellUserUnredirectUx0
+        - shellUserMountById
+        - shellUserGetRifVitaKey

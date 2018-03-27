@@ -31,6 +31,7 @@
 
 char pfs_mounted_path[MAX_PATH_LENGTH];
 char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
+int read_only = 0;
 
 enum MenuHomeEntrys {
   MENU_HOME_ENTRY_REFRESH_LIVEAREA,
@@ -53,6 +54,7 @@ MenuEntry menu_home_entries[] = {
 #define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
 
 enum MenuMainEntrys {
+  MENU_MAIN_ENTRY_OPEN_DECRYPTED,
   MENU_MAIN_ENTRY_MARK_UNMARK_ALL,
   MENU_MAIN_ENTRY_MOVE,
   MENU_MAIN_ENTRY_COPY,
@@ -68,18 +70,19 @@ enum MenuMainEntrys {
 };
 
 MenuEntry menu_main_entries[] = {
-  { MARK_ALL,   0, 0, CTX_INVISIBLE },
-  { MOVE,       2, 0, CTX_INVISIBLE },
-  { COPY,       3, 0, CTX_INVISIBLE },
-  { PASTE,      4, 0, CTX_INVISIBLE },
-  { DELETE,     6, 0, CTX_INVISIBLE },
-  { RENAME,     7, 0, CTX_INVISIBLE },
-  { NEW_FOLDER, 9, 0, CTX_INVISIBLE },
-  { PROPERTIES, 10, 0, CTX_INVISIBLE },
-  { SORT_BY,    12, CTX_FLAG_MORE, CTX_VISIBLE },
-  { MORE,       13, CTX_FLAG_MORE, CTX_INVISIBLE },
-  { SEND,       17, 0, CTX_INVISIBLE }, // CTX_FLAG_BARRIER
-  { RECEIVE,    18, 0, CTX_INVISIBLE },
+  { OPEN_DECRYPTED, 0, 0, CTX_INVISIBLE },
+  { MARK_ALL,       1, 0, CTX_INVISIBLE },
+  { MOVE,           3, 0, CTX_INVISIBLE },
+  { COPY,           4, 0, CTX_INVISIBLE },
+  { PASTE,          5, 0, CTX_INVISIBLE },
+  { DELETE,         7, 0, CTX_INVISIBLE },
+  { RENAME,         8, 0, CTX_INVISIBLE },
+  { NEW_FOLDER,     10, 0, CTX_INVISIBLE },
+  { PROPERTIES,     11, 0, CTX_INVISIBLE },
+  { SORT_BY,        13, CTX_FLAG_MORE, CTX_VISIBLE },
+  { MORE,           14, CTX_FLAG_MORE, CTX_INVISIBLE },
+  { SEND,           17, 0, CTX_INVISIBLE }, // CTX_FLAG_BARRIER
+  { RECEIVE,        18, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries) / sizeof(MenuEntry))
@@ -104,7 +107,6 @@ enum MenuMoreEntrys {
   MENU_MORE_ENTRY_INSTALL_FOLDER,
   MENU_MORE_ENTRY_EXPORT_MEDIA,
   MENU_MORE_ENTRY_CALCULATE_SHA1,
-  MENU_MORE_ENTRY_OPEN_DECRYPTED,
 };
 
 MenuEntry menu_more_entries[] = {
@@ -113,7 +115,6 @@ MenuEntry menu_more_entries[] = {
   { INSTALL_FOLDER, 14, 0, CTX_INVISIBLE },
   { EXPORT_MEDIA,   15, 0, CTX_INVISIBLE },
   { CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
-  { OPEN_DECRYPTED, 17, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
@@ -159,13 +160,73 @@ ContextMenu context_menu_more = {
   .sel = -1,
 };
 
-int gameDataMount(const char *path) {
-  int res = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
-	debugPrintf("res: 0x%08X, %s\n", res, pfs_mount_point);
-	return res;
+/*
+  SceAppMgr mount IDs:
+  0x64: ux0:picture
+  0x65: ur0:user/00/psnfriend
+  0x66: ur0:user/00/psnmsg
+  0x69: ux0:music
+  0x6E: ux0:appmeta
+  0xC8: ur0:temp/sqlite
+  0xCD: ux0:cache
+  0x12E: ur0:user/00/trophy/data/sce_trop
+  0x12F: ur0:user/00/trophy/data
+  0x3E8: ux0:app, vs0:app, gro0:app
+  0x3E9: ux0:patch
+  0x3EB: ?
+  0x3EA: ux0:addcont
+  0x3EC: ux0:theme
+  0x3ED: ux0:user/00/savedata
+  0x3EE: ur0:user/00/savedata
+  0x3EF: vs0:sys/external
+  0x3F0: vs0:data/external
+*/
+
+int known_pfs_ids[] = {
+  0x6E,
+  0x12E,
+  0x12F,
+  0x3ED,
+};
+
+int pfsMount(const char *path) {
+  int res;
+  char work_path[MAX_PATH_LENGTH];
+  char klicensee[0x10];
+  char license_buf[0x200];
+  ShellMountIdArgs args;
+ 
+  memset(klicensee, 0, sizeof(klicensee));
+  
+/*
+  snprintf(work_path, MAX_PATH_LENGTH - 1, "%ssce_sys/package/work.bin", path);
+  if (ReadFile(work_path, license_buf, sizeof(license_buf)) == sizeof(license_buf)) {
+    int res = shellUserGetRifVitaKey(license_buf, klicensee);
+    debugPrintf("read license: 0x%08X\n", res);
+  }
+*/
+  args.process_titleid = VITASHELL_TITLEID;
+  args.path = path;
+  args.desired_mount_point = NULL;
+  args.klicensee = klicensee;
+  args.mount_point = pfs_mount_point;
+
+  read_only = 0;
+  
+  int i;
+  for (i = 0; i < sizeof(known_pfs_ids) / sizeof(int); i++) {
+    args.id = known_pfs_ids[i];
+
+    res = shellUserMountById(&args);
+    if (res >= 0)
+      return res;
+  }
+
+  read_only = 1;
+  return sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
 }
 
-int gameDataUmount() {
+int pfsUmount() {
   if (pfs_mount_point[0] == 0)
     return -1;
 
@@ -275,6 +336,7 @@ void setContextMenuMainVisibilities() {
   
   // Invisble entries when on '..'
   if (strcmp(file_entry->name, DIR_UP) == 0) {
+    menu_main_entries[MENU_MAIN_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_MARK_UNMARK_ALL].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_MOVE].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_COPY].visibility = CTX_INVISIBLE;
@@ -309,9 +371,10 @@ void setContextMenuMainVisibilities() {
     }
   }
 
-  // Invisible write operations in archives or pfs mounted paths
+  // Invisible write operations in archives
   // TODO: read-only mount points
-  if (isInArchive() || (pfs_mounted_path[0] && strstr(file_list.path, pfs_mounted_path))) {
+  if (isInArchive() || (pfs_mounted_path[0] && strstr(file_list.path, pfs_mounted_path) && read_only)) {
+    menu_main_entries[MENU_MAIN_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_MOVE].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_DELETE].visibility = CTX_INVISIBLE;
@@ -331,6 +394,17 @@ void setContextMenuMainVisibilities() {
     } else {
       menu_main_entries[MENU_MAIN_ENTRY_MARK_UNMARK_ALL].name = MARK_ALL;
     }
+  }
+
+  // Invisible if it's not folder or sce_pfs does not exist
+  if (!file_entry->is_folder) {
+    menu_main_entries[MENU_MAIN_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
+  } else {
+    char path[MAX_PATH_LENGTH];
+    snprintf(path, MAX_PATH_LENGTH - 1, "%s%ssce_pfs", file_list.path, file_entry->name);
+    
+    if (!checkFolderExist(path))
+      menu_main_entries[MENU_MAIN_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
   }
 
   // Go to first entry
@@ -394,17 +468,15 @@ void setContextMenuMoreVisibilities() {
     menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
     menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_INVISIBLE;
     menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_INVISIBLE;
-    menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
   }
 
   // Invisble operations in archives
-  if (isInArchive()) {
+  if (isInArchive() || (pfs_mounted_path[0] && strstr(file_list.path, pfs_mounted_path) && read_only)) {
     menu_more_entries[MENU_MORE_ENTRY_COMPRESS].visibility = CTX_INVISIBLE;
     menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_INVISIBLE;
     menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
     menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_INVISIBLE;
     menu_more_entries[MENU_MORE_ENTRY_CALCULATE_SHA1].visibility = CTX_INVISIBLE;
-    menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
   }
 
   if (file_entry->is_folder) {
@@ -445,17 +517,6 @@ void setContextMenuMoreVisibilities() {
     file_entry->type != FILE_TYPE_PNG && file_entry->type != FILE_TYPE_MP3 &&
     file_entry->type != FILE_TYPE_MP4) {
     menu_more_entries[MENU_MORE_ENTRY_EXPORT_MEDIA].visibility = CTX_INVISIBLE;
-  }
-
-  // Invisible if it's not folder or sce_pfs does not exist
-  if (!file_entry->is_folder) {
-    menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
-  } else {
-    char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%ssce_pfs", file_list.path, file_entry->name);
-    
-    if (!checkFolderExist(path))
-      menu_more_entries[MENU_MORE_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
   }
 
   // Go to first entry
@@ -557,6 +618,57 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 
 static int contextMenuMainEnterCallback(int sel, void *context) {
   switch (sel) {
+
+    case MENU_MAIN_ENTRY_OPEN_DECRYPTED:
+    {
+      FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+      if (file_entry) {
+        char path[MAX_PATH_LENGTH];
+        int res;
+
+        pfsUmount();
+
+        snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        res = pfsMount(path);
+
+        // In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
+        if (res < 0) {
+          if (strncasecmp(file_list.path, "ux0:patch", 9) == 0 ||
+              strncasecmp(file_list.path, "grw0:patch", 10) == 0) {
+            snprintf(path, MAX_PATH_LENGTH - 1, "ux0:app/%s", file_entry->name);
+            res = pfsMount(path);
+            
+            if (res < 0) {
+              snprintf(path, MAX_PATH_LENGTH - 1, "gro0:app/%s", file_entry->name);
+              res = pfsMount(path);
+            }
+          }
+        }
+        
+        if (res < 0)
+          errorDialog(res);
+
+        if (res >= 0) {
+          addEndSlash(file_list.path);
+          strcat(file_list.path, file_entry->name);
+          strcpy(pfs_mounted_path, file_list.path);
+          dirLevelUp();
+
+          // Save last dir
+          WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+
+          // Open folder
+          int res = refreshFileList();
+          if (res < 0)
+            errorDialog(res);
+        } else {
+          errorDialog(res);
+        }
+      }
+
+      break;
+    }
+    
     case MENU_MAIN_ENTRY_MARK_UNMARK_ALL:
     {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
@@ -596,7 +708,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
         if (pfs_mounted_path[0] &&
             !strstr(file_list.path, pfs_mounted_path) &&
              strstr(copy_list.path, pfs_mounted_path)) {
-          gameDataUmount();
+          pfsUmount();
         }
 
         // Mode
@@ -905,47 +1017,6 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
       // Ensure user wants to actually take the hash
       initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[HASH_FILE_QUESTION]);
       setDialogStep(DIALOG_STEP_HASH_QUESTION);
-      break;
-    }
-    
-    case MENU_MORE_ENTRY_OPEN_DECRYPTED:
-    {
-      FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-      if (file_entry) {
-        char path[MAX_PATH_LENGTH];
-        int res;
-
-        gameDataUmount();
-
-        snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
-        res = gameDataMount(path);
-        
-        // In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
-        snprintf(path, MAX_PATH_LENGTH - 1, "ux0:app/%s", file_entry->name);
-        if (res < 0)
-          res = gameDataMount(path);
-        snprintf(path, MAX_PATH_LENGTH - 1, "gro:app/%s", file_entry->name);
-        if (res < 0)
-          res = gameDataMount(path);
-
-        if (res >= 0) {
-          addEndSlash(file_list.path);
-          strcat(file_list.path, file_entry->name);
-          strcpy(pfs_mounted_path, file_list.path);
-          dirLevelUp();
-
-          // Save last dir
-          WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
-
-          // Open folder
-          int res = refreshFileList();
-          if (res < 0)
-            errorDialog(res);
-        } else {
-          errorDialog(res);
-        }
-      }
-
       break;
     }
   }

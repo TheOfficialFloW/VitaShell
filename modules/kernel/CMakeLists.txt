@@ -22,9 +22,10 @@ target_link_libraries(kernel
   SceIofilemgrForDriver_stub
   SceSysclibForDriver_stub
   SceSysmemForDriver_stub
-  SceModulemgrForKernel_stub
   SceModulemgrForDriver_stub
   SceThreadmgrForDriver_stub
+  SceProcessmgrForDriver_stub
+  SceNpDrmForDriver_stub
   taihenForKernel_stub
   taihenModuleUtils_stub
 )

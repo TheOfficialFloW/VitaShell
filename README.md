@@ -107,6 +107,10 @@ Credits
 Changelog
 ---------
 
+### Changelog 1.9
+- Added ability to open decrypted trophys, savedatas and appmetas.
+- Moved `Open Decrypted` entry to main context menu for faster access.
+
 ### Changelog 1.83
 - Fixed automatic network update by using rawgit. This was needed because github removed support for TLS 1.0/1.1.
 - Removed changelog support, because the files at ux0:patch must now be pfs encrypted.

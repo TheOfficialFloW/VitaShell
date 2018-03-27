@@ -137,7 +137,7 @@ static void dirUp() {
       strcmp(file_list.path, pfs_mounted_path) == 0 && // we're about to leave the pfs path
       !strstr(copy_list.path, pfs_mounted_path)) { // nothing has been copied from pfs path
     // Then umount
-    gameDataUmount();
+    pfsUmount();
   }
 
   removeEndSlash(file_list.path);
@@ -611,8 +611,10 @@ static int dialogSteps() {
           fileListEmpty(&copy_list);
         
         // Umount and remove from clipboard after pasting
-        if (pfs_mounted_path[0] && strstr(copy_list.path, pfs_mounted_path)) {
-          gameDataUmount();
+        if (pfs_mounted_path[0] &&
+            !strstr(file_list.path, pfs_mounted_path) &&
+             strstr(copy_list.path, pfs_mounted_path)) {
+          pfsUmount();
           fileListEmpty(&copy_list);
         }
 
@@ -1713,7 +1715,7 @@ static int shellMain() {
     // Refresh on app resume
     if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
       sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION);
-      gameDataUmount(); // umount game data at resume
+      pfsUmount(); // umount game data at resume
       refresh = REFRESH_MODE_NORMAL;
     }
 
@@ -1931,7 +1933,7 @@ int main(int argc, const char *argv[]) {
   readPad();
   if (current_pad[PAD_LTRIGGER])
     use_custom_config = 0;
-
+  
   // Load settings
   loadSettingsConfig();
 
@@ -1944,7 +1946,7 @@ int main(int argc, const char *argv[]) {
   // Init context menu width
   initContextMenuWidth();
   initTextContextMenuWidth();
-
+  
   // Automatic network update
   if (!vitashell_config.disable_autoupdate) {
     SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x10000100, 0x100000, 0, 0, NULL);

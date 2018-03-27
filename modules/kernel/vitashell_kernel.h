@@ -19,8 +19,19 @@
 #ifndef __VITASHELL_KERNEL_H__
 #define __VITASHELL_KERNEL_H__
 
+typedef struct {
+  int id;
+  const char *process_titleid;
+  const char *path;
+  const char *desired_mount_point;
+  const void *klicensee;
+  char *mount_point;
+} ShellMountIdArgs;
+
 int shellKernelIsUx0Redirected();
 int shellKernelRedirectUx0();
 int shellKernelUnredirectUx0();
+int shellKernelMountById(ShellMountIdArgs *args);
+int shellKernelGetRifVitaKey(const void *license_buf, void *klicensee);
 
 #endif

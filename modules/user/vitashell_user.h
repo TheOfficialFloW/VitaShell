@@ -19,8 +19,12 @@
 #ifndef __VITASHELL_USER_H__
 #define __VITASHELL_USER_H__
 
+#include <vitashell_kernel.h>
+
 int shellUserIsUx0Redirected();
 int shellUserRedirectUx0();
 int shellUserUnredirectUx0();
+int shellUserMountById(ShellMountIdArgs *args);
+int shellUserGetRifVitaKey(const void *license_buf, void *klicensee);
 
 #endif
