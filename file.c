@@ -28,6 +28,8 @@ static char *devices[] = {
   "gro0:",
   "grw0:",
   "imc0:",
+  "xmc0:",
+  "sd0:",
   "os0:",
   "pd0:",
   "sa0:",
