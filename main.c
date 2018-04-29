@@ -284,6 +284,7 @@ static int handleFile(const char *file, FileListEntry *entry) {
   switch (type) {
     case FILE_TYPE_PSP2DMP:
     case FILE_TYPE_MP3:
+    case FILE_TYPE_NUDE:
     case FILE_TYPE_OGG:
     case FILE_TYPE_VPK:
     case FILE_TYPE_ARCHIVE:
@@ -319,7 +320,8 @@ static int handleFile(const char *file, FileListEntry *entry) {
     case FILE_TYPE_SFO:
       res = SFOReader(file);
       break;
-      
+    
+    case FILE_TYPE_NUDE:
     case FILE_TYPE_VPK:
       initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
       setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
@@ -1762,6 +1764,7 @@ static int shellMain() {
               icon = image_icon;
               break;
               
+            case FILE_TYPE_NUDE:
             case FILE_TYPE_VPK:
             case FILE_TYPE_ARCHIVE:
               color = ARCHIVE_COLOR;
