@@ -507,7 +507,7 @@ void setContextMenuMoreVisibilities() {
     menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
   }
 
-  if(file_entry->type != FILE_TYPE_VPK) {
+  if(file_entry->type != FILE_TYPE_VPK && file_entry->type != FILE_TYPE_NUDE) {
     menu_more_entries[MENU_MORE_ENTRY_INSTALL_ALL].visibility = CTX_INVISIBLE;
   }
 
@@ -964,7 +964,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
         snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
 
         int type = getFileType(path);
-        if (type == FILE_TYPE_VPK) {
+        if (type == FILE_TYPE_VPK || type == FILE_TYPE_NUDE) {
           fileListAddEntry(&install_list, fileListCopyEntry(file_entry), SORT_NONE);
         }
 

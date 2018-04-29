@@ -89,6 +89,7 @@ PROPERTY_TYPE_BMP                             = "Точечный рисунок
 PROPERTY_TYPE_INI                             = "Файл настроек"
 PROPERTY_TYPE_JPEG                            = "Изображение JPEG"
 PROPERTY_TYPE_MP3                             = "Аудиофайл MP3"
+PROPERTY_TYPE_NUDE                            = "Пакет NUDE VPK"
 PROPERTY_TYPE_OGG                             = "Аудиофайл OGG"
 PROPERTY_TYPE_PNG                             = "Изображение PNG"
 PROPERTY_TYPE_SFO                             = "Файл SFO"

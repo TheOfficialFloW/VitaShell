@@ -613,6 +613,7 @@ static ExtensionType extension_types[] = {
   { ".MP3",      FILE_TYPE_MP3 },
   { ".MP4",      FILE_TYPE_MP4 },
   { ".MTREE",    FILE_TYPE_ARCHIVE },
+  { ".NUDE",     FILE_TYPE_NUDE },
   { ".OGG",      FILE_TYPE_OGG },
   { ".PNG",      FILE_TYPE_PNG },
   { ".PSARC",    FILE_TYPE_ARCHIVE },

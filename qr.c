@@ -150,7 +150,12 @@ int qr_scan_thread(SceSize args, void *argp) {
     
     char *ext = strrchr(fileName, '.');
     if (ext) {
-      vpk = getFileType(fileName) == FILE_TYPE_VPK;
+      int fileType = getFileType(fileName);
+      if(fileType == FILE_TYPE_VPK || fileType == FILE_TYPE_NUDE) {
+        vpk = 1;
+      } else {
+        vpk = 0;
+      }
     } else {
       initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[QR_OPEN_WEBSITE], data);
       setDialogStep(DIALOG_STEP_QR_OPEN_WEBSITE);
@@ -199,7 +204,12 @@ int qr_scan_thread(SceSize args, void *argp) {
     }
 
     // VPK type
-    vpk = getFileType(fileName) == FILE_TYPE_VPK;
+    int fileType = getFileType(fileName);
+    if(fileType == FILE_TYPE_VPK || fileType == FILE_TYPE_NUDE) {
+      vpk = 1;
+    } else {
+      vpk = 0;
+    }
   }
   
   if (vpk)
