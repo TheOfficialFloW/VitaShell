@@ -39,7 +39,10 @@ static char *devices[] = {
   "ux0:",
   "vd0:",
   "vs0:",
+  "xmc0:", //missing partition, similar to uma0:
   "host0:",
+/*  "app0:", //actually has a use, injecting latest vitashell to system apps if injectors break
+  "savedata0:", //use for backing up important files to where a user wont accidentally delete? or move vitashell config to here?*/
 };
 
 #define N_DEVICES (sizeof(devices) / sizeof(char **))
