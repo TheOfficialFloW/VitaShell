@@ -893,7 +893,7 @@ static int dialogSteps() {
 
       break;
     }
-    
+
     case DIALOG_STEP_NEW_FOLDER:
     {
       if (ime_result == IME_DIALOG_RESULT_FINISHED) {
@@ -922,7 +922,38 @@ static int dialogSteps() {
 
       break;
     }
-    
+
+    case DIALOG_STEP_NEW_FILE:
+    {
+      if (ime_result == IME_DIALOG_RESULT_FINISHED) {
+        char *name = (char *)getImeDialogInputTextUTF8();
+        if (name[0] == '\0') {
+          setDialogStep(DIALOG_STEP_NONE);
+        } else {
+          char path[MAX_PATH_LENGTH];
+          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
+
+          SceUID fd = sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT, 0777);
+          if (fd < 0) {
+            errorDialog(fd);
+          } else {
+            sceIoClose(fd);
+
+            // Focus
+            strcpy(focus_name, name);
+            addEndSlash(focus_name);
+
+            refresh = REFRESH_MODE_SETFOCUS;
+            setDialogStep(DIALOG_STEP_NONE);
+            refreshFileList();
+          }
+        }
+      } else if (ime_result == IME_DIALOG_RESULT_CANCELED) {
+        setDialogStep(DIALOG_STEP_NONE);
+      }
+      break;
+    }
+
     case DIALOG_STEP_COMPRESS_NAME:
     {
       if (ime_result == IME_DIALOG_RESULT_FINISHED) {
@@ -941,7 +972,7 @@ static int dialogSteps() {
       
       break;
     }
-    
+
     case DIALOG_STEP_COMPRESS_LEVEL:
     {
       if (ime_result == IME_DIALOG_RESULT_FINISHED) {

@@ -78,6 +78,8 @@ enum LanguageContainer {
   PASTE,
   DELETE,
   RENAME,
+  NEW,
+  NEW_FILE,
   NEW_FOLDER,
   PROPERTIES,
   SEND,
