@@ -1676,37 +1676,39 @@ static int shellMain() {
   // Current path is 'home'
   strcpy(file_list.path, HOME_PATH);
 
-  // Last dir
-  char lastdir[MAX_PATH_LENGTH];
-  ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
+  if (use_custom_config) {
+    // Last dir
+    char lastdir[MAX_PATH_LENGTH];
+    ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
 
-  // Calculate dir positions if the dir is valid
-  if (checkFolderExist(lastdir)) {
-    int i;
-    for (i = 0; i < strlen(lastdir) + 1; i++) {
-      if (lastdir[i] == ':' || lastdir[i] == '/') {
-        char ch = lastdir[i + 1];
-        lastdir[i + 1] = '\0';
+    // Calculate dir positions if the dir is valid
+    if (checkFolderExist(lastdir)) {
+      int i;
+      for (i = 0; i < strlen(lastdir) + 1; i++) {
+        if (lastdir[i] == ':' || lastdir[i] == '/') {
+          char ch = lastdir[i + 1];
+          lastdir[i + 1] = '\0';
 
-        char ch2 = lastdir[i];
-        lastdir[i] = '\0';
+          char ch2 = lastdir[i];
+          lastdir[i] = '\0';
 
-        char *p = strrchr(lastdir, '/');
-        if (!p)
-          p = strrchr(lastdir, ':');
-        if (!p)
-          p = lastdir - 1;
+          char *p = strrchr(lastdir, '/');
+          if (!p)
+            p = strrchr(lastdir, ':');
+          if (!p)
+            p = lastdir - 1;
 
-        lastdir[i] = ch2;
+          lastdir[i] = ch2;
 
-        refreshFileList();
-        setFocusOnFilename(p + 1);
+          refreshFileList();
+          setFocusOnFilename(p + 1);
 
-        strcpy(file_list.path, lastdir);
+          strcpy(file_list.path, lastdir);
 
-        lastdir[i + 1] = ch;
+          lastdir[i + 1] = ch;
 
-        dirLevelUp();
+          dirLevelUp();
+        }
       }
     }
   }

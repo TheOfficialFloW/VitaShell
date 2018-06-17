@@ -107,6 +107,11 @@ Credits
 Changelog
 ---------
 
+### Changelog 1.91
+- Added ability to create new files, thanks to abertschi.
+- Added ability to skip last dir by holding L on startup.
+- Added support for firmware 3.68.
+
 ### Changelog 1.9
 - Added ability to open decrypted trophys, savedatas and appmetas.
 - Moved `Open Decrypted` entry to main context menu for faster access.
