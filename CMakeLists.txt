@@ -14,7 +14,7 @@ project(VitaShell)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 set(VITA_APP_NAME "VitaShell")
 set(VITA_TITLEID  "VITASHELL")
-set(VITA_VERSION  "01.91")
+set(VITA_VERSION  "01.92")
 
 # Flags and includes
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format-truncation -fno-lto")
@@ -193,6 +193,7 @@ add_custom_target(release
   COMMAND cp eboot.bin ../release/eboot.bin
   COMMAND cp VitaShell.vpk_param.sfo ../release/param.sfo
   COMMAND cp VitaShell.vpk ../release/VitaShell.vpk
+  COMMAND cp ../pkg/sce_sys/livearea/contents/template.xml ../release/template.xml
   DEPENDS eboot.bin
   DEPENDS VitaShell.vpk
   DEPENDS VitaShell.vpk_param.sfo

@@ -30,8 +30,8 @@ int shellUserIsUx0Redirected() {
   return shellKernelIsUx0Redirected();
 }
 
-int shellUserRedirectUx0() {
-  return shellKernelRedirectUx0();
+int shellUserRedirectUx0(const char *blkdev, const char *blkdev2) {
+  return shellKernelRedirectUx0(blkdev, blkdev2);
 }
 
 int shellUserUnredirectUx0() {

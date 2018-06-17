@@ -40,6 +40,8 @@ enum MenuHomeEntrys {
   MENU_HOME_ENTRY_MOUNT_IMC0,
   MENU_HOME_ENTRY_MOUNT_USB_UX0,
   MENU_HOME_ENTRY_UMOUNT_USB_UX0,
+  MENU_HOME_ENTRY_MOUNT_GAMECARD_UX0,
+  MENU_HOME_ENTRY_UMOUNT_GAMECARD_UX0,
 };
 
 MenuEntry menu_home_entries[] = {
@@ -49,6 +51,8 @@ MenuEntry menu_home_entries[] = {
   { MOUNT_IMC0,         3, 0, CTX_INVISIBLE },
   { MOUNT_USB_UX0,      5, 0, CTX_INVISIBLE },
   { UMOUNT_USB_UX0,     6, 0, CTX_INVISIBLE },
+  { MOUNT_GAMECARD_UX0, 8, 0, CTX_INVISIBLE },
+  { UMOUNT_GAMECARD_UX0,9, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
@@ -331,6 +335,17 @@ void setContextMenuHomeVisibilities() {
     menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
   } else {
     menu_home_entries[MENU_HOME_ENTRY_UMOUNT_USB_UX0].visibility = CTX_INVISIBLE;
+  }
+
+  if (!checkFileExist("sdstor0:gcd-lp-ign-entire")) {
+    menu_home_entries[MENU_HOME_ENTRY_MOUNT_GAMECARD_UX0].visibility = CTX_INVISIBLE;
+    menu_home_entries[MENU_HOME_ENTRY_UMOUNT_GAMECARD_UX0].visibility = CTX_INVISIBLE;
+  } else {
+    if ((kernel_modid >= 0 || kernel_modid == 0x8002D013) && user_modid >= 0 && shellUserIsUx0Redirected() == 1) {
+      menu_home_entries[MENU_HOME_ENTRY_MOUNT_GAMECARD_UX0].visibility = CTX_INVISIBLE;
+    } else {
+      menu_home_entries[MENU_HOME_ENTRY_UMOUNT_GAMECARD_UX0].visibility = CTX_INVISIBLE;
+    }
   }
 
   // Invisible if already mounted or there is no internal storage
@@ -659,6 +674,24 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
     {
       if (umountUsbUx0() >= 0) {
         infoDialog(language_container[USB_UX0_UMOUNTED]);
+        refreshFileList();
+      }
+      break;
+    }
+    
+    case MENU_HOME_ENTRY_MOUNT_GAMECARD_UX0:
+    {
+      if (mountGamecardUx0() >= 0) {
+        infoDialog(language_container[GAMECARD_UX0_MOUNTED]);
+        refreshFileList();
+      }
+      break;
+    }
+
+    case MENU_HOME_ENTRY_UMOUNT_GAMECARD_UX0:
+    {
+      if (umountGamecardUx0() >= 0) {
+        infoDialog(language_container[GAMECARD_UX0_UMOUNTED]);
         refreshFileList();
       }
       break;

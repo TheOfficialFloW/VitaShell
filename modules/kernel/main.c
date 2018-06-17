@@ -59,7 +59,9 @@ typedef struct {
   int unk7;
 } SceIoMountPoint;
 
-static SceIoDevice uma_ux0_dev = { "ux0:", "exfatux0", "sdstor0:uma-pp-act-a", "sdstor0:uma-lp-act-entire", MOUNT_POINT_ID };
+static char ux0_blkdev[64], ux0_blkdev2[64];
+
+static SceIoDevice ux0_dev = { "ux0:", "exfatux0", ux0_blkdev, ux0_blkdev2, MOUNT_POINT_ID };
 
 static SceIoMountPoint *(* sceIoFindMountPoint)(int id) = NULL;
 
@@ -89,7 +91,7 @@ int shellKernelIsUx0Redirected() {
     return -1;
   }
 
-  if (mount->dev == &uma_ux0_dev && mount->dev2 == &uma_ux0_dev) {
+  if (mount->dev == &ux0_dev && mount->dev2 == &ux0_dev) {
     EXIT_SYSCALL(state);
     return 1;
   }
@@ -98,7 +100,7 @@ int shellKernelIsUx0Redirected() {
   return 0;
 }
 
-int shellKernelRedirectUx0() {
+int shellKernelRedirectUx0(const char *blkdev, const char *blkdev2) {
   uint32_t state;
   ENTER_SYSCALL(state);
 
@@ -108,13 +110,16 @@ int shellKernelRedirectUx0() {
     return -1;
   }
 
-  if (mount->dev != &uma_ux0_dev && mount->dev2 != &uma_ux0_dev) {
+  if (mount->dev != &ux0_dev && mount->dev2 != &ux0_dev) {
     ori_dev = mount->dev;
     ori_dev2 = mount->dev2;
   }
 
-  mount->dev = &uma_ux0_dev;
-  mount->dev2 = &uma_ux0_dev;
+  ksceKernelStrncpyUserToKernel(ux0_blkdev, blkdev, sizeof(ux0_blkdev)-1);
+  ksceKernelStrncpyUserToKernel(ux0_blkdev2, blkdev2, sizeof(ux0_blkdev2)-1);
+
+  mount->dev = &ux0_dev;
+  mount->dev2 = &ux0_dev;
 
   EXIT_SYSCALL(state);
   return 0;

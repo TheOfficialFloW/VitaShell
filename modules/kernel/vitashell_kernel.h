@@ -29,7 +29,7 @@ typedef struct {
 } ShellMountIdArgs;
 
 int shellKernelIsUx0Redirected();
-int shellKernelRedirectUx0();
+int shellKernelRedirectUx0(const char *blkdev, const char *blkdev2);
 int shellKernelUnredirectUx0();
 int shellKernelMountById(ShellMountIdArgs *args);
 int shellKernelGetRifVitaKey(const void *license_buf, void *klicensee);

@@ -107,6 +107,10 @@ Credits
 Changelog
 ---------
 
+### Changelog 1.92
+- Added ability to mount gamesd ux0:
+- Fixed bug where the VitaShell kernel module was loaded but not started, thus it'd run out of memory after some launches.
+
 ### Changelog 1.91
 - Added ability to create new files, thanks to abertschi.
 - Added ability to skip last dir by holding L on startup.
