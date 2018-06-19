@@ -65,6 +65,7 @@ enum LanguageContainer {
   REFRESH_LICENSE_DB,
   MOUNT_UMA0,
   MOUNT_IMC0,
+  MOUNT_XMC0,
   MOUNT_USB_UX0,
   UMOUNT_USB_UX0,
   MOUNT_GAMECARD_UX0,
@@ -212,6 +213,7 @@ enum LanguageContainer {
 
   // Others
   IMC0_MOUNTED,
+  XMC0_MOUNTED,
   SAFE_MODE,
   UNSAFE_MODE,
   PLEASE_WAIT,

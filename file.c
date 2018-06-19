@@ -39,6 +39,7 @@ static char *devices[] = {
   "ux0:",
   "vd0:",
   "vs0:",
+  "xmc0:",
   "host0:",
 };
 

@@ -38,6 +38,7 @@ enum MenuHomeEntrys {
   MENU_HOME_ENTRY_REFRESH_LICENSE_DB,
   MENU_HOME_ENTRY_MOUNT_UMA0,
   MENU_HOME_ENTRY_MOUNT_IMC0,
+  MENU_HOME_ENTRY_MOUNT_XMC0,
   MENU_HOME_ENTRY_MOUNT_USB_UX0,
   MENU_HOME_ENTRY_UMOUNT_USB_UX0,
   MENU_HOME_ENTRY_MOUNT_GAMECARD_UX0,
@@ -45,14 +46,15 @@ enum MenuHomeEntrys {
 };
 
 MenuEntry menu_home_entries[] = {
-  { REFRESH_LIVEAREA,   0, 0, CTX_INVISIBLE },
-  { REFRESH_LICENSE_DB, 1, 0, CTX_INVISIBLE },
-  { MOUNT_UMA0,         2, 0, CTX_INVISIBLE },
-  { MOUNT_IMC0,         3, 0, CTX_INVISIBLE },
-  { MOUNT_USB_UX0,      5, 0, CTX_INVISIBLE },
-  { UMOUNT_USB_UX0,     6, 0, CTX_INVISIBLE },
-  { MOUNT_GAMECARD_UX0, 8, 0, CTX_INVISIBLE },
-  { UMOUNT_GAMECARD_UX0,9, 0, CTX_INVISIBLE },
+  { REFRESH_LIVEAREA,     0, 0, CTX_INVISIBLE },
+  { REFRESH_LICENSE_DB,   1, 0, CTX_INVISIBLE },
+  { MOUNT_UMA0,           3, 0, CTX_INVISIBLE },
+  { MOUNT_IMC0,           4, 0, CTX_INVISIBLE },
+  { MOUNT_XMC0,           5, 0, CTX_INVISIBLE },
+  { MOUNT_USB_UX0,        7, 0, CTX_INVISIBLE },
+  { UMOUNT_USB_UX0,       8, 0, CTX_INVISIBLE },
+  { MOUNT_GAMECARD_UX0,  10, 0, CTX_INVISIBLE },
+  { UMOUNT_GAMECARD_UX0, 11, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
@@ -351,6 +353,10 @@ void setContextMenuHomeVisibilities() {
   // Invisible if already mounted or there is no internal storage
   if (!checkFileExist("sdstor0:int-lp-ign-userext") || checkFolderExist("imc0:"))
     menu_home_entries[MENU_HOME_ENTRY_MOUNT_IMC0].visibility = CTX_INVISIBLE;
+
+  // Invisible if already mounted or there is no Memory Card
+  if (!checkFileExist("sdstor0:xmc-lp-ign-userext") || checkFolderExist("xmc0:"))
+    menu_home_entries[MENU_HOME_ENTRY_MOUNT_XMC0].visibility = CTX_INVISIBLE;
 
   // Go to first entry
   for (i = 0; i < N_MENU_HOME_ENTRIES; i++) {
@@ -655,6 +661,22 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
           errorDialog(res);
         else
           infoDialog(language_container[IMC0_MOUNTED]);
+        refreshFileList();
+      }
+
+      break;
+    }
+
+    case MENU_HOME_ENTRY_MOUNT_XMC0:
+    {
+      if (is_safe_mode) {
+        infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
+      } else {
+        int res = vshIoMount(0xE00, NULL, 2, 0, 0, 0);
+        if (res < 0)
+          errorDialog(res);
+        else
+          infoDialog(language_container[XMC0_MOUNTED]);
         refreshFileList();
       }
 
