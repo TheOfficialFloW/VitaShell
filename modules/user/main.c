@@ -26,16 +26,12 @@
 
 #include "vitashell_user.h"
 
-int shellUserIsUx0Redirected() {
-  return shellKernelIsUx0Redirected();
+int shellUserIsUx0Redirected(const char *blkdev, const char *blkdev2) {
+  return shellKernelIsUx0Redirected(blkdev, blkdev2);
 }
 
 int shellUserRedirectUx0(const char *blkdev, const char *blkdev2) {
   return shellKernelRedirectUx0(blkdev, blkdev2);
-}
-
-int shellUserUnredirectUx0() {
-  return shellKernelUnredirectUx0();
 }
 
 int shellUserMountById(ShellMountIdArgs *args) {

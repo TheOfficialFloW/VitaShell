@@ -21,9 +21,8 @@
 
 #include <vitashell_kernel.h>
 
-int shellUserIsUx0Redirected();
+int shellUserIsUx0Redirected(const char *blkdev, const char *blkdev2);
 int shellUserRedirectUx0(const char *blkdev, const char *blkdev2);
-int shellUserUnredirectUx0();
 int shellUserMountById(ShellMountIdArgs *args);
 int shellUserGetRifVitaKey(const void *license_buf, void *klicensee);
 

@@ -107,6 +107,10 @@ Credits
 Changelog
 ---------
 
+### Changelog 1.93
+- Added xmc0: to partition list and added ability to mount xmc0:.
+- Fixed ux0: mounting bug where it wasn't detected that the gamesd has already been mounted.
+
 ### Changelog 1.92
 - Added ability to mount gamesd ux0:
 - Fixed bug where the VitaShell kernel module was loaded but not started, thus it'd run out of memory after some launches.

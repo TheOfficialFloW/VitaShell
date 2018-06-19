@@ -12,6 +12,5 @@ VitaShellKernel2:
       functions:
         - shellKernelIsUx0Redirected
         - shellKernelRedirectUx0
-        - shellKernelUnredirectUx0
         - shellKernelMountById
         - shellKernelGetRifVitaKey

@@ -65,7 +65,10 @@ int umountGamecardUx0() {
   sceAppMgrDestroyOtherApp();
 
   // Restore ux0: patch
-  shellUserUnredirectUx0();
+  if (checkFileExist("sdstor0:xmc-lp-ign-userext"))
+    shellUserRedirectUx0("sdstor0:xmc-lp-ign-userext", "sdstor0:xmc-lp-ign-userext");
+  else
+    shellUserRedirectUx0("sdstor0:int-lp-ign-userext", "sdstor0:int-lp-ign-userext");
 
   // Remount Memory Card
   remount(0x800);
@@ -115,7 +118,10 @@ int umountUsbUx0() {
   sceAppMgrDestroyOtherApp();
 
   // Restore ux0: patch
-  shellUserUnredirectUx0();
+  if (checkFileExist("sdstor0:xmc-lp-ign-userext"))
+    shellUserRedirectUx0("sdstor0:xmc-lp-ign-userext", "sdstor0:xmc-lp-ign-userext");
+  else
+    shellUserRedirectUx0("sdstor0:int-lp-ign-userext", "sdstor0:int-lp-ign-userext");
 
   // Remount Memory Card
   remount(0x800);

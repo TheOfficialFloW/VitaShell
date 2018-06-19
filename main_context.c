@@ -332,7 +332,8 @@ void setContextMenuHomeVisibilities() {
     menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
   }
 
-  if ((kernel_modid >= 0 || kernel_modid == 0x8002D013) && user_modid >= 0 && shellUserIsUx0Redirected() == 1) {
+  if ((kernel_modid >= 0 || kernel_modid == 0x8002D013) && user_modid >= 0 &&
+      shellUserIsUx0Redirected("sdstor0:uma-pp-act-a", "sdstor0:uma-lp-act-entire") == 1) {
     menu_home_entries[MENU_HOME_ENTRY_MOUNT_UMA0].visibility = CTX_INVISIBLE;
     menu_home_entries[MENU_HOME_ENTRY_MOUNT_USB_UX0].visibility = CTX_INVISIBLE;
   } else {
@@ -343,7 +344,8 @@ void setContextMenuHomeVisibilities() {
     menu_home_entries[MENU_HOME_ENTRY_MOUNT_GAMECARD_UX0].visibility = CTX_INVISIBLE;
     menu_home_entries[MENU_HOME_ENTRY_UMOUNT_GAMECARD_UX0].visibility = CTX_INVISIBLE;
   } else {
-    if ((kernel_modid >= 0 || kernel_modid == 0x8002D013) && user_modid >= 0 && shellUserIsUx0Redirected() == 1) {
+    if ((kernel_modid >= 0 || kernel_modid == 0x8002D013) && user_modid >= 0 &&
+        shellUserIsUx0Redirected("sdstor0:gcd-lp-ign-entire", "sdstor0:gcd-lp-ign-entire") == 1) {
       menu_home_entries[MENU_HOME_ENTRY_MOUNT_GAMECARD_UX0].visibility = CTX_INVISIBLE;
     } else {
       menu_home_entries[MENU_HOME_ENTRY_UMOUNT_GAMECARD_UX0].visibility = CTX_INVISIBLE;
