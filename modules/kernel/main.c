@@ -94,7 +94,7 @@ int shellKernelIsUx0Redirected(const char *blkdev, const char *blkdev2) {
   ksceKernelStrncpyUserToKernel(k_blkdev, blkdev, sizeof(k_blkdev)-1);
   ksceKernelStrncpyUserToKernel(k_blkdev2, blkdev2, sizeof(k_blkdev2)-1);
 
-  if (mount && mount->dev && strcmp(mount->dev->blkdev, k_blkdev) == 0 && strcmp(mount->dev->blkdev2, k_blkdev2) == 0) {
+  if (mount && mount->dev && mount->dev->blkdev && strcmp(mount->dev->blkdev, k_blkdev) == 0) {
     EXIT_SYSCALL(state);
     return 1;
   }

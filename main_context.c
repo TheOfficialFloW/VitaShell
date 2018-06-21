@@ -39,6 +39,9 @@ enum MenuHomeEntrys {
   MENU_HOME_ENTRY_MOUNT_UMA0,
   MENU_HOME_ENTRY_MOUNT_IMC0,
   MENU_HOME_ENTRY_MOUNT_XMC0,
+  MENU_HOME_ENTRY_UMOUNT_UMA0,
+  MENU_HOME_ENTRY_UMOUNT_IMC0,
+  MENU_HOME_ENTRY_UMOUNT_XMC0,
   MENU_HOME_ENTRY_MOUNT_USB_UX0,
   MENU_HOME_ENTRY_UMOUNT_USB_UX0,
   MENU_HOME_ENTRY_MOUNT_GAMECARD_UX0,
@@ -51,10 +54,13 @@ MenuEntry menu_home_entries[] = {
   { MOUNT_UMA0,           3, 0, CTX_INVISIBLE },
   { MOUNT_IMC0,           4, 0, CTX_INVISIBLE },
   { MOUNT_XMC0,           5, 0, CTX_INVISIBLE },
-  { MOUNT_USB_UX0,        7, 0, CTX_INVISIBLE },
-  { UMOUNT_USB_UX0,       8, 0, CTX_INVISIBLE },
-  { MOUNT_GAMECARD_UX0,  10, 0, CTX_INVISIBLE },
-  { UMOUNT_GAMECARD_UX0, 11, 0, CTX_INVISIBLE },
+  { UMOUNT_UMA0,          7, 0, CTX_INVISIBLE },
+  { UMOUNT_IMC0,          8, 0, CTX_INVISIBLE },
+  { UMOUNT_XMC0,          9, 0, CTX_INVISIBLE },
+  { MOUNT_USB_UX0,       11, 0, CTX_INVISIBLE },
+  { UMOUNT_USB_UX0,      12, 0, CTX_INVISIBLE },
+  { MOUNT_GAMECARD_UX0,  14, 0, CTX_INVISIBLE },
+  { UMOUNT_GAMECARD_UX0, 15, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_HOME_ENTRIES (sizeof(menu_home_entries) / sizeof(MenuEntry))
@@ -360,6 +366,18 @@ void setContextMenuHomeVisibilities() {
   if (!checkFileExist("sdstor0:xmc-lp-ign-userext") || checkFolderExist("xmc0:"))
     menu_home_entries[MENU_HOME_ENTRY_MOUNT_XMC0].visibility = CTX_INVISIBLE;
 
+  // Invisible if not mounted
+  if (!checkFolderExist("uma0:"))
+    menu_home_entries[MENU_HOME_ENTRY_UMOUNT_UMA0].visibility = CTX_INVISIBLE;
+
+  // Invisible if not mounted
+  if (!checkFolderExist("imc0:"))
+    menu_home_entries[MENU_HOME_ENTRY_UMOUNT_IMC0].visibility = CTX_INVISIBLE;
+
+  // Invisible if not mounted
+  if (!checkFolderExist("xmc0:"))
+    menu_home_entries[MENU_HOME_ENTRY_UMOUNT_XMC0].visibility = CTX_INVISIBLE;
+
   // Go to first entry
   for (i = 0; i < N_MENU_HOME_ENTRIES; i++) {
     if (menu_home_entries[i].visibility == CTX_VISIBLE) {
@@ -642,7 +660,7 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
           if (res < 0)
             errorDialog(res);
           else
-            infoDialog(language_container[USB_UMA0_MOUNTED]);
+            infoDialog(language_container[UMA0_MOUNTED]);
           refreshFileList();
         } else {
           initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_WAIT_ATTACH]);
@@ -684,7 +702,49 @@ static int contextMenuHomeEnterCallback(int sel, void *context) {
 
       break;
     }
+    
+    case MENU_HOME_ENTRY_UMOUNT_UMA0:
+    {
+      if (is_safe_mode) {
+        infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
+      } else {
+        vshIoUmount(0xF00, 0, 0, 0);
+        vshIoUmount(0xF00, 1, 0, 0);
+        infoDialog(language_container[UMA0_UMOUNTED]);
+        refreshFileList();
+      }
 
+      break;
+    }
+
+    case MENU_HOME_ENTRY_UMOUNT_IMC0:
+    {
+      if (is_safe_mode) {
+        infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
+      } else {
+        vshIoUmount(0xD00, 0, 0, 0);
+        vshIoUmount(0xD00, 1, 0, 0);
+        infoDialog(language_container[IMC0_UMOUNTED]);
+        refreshFileList();
+      }
+
+      break;
+    }
+    
+    case MENU_HOME_ENTRY_UMOUNT_XMC0:
+    {
+      if (is_safe_mode) {
+        infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
+      } else {
+        vshIoUmount(0xE00, 0, 0, 0);
+        vshIoUmount(0xE00, 1, 0, 0);
+        infoDialog(language_container[XMC0_UMOUNTED]);
+        refreshFileList();
+      }
+
+      break;
+    }
+    
     case MENU_HOME_ENTRY_MOUNT_USB_UX0:
     {
       if (mountUsbUx0() >= 0) {

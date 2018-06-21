@@ -673,7 +673,7 @@ static int dialogSteps() {
             if (res < 0)
               errorDialog(res);
             else
-              infoDialog(language_container[USB_UMA0_MOUNTED]);
+              infoDialog(language_container[UMA0_MOUNTED]);
             refresh = REFRESH_MODE_NORMAL;
           }
         }

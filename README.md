@@ -107,6 +107,10 @@ Credits
 Changelog
 ---------
 
+### Changelog 1.94
+- Added ability to umount all partitions that you can mount.
+- Fixed crash when using StorageMgr.
+
 ### Changelog 1.93
 - Added xmc0: to partition list and added ability to mount xmc0:.
 - Fixed ux0: mounting bug where it wasn't detected that the gamesd has already been mounted.
