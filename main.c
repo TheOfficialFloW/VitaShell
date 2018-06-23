@@ -1612,7 +1612,11 @@ static int fileBrowserMenuCtrl() {
     // Handle file or folder
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
     if (file_entry) {
-      if (file_entry->is_folder) {
+      if (file_entry->is_symlink && file_entry->symlink) {
+//        file_entry->symlink->target_path;
+
+      }
+      else if (file_entry->is_folder) {
         if (strcmp(file_entry->name, DIR_UP) == 0) {
           dirUp();
         } else {
@@ -1841,11 +1845,20 @@ static int shellMain() {
         // Draw file name
         vita2d_enable_clipping();
         vita2d_set_clip_rectangle(FILE_X + 1.0f, y, FILE_X + 1.0f + MAX_NAME_WIDTH, y + FONT_Y_SPACE);
-        
+
         float x = FILE_X;
-        
+
+        char file_name[MAX_PATH_LENGTH];
+        memset(file_name, 0, sizeof(MAX_PATH_LENGTH));
+
+        if (file_entry->is_symlink) {
+          snprintf(file_name, MAX_PATH_LENGTH - 1, "%s  -> %s",
+                   file_entry->name, file_entry->symlink->target_path);
+        } else {
+          strncpy(file_name, file_entry->name, file_entry->name_length);
+        }
         if (i == rel_pos) {
-          int width = (int)pgf_text_width(file_entry->name);
+          int width = (int)pgf_text_width(file_name);
           if (width >= MAX_NAME_WIDTH) {
             if (scroll_count < 60) {
               scroll_x = x;
@@ -1864,7 +1877,7 @@ static int shellMain() {
           }
         }
 
-        pgf_draw_text(x, y, color, file_entry->name);
+        pgf_draw_text(x, y, color, file_name);
 
         vita2d_disable_clipping();
 
