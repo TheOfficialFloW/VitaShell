@@ -1026,6 +1026,7 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
       if (entry) {
         entry->is_folder = SCE_S_ISDIR(dir.d_stat.st_mode);
         entry->is_symlink = 0;
+        entry->symlink = NULL;
 
         if (entry->is_folder) {
           entry->name_length = strlen(dir.d_name) + 1;
@@ -1049,17 +1050,18 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
             snprintf(p, MAX_PATH_LENGTH - 1, "%s%s%s",
                      path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
-            entry->symlink = malloc(sizeof(Symlink));
-            if (!entry->symlink) {
+            Symlink* symlink = malloc(sizeof(Symlink));
+            if (!symlink) {
               return -1;
             }
-            if (resolveSimLink(entry->symlink, p) < 0) {
+            if (resolveSimLink(symlink, p) < 0) {
               entry->is_symlink = 0;
-              if (entry->symlink)
-                free(entry->symlink);
               entry->symlink = NULL;
+              if (symlink)
+                free(symlink);
             } else {
               entry->is_symlink = 1;
+              entry->symlink = symlink;
             }
             free(p);
           }
@@ -1111,27 +1113,27 @@ int resolveSimLink(Symlink *symlink, const char *path) {
     return -3;
   }
   char *resolve = (char *) malloc(MAX_PATH_LENGTH);
-  if (!resolve) {
+  if (resolve == NULL) {
     sceIoClose(fd);
     return -4;
   }
   int bytes_read = sceIoRead(fd, resolve, MAX_PATH_LENGTH - 1);
   sceIoClose(fd);
 
-  if (!bytes_read) {
+  if (bytes_read <= 0) {
     free(resolve);
     return -5;
   }
   resolve[bytes_read] = '\0';
   SceIoStat io_stat;
   memset(&io_stat, 0, sizeof(SceIoStat));
-  if (!sceIoGetstat(resolve, &io_stat)) {
+  if (sceIoGetstat(resolve, &io_stat) < 0) {
     free(resolve);
     return -6;
   }
   symlink->to_file = !SCE_S_ISDIR(io_stat.st_mode);
   symlink->target_path = resolve;
-  symlink->target_path_length = bytes_read;
+  symlink->target_path_length = bytes_read + 1;
   return 0;
 }
 
