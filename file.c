@@ -45,6 +45,8 @@ static char *devices[] = {
 
 #define N_DEVICES (sizeof(devices) / sizeof(char **))
 
+const char symlink_header_bytes[SYMLINK_HEADER_SIZE] = {0xF1, 0x1E, 0x00, 0x00};
+
 int allocateReadFile(const char *file, void **buffer) {
   SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
   if (fd < 0)
@@ -1108,7 +1110,7 @@ int resolveSimLink(Symlink *symlink, const char *path) {
     sceIoClose(fd);
     return -2;
   }
-  if (strtoul(magic, NULL, 0) != SYMLINK_HEADER) {
+  if(memcmp(magic, symlink_header_bytes, SYMLINK_HEADER_SIZE) != 0) {
     sceIoClose(fd);
     return -3;
   }
@@ -1140,13 +1142,11 @@ int resolveSimLink(Symlink *symlink, const char *path) {
 // return < 0 on error
 int createSymLink(const char* source_location, const char *target) {
   SceUID fd = sceIoOpen(source_location, SCE_O_WRONLY | SCE_O_CREAT, 0777);
-  if (fd < 0)
-    return -1;
-  int header = SYMLINK_HEADER;
-  if (sceIoWrite(fd, (void*) header, strnlen(target, MAX_PATH_LENGTH)) < MAX_PATH_LENGTH) {
-    sceIoClose(fd);
+  if (fd < 0) {
     return -1;
   }
+  sceIoWrite(fd, (void*) &symlink_header_bytes, SYMLINK_HEADER_SIZE);
   sceIoWrite(fd, (void*) target, strnlen(target, MAX_PATH_LENGTH));
+  sceIoClose(fd);
   return 0;
 }

@@ -34,9 +34,10 @@
 #define HOME_PATH "home"
 #define DIR_UP ".."
 
-#define SYMLINK_HEADER 0xF11E0000
 #define SYMLINK_HEADER_SIZE 4
 #define SYMLINK_MAX_SIZE  (SYMLINK_HEADER_SIZE + MAX_PATH_LENGTH)
+extern const char symlink_header_bytes[SYMLINK_HEADER_SIZE];
+
 
 enum FileTypes {
   FILE_TYPE_UNKNOWN,
