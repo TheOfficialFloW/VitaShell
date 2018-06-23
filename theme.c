@@ -34,7 +34,9 @@ INCLUDE_EXTERN_RESOURCE(default_cover_png);
 INCLUDE_EXTERN_RESOURCE(default_fastforward_png);
 INCLUDE_EXTERN_RESOURCE(default_fastrewind_png);
 INCLUDE_EXTERN_RESOURCE(default_file_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_file_symlink_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_folder_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_folder_symlink_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_ftp_png);
 INCLUDE_EXTERN_RESOURCE(default_image_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_pause_png);
@@ -105,7 +107,8 @@ int AUDIO_TIME_TOTAL;
 int AUDIO_TIME_BAR;
 int AUDIO_TIME_BAR_BG;
 
-vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
+vita2d_texture *folder_icon = NULL, *folder_symlink_icon = NULL, *file_icon = NULL,*file_symlink_icon = NULL, *archive_icon =NULL, *image_icon = NULL,
+    *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
          *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *settings_image = NULL, *battery_image = NULL,
          *battery_bar_red_image = NULL, *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
          *bg_photo_image = NULL, *bg_audio_image = NULL, *cover_image = NULL, *play_image = NULL, *pause_image = NULL, *fastforward_image = NULL, *fastrewind_image = NULL;
@@ -142,7 +145,11 @@ ThemeImage theme_images[] = {
   { "fastforward.png", &_binary_resources_default_fastforward_png_start, &fastforward_image },
   { "fastrewind.png", &_binary_resources_default_fastrewind_png_start, &fastrewind_image },
   { "file_icon.png", &_binary_resources_default_file_icon_png_start, &file_icon },
+  { "file_symlink_icon.png", &_binary_resources_default_file_symlink_icon_png_start,
+      &file_symlink_icon },
   { "folder_icon.png", &_binary_resources_default_folder_icon_png_start, &folder_icon },
+  { "folder_symlink_icon.png", &_binary_resources_default_folder_symlink_icon_png_start,
+      &folder_symlink_icon },
   { "ftp.png", &_binary_resources_default_ftp_png_start, &ftp_image },
   { "image_icon.png", &_binary_resources_default_image_icon_png_start, &image_icon },
   { "pause.png", &_binary_resources_default_pause_png_start, &pause_image },

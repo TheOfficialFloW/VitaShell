@@ -48,6 +48,8 @@ INCLUDE_EXTERN_RESOURCE(default_pause_png);
 INCLUDE_EXTERN_RESOURCE(default_play_png);
 INCLUDE_EXTERN_RESOURCE(default_sfo_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_text_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_file_symlink_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_folder_symlink_icon_png);
 
 INCLUDE_EXTERN_RESOURCE(electron_colors_txt);
 INCLUDE_EXTERN_RESOURCE(electron_archive_icon_png);
@@ -101,7 +103,9 @@ static DefaultFile default_files[] = {
   DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", default_fastforward_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", default_fastrewind_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/file_icon.png", default_file_icon_png, 1),
+  DEFAULT_FILE("ux0:VitaShell/theme/Default/file_symlink_icon.png",default_file_symlink_icon_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", default_folder_icon_png, 1),
+  DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_symlink_icon.png",default_folder_symlink_icon_png,  1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", default_ftp_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/image_icon.png", default_image_icon_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", default_pause_png, 1),
