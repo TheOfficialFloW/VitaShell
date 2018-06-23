@@ -1612,11 +1612,11 @@ static int fileBrowserMenuCtrl() {
     // Handle file or folder
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
     if (file_entry) {
-      if (file_entry->is_symlink && file_entry->symlink) {
+//      if (file_entry->is_symlink && file_entry->symlink) {
 //        file_entry->symlink->target_path;
-
-      }
-      else if (file_entry->is_folder) {
+//
+//      }
+      if (file_entry->is_folder) {
         if (strcmp(file_entry->name, DIR_UP) == 0) {
           dirUp();
         } else {

@@ -964,6 +964,7 @@ int fileListGetDeviceEntries(FileList *list) {
           strcpy(entry->name, devices[i]);
           entry->is_folder = 1;
           entry->type = FILE_TYPE_UNKNOWN;
+          entry->is_symlink = 0;
 
           SceIoDevInfo info;
           memset(&info, 0, sizeof(SceIoDevInfo));
@@ -1055,8 +1056,6 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
               return -1;
             }
             if (resolveSimLink(symlink, p) < 0) {
-              entry->is_symlink = 0;
-              entry->symlink = NULL;
               if (symlink)
                 free(symlink);
             } else {
@@ -1067,7 +1066,6 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
           }
         }
         entry->size = dir.d_stat.st_size;
-
         memcpy(&entry->ctime, (SceDateTime *) &dir.d_stat.st_ctime, sizeof(SceDateTime));
         memcpy(&entry->mtime, (SceDateTime *) &dir.d_stat.st_mtime, sizeof(SceDateTime));
         memcpy(&entry->atime, (SceDateTime *) &dir.d_stat.st_atime, sizeof(SceDateTime));
