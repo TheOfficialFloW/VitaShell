@@ -1852,10 +1852,11 @@ static int shellMain() {
         memset(file_name, 0, sizeof(MAX_PATH_LENGTH));
 
         if (file_entry->is_symlink) {
-          snprintf(file_name, MAX_PATH_LENGTH - 1, "%s  -> %s",
+          snprintf(file_name, MAX_PATH_LENGTH, "%s  -> %s",
                    file_entry->name, file_entry->symlink->target_path);
         } else {
-          strncpy(file_name, file_entry->name, file_entry->name_length);
+          strncpy(file_name, file_entry->name, file_entry->name_length + 1);
+          file_name[file_entry->name_length] = '\0';
         }
         if (i == rel_pos) {
           int width = (int)pgf_text_width(file_name);

@@ -1140,10 +1140,10 @@ int createSymLink(const char* source_location, const char *target) {
   if (fd < 0)
     return -1;
   int header = SYMLINK_HEADER;
-  if (sceIoWrite(fd, (char*) header, strnlen(target, MAX_PATH_LENGTH)) < MAX_PATH_LENGTH) {
+  if (sceIoWrite(fd, (void*) header, strnlen(target, MAX_PATH_LENGTH)) < MAX_PATH_LENGTH) {
     sceIoClose(fd);
     return -1;
   }
-  sceIoWrite(fd, (char*) target, strnlen(target, MAX_PATH_LENGTH));
+  sceIoWrite(fd, (void*) target, strnlen(target, MAX_PATH_LENGTH));
   return 0;
 }
