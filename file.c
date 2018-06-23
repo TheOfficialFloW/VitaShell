@@ -435,13 +435,13 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
     sceIoGetstatByFd(dfd, &stat);
 
     stat.st_mode |= SCE_S_IWUSR;
-    
+
     int ret = sceIoMkdir(dst_path, stat.st_mode & 0xFFF);
     if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
       sceIoDclose(dfd);
       return ret;
     }
-    
+
     if (ret == SCE_ERROR_ERRNO_EEXIST) {
       sceIoChstat(dst_path, &stat, 0x3B);
     }
@@ -755,12 +755,12 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
       char entry_name[MAX_NAME_LENGTH];
       strcpy(entry_name, entry->name);
       removeEndSlash(entry_name);
-      
+
       while (p) {
         char p_name[MAX_NAME_LENGTH];
         strcpy(p_name, p->name);
         removeEndSlash(p_name);
-        
+
         // '..' is always at first
         if (strcmp(entry_name, "..") == 0)
           break;
@@ -841,7 +841,7 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
         list->tail = entry;
       } else { // Order: previous -> entry -> p
         previous->next = entry;
-        entry->previous = previous; 
+        entry->previous = previous;
         entry->next = p;
         p->previous = entry;
       }
@@ -1010,6 +1010,7 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
     strcpy(entry->name, DIR_UP);
     entry->is_folder = 1;
     entry->type = FILE_TYPE_UNKNOWN;
+    entry->is_symlink = 0;
     fileListAddEntry(list, entry, sort);
   }
 
@@ -1024,6 +1025,8 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
       FileListEntry *entry = malloc(sizeof(FileListEntry));
       if (entry) {
         entry->is_folder = SCE_S_ISDIR(dir.d_stat.st_mode);
+        entry->is_symlink = 0;
+
         if (entry->is_folder) {
           entry->name_length = strlen(dir.d_name) + 1;
           entry->name = malloc(entry->name_length + 1);
@@ -1037,8 +1040,29 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
           strcpy(entry->name, dir.d_name);
           entry->type = getFileType(entry->name);
           list->files++;
-        }
 
+          if (dir.d_stat.st_size <= SYMLINK_MAX_SIZE) {
+            char *p = malloc(strlen(path) + strlen(dir.d_name) + 2);
+            if (!p) {
+              return -1;
+            }
+            snprintf(p, MAX_PATH_LENGTH - 1, "%s%s%s",
+                     path, hasEndSlash(path) ? "" : "/", dir.d_name);
+
+            entry->symlink = malloc(sizeof(Symlink));
+            if (!entry->symlink) {
+              return -1;
+            }
+            if (resolveSimLink(entry->symlink, p)) {
+              entry->is_symlink = 1;
+            } else {
+              entry->is_symlink = 0;
+              free(entry->symlink);
+              entry->symlink = NULL;
+            }
+            free(p);
+          }
+        }
         entry->size = dir.d_stat.st_size;
 
         memcpy(&entry->ctime, (SceDateTime *)&dir.d_stat.st_ctime, sizeof(SceDateTime));
@@ -1068,4 +1092,21 @@ int fileListGetEntries(FileList *list, const char *path, int sort) {
   }
 
   return fileListGetDirectoryEntries(list, path, sort);
+}
+
+int isValidSymlink(const char *path) {
+  return 0;
+}
+
+int resolveSimLink(Symlink* symlink, const char *target) {
+  SceUID fd = sceIoOpen(target, SCE_O_RDONLY, 0);
+  if (fd < 0)
+    return 0;
+
+  char magic[4];
+  if (sceIoRead(fd, magic, 4) < 4) {
+    sceIoClose(fd);
+    return 0
+  };
+
 }

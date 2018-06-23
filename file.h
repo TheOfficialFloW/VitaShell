@@ -34,6 +34,9 @@
 #define HOME_PATH "home"
 #define DIR_UP ".."
 
+// 4 byte magic number
+#define SYMLINK_MAX_SIZE = (4 + MAX_PATH_LENGTH)
+
 enum FileTypes {
   FILE_TYPE_UNKNOWN,
   FILE_TYPE_ARCHIVE,
@@ -64,6 +67,12 @@ enum FileMoveFlags {
 };
 
 typedef struct {
+  int to_file; // 1: to file, 0: to directory
+  char* target_path;
+  int target_path_length;
+} Symlink;
+
+typedef struct {
   uint64_t *value;
   uint64_t max;
   void (* SetProgress)(uint64_t value, uint64_t max);
@@ -77,6 +86,8 @@ typedef struct FileListEntry {
   int name_length;
   int is_folder;
   int type;
+  int is_symlink;
+  Symlink *symlink;
   SceOff size;
   SceOff size2;
   SceDateTime ctime;
@@ -126,5 +137,11 @@ int fileListRemoveEntryByName(FileList *list, const char *name);
 void fileListEmpty(FileList *list);
 
 int fileListGetEntries(FileList *list, const char *path, int sort);
+
+int resolveSimLink(Symlink* symlink, const char *target);
+//int createSymLink(const char *target, FileListEntry *symlink);
+int isValidSymlink(const char *path);
+
+
 
 #endif
