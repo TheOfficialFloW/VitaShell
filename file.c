@@ -1055,7 +1055,8 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
             if (!symlink) {
               return -1;
             }
-            if (resolveSimLink(symlink, p) < 0) {
+            int res = resolveSimLink(symlink, p);
+            if (res < 0) {
               if (symlink)
                 free(symlink);
             } else {
@@ -1100,18 +1101,19 @@ int resolveSimLink(Symlink *symlink, const char *path) {
   SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
   if (fd < 0)
     return -1;
-  char magic[SYMLINK_HEADER_SIZE];
+  char magic[SYMLINK_HEADER_SIZE + 1];
+  magic[SYMLINK_HEADER_SIZE] = '\0';
+
   if (sceIoRead(fd, &magic, SYMLINK_HEADER_SIZE) < SYMLINK_HEADER_SIZE) {
     sceIoClose(fd);
     return -2;
   }
-
-  if (atoi(magic) != SYMLINK_HEADER) {
+  if (strtoul(magic, NULL, 0) != SYMLINK_HEADER) {
     sceIoClose(fd);
     return -3;
   }
   char *resolve = (char *) malloc(MAX_PATH_LENGTH);
-  if (resolve == NULL) {
+  if (!resolve) {
     sceIoClose(fd);
     return -4;
   }

@@ -97,6 +97,8 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 // Use custom config
 int use_custom_config = 1;
 
+static void setFocusOnFilename(const char *name);
+
 int getDialogStep() {
   sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
   volatile int step = dialog_step;
@@ -130,6 +132,45 @@ void dirUpCloseArchive() {
     archiveClose();
     dir_level_archive = -1;
   }
+}
+
+int change_to_directory(char* lastdir) {
+  if (!checkFolderExist(lastdir)) {
+    return -1;
+  } else {
+    if (isInArchive()) {
+      dirUpCloseArchive();
+    }
+    int i;
+    for (i = 0; i < strlen(lastdir) + 1; i++) {
+      if (lastdir[i] == ':' || lastdir[i] == '/') {
+        char ch = lastdir[i + 1];
+        lastdir[i + 1] = '\0';
+
+        char ch2 = lastdir[i];
+        lastdir[i] = '\0';
+
+        char *p = strrchr(lastdir, '/');
+        if (!p)
+          p = strrchr(lastdir, ':');
+        if (!p)
+          p = lastdir - 1;
+
+        lastdir[i] = ch2;
+
+        refreshFileList();
+        setFocusOnFilename(p + 1);
+
+        strcpy(file_list.path, lastdir);
+
+        lastdir[i + 1] = ch;
+
+        dirLevelUp();
+      }
+    }
+  }
+  refreshFileList();
+  return 0;
 }
 
 static void dirUp() {
@@ -1612,11 +1653,18 @@ static int fileBrowserMenuCtrl() {
     // Handle file or folder
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
     if (file_entry) {
-//      if (file_entry->is_symlink && file_entry->symlink) {
-//        file_entry->symlink->target_path;
-//
-//      }
-      if (file_entry->is_folder) {
+      if (file_entry->is_symlink) {
+        if (file_entry->symlink->to_file == 0) {
+          if (change_to_directory(file_entry->symlink->target_path) < 0) {
+            errorDialog(-1); // TODO: introduce error message, not code
+          } else {// to_file == 1
+            // TODO:
+            // - get dirname from path, resolve to dirname
+            // open file
+          }
+        }
+      }
+      else if (file_entry->is_folder) {
         if (strcmp(file_entry->name, DIR_UP) == 0) {
           dirUp();
         } else {
@@ -1685,38 +1733,9 @@ static int shellMain() {
     char lastdir[MAX_PATH_LENGTH];
     ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
 
-    // Calculate dir positions if the dir is valid
-    if (checkFolderExist(lastdir)) {
-      int i;
-      for (i = 0; i < strlen(lastdir) + 1; i++) {
-        if (lastdir[i] == ':' || lastdir[i] == '/') {
-          char ch = lastdir[i + 1];
-          lastdir[i + 1] = '\0';
+    change_to_directory(lastdir);
 
-          char ch2 = lastdir[i];
-          lastdir[i] = '\0';
-
-          char *p = strrchr(lastdir, '/');
-          if (!p)
-            p = strrchr(lastdir, ':');
-          if (!p)
-            p = lastdir - 1;
-
-          lastdir[i] = ch2;
-
-          refreshFileList();
-          setFocusOnFilename(p + 1);
-
-          strcpy(file_list.path, lastdir);
-
-          lastdir[i + 1] = ch;
-
-          dirLevelUp();
-        }
-      }
-    }
   }
-
   // Refresh file list
   refreshFileList();
 
