@@ -1804,9 +1804,17 @@ static int shellMain() {
         float y = START_Y + (i * FONT_Y_SPACE);
 
         vita2d_texture *icon = NULL;
-
+        if (file_entry->is_symlink) {
+          if (file_entry->symlink->to_file) {
+            color = FILE_SYMLINK_COLOR;
+            icon = folder_symlink_icon;
+          } else {
+            color = FOLDER_SYMLINK_COLOR;
+            icon = folder_symlink_icon;
+          }
+        }
         // Folder
-        if (file_entry->is_folder) {
+        else if (file_entry->is_folder) {
           color = FOLDER_COLOR;
           icon = folder_icon;
         } else {

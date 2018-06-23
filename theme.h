@@ -43,6 +43,8 @@ extern int ARCHIVE_COLOR;
 extern int SCROLL_BAR_COLOR;
 extern int SCROLL_BAR_BG_COLOR;
 extern int MARKED_COLOR;
+extern int FILE_SYMLINK_COLOR;
+extern int FOLDER_SYMLINK_COLOR;
 
 // Context menu colors
 extern int CONTEXT_MENU_TEXT_COLOR;
