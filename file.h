@@ -34,8 +34,9 @@
 #define HOME_PATH "home"
 #define DIR_UP ".."
 
-// 4 byte magic number
-#define SYMLINK_MAX_SIZE = (4 + MAX_PATH_LENGTH)
+#define SYMLINK_HEADER 0xF11E0000
+#define SYMLINK_HEADER_SIZE 4
+#define SYMLINK_MAX_SIZE  (SYMLINK_HEADER_SIZE + MAX_PATH_LENGTH)
 
 enum FileTypes {
   FILE_TYPE_UNKNOWN,
@@ -139,9 +140,6 @@ void fileListEmpty(FileList *list);
 int fileListGetEntries(FileList *list, const char *path, int sort);
 
 int resolveSimLink(Symlink* symlink, const char *target);
-//int createSymLink(const char *target, FileListEntry *symlink);
-int isValidSymlink(const char *path);
-
-
+int createSymLink(const char* source_location, const char *target);
 
 #endif

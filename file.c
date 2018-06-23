@@ -25,22 +25,22 @@
 #include "strnatcmp.h"
 
 static char *devices[] = {
-  "gro0:",
-  "grw0:",
-  "imc0:",
-  "os0:",
-  "pd0:",
-  "sa0:",
-  "sd0:",
-  "tm0:",
-  "ud0:",
-  "uma0:",
-  "ur0:",
-  "ux0:",
-  "vd0:",
-  "vs0:",
-  "xmc0:",
-  "host0:",
+    "gro0:",
+    "grw0:",
+    "imc0:",
+    "os0:",
+    "pd0:",
+    "sa0:",
+    "sd0:",
+    "tm0:",
+    "ud0:",
+    "uma0:",
+    "ur0:",
+    "ux0:",
+    "vd0:",
+    "vs0:",
+    "xmc0:",
+    "host0:",
 };
 
 #define N_DEVICES (sizeof(devices) / sizeof(char **))
@@ -980,9 +980,9 @@ int fileListGetDeviceEntries(FileList *list) {
             }
           }
 
-          memcpy(&entry->ctime, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
-          memcpy(&entry->mtime, (SceDateTime *)&stat.st_mtime, sizeof(SceDateTime));
-          memcpy(&entry->atime, (SceDateTime *)&stat.st_atime, sizeof(SceDateTime));
+          memcpy(&entry->ctime, (SceDateTime *) &stat.st_ctime, sizeof(SceDateTime));
+          memcpy(&entry->mtime, (SceDateTime *) &stat.st_mtime, sizeof(SceDateTime));
+          memcpy(&entry->atime, (SceDateTime *) &stat.st_atime, sizeof(SceDateTime));
 
           fileListAddEntry(list, entry, SORT_BY_NAME);
 
@@ -1053,21 +1053,22 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
             if (!entry->symlink) {
               return -1;
             }
-            if (resolveSimLink(entry->symlink, p)) {
-              entry->is_symlink = 1;
-            } else {
+            if (resolveSimLink(entry->symlink, p) < 0) {
               entry->is_symlink = 0;
-              free(entry->symlink);
+              if (entry->symlink)
+                free(entry->symlink);
               entry->symlink = NULL;
+            } else {
+              entry->is_symlink = 1;
             }
             free(p);
           }
         }
         entry->size = dir.d_stat.st_size;
 
-        memcpy(&entry->ctime, (SceDateTime *)&dir.d_stat.st_ctime, sizeof(SceDateTime));
-        memcpy(&entry->mtime, (SceDateTime *)&dir.d_stat.st_mtime, sizeof(SceDateTime));
-        memcpy(&entry->atime, (SceDateTime *)&dir.d_stat.st_atime, sizeof(SceDateTime));
+        memcpy(&entry->ctime, (SceDateTime *) &dir.d_stat.st_ctime, sizeof(SceDateTime));
+        memcpy(&entry->mtime, (SceDateTime *) &dir.d_stat.st_mtime, sizeof(SceDateTime));
+        memcpy(&entry->atime, (SceDateTime *) &dir.d_stat.st_atime, sizeof(SceDateTime));
 
         fileListAddEntry(list, entry, sort);
       }
@@ -1094,19 +1095,55 @@ int fileListGetEntries(FileList *list, const char *path, int sort) {
   return fileListGetDirectoryEntries(list, path, sort);
 }
 
-int isValidSymlink(const char *path) {
+// returns < 0 on error
+int resolveSimLink(Symlink *symlink, const char *path) {
+  SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
+  if (fd < 0)
+    return -1;
+  int32_t magic;
+  if (sceIoRead(fd, magic, SYMLINK_HEADER_SIZE) < SYMLINK_HEADER_SIZE) {
+    sceIoClose(fd);
+    return -2;
+  }
+  if (magic != SYMLINK_HEADER) {
+    sceIoClose(fd);
+    return -3;
+  }
+  char *resolve = (char *) malloc(MAX_PATH_LENGTH);
+  if (!resolve) {
+    sceIoClose(fd);
+    return -4;
+  }
+  int bytes_read = sceIoRead(fd, resolve, MAX_PATH_LENGTH - 1);
+  sceIoClose(fd);
+
+  if (!bytes_read) {
+    free(resolve);
+    return -5;
+  }
+  resolve[bytes_read] = '\0';
+  SceIoStat io_stat;
+  memset(&io_stat, 0, sizeof(SceIoStat));
+  if (!sceIoGetstat(resolve, &io_stat)) {
+    free(resolve);
+    return -6;
+  }
+  symlink->to_file = !SCE_S_ISDIR(io_stat.st_mode);
+  symlink->target_path = resolve;
+  symlink->target_path_length = bytes_read;
   return 0;
 }
 
-int resolveSimLink(Symlink* symlink, const char *target) {
-  SceUID fd = sceIoOpen(target, SCE_O_RDONLY, 0);
+// return < 0 on error
+int createSymLink(const char* source_location, const char *target) {
+  SceUID fd = sceIoOpen(source_location, SCE_O_WRONLY | SCE_O_CREAT, 0777);
   if (fd < 0)
-    return 0;
-
-  char magic[4];
-  if (sceIoRead(fd, magic, 4) < 4) {
+    return -1;
+  int header = SYMLINK_HEADER;
+  if (sceIoWrite(fd, (char*) header, strnlen(target, MAX_PATH_LENGTH)) < MAX_PATH_LENGTH) {
     sceIoClose(fd);
-    return 0
-  };
-
+    return -1;
+  }
+  sceIoWrite(fd, (char*) target, strnlen(target, MAX_PATH_LENGTH));
+  return 0;
 }
