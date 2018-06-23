@@ -1100,12 +1100,13 @@ int resolveSimLink(Symlink *symlink, const char *path) {
   SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
   if (fd < 0)
     return -1;
-  int32_t magic = 0;
-  if (sceIoRead(fd, magic, SYMLINK_HEADER_SIZE) < SYMLINK_HEADER_SIZE) {
+  char magic[SYMLINK_HEADER_SIZE];
+  if (sceIoRead(fd, &magic, SYMLINK_HEADER_SIZE) < SYMLINK_HEADER_SIZE) {
     sceIoClose(fd);
     return -2;
   }
-  if (magic != SYMLINK_HEADER) {
+
+  if (atoi(magic) != SYMLINK_HEADER) {
     sceIoClose(fd);
     return -3;
   }
