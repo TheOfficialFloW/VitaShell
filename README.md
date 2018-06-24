@@ -4,11 +4,6 @@ VitaShell
 VitaShell is an alternative replacement of the PS Vita's LiveArea. It offers you a file manager, package installer, built-in FTP and much more.
 This homebrew was an entry of the Revitalize PS Vita homebrew competition and won the first prize. HENkaku's molecularShell is also based on VitaShell.
 
-Donation
---------
-All my work is voluntary and nonprofit, however you can support my work by making a small donation - no matter how small, I'd be very thankful!
-[Donation Link](https://www.paypal.me/PSVitaTheFloW)
-
 How to use an USB flash drive as Memory Card on a PS TV
 -------------------------------------------------------
 - Format your USB flash drive as exFAT or FAT32.
