@@ -99,18 +99,12 @@ int use_custom_config = 1;
 
 static void setFocusOnFilename(const char *name);
 
-// TODO: this must be a list because nested symlinks are possible
-// also store base/rel pos for each folder when resolving symlink
-// -> compare against last element
-static char last_symlink_path[MAX_PATH_LENGTH] = {'\0'};
-static char last_symlink_hook[MAX_PATH_LENGTH] = {'\0'};
-
-
 typedef struct SymlinkDirectoryPath {
   struct SymlinkDirectoryPath* previous;
   char last_path[MAX_PATH_LENGTH]; // contains / at the end
   char last_hook[MAX_PATH_LENGTH]; // contains / at the end
 } SymlinkDirectoryPath;
+
 static SymlinkDirectoryPath* symlink_directory_path = NULL;
 
 int getDialogStep() {
@@ -195,10 +189,6 @@ static void dirUp() {
     pfsUmount();
   }
 
-  // TODO:
-  // jump back to source location of symlink
-  // TODO: how to fix rel/ base pos lvls
-  // introduce list, because more than symlink can be navigated to
   if (symlink_directory_path
       && strncmp(file_list.path, symlink_directory_path->last_hook, MAX_PATH_LENGTH) == 0) {
     strcpy(file_list.path, symlink_directory_path->last_path);
@@ -206,7 +196,6 @@ static void dirUp() {
     free(symlink_directory_path);
     symlink_directory_path = prev;
     dir_level--;
-
     goto DIR_UP_RETURN;
   }
 
