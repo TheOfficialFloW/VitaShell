@@ -99,6 +99,20 @@ int use_custom_config = 1;
 
 static void setFocusOnFilename(const char *name);
 
+// TODO: this must be a list because nested symlinks are possible
+// also store base/rel pos for each folder when resolving symlink
+// -> compare against last element
+static char last_symlink_path[MAX_PATH_LENGTH] = {'\0'};
+static char last_symlink_hook[MAX_PATH_LENGTH] = {'\0'};
+
+
+typedef struct SymlinkDirectoryPath {
+  struct SymlinkDirectoryPath* previous;
+  char last_path[MAX_PATH_LENGTH];
+  char last_hook[MAX_PATH_LENGTH];
+} SymlinkDirectoryPath;
+static SymlinkDirectoryPath* symlink_directory_path;
+
 int getDialogStep() {
   sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
   volatile int step = dialog_step;
@@ -181,10 +195,23 @@ static void dirUp() {
     pfsUmount();
   }
 
+  // TODO:
+  // jump back to source location of symlink
+  // TODO: how to fix rel/ base pos lvls
+  // introduce list, because more than symlink can be navigated to
+  if (symlink_directory_path
+      && strncmp(file_list.path, symlink_directory_path->last_hook, MAX_PATH_LENGTH) == 0) {
+    SymlinkDirectoryPath* prev = symlink_directory_path->previous;
+    free(symlink_directory_path);
+    symlink_directory_path = prev;
+    dir_level--;
+
+    goto DIR_UP_RETURN;
+  }
+
   removeEndSlash(file_list.path);
 
   char *p;
-
   p = strrchr(file_list.path, '/');
   if (p) {
     p[1] = '\0';
@@ -1654,13 +1681,29 @@ static int fileBrowserMenuCtrl() {
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
     if (file_entry) {
       if (file_entry->is_symlink) {
-        if (file_entry->symlink->to_file == 0) {
-          if (change_to_directory(file_entry->symlink->target_path) < 0) {
-            errorDialog(-1); // TODO: introduce error message, not code
-          } else {// to_file == 1
-            // TODO:
-            // - get dirname from path, resolve to dirname
-            // open file
+        SymlinkDirectoryPath* new_symlink_path = malloc(sizeof(SymlinkDirectoryPath));
+        if (new_symlink_path){
+          if (!symlink_directory_path)
+            symlink_directory_path = new_symlink_path;
+          else {
+            SymlinkDirectoryPath* prev = symlink_directory_path;
+            symlink_directory_path = new_symlink_path;
+            new_symlink_path->previous = prev;
+          }
+          strncpy(symlink_directory_path->last_path, file_list.path, MAX_PATH_LENGTH);
+          strncpy(symlink_directory_path->last_hook, file_entry->symlink->target_path,
+                  MAX_PATH_LENGTH);
+          dirLevelUp();
+          if (file_entry->symlink->to_file == 0) {
+            int _dir_level = dir_level;
+            if (change_to_directory(file_entry->symlink->target_path) < 0) {
+              errorDialog(-1); // TODO: introduce error message, not code
+            } else {// to_file == 1
+              // TODO:
+              // - get dirname from path, resolve to dirname
+              // open file
+            }
+            dir_level = _dir_level;
           }
         }
       }
