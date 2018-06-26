@@ -108,10 +108,10 @@ static char last_symlink_hook[MAX_PATH_LENGTH] = {'\0'};
 
 typedef struct SymlinkDirectoryPath {
   struct SymlinkDirectoryPath* previous;
-  char last_path[MAX_PATH_LENGTH];
-  char last_hook[MAX_PATH_LENGTH];
+  char last_path[MAX_PATH_LENGTH]; // contains / at the end
+  char last_hook[MAX_PATH_LENGTH]; // contains / at the end
 } SymlinkDirectoryPath;
-static SymlinkDirectoryPath* symlink_directory_path;
+static SymlinkDirectoryPath* symlink_directory_path = NULL;
 
 int getDialogStep() {
   sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
@@ -201,6 +201,7 @@ static void dirUp() {
   // introduce list, because more than symlink can be navigated to
   if (symlink_directory_path
       && strncmp(file_list.path, symlink_directory_path->last_hook, MAX_PATH_LENGTH) == 0) {
+    strcpy(file_list.path, symlink_directory_path->last_path);
     SymlinkDirectoryPath* prev = symlink_directory_path->previous;
     free(symlink_directory_path);
     symlink_directory_path = prev;
@@ -1682,20 +1683,20 @@ static int fileBrowserMenuCtrl() {
     if (file_entry) {
       if (file_entry->is_symlink) {
         SymlinkDirectoryPath* new_symlink_path = malloc(sizeof(SymlinkDirectoryPath));
-        if (new_symlink_path){
+        if (new_symlink_path) {
           if (!symlink_directory_path)
             symlink_directory_path = new_symlink_path;
           else {
             SymlinkDirectoryPath* prev = symlink_directory_path;
             symlink_directory_path = new_symlink_path;
-            new_symlink_path->previous = prev;
+            symlink_directory_path->previous = prev;
           }
           strncpy(symlink_directory_path->last_path, file_list.path, MAX_PATH_LENGTH);
           strncpy(symlink_directory_path->last_hook, file_entry->symlink->target_path,
                   MAX_PATH_LENGTH);
           dirLevelUp();
+          int _dir_level = dir_level;
           if (file_entry->symlink->to_file == 0) {
-            int _dir_level = dir_level;
             if (change_to_directory(file_entry->symlink->target_path) < 0) {
               errorDialog(-1); // TODO: introduce error message, not code
             } else {// to_file == 1
@@ -1703,8 +1704,9 @@ static int fileBrowserMenuCtrl() {
               // - get dirname from path, resolve to dirname
               // open file
             }
-            dir_level = _dir_level;
           }
+          dir_level = _dir_level;
+          refreshFileList();
         }
       }
       else if (file_entry->is_folder) {
@@ -1718,7 +1720,6 @@ static int fileBrowserMenuCtrl() {
               addEndSlash(file_list.path);
             strcat(file_list.path, file_entry->name);
           }
-
           dirLevelUp();
         }
 
