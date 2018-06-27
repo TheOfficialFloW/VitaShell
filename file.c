@@ -1151,5 +1151,6 @@ int createSymLink(const char* source_location, const char *target) {
   return 0;
 }
 
+  // TODO:
 void getBaseDirectory(const char * path, char * res) {
 }
