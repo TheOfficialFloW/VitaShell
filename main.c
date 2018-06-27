@@ -1667,10 +1667,19 @@ static int fileBrowserMenuCtrl() {
 
     fileListEmpty(&mark_list);
 
-    // Handle file or folder
+    // Handle file, symlink or folder
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
     if (file_entry) {
       if (file_entry->is_symlink) {
+        if ((file_entry->symlink->to_file == 1 && !checkFileExist(file_entry->symlink->target_path))
+            || (file_entry->symlink->to_file == 0
+                && !checkFolderExist(file_entry->symlink->target_path))) {
+          // invalid symlink, open as text file
+          snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+          textViewer(cur_file);
+          return refresh;
+        }
+        // resolve symlink
         SymlinkDirectoryPath* new_symlink_path = malloc(sizeof(SymlinkDirectoryPath));
         if (new_symlink_path) {
           if (!symlink_directory_path)
@@ -1680,18 +1689,40 @@ static int fileBrowserMenuCtrl() {
             symlink_directory_path = new_symlink_path;
             symlink_directory_path->previous = prev;
           }
-          strncpy(symlink_directory_path->last_path, file_list.path, MAX_PATH_LENGTH);
-          strncpy(symlink_directory_path->last_hook, file_entry->symlink->target_path,
-                  MAX_PATH_LENGTH);
-          dirLevelUp();
-          int _dir_level = dir_level;
+          int _dir_level = dir_level; // symlinks escape from dir level structure
           if (file_entry->symlink->to_file == 0) {
+            // resolve symlink to directory
+            strncpy(symlink_directory_path->last_path, file_list.path, MAX_PATH_LENGTH);
+            strncpy(symlink_directory_path->last_hook, file_entry->symlink->target_path,
+                    MAX_PATH_LENGTH);
+            dirLevelUp();
             if (change_to_directory(file_entry->symlink->target_path) < 0) {
+              // TODO: clean up malloc
               errorDialog(-1); // TODO: introduce error message, not code
-            } else {// to_file == 1
+              return -1;
+            } else {
+              // resolve symlink to file
+              char target_base_directory[MAX_PATH_LENGTH];
+              getBaseDirectory(file_entry->symlink->target_path, target_base_directory);
+              if (change_to_directory(target_base_directory) < 0) {
+                // TODO: clean up malloc
+                errorDialog(-1); // TODO: introduce error message, not code
+                return -1;
+              }
+              strncpy(symlink_directory_path->last_path, file_list.path, MAX_PATH_LENGTH);
+              strncpy(symlink_directory_path->last_hook, target_base_directory, MAX_PATH_LENGTH);
+
+              snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+              int type = handleFile(, file_entry);
+
               // TODO:
               // - get dirname from path, resolve to dirname
               // open file
+//              if (!checkFileExist(file_entry->symlink->target_path)) {
+
+//                int type = handleFile(cur_file, file_entry);
+//
+//              }
             }
           }
           dir_level = _dir_level;
