@@ -59,6 +59,9 @@
 
 #define VITASHELL_LASTDIR "ux0:VitaShell/internal/lastdir.txt"
 
+// needs / at the end
+#define VITASHELL_BOOKMARKS_PATH "ux0:VitaShell/bookmarks/"
+
 #define VITASHELL_TITLEID "VITASHELL"
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
@@ -275,5 +278,6 @@ int isInArchive();
 int refreshFileList();
 
 void ftpvita_PROM(ftpvita_client_info_t *client);
+int jump_to_directory_track_current_path(char *path);
 
 #endif

@@ -1140,8 +1140,8 @@ int resolveSimLink(Symlink *symlink, const char *path) {
 }
 
 // return < 0 on error
-int createSymLink(const char* source_location, const char *target) {
-  SceUID fd = sceIoOpen(source_location, SCE_O_WRONLY | SCE_O_CREAT, 0777);
+int createSymLink(const char* store_location, const char *target) {
+  SceUID fd = sceIoOpen(store_location, SCE_O_WRONLY | SCE_O_CREAT, 0777);
   if (fd < 0) {
     return -1;
   }

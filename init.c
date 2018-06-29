@@ -385,6 +385,10 @@ void initVitaShell() {
       taiStopUnloadKernelModule(kernel_modid, 0, NULL, 0, NULL, NULL);
   }
   user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
+
+  if (!checkFolderExist(VITASHELL_BOOKMARKS_PATH)) {
+    sceIoMkdir(VITASHELL_BOOKMARKS_PATH, 0777);
+  }
 }
 
 void finishVitaShell() {

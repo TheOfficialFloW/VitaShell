@@ -1741,6 +1741,27 @@ static void fileBrowserHandleFolder(FileListEntry *file_entry) {
     errorDialog(res);
 }
 
+
+int jump_to_directory_track_current_path(char *path) {
+  SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
+  if (symlink_path) {
+      // resolve symlink to directory
+      strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
+      strncpy(symlink_path->last_hook, path, MAX_PATH_LENGTH);
+      dirLevelUp();
+      int _dir_level = dir_level; // we escape from hierarchical dir level structure
+      if (change_to_directory(path) < 0) {
+        free(symlink_path);
+        return -1;
+      }
+      WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+      storeSymlinkPath(symlink_path);
+      dir_level = _dir_level;
+      refreshFileList();
+    }
+    return 0;
+}
+
 static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
   if ((file_entry->symlink->to_file == 1 && !checkFileExist(file_entry->symlink->target_path))
       ||
@@ -1751,58 +1772,31 @@ static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
     textViewer(cur_file);
     return;
   }
-  SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
-  if (symlink_path) {
-    if (file_entry->symlink->to_file == 0) {
-      // resolve symlink to directory
-      strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
-      strncpy(symlink_path->last_hook, file_entry->symlink->target_path, MAX_PATH_LENGTH);
-      dirLevelUp();
-      int _dir_level = dir_level; // symlinks escape from dir level structure
-      if (change_to_directory(file_entry->symlink->target_path) < 0) {
-        free(symlink_path);
-        errorDialog(-1); // TODO: introduce error message, not code
-        return;
-      }
-      WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
-      storeSymlinkPath(symlink_path);
-      dir_level = _dir_level;
-      refreshFileList();
-    } else {
-      // resolve symlink to file
-      dirLevelUp();
-      int _dir_level = dir_level; // symlinks escape from dir level structure
-      char *target_base_directory = getBaseDirectory(file_entry->symlink->target_path);
-      if (!target_base_directory) {
-        free(symlink_path);
-        errorDialog(-1);
-        return;
-      }
-      if (change_to_directory(target_base_directory) < 0) {
-        free(symlink_path);
-        errorDialog(-1);
-        return;
-      }
-      strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
-      strncpy(symlink_path->last_hook, target_base_directory, MAX_PATH_LENGTH);
-
-      char *target_file_name = getFilename(file_entry->symlink->target_path);
-      if (!target_file_name) {
-        free(symlink_path);
-        errorDialog(-1);
-        return;
-      }
-      FileListEntry *resolved_file_entry = fileListFindEntry(&file_list, target_file_name);
-      if (!resolved_file_entry) {
-        free(symlink_path);
-        errorDialog(-1);
-        return;
-      }
-      storeSymlinkPath(symlink_path);
-      dir_level = _dir_level;
-      refreshFileList();
-      fileBrowserHandleFile(resolved_file_entry);
+  if (file_entry->symlink->to_file == 0) {
+    if (jump_to_directory_track_current_path(file_entry->symlink->target_path) < 0) {
+      errorDialog(-1); // TODO: introduce error message, not code
     }
+  } else {
+    char *target_base_directory = getBaseDirectory(file_entry->symlink->target_path);
+    if (!target_base_directory) {
+      errorDialog(-1);
+      return;
+    }
+    char *target_file_name = getFilename(file_entry->symlink->target_path);
+    if (!target_file_name) {
+      errorDialog(-1);
+      return;
+    }
+    if (jump_to_directory_track_current_path(target_base_directory) < 0) {
+      errorDialog(-1);
+      return;
+    }
+    FileListEntry *resolved_file_entry = fileListFindEntry(&file_list, target_file_name);
+    if (!resolved_file_entry) {
+      errorDialog(-1);
+      return;
+    }
+    fileBrowserHandleFile(resolved_file_entry);
   }
   int res = refreshFileList();
   if (res < 0)
@@ -1831,9 +1825,7 @@ static int shellMain() {
     // Last dir
     char lastdir[MAX_PATH_LENGTH];
     ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
-
     change_to_directory(lastdir);
-
   }
   // Refresh file list
   refreshFileList();
