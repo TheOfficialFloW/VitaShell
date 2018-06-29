@@ -114,8 +114,10 @@ int WriteFile(const char *file, const void *buf, int size);
 int checkFileExist(const char *file);
 int checkFolderExist(const char *folder);
 
-void getBaseDirectory(const char *path, char *result);
-void getFilename(const char *path, char * result);
+//void getBaseDirectory(const char *path, char *result);
+char * getBaseDirectory(const char *path);
+//void getFilename(const char *path, char * result);
+char * getFilename(const char *path);
 
 int getFileSize(const char *file);
 int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param);

@@ -1151,6 +1151,59 @@ int createSymLink(const char* source_location, const char *target) {
   return 0;
 }
 
-  // TODO:
-void getBaseDirectory(const char * path, char * res) {
+// extract file name from path and return base path
+// directory separation char is not in result
+// in case of error, return NULL
+// result is at most MAX_PATH_LEN
+char * getBaseDirectory(const char * path) {
+  int i;
+  int sep_ind = -1;
+  int len = strlen(path);
+  if (len > MAX_PATH_LENGTH || len <= 0) return NULL;
+  for(i = len - 1; i >=0; i --) {
+    if (path[i] == '/' || path[i] == ':') {
+      sep_ind = i;
+      break;
+    }
+  }
+  if (sep_ind == -1) return NULL;
+  char * res = (char *) malloc(MAX_PATH_LENGTH);
+  if (!res) return NULL;
+  strncpy(res, path, sep_ind); // dont copy separation char
+  res[sep_ind] = '\0';
+  return res;
+}
+
+// returns NULL when no filename found or error
+// result is at most MAX_PATH_LEN
+char * getFilename(const char* path) {
+  int i;
+  int sep_ind = -1;
+  int len = strlen(path);
+  if (len > MAX_PATH_LENGTH || len <= 0) return NULL;
+  if (path[len - 1] == '/' || path[len - 1] == ':') return NULL; // no file
+  for(i = len - 1; i >=0; i --) {
+    if (path[i] == '/' || path[i] == ':') {
+      sep_ind = i;
+      break;
+    }
+  }
+  if (sep_ind == -1) return NULL;
+  char * res = (char *) malloc(MAX_PATH_LENGTH);
+  if (!res) return NULL;
+
+  // ux0:ab.txt
+  // 0123456789
+  //
+  // len = 10
+  // sep_ind = 3
+  // new_len = 10 - (3+1) == 6
+
+  int new_len = len - (sep_ind + 1);
+  strncpy(res, path + (sep_ind + 1), new_len); // dont copy separation char
+  if (new_len + 1 < MAX_PATH_LENGTH)
+    res[new_len] = '\0';
+  else
+    res[MAX_PATH_LENGTH - 1] = '\0';
+  return res;
 }

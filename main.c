@@ -98,7 +98,9 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 int use_custom_config = 1;
 
 static void setFocusOnFilename(const char *name);
-static void fileBrowserHandleFileEntry(FileListEntry* file_entry);
+static void fileBrowserHandleSymlink(FileListEntry* file_entry);
+static void fileBrowserHandleFolder(FileListEntry* file_entry);
+static void fileBrowserHandleFile(FileListEntry* file_entry);
 
 typedef struct SymlinkDirectoryPath {
   struct SymlinkDirectoryPath* previous;
@@ -107,6 +109,16 @@ typedef struct SymlinkDirectoryPath {
 } SymlinkDirectoryPath;
 
 static SymlinkDirectoryPath* symlink_directory_path = NULL;
+
+static void storeSymlinkPath(SymlinkDirectoryPath * path) {
+  if (!symlink_directory_path)
+    symlink_directory_path = path;
+  else {
+    SymlinkDirectoryPath *prev = symlink_directory_path;
+    symlink_directory_path = path;
+    symlink_directory_path->previous = prev;
+  }
+}
 
 int getDialogStep() {
   sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
@@ -1550,21 +1562,24 @@ static int fileBrowserMenuCtrl() {
 
   // SELECT button
   if (pressed_pad[PAD_SELECT]) {
-    if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB && sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
+    if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB &&
+        sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
       if (is_safe_mode) {
         infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
       } else {
         SceUdcdDeviceState state;
         sceUdcdGetDeviceState(&state);
-        
+
         if (state.cable & SCE_UDCD_STATUS_CABLE_CONNECTED) {
           initUsb();
         } else {
-          initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_NOT_CONNECTED]);
+          initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL,
+                            language_container[USB_NOT_CONNECTED]);
           setDialogStep(DIALOG_STEP_USB_WAIT);
         }
       }
-    } else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP || sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
+    } else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP ||
+               sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
       // Init FTP
       if (!ftpvita_is_initialized()) {
         int res = ftpvita_init(vita_ip, &vita_port);
@@ -1581,7 +1596,8 @@ static int fileBrowserMenuCtrl() {
 
       // Dialog
       if (ftpvita_is_initialized()) {
-        initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
+        initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER],
+                          vita_ip, vita_port);
         setDialogStep(DIALOG_STEP_FTP);
       }
     }
@@ -1593,11 +1609,11 @@ static int fileBrowserMenuCtrl() {
     initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
     setDialogStep(DIALOG_STEP_QR);
   }
-  
+
   // Move  
   if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     int old_pos = base_pos + rel_pos;
-    
+
     if (rel_pos > 0) {
       rel_pos--;
     } else if (base_pos > 0) {
@@ -1671,135 +1687,126 @@ static int fileBrowserMenuCtrl() {
     // Handle file, symlink or folder
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
     if (file_entry) {
-      fileBrowserHandleFileEntry(file_entry);
+      if (file_entry->is_symlink) {
+        fileBrowserHandleSymlink(file_entry);
+      } else if (file_entry->is_folder) {
+        fileBrowserHandleFolder(file_entry);
+      } else {
+        fileBrowserHandleFile(file_entry);
+      }
     }
   }
   return refresh;
 }
 
-static void fileBrowserHandleFileEntry(FileListEntry* file_entry) {
-  if (file_entry) {
-    // handle symlink
-    if (file_entry->is_symlink) {
-      if ((file_entry->symlink->to_file == 1 && !checkFileExist(file_entry->symlink->target_path))
-          || (file_entry->symlink->to_file == 0
-              && !checkFolderExist(file_entry->symlink->target_path))) {
-        // invalid symlink, open as text file
-        // TODO: What if in archive?
-        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
-        textViewer(cur_file);
+static void fileBrowserHandleFile(FileListEntry *file_entry) {
+  snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+  int type = handleFile(cur_file, file_entry);
+
+  // Archive mode
+  if (type == FILE_TYPE_ARCHIVE && getDialogStep() != DIALOG_STEP_ENTER_PASSWORD) {
+    is_in_archive = 1;
+    dir_level_archive = dir_level;
+
+    snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+
+    strcat(file_list.path, file_entry->name);
+    addEndSlash(file_list.path);
+
+    dirLevelUp();
+    refreshFileList();
+  }
+}
+
+static void fileBrowserHandleFolder(FileListEntry *file_entry) {
+  if (strcmp(file_entry->name, DIR_UP) == 0) {
+    dirUp();
+  } else {
+    if (dir_level == 0) {
+      strcpy(file_list.path, file_entry->name);
+    } else {
+      if (dir_level > 1)
+        addEndSlash(file_list.path);
+      strcat(file_list.path, file_entry->name);
+    }
+    dirLevelUp();
+  }
+
+  // Save last dir
+  WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+
+  // Open folder
+  int res = refreshFileList();
+  if (res < 0)
+    errorDialog(res);
+}
+
+static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
+  if ((file_entry->symlink->to_file == 1 && !checkFileExist(file_entry->symlink->target_path))
+      ||
+      (file_entry->symlink->to_file == 0 && !checkFolderExist(file_entry->symlink->target_path))) {
+    // invalid symlink, open as text file
+    // TODO: What if in archive?
+    snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+    textViewer(cur_file);
+    return;
+  }
+  SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
+  if (symlink_path) {
+    if (file_entry->symlink->to_file == 0) {
+      // resolve symlink to directory
+      strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
+      strncpy(symlink_path->last_hook, file_entry->symlink->target_path, MAX_PATH_LENGTH);
+      dirLevelUp();
+      int _dir_level = dir_level; // symlinks escape from dir level structure
+      if (change_to_directory(file_entry->symlink->target_path) < 0) {
+        free(symlink_path);
+        errorDialog(-1); // TODO: introduce error message, not code
         return;
       }
-      SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
-      if (symlink_path) {
-        int _dir_level = dir_level; // symlinks escape from dir level structure
-
-        if (file_entry->symlink->to_file == 0) {
-          // resolve symlink to directory
-          strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
-          strncpy(symlink_path->last_hook, file_entry->symlink->target_path, MAX_PATH_LENGTH);
-          dirLevelUp();
-          if (change_to_directory(file_entry->symlink->target_path) < 0) {
-            free(symlink_path);
-            errorDialog(-1); // TODO: introduce error message, not code
-            return;
-          }
-          WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
-
-        } else {
-          // resolve symlink to file
-          char target_base_directory[MAX_PATH_LENGTH];
-          getBaseDirectory(file_entry->symlink->target_path, target_base_directory); // TODO:
-          if (change_to_directory(target_base_directory) < 0) {
-            free(symlink_path);
-            errorDialog(-1); // TODO: introduce error message, not code
-            return;
-          }
-          strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
-          strncpy(symlink_path->last_hook, target_base_directory, MAX_PATH_LENGTH);
-
-          char target_file_name[MAX_PATH_LENGTH];
-          getFilename(file_entry->symlink->target_path, target_file_name);
-          FileListEntry *resolved_file_entry = fileListFindEntry(&file_list, target_file_name);
-
-          if (!resolved_file_entry) {
-            free(symlink_path);
-            errorDialog(-1); // TODO: introduce error message, not code
-            return;
-          }
-          strncpy(cur_file, file_entry->symlink->target_path, MAX_PATH_LENGTH);
-          int type = handleFile(cur_file, resolved_file_entry);
-
-          // Archive mode
-          if (type == FILE_TYPE_ARCHIVE && getDialogStep() != DIALOG_STEP_ENTER_PASSWORD) {
-            is_in_archive = 1;
-            dir_level_archive = dir_level;
-
-            snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path,
-                     resolved_file_entry->name);
-
-            strcat(file_list.path, resolved_file_entry->name);
-            addEndSlash(file_list.path);
-
-            dirLevelUp();
-            refreshFileList();
-          }
-        }
-        // TODO: do this first? error case gets more complicated if so
-        if (!symlink_directory_path)
-          symlink_directory_path = symlink_path;
-        else {
-          SymlinkDirectoryPath *prev = symlink_directory_path;
-          symlink_directory_path = symlink_path;
-          symlink_directory_path->previous = prev;
-        }
-        dir_level = _dir_level;
-        refreshFileList();
-      }
-
-    // handle folder
-    } else if (file_entry->is_folder) {
-      if (strcmp(file_entry->name, DIR_UP) == 0) {
-        dirUp();
-      } else {
-        if (dir_level == 0) {
-          strcpy(file_list.path, file_entry->name);
-        } else {
-          if (dir_level > 1)
-            addEndSlash(file_list.path);
-          strcat(file_list.path, file_entry->name);
-        }
-        dirLevelUp();
-      }
-
-      // Save last dir
       WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
-
-      // Open folder
-      int res = refreshFileList();
-      if (res < 0)
-        errorDialog(res);
-
-    // handle file
+      storeSymlinkPath(symlink_path);
+      dir_level = _dir_level;
+      refreshFileList();
     } else {
-      snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
-      int type = handleFile(cur_file, file_entry);
-
-      // Archive mode
-      if (type == FILE_TYPE_ARCHIVE && getDialogStep() != DIALOG_STEP_ENTER_PASSWORD) {
-        is_in_archive = 1;
-        dir_level_archive = dir_level;
-
-        snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
-
-        strcat(file_list.path, file_entry->name);
-        addEndSlash(file_list.path);
-
-        dirLevelUp();
-        refreshFileList();
+      // resolve symlink to file
+      dirLevelUp();
+      int _dir_level = dir_level; // symlinks escape from dir level structure
+      char *target_base_directory = getBaseDirectory(file_entry->symlink->target_path);
+      if (!target_base_directory) {
+        free(symlink_path);
+        errorDialog(-1);
+        return;
       }
+      if (change_to_directory(target_base_directory) < 0) {
+        free(symlink_path);
+        errorDialog(-1);
+        return;
+      }
+      strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
+      strncpy(symlink_path->last_hook, target_base_directory, MAX_PATH_LENGTH);
+
+      char *target_file_name = getFilename(file_entry->symlink->target_path);
+      if (!target_file_name) {
+        free(symlink_path);
+        errorDialog(-1);
+        return;
+      }
+      FileListEntry *resolved_file_entry = fileListFindEntry(&file_list, target_file_name);
+      if (!resolved_file_entry) {
+        free(symlink_path);
+        errorDialog(-1);
+        return;
+      }
+      storeSymlinkPath(symlink_path);
+      dir_level = _dir_level;
+      refreshFileList();
+      fileBrowserHandleFile(resolved_file_entry);
     }
   }
+  int res = refreshFileList();
+  if (res < 0)
+    errorDialog(res);
 }
 
 static int shellMain() {
