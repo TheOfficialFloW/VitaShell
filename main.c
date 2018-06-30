@@ -1741,25 +1741,24 @@ static void fileBrowserHandleFolder(FileListEntry *file_entry) {
     errorDialog(res);
 }
 
-
 int jump_to_directory_track_current_path(char *path) {
   SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
   if (symlink_path) {
-      // resolve symlink to directory
-      strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
-      strncpy(symlink_path->last_hook, path, MAX_PATH_LENGTH);
-      dirLevelUp();
-      int _dir_level = dir_level; // we escape from hierarchical dir level structure
-      if (change_to_directory(path) < 0) {
-        free(symlink_path);
-        return -1;
-      }
-      WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
-      storeSymlinkPath(symlink_path);
-      dir_level = _dir_level;
-      refreshFileList();
+    // resolve symlink to directory
+    strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
+    strncpy(symlink_path->last_hook, path, MAX_PATH_LENGTH);
+    dirLevelUp();
+    int _dir_level = dir_level; // we escape from hierarchical dir level structure
+    if (change_to_directory(path) < 0) {
+      free(symlink_path);
+      return -1;
     }
-    return 0;
+    WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+    storeSymlinkPath(symlink_path);
+    dir_level = _dir_level;
+    refreshFileList();
+  }
+  return 0;
 }
 
 static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
@@ -1774,29 +1773,30 @@ static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
   }
   if (file_entry->symlink->to_file == 0) {
     if (jump_to_directory_track_current_path(file_entry->symlink->target_path) < 0) {
-      errorDialog(-1); // TODO: introduce error message, not code
+      errorDialog(1); // TODO: introduce error message, not code
     }
   } else {
     char *target_base_directory = getBaseDirectory(file_entry->symlink->target_path);
     if (!target_base_directory) {
-      errorDialog(-1);
+      errorDialog(-2);
       return;
     }
     char *target_file_name = getFilename(file_entry->symlink->target_path);
     if (!target_file_name) {
-      errorDialog(-1);
+      errorDialog(-3);
       return;
     }
     if (jump_to_directory_track_current_path(target_base_directory) < 0) {
-      errorDialog(-1);
+      errorDialog(-4); // 0xC
       return;
     }
     FileListEntry *resolved_file_entry = fileListFindEntry(&file_list, target_file_name);
     if (!resolved_file_entry) {
-      errorDialog(-1);
+      errorDialog(-5);
       return;
     }
     fileBrowserHandleFile(resolved_file_entry);
+    dirUp();
   }
   int res = refreshFileList();
   if (res < 0)
@@ -1898,7 +1898,7 @@ static int shellMain() {
         if (file_entry->is_symlink) {
           if (file_entry->symlink->to_file) {
             color = FILE_SYMLINK_COLOR;
-            icon = folder_symlink_icon;
+            icon = file_symlink_icon;
           } else {
             color = FOLDER_SYMLINK_COLOR;
             icon = folder_symlink_icon;

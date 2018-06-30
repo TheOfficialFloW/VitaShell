@@ -1152,14 +1152,15 @@ int createSymLink(const char* store_location, const char *target) {
 }
 
 // extract file name from path and return base path
-// directory separation char is not in result
+// / is present at the end
 // in case of error, return NULL
 // result is at most MAX_PATH_LEN
 char * getBaseDirectory(const char * path) {
   int i;
   int sep_ind = -1;
   int len = strlen(path);
-  if (len > MAX_PATH_LENGTH || len <= 0) return NULL;
+  if (len > MAX_PATH_LENGTH  || len <= 0) return NULL;
+
   for(i = len - 1; i >=0; i --) {
     if (path[i] == '/' || path[i] == ':') {
       sep_ind = i;
@@ -1169,8 +1170,14 @@ char * getBaseDirectory(const char * path) {
   if (sep_ind == -1) return NULL;
   char * res = (char *) malloc(MAX_PATH_LENGTH);
   if (!res) return NULL;
-  strncpy(res, path, sep_ind); // dont copy separation char
-  res[sep_ind] = '\0';
+  strncpy(res, path, sep_ind + 1); // include separation char
+
+  if (res[sep_ind] != '/') { // in case we copied partition: path
+    res[sep_ind + 1] = '/';
+  }
+  if (sep_ind + 2 < MAX_PATH_LENGTH) {
+    res[sep_ind + 2] = '\0';
+  }
   return res;
 }
 
