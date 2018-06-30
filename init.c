@@ -389,6 +389,9 @@ void initVitaShell() {
   if (!checkFolderExist(VITASHELL_BOOKMARKS_PATH)) {
     sceIoMkdir(VITASHELL_BOOKMARKS_PATH, 0777);
   }
+  if (!checkFolderExist(VITASHELL_RECENT_PATH)) {
+    sceIoMkdir(VITASHELL_RECENT_PATH, 0777);
+  }
 
   time_last_pad_rtrigger = 0;
 }

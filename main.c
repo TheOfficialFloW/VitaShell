@@ -98,6 +98,7 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 int use_custom_config = 1;
 
 SceInt64 time_last_pad_rtrigger;
+SceInt64 time_last_pad_ltrigger;
 
 static void setFocusOnFilename(const char *name);
 static void fileBrowserHandleSymlink(FileListEntry* file_entry);
@@ -416,6 +417,24 @@ static int handleFile(const char *file, FileListEntry *entry) {
     errorDialog(res);
     return res;
   }
+
+  // create recent symlink of folder and file
+  char target[MAX_PATH_LENGTH];
+  // TODO: do we want to add folders too?
+//  char * base = getBaseDirectory(file);
+//  if (base) {
+//    removeEndSlash(base);
+//    char* folder_name = getFilename(base);
+//    if (folder_name) {
+//      snprintf(target, MAX_PATH_LENGTH - 1, "%s%s", VITASHELL_RECENT_PATH, folder_name);
+//      addEndSlash(base);
+//      createSymLink(target, base);
+//      free(folder_name);
+//    }
+//    free(base);
+//  }
+  snprintf(target, MAX_PATH_LENGTH - 1, "%s%s", VITASHELL_RECENT_PATH, entry->name);
+  createSymLink(target, file);
 
   return type;
 }
@@ -1624,6 +1643,18 @@ static int fileBrowserMenuCtrl() {
     time_last_pad_rtrigger = now;
   }
 
+  // recent files shortcut
+  if (hold_pad[PAD_LTRIGGER] && pressed_pad[PAD_LTRIGGER]) {
+    SceInt64 now = sceKernelGetSystemTimeWide();
+    if (now - time_last_pad_ltrigger < THRESHOLD_LAST_PAD_LTRIGGER) {
+      if (strncmp(file_list.path, VITASHELL_RECENT_PATH, MAX_PATH_LENGTH) != 0) {
+        char path[MAX_PATH_LENGTH] = VITASHELL_RECENT_PATH;
+        jump_to_directory_track_current_path(path);
+      }
+    }
+    time_last_pad_ltrigger = now;
+  }
+
   // Move  
   if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     int old_pos = base_pos + rel_pos;
@@ -1878,6 +1909,16 @@ static int shellMain() {
     }
 
     if (refresh != REFRESH_MODE_NONE) {
+      // TODO: store old sort mode before overwrite
+      // better place: When opening directory
+      char * contains = strstr(file_list.path, VITASHELL_RECENT_PATH);
+      if (contains) {
+        sort_mode = SORT_BY_DATE;
+        free(contains);
+      } else {
+        sort_mode = SORT_BY_NAME;
+      }
+
       // Refresh lists
       refreshFileList();
       refreshMarkList();
