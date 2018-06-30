@@ -255,6 +255,9 @@ extern char archive_path[MAX_PATH_LENGTH];
 
 extern int base_pos, rel_pos;
 extern int sort_mode, copy_mode;
+extern SceInt64 time_last_pad_rtrigger;
+
+#define THRESHOLD_LAST_PAD_RTRIGGER 1000000
 
 extern vita2d_pgf *font;
 extern char font_size_cache[256];

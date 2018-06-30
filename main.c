@@ -97,6 +97,8 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 // Use custom config
 int use_custom_config = 1;
 
+SceInt64 time_last_pad_rtrigger;
+
 static void setFocusOnFilename(const char *name);
 static void fileBrowserHandleSymlink(FileListEntry* file_entry);
 static void fileBrowserHandleFolder(FileListEntry* file_entry);
@@ -1610,6 +1612,18 @@ static int fileBrowserMenuCtrl() {
     setDialogStep(DIALOG_STEP_QR);
   }
 
+  // bookmarks shortcut
+  if (hold_pad[PAD_RTRIGGER] && pressed_pad[PAD_RTRIGGER]) {
+    SceInt64 now = sceKernelGetSystemTimeWide();
+    if (now - time_last_pad_rtrigger < THRESHOLD_LAST_PAD_RTRIGGER) {
+      if (strncmp(file_list.path, VITASHELL_BOOKMARKS_PATH, MAX_PATH_LENGTH) != 0) {
+        char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
+        jump_to_directory_track_current_path(path);
+      }
+    }
+    time_last_pad_rtrigger = now;
+  }
+
   // Move  
   if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     int old_pos = base_pos + rel_pos;
@@ -1744,7 +1758,6 @@ static void fileBrowserHandleFolder(FileListEntry *file_entry) {
 int jump_to_directory_track_current_path(char *path) {
   SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
   if (symlink_path) {
-    // resolve symlink to directory
     strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
     strncpy(symlink_path->last_hook, path, MAX_PATH_LENGTH);
     dirLevelUp();
@@ -1763,9 +1776,7 @@ int jump_to_directory_track_current_path(char *path) {
 
 static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
   if ((file_entry->symlink->to_file == 1 && !checkFileExist(file_entry->symlink->target_path))
-      ||
-      (file_entry->symlink->to_file == 0 && !checkFolderExist(file_entry->symlink->target_path))) {
-    // invalid symlink, open as text file
+      || (file_entry->symlink->to_file == 0 && !checkFolderExist(file_entry->symlink->target_path))) {
     // TODO: What if in archive?
     snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
     textViewer(cur_file);
