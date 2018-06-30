@@ -1773,7 +1773,7 @@ static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
   }
   if (file_entry->symlink->to_file == 0) {
     if (jump_to_directory_track_current_path(file_entry->symlink->target_path) < 0) {
-      errorDialog(1); // TODO: introduce error message, not code
+      errorDialog(-4);
     }
   } else {
     char *target_base_directory = getBaseDirectory(file_entry->symlink->target_path);
