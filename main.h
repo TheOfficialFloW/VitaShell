@@ -262,6 +262,11 @@ extern SceInt64 time_last_pad_ltrigger;
 #define THRESHOLD_LAST_PAD_RTRIGGER 1000000
 #define THRESHOLD_LAST_PAD_LTRIGGER THRESHOLD_LAST_PAD_RTRIGGER
 
+// minimum time to pass before shortcutting to recent files/ bookmarks via L/R keys
+extern SceInt64 time_last_recent_files, time_last_bookmars;
+#define THRESHOLD_LAST_PAD_RECENT_FILES_WAIT 1000000
+#define THRESHOLD_LAST_PAD_BOOKMARKS_WAIT 1000000
+
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 

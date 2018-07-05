@@ -392,8 +392,10 @@ void initVitaShell() {
   if (!checkFolderExist(VITASHELL_RECENT_PATH)) {
     sceIoMkdir(VITASHELL_RECENT_PATH, 0777);
   }
-
+  time_last_pad_ltrigger = 0;
   time_last_pad_rtrigger = 0;
+  time_last_recent_files = 0;
+  time_last_bookmars = 0;
 }
 
 void finishVitaShell() {
