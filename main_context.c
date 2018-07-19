@@ -76,6 +76,7 @@ enum MenuMainEntrys {
   MENU_MAIN_ENTRY_NEW,
   MENU_MAIN_ENTRY_PROPERTIES,
   MENU_MAIN_ENTRY_SORT_BY,
+  MENU_MAIN_ENTRY_BOOKMARKS,
   MENU_MAIN_ENTRY_MORE,
   MENU_MAIN_ENTRY_SEND,
   MENU_MAIN_ENTRY_RECEIVE,
@@ -92,7 +93,8 @@ MenuEntry menu_main_entries[] = {
   { NEW,            10, CTX_FLAG_MORE, CTX_VISIBLE },
   { PROPERTIES,     11, 0, CTX_INVISIBLE },
   { SORT_BY,        13, CTX_FLAG_MORE, CTX_VISIBLE },
-  { MORE,           14, CTX_FLAG_MORE, CTX_INVISIBLE },
+  { BOOKMARKS,      14, CTX_FLAG_MORE, CTX_VISIBLE },
+  { MORE,           15, CTX_FLAG_MORE, CTX_INVISIBLE },
   { SEND,           17, 0, CTX_INVISIBLE }, // CTX_FLAG_BARRIER
   { RECEIVE,        18, 0, CTX_INVISIBLE },
 };
@@ -112,6 +114,18 @@ MenuEntry menu_sort_entries[] = {
 };
 
 #define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries) / sizeof(MenuEntry))
+
+enum MenuBookmarksEntrys {
+  MENU_BOOKMARKS_SHOW,
+  MENU_BOOKMARKS_NEW
+};
+
+MenuEntry menu_bookmarks_entries[] = {
+    { BOOKMARKS_SHOW, 14, 0, CTX_INVISIBLE },
+    { BOOKMARKS_NEW, 15, 0, CTX_INVISIBLE },
+};
+
+#define N_MENU_BOOKMARKS_ENTRIES (sizeof(menu_bookmarks_entries) / sizeof(MenuEntry))
 
 enum MenuMoreEntrys {
   MENU_MORE_ENTRY_COMPRESS,
@@ -148,6 +162,7 @@ static int contextMenuHomeEnterCallback(int sel, void *context);
 static int contextMenuMainEnterCallback(int sel, void *context);
 static int contextMenuSortEnterCallback(int sel, void *context);
 static int contextMenuMoreEnterCallback(int sel, void *context);
+static int contextMenuBookmarksEnterCallback(int sel, void *context);
 static int contextMenuNewEnterCallback(int sel, void *context);
 
 ContextMenu context_menu_home = {
@@ -175,6 +190,15 @@ ContextMenu context_menu_sort = {
   .max_width = 0.0f,
   .callback = contextMenuSortEnterCallback,
   .sel = -1,
+};
+
+ContextMenu context_menu_bookmarks = {
+    .parent = &context_menu_main,
+    .entries = menu_bookmarks_entries,
+    .n_entries = N_MENU_BOOKMARKS_ENTRIES,
+    .max_width = 0.0f,
+    .callback = contextMenuBookmarksEnterCallback,
+    .sel = -1,
 };
 
 ContextMenu context_menu_more = {
@@ -287,7 +311,8 @@ void initContextMenuWidth() {
 
   // Main
   for (i = 0; i < N_MENU_MAIN_ENTRIES; i++) {
-    context_menu_main.max_width = MAX(context_menu_main.max_width, pgf_text_width(language_container[menu_main_entries[i].name]));
+    context_menu_main.max_width = MAX(context_menu_main.max_width,
+        pgf_text_width(language_container[menu_main_entries[i].name]));
 
     if (menu_main_entries[i].name == MARK_ALL) {
       menu_main_entries[i].name = UNMARK_ALL;
@@ -305,6 +330,14 @@ void initContextMenuWidth() {
 
   context_menu_sort.max_width += 2.0f * CONTEXT_MENU_MARGIN;
   context_menu_sort.max_width = MAX(context_menu_sort.max_width, CONTEXT_MENU_MIN_WIDTH);
+
+  // bookmarks
+  for (i = 0; i < N_MENU_BOOKMARKS_ENTRIES; i++) {
+    context_menu_bookmarks.max_width = MAX(context_menu_bookmarks.max_width,
+        pgf_text_width(language_container[menu_bookmarks_entries[i].name]));
+  }
+  context_menu_bookmarks.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+  context_menu_bookmarks.max_width = MAX(context_menu_bookmarks.max_width, CONTEXT_MENU_MIN_WIDTH);
 
   // More
   for (i = 0; i < N_MENU_MORE_ENTRIES; i++) {
@@ -489,6 +522,39 @@ void setContextMenuMainVisibilities() {
 
   if (i == N_MENU_MAIN_ENTRIES)
     context_menu_main.sel = -1;
+}
+
+void setContextMenuBookmarksVisibilities() {
+  int i;
+
+  // All visible
+  for (i = 0; i < N_MENU_BOOKMARKS_ENTRIES; i++) {
+    if (menu_bookmarks_entries[i].visibility == CTX_INVISIBLE)
+      menu_bookmarks_entries[i].visibility = CTX_VISIBLE;
+  }
+
+  FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+  if (file_entry) {
+    // Invisble entries when on '..'
+    if (strcmp(file_entry->name, DIR_UP) == 0 || file_entry->is_symlink) {
+      menu_bookmarks_entries[MENU_BOOKMARKS_NEW].visibility = CTX_INVISIBLE;
+    }
+  } else {
+    menu_bookmarks_entries[MENU_BOOKMARKS_NEW].visibility = CTX_INVISIBLE;
+  }
+
+
+  // Go to first entry
+  for (i = 0; i < N_MENU_BOOKMARKS_ENTRIES; i++) {
+    if (menu_bookmarks_entries[i].visibility == CTX_VISIBLE) {
+      context_menu_bookmarks.sel = i;
+      break;
+    }
+  }
+
+  if (i == N_MENU_BOOKMARKS_ENTRIES)
+    context_menu_bookmarks.sel = -1;
+
 }
 
 void setContextMenuSortVisibilities() {
@@ -1017,7 +1083,12 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
       setContextMenuSortVisibilities();
       return CONTEXT_MENU_MORE_OPENING;
     }
-
+    case MENU_MAIN_ENTRY_BOOKMARKS:
+    {
+      setContextMenu(&context_menu_bookmarks);
+      setContextMenuBookmarksVisibilities();
+      return CONTEXT_MENU_MORE_OPENING;
+    }
     case MENU_MAIN_ENTRY_SEND:
     {
       initNetCheckDialog(SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_JOIN, 60 * 1000 * 1000);
@@ -1172,6 +1243,35 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
       break;
     }
   }
+
+  return CONTEXT_MENU_CLOSING;
+}
+
+static int contextMenuBookmarksEnterCallback(int sel, void *context) {
+  switch (sel) {
+    case MENU_BOOKMARKS_NEW: {
+      FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+      if (file_entry) {
+        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        char target[MAX_PATH_LENGTH];
+        snprintf(target, MAX_PATH_LENGTH - 1, "%s%s", VITASHELL_BOOKMARKS_PATH, file_entry->name);
+        int res;
+        if ((res = createSymLink(target, cur_file)) < 0) {
+          errorDialog(res);
+        };
+      } else {
+        errorDialog(-2);
+      }
+      break;
+    }
+    case MENU_BOOKMARKS_SHOW: {
+      char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
+      jump_to_directory_track_current_path(path);
+      break;
+    }
+  }
+  // Refresh list
+  refreshFileList();
 
   return CONTEXT_MENU_CLOSING;
 }

@@ -97,6 +97,33 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 // Use custom config
 int use_custom_config = 1;
 
+SceInt64 time_last_pad_rtrigger;
+SceInt64 time_last_pad_ltrigger;
+SceInt64 time_last_recent_files, time_last_bookmars;
+
+static void setFocusOnFilename(const char *name);
+static void fileBrowserHandleSymlink(FileListEntry* file_entry);
+static void fileBrowserHandleFolder(FileListEntry* file_entry);
+static void fileBrowserHandleFile(FileListEntry* file_entry);
+
+typedef struct SymlinkDirectoryPath {
+  struct SymlinkDirectoryPath* previous;
+  char last_path[MAX_PATH_LENGTH]; // contains / at the end
+  char last_hook[MAX_PATH_LENGTH]; // contains / at the end
+} SymlinkDirectoryPath;
+
+static SymlinkDirectoryPath* symlink_directory_path = NULL;
+
+static void storeSymlinkPath(SymlinkDirectoryPath * path) {
+  if (!symlink_directory_path)
+    symlink_directory_path = path;
+  else {
+    SymlinkDirectoryPath *prev = symlink_directory_path;
+    symlink_directory_path = path;
+    symlink_directory_path->previous = prev;
+  }
+}
+
 int getDialogStep() {
   sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
   volatile int step = dialog_step;
@@ -132,6 +159,45 @@ void dirUpCloseArchive() {
   }
 }
 
+int change_to_directory(char* lastdir) {
+  if (!checkFolderExist(lastdir)) {
+    return -1;
+  } else {
+    if (isInArchive()) {
+      dirUpCloseArchive();
+    }
+    int i;
+    for (i = 0; i < strlen(lastdir) + 1; i++) {
+      if (lastdir[i] == ':' || lastdir[i] == '/') {
+        char ch = lastdir[i + 1];
+        lastdir[i + 1] = '\0';
+
+        char ch2 = lastdir[i];
+        lastdir[i] = '\0';
+
+        char *p = strrchr(lastdir, '/');
+        if (!p)
+          p = strrchr(lastdir, ':');
+        if (!p)
+          p = lastdir - 1;
+
+        lastdir[i] = ch2;
+
+        refreshFileList();
+        setFocusOnFilename(p + 1);
+
+        strcpy(file_list.path, lastdir);
+
+        lastdir[i + 1] = ch;
+
+        dirLevelUp();
+      }
+    }
+  }
+  refreshFileList();
+  return 0;
+}
+
 static void dirUp() {
   if (pfs_mounted_path[0] &&
       strcmp(file_list.path, pfs_mounted_path) == 0 && // we're about to leave the pfs path
@@ -140,10 +206,19 @@ static void dirUp() {
     pfsUmount();
   }
 
+  if (symlink_directory_path
+      && strncmp(file_list.path, symlink_directory_path->last_hook, MAX_PATH_LENGTH) == 0) {
+    strcpy(file_list.path, symlink_directory_path->last_path);
+    SymlinkDirectoryPath* prev = symlink_directory_path->previous;
+    free(symlink_directory_path);
+    symlink_directory_path = prev;
+    dir_level--;
+    goto DIR_UP_RETURN;
+  }
+
   removeEndSlash(file_list.path);
 
   char *p;
-
   p = strrchr(file_list.path, '/');
   if (p) {
     p[1] = '\0';
@@ -343,6 +418,24 @@ static int handleFile(const char *file, FileListEntry *entry) {
     errorDialog(res);
     return res;
   }
+
+  // create recent symlink of folder and file
+  char target[MAX_PATH_LENGTH];
+  // TODO: do we want to add folders too?
+//  char * base = getBaseDirectory(file);
+//  if (base) {
+//    removeEndSlash(base);
+//    char* folder_name = getFilename(base);
+//    if (folder_name) {
+//      snprintf(target, MAX_PATH_LENGTH - 1, "%s%s", VITASHELL_RECENT_PATH, folder_name);
+//      addEndSlash(base);
+//      createSymLink(target, base);
+//      free(folder_name);
+//    }
+//    free(base);
+//  }
+  snprintf(target, MAX_PATH_LENGTH - 1, "%s%s", VITASHELL_RECENT_PATH, entry->name);
+  createSymLink(target, file);
 
   return type;
 }
@@ -1491,21 +1584,24 @@ static int fileBrowserMenuCtrl() {
 
   // SELECT button
   if (pressed_pad[PAD_SELECT]) {
-    if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB && sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
+    if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB &&
+        sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
       if (is_safe_mode) {
         infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
       } else {
         SceUdcdDeviceState state;
         sceUdcdGetDeviceState(&state);
-        
+
         if (state.cable & SCE_UDCD_STATUS_CABLE_CONNECTED) {
           initUsb();
         } else {
-          initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_NOT_CONNECTED]);
+          initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL,
+                            language_container[USB_NOT_CONNECTED]);
           setDialogStep(DIALOG_STEP_USB_WAIT);
         }
       }
-    } else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP || sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
+    } else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP ||
+               sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
       // Init FTP
       if (!ftpvita_is_initialized()) {
         int res = ftpvita_init(vita_ip, &vita_port);
@@ -1522,7 +1618,8 @@ static int fileBrowserMenuCtrl() {
 
       // Dialog
       if (ftpvita_is_initialized()) {
-        initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
+        initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER],
+                          vita_ip, vita_port);
         setDialogStep(DIALOG_STEP_FTP);
       }
     }
@@ -1534,11 +1631,42 @@ static int fileBrowserMenuCtrl() {
     initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
     setDialogStep(DIALOG_STEP_QR);
   }
-  
+
+  // bookmarks shortcut
+  if (hold_pad[PAD_RTRIGGER] && pressed_pad[PAD_RTRIGGER]) {
+    SceInt64 now = sceKernelGetSystemTimeWide();
+    if (now - time_last_bookmars > THRESHOLD_LAST_PAD_BOOKMARKS_WAIT
+        && now - time_last_pad_rtrigger < THRESHOLD_LAST_PAD_RTRIGGER) {
+      // wait for THRESHOLD_LAST_PAD_BOOKMARKS_WAIT before switching to bookmarks again
+      // because switching too quickly back and forth causes VS to crash
+
+      if (strncmp(file_list.path, VITASHELL_BOOKMARKS_PATH, MAX_PATH_LENGTH) != 0) {
+        char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
+        jump_to_directory_track_current_path(path);
+        time_last_bookmars = now;
+      }
+    }
+    time_last_pad_rtrigger = now;
+  }
+
+  // recent files shortcut
+  if (hold_pad[PAD_LTRIGGER] && pressed_pad[PAD_LTRIGGER]) {
+    SceInt64 now = sceKernelGetSystemTimeWide();
+    if (now - time_last_recent_files > THRESHOLD_LAST_PAD_RECENT_FILES_WAIT
+        && now - time_last_pad_ltrigger < THRESHOLD_LAST_PAD_LTRIGGER) {
+      if (strncmp(file_list.path, VITASHELL_RECENT_PATH, MAX_PATH_LENGTH) != 0) {
+        char path[MAX_PATH_LENGTH] = VITASHELL_RECENT_PATH;
+        jump_to_directory_track_current_path(path);
+        time_last_recent_files = now;
+      }
+    }
+    time_last_pad_ltrigger = now;
+  }
+
   // Move  
   if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     int old_pos = base_pos + rel_pos;
-    
+
     if (rel_pos > 0) {
       rel_pos--;
     } else if (base_pos > 0) {
@@ -1609,53 +1737,120 @@ static int fileBrowserMenuCtrl() {
 
     fileListEmpty(&mark_list);
 
-    // Handle file or folder
+    // Handle file, symlink or folder
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
     if (file_entry) {
-      if (file_entry->is_folder) {
-        if (strcmp(file_entry->name, DIR_UP) == 0) {
-          dirUp();
-        } else {
-          if (dir_level == 0) {
-            strcpy(file_list.path, file_entry->name);
-          } else {
-            if (dir_level > 1)
-              addEndSlash(file_list.path);
-            strcat(file_list.path, file_entry->name);
-          }
-
-          dirLevelUp();
-        }
-
-        // Save last dir
-        WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
-
-        // Open folder
-        int res = refreshFileList();
-        if (res < 0)
-          errorDialog(res);
+      if (file_entry->is_symlink) {
+        fileBrowserHandleSymlink(file_entry);
+      } else if (file_entry->is_folder) {
+        fileBrowserHandleFolder(file_entry);
       } else {
-        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
-        int type = handleFile(cur_file, file_entry);
-
-        // Archive mode
-        if (type == FILE_TYPE_ARCHIVE && getDialogStep() != DIALOG_STEP_ENTER_PASSWORD) {
-          is_in_archive = 1;
-          dir_level_archive = dir_level;
-
-          snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
-
-          strcat(file_list.path, file_entry->name);
-          addEndSlash(file_list.path);
-
-          dirLevelUp();
-          refreshFileList();
-        }
+        fileBrowserHandleFile(file_entry);
       }
     }
   }
-
   return refresh;
+}
+
+static void fileBrowserHandleFile(FileListEntry *file_entry) {
+  snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+  int type = handleFile(cur_file, file_entry);
+
+  // Archive mode
+  if (type == FILE_TYPE_ARCHIVE && getDialogStep() != DIALOG_STEP_ENTER_PASSWORD) {
+    is_in_archive = 1;
+    dir_level_archive = dir_level;
+
+    snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+
+    strcat(file_list.path, file_entry->name);
+    addEndSlash(file_list.path);
+
+    dirLevelUp();
+    refreshFileList();
+  }
+}
+
+static void fileBrowserHandleFolder(FileListEntry *file_entry) {
+  if (strcmp(file_entry->name, DIR_UP) == 0) {
+    dirUp();
+  } else {
+    if (dir_level == 0) {
+      strcpy(file_list.path, file_entry->name);
+    } else {
+      if (dir_level > 1)
+        addEndSlash(file_list.path);
+      strcat(file_list.path, file_entry->name);
+    }
+    dirLevelUp();
+  }
+
+  // Save last dir
+  WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+
+  // Open folder
+  int res = refreshFileList();
+  if (res < 0)
+    errorDialog(res);
+}
+
+int jump_to_directory_track_current_path(char *path) {
+  SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
+  if (symlink_path) {
+    strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
+    strncpy(symlink_path->last_hook, path, MAX_PATH_LENGTH);
+    dirLevelUp();
+    int _dir_level = dir_level; // we escape from hierarchical dir level structure
+    if (change_to_directory(path) < 0) {
+      free(symlink_path);
+      return -1;
+    }
+    WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
+    storeSymlinkPath(symlink_path);
+    dir_level = _dir_level;
+    refreshFileList();
+  }
+  return 0;
+}
+
+static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
+  if ((file_entry->symlink->to_file == 1 && !checkFileExist(file_entry->symlink->target_path))
+      || (file_entry->symlink->to_file == 0 && !checkFolderExist(file_entry->symlink->target_path))) {
+    // TODO: What if in archive?
+    snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+    textViewer(cur_file);
+    return;
+  }
+  if (file_entry->symlink->to_file == 0) {
+    if (jump_to_directory_track_current_path(file_entry->symlink->target_path) < 0) {
+      errorDialog(-4);
+    }
+  } else {
+    char *target_base_directory = getBaseDirectory(file_entry->symlink->target_path);
+    if (!target_base_directory) {
+      errorDialog(-2);
+      return;
+    }
+    char *target_file_name = getFilename(file_entry->symlink->target_path);
+    if (!target_file_name) {
+      errorDialog(-3);
+      return;
+    }
+    if (jump_to_directory_track_current_path(target_base_directory) < 0) {
+      errorDialog(-4); // 0xC
+      return;
+    }
+    FileListEntry *resolved_file_entry = fileListFindEntry(&file_list, target_file_name);
+    if (!resolved_file_entry) {
+      errorDialog(-5);
+      return;
+    }
+    fileBrowserHandleFile(resolved_file_entry);
+    dirUp();
+  }
+  int res = refreshFileList();
+  if (res < 0)
+    errorDialog(res);
 }
 
 static int shellMain() {
@@ -1680,39 +1875,8 @@ static int shellMain() {
     // Last dir
     char lastdir[MAX_PATH_LENGTH];
     ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
-
-    // Calculate dir positions if the dir is valid
-    if (checkFolderExist(lastdir)) {
-      int i;
-      for (i = 0; i < strlen(lastdir) + 1; i++) {
-        if (lastdir[i] == ':' || lastdir[i] == '/') {
-          char ch = lastdir[i + 1];
-          lastdir[i + 1] = '\0';
-
-          char ch2 = lastdir[i];
-          lastdir[i] = '\0';
-
-          char *p = strrchr(lastdir, '/');
-          if (!p)
-            p = strrchr(lastdir, ':');
-          if (!p)
-            p = lastdir - 1;
-
-          lastdir[i] = ch2;
-
-          refreshFileList();
-          setFocusOnFilename(p + 1);
-
-          strcpy(file_list.path, lastdir);
-
-          lastdir[i + 1] = ch;
-
-          dirLevelUp();
-        }
-      }
-    }
+    change_to_directory(lastdir);
   }
-
   // Refresh file list
   refreshFileList();
 
@@ -1753,6 +1917,16 @@ static int shellMain() {
     }
 
     if (refresh != REFRESH_MODE_NONE) {
+      // TODO: store old sort mode before overwrite
+      // better place: When opening directory
+      char * contains = strstr(file_list.path, VITASHELL_RECENT_PATH);
+      if (contains) {
+        sort_mode = SORT_BY_DATE;
+        free(contains);
+      } else {
+        sort_mode = SORT_BY_NAME;
+      }
+
       // Refresh lists
       refreshFileList();
       refreshMarkList();
@@ -1781,9 +1955,17 @@ static int shellMain() {
         float y = START_Y + (i * FONT_Y_SPACE);
 
         vita2d_texture *icon = NULL;
-
+        if (file_entry->is_symlink) {
+          if (file_entry->symlink->to_file) {
+            color = FILE_SYMLINK_COLOR;
+            icon = file_symlink_icon;
+          } else {
+            color = FOLDER_SYMLINK_COLOR;
+            icon = folder_symlink_icon;
+          }
+        }
         // Folder
-        if (file_entry->is_folder) {
+        else if (file_entry->is_folder) {
           color = FOLDER_COLOR;
           icon = folder_icon;
         } else {
@@ -1841,11 +2023,21 @@ static int shellMain() {
         // Draw file name
         vita2d_enable_clipping();
         vita2d_set_clip_rectangle(FILE_X + 1.0f, y, FILE_X + 1.0f + MAX_NAME_WIDTH, y + FONT_Y_SPACE);
-        
+
         float x = FILE_X;
-        
+
+        char file_name[MAX_PATH_LENGTH];
+        memset(file_name, 0, sizeof(MAX_PATH_LENGTH));
+
+        if (file_entry->is_symlink) {
+          snprintf(file_name, MAX_PATH_LENGTH, "%s  -> %s",
+                   file_entry->name, file_entry->symlink->target_path);
+        } else {
+          strncpy(file_name, file_entry->name, file_entry->name_length + 1);
+          file_name[file_entry->name_length] = '\0';
+        }
         if (i == rel_pos) {
-          int width = (int)pgf_text_width(file_entry->name);
+          int width = (int)pgf_text_width(file_name);
           if (width >= MAX_NAME_WIDTH) {
             if (scroll_count < 60) {
               scroll_x = x;
@@ -1864,7 +2056,7 @@ static int shellMain() {
           }
         }
 
-        pgf_draw_text(x, y, color, file_entry->name);
+        pgf_draw_text(x, y, color, file_name);
 
         vita2d_disable_clipping();
 

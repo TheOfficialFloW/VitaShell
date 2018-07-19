@@ -25,25 +25,27 @@
 #include "strnatcmp.h"
 
 static char *devices[] = {
-  "gro0:",
-  "grw0:",
-  "imc0:",
-  "os0:",
-  "pd0:",
-  "sa0:",
-  "sd0:",
-  "tm0:",
-  "ud0:",
-  "uma0:",
-  "ur0:",
-  "ux0:",
-  "vd0:",
-  "vs0:",
-  "xmc0:",
-  "host0:",
+    "gro0:",
+    "grw0:",
+    "imc0:",
+    "os0:",
+    "pd0:",
+    "sa0:",
+    "sd0:",
+    "tm0:",
+    "ud0:",
+    "uma0:",
+    "ur0:",
+    "ux0:",
+    "vd0:",
+    "vs0:",
+    "xmc0:",
+    "host0:",
 };
 
 #define N_DEVICES (sizeof(devices) / sizeof(char **))
+
+const char symlink_header_bytes[SYMLINK_HEADER_SIZE] = {0xF1, 0x1E, 0x00, 0x00};
 
 int allocateReadFile(const char *file, void **buffer) {
   SceUID fd = sceIoOpen(file, SCE_O_RDONLY, 0);
@@ -435,13 +437,13 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
     sceIoGetstatByFd(dfd, &stat);
 
     stat.st_mode |= SCE_S_IWUSR;
-    
+
     int ret = sceIoMkdir(dst_path, stat.st_mode & 0xFFF);
     if (ret < 0 && ret != SCE_ERROR_ERRNO_EEXIST) {
       sceIoDclose(dfd);
       return ret;
     }
-    
+
     if (ret == SCE_ERROR_ERRNO_EEXIST) {
       sceIoChstat(dst_path, &stat, 0x3B);
     }
@@ -755,12 +757,12 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
       char entry_name[MAX_NAME_LENGTH];
       strcpy(entry_name, entry->name);
       removeEndSlash(entry_name);
-      
+
       while (p) {
         char p_name[MAX_NAME_LENGTH];
         strcpy(p_name, p->name);
         removeEndSlash(p_name);
-        
+
         // '..' is always at first
         if (strcmp(entry_name, "..") == 0)
           break;
@@ -841,7 +843,7 @@ void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
         list->tail = entry;
       } else { // Order: previous -> entry -> p
         previous->next = entry;
-        entry->previous = previous; 
+        entry->previous = previous;
         entry->next = p;
         p->previous = entry;
       }
@@ -964,6 +966,7 @@ int fileListGetDeviceEntries(FileList *list) {
           strcpy(entry->name, devices[i]);
           entry->is_folder = 1;
           entry->type = FILE_TYPE_UNKNOWN;
+          entry->is_symlink = 0;
 
           SceIoDevInfo info;
           memset(&info, 0, sizeof(SceIoDevInfo));
@@ -980,9 +983,9 @@ int fileListGetDeviceEntries(FileList *list) {
             }
           }
 
-          memcpy(&entry->ctime, (SceDateTime *)&stat.st_ctime, sizeof(SceDateTime));
-          memcpy(&entry->mtime, (SceDateTime *)&stat.st_mtime, sizeof(SceDateTime));
-          memcpy(&entry->atime, (SceDateTime *)&stat.st_atime, sizeof(SceDateTime));
+          memcpy(&entry->ctime, (SceDateTime *) &stat.st_ctime, sizeof(SceDateTime));
+          memcpy(&entry->mtime, (SceDateTime *) &stat.st_mtime, sizeof(SceDateTime));
+          memcpy(&entry->atime, (SceDateTime *) &stat.st_atime, sizeof(SceDateTime));
 
           fileListAddEntry(list, entry, SORT_BY_NAME);
 
@@ -1010,6 +1013,7 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
     strcpy(entry->name, DIR_UP);
     entry->is_folder = 1;
     entry->type = FILE_TYPE_UNKNOWN;
+    entry->is_symlink = 0;
     fileListAddEntry(list, entry, sort);
   }
 
@@ -1024,6 +1028,9 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
       FileListEntry *entry = malloc(sizeof(FileListEntry));
       if (entry) {
         entry->is_folder = SCE_S_ISDIR(dir.d_stat.st_mode);
+        entry->is_symlink = 0;
+        entry->symlink = NULL;
+
         if (entry->is_folder) {
           entry->name_length = strlen(dir.d_name) + 1;
           entry->name = malloc(entry->name_length + 1);
@@ -1037,13 +1044,34 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
           strcpy(entry->name, dir.d_name);
           entry->type = getFileType(entry->name);
           list->files++;
+
+          if (dir.d_stat.st_size <= SYMLINK_MAX_SIZE) {
+            char *p = malloc(strlen(path) + strlen(dir.d_name) + 2);
+            if (!p) {
+              return -1;
+            }
+            snprintf(p, MAX_PATH_LENGTH - 1, "%s%s%s",
+                     path, hasEndSlash(path) ? "" : "/", dir.d_name);
+
+            Symlink* symlink = malloc(sizeof(Symlink));
+            if (!symlink) {
+              return -1;
+            }
+            int res = resolveSimLink(symlink, p);
+            if (res < 0) {
+              if (symlink)
+                free(symlink);
+            } else {
+              entry->is_symlink = 1;
+              entry->symlink = symlink;
+            }
+            free(p);
+          }
         }
-
         entry->size = dir.d_stat.st_size;
-
-        memcpy(&entry->ctime, (SceDateTime *)&dir.d_stat.st_ctime, sizeof(SceDateTime));
-        memcpy(&entry->mtime, (SceDateTime *)&dir.d_stat.st_mtime, sizeof(SceDateTime));
-        memcpy(&entry->atime, (SceDateTime *)&dir.d_stat.st_atime, sizeof(SceDateTime));
+        memcpy(&entry->ctime, (SceDateTime *) &dir.d_stat.st_ctime, sizeof(SceDateTime));
+        memcpy(&entry->mtime, (SceDateTime *) &dir.d_stat.st_mtime, sizeof(SceDateTime));
+        memcpy(&entry->atime, (SceDateTime *) &dir.d_stat.st_atime, sizeof(SceDateTime));
 
         fileListAddEntry(list, entry, sort);
       }
@@ -1068,4 +1096,121 @@ int fileListGetEntries(FileList *list, const char *path, int sort) {
   }
 
   return fileListGetDirectoryEntries(list, path, sort);
+}
+
+// returns < 0 on error
+int resolveSimLink(Symlink *symlink, const char *path) {
+  SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
+  if (fd < 0)
+    return -1;
+  char magic[SYMLINK_HEADER_SIZE + 1];
+  magic[SYMLINK_HEADER_SIZE] = '\0';
+
+  if (sceIoRead(fd, &magic, SYMLINK_HEADER_SIZE) < SYMLINK_HEADER_SIZE) {
+    sceIoClose(fd);
+    return -2;
+  }
+  if(memcmp(magic, symlink_header_bytes, SYMLINK_HEADER_SIZE) != 0) {
+    sceIoClose(fd);
+    return -3;
+  }
+  char *resolve = (char *) malloc(MAX_PATH_LENGTH);
+  if (!resolve) {
+    sceIoClose(fd);
+    return -4;
+  }
+  int bytes_read = sceIoRead(fd, resolve, MAX_PATH_LENGTH - 1);
+  sceIoClose(fd);
+
+  if (bytes_read <= 0) {
+    free(resolve);
+    return -5;
+  }
+  resolve[bytes_read] = '\0';
+  SceIoStat io_stat;
+  memset(&io_stat, 0, sizeof(SceIoStat));
+  if (sceIoGetstat(resolve, &io_stat) < 0) {
+    free(resolve);
+    return -6;
+  }
+  symlink->to_file = !SCE_S_ISDIR(io_stat.st_mode);
+  symlink->target_path = resolve;
+  symlink->target_path_length = bytes_read + 1;
+  return 0;
+}
+
+// return < 0 on error
+int createSymLink(const char* store_location, const char *target) {
+  SceUID fd = sceIoOpen(store_location, SCE_O_WRONLY | SCE_O_CREAT, 0777);
+  if (fd < 0) {
+    return -1;
+  }
+  sceIoWrite(fd, (void*) &symlink_header_bytes, SYMLINK_HEADER_SIZE);
+  sceIoWrite(fd, (void*) target, strnlen(target, MAX_PATH_LENGTH));
+  sceIoClose(fd);
+  return 0;
+}
+
+// extract file name from path and return base path
+// / is present at the end
+// in case of error, return NULL
+// result is at most MAX_PATH_LEN
+char * getBaseDirectory(const char * path) {
+  int i;
+  int sep_ind = -1;
+  int len = strlen(path);
+  if (len > MAX_PATH_LENGTH  || len <= 0) return NULL;
+
+  for(i = len - 1; i >=0; i --) {
+    if (path[i] == '/' || path[i] == ':') {
+      sep_ind = i;
+      break;
+    }
+  }
+  if (sep_ind == -1) return NULL;
+  char * res = (char *) malloc(MAX_PATH_LENGTH);
+  if (!res) return NULL;
+  strncpy(res, path, sep_ind + 1); // include separation char
+
+  if (res[sep_ind] != '/') { // in case we copied partition: path
+    res[sep_ind + 1] = '/';
+  }
+  if (sep_ind + 2 < MAX_PATH_LENGTH) {
+    res[sep_ind + 2] = '\0';
+  }
+  return res;
+}
+
+// returns NULL when no filename found or error
+// result is at most MAX_PATH_LEN
+char * getFilename(const char* path) {
+  int i;
+  int sep_ind = -1;
+  int len = strlen(path);
+  if (len > MAX_PATH_LENGTH || len <= 0) return NULL;
+  if (path[len - 1] == '/' || path[len - 1] == ':') return NULL; // no file
+  for(i = len - 1; i >=0; i --) {
+    if (path[i] == '/' || path[i] == ':') {
+      sep_ind = i;
+      break;
+    }
+  }
+  if (sep_ind == -1) return NULL;
+  char * res = (char *) malloc(MAX_PATH_LENGTH);
+  if (!res) return NULL;
+
+  // ux0:ab.txt
+  // 0123456789
+  //
+  // len = 10
+  // sep_ind = 3
+  // new_len = 10 - (3+1) == 6
+
+  int new_len = len - (sep_ind + 1);
+  strncpy(res, path + (sep_ind + 1), new_len); // dont copy separation char
+  if (new_len + 1 < MAX_PATH_LENGTH)
+    res[new_len] = '\0';
+  else
+    res[MAX_PATH_LENGTH - 1] = '\0';
+  return res;
 }
