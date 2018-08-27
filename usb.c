@@ -143,7 +143,7 @@ void remount_partitions() {
     vshIoMount(0xE00, NULL, 0, 0, 0, 0);
   if (remount_uma0)
     vshIoMount(0xF00, NULL, 0, 0, 0, 0);
-  remount_uma0 = remount_xmc0 = remount_imc0 = remount_ux0 = 0;  
+  remount_uma0 = remount_xmc0 = remount_imc0 = remount_ux0 = 0;
 }
 
 SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
@@ -160,9 +160,9 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
 
   modid = res;
 
-  // Stop MTP driver
+  // Stop MTP driver (if it was active)
   res = sceMtpIfStopDriver(1);
-  if (res < 0)
+  if (res < 0 && res != 0x8054360C)
     goto ERROR_STOP_DRIVER;
 
   // Set device information
