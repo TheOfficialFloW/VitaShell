@@ -132,12 +132,46 @@ int umountUsbUx0() {
   return 0;
 }
 
+int remount_uma0 = 0, remount_xmc0 = 0, remount_imc0 = 0, remount_ux0 = 0;
+
+void remount_partitions() {
+  // Remount partitions
+  if (remount_ux0)
+    vshIoMount(0x800, NULL, 0, 0, 0, 0);
+  if (remount_imc0)
+    vshIoMount(0xD00, NULL, 0, 0, 0, 0);
+  if (remount_xmc0)
+    vshIoMount(0xE00, NULL, 0, 0, 0, 0);
+  if (remount_uma0)
+    vshIoMount(0xF00, NULL, 0, 0, 0, 0);
+  remount_uma0 = remount_xmc0 = remount_imc0 = remount_ux0 = 0;  
+}
+
 SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
   SceUID modid = -1;
   int res;
 
   // Destroy other apps
   sceAppMgrDestroyOtherApp();
+
+  // Umount all partitions
+  remount_uma0 = remount_xmc0 = remount_imc0 = remount_ux0 = 0;
+  if (checkFolderExist("uma0:")) {
+    vshIoUmount(0xF00, 0, 0, 0);
+    remount_uma0 = 1;
+  }
+  if (checkFolderExist("xmc0:")) {
+    vshIoUmount(0xE00, 0, 0, 0);
+    remount_xmc0 = 1;
+  }
+  if (checkFolderExist("imc0:")) {
+    vshIoUmount(0xD00, 0, 0, 0);
+    remount_imc0 = 1;
+  }
+  if (checkFolderExist("ux0:")) {
+    vshIoUmount(0x800, 0, 0, 0);
+    remount_ux0 = 1;
+  }
 
   // Load and start usbdevice module
   res = taiLoadStartKernelModule(usbDevicePath, 0, NULL, 0);
@@ -148,7 +182,7 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
 
   // Stop MTP driver
   res = sceMtpIfStopDriver(1);
-  if (res < 0)
+  if (res < 0 && res != 0x8054360C)
     goto ERROR_STOP_DRIVER;
 
   // Set device information
@@ -175,6 +209,7 @@ ERROR_STOP_DRIVER:
   taiStopUnloadKernelModule(modid, 0, NULL, 0, NULL, NULL);
 
 ERROR_LOAD_MODULE:
+  remount_partitions();
   return res;
 }
 
@@ -196,20 +231,8 @@ int stopUsb(SceUID modid) {
   if (res < 0)
     return res;
 
-  // Remount Memory Card
-  remount(0x800);
-
-  // Remount imc0:
-  if (checkFolderExist("imc0:"))
-    remount(0xD00);
-
-  // Remount xmc0:
-  if (checkFolderExist("xmc0:"))
-    remount(0xE00);
-
-  // Remount uma0:
-  if (checkFolderExist("uma0:"))
-    remount(0xF00);
+  // Remount partitions
+  remount_partitions();
 
   return 0;
 }
