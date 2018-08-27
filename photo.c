@@ -170,12 +170,12 @@ static void resetImageInfo(vita2d_texture *tex, float *width, float *height, flo
 int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
   char *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   vita2d_texture *tex = loadImage(file, type, buffer);
   if (!tex) {
     free(buffer);
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
   }
 
   // Variables
@@ -233,7 +233,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
             tex = loadImage(path, type, buffer);
             if (!tex) {
               free(buffer);
-              return -1;
+              return VITASHELL_ERROR_NO_MEMORY;
             }
 
             // Reset image

@@ -26,7 +26,7 @@ static char message_string[512];
 
 int initMessageDialog(int type, const char *msg, ...) {
   if (message_dialog_running)
-    return -1;
+    return VITASHELL_ERROR_ALREADY_RUNNING;
 
   va_list list;
   char string[512];

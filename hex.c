@@ -76,7 +76,7 @@ int hexViewer(const char *file) {
 
   uint8_t *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   int size = 0;
 

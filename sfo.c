@@ -32,7 +32,7 @@ int getSfoValue(void *buffer, const char *name, uint32_t *value) {
   SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
   if (header->magic != SFO_MAGIC)
-    return -1;
+    return VITASHELL_ERROR_INVALID_MAGIC;
 
   int i;
   for (i = 0; i < header->count; i++) {
@@ -42,7 +42,7 @@ int getSfoValue(void *buffer, const char *name, uint32_t *value) {
     }
   }
 
-  return -2;
+  return VITASHELL_ERROR_NOT_FOUND;
 }
 
 int getSfoString(void *buffer, const char *name, char *string, int length) {
@@ -50,7 +50,7 @@ int getSfoString(void *buffer, const char *name, char *string, int length) {
   SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
   if (header->magic != SFO_MAGIC)
-    return -1;
+    return VITASHELL_ERROR_INVALID_MAGIC;
 
   int i;
   for (i = 0; i < header->count; i++) {
@@ -62,7 +62,7 @@ int getSfoString(void *buffer, const char *name, char *string, int length) {
     }
   }
 
-  return -2;
+  return VITASHELL_ERROR_NOT_FOUND;
 }
 
 int setSfoValue(void *buffer, const char *name, uint32_t value) {
@@ -70,7 +70,7 @@ int setSfoValue(void *buffer, const char *name, uint32_t value) {
   SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
   if (header->magic != SFO_MAGIC)
-    return -1;
+    return VITASHELL_ERROR_INVALID_MAGIC;
 
   int i;
   for (i = 0; i < header->count; i++) {
@@ -80,7 +80,7 @@ int setSfoValue(void *buffer, const char *name, uint32_t value) {
     }
   }
 
-  return -2;
+  return VITASHELL_ERROR_NOT_FOUND;
 }
 
 int setSfoString(void *buffer, const char *name, const char *string) {
@@ -88,7 +88,7 @@ int setSfoString(void *buffer, const char *name, const char *string) {
   SfoEntry *entries = (SfoEntry *)((uint32_t)buffer + sizeof(SfoHeader));
 
   if (header->magic != SFO_MAGIC)
-    return -1;
+    return VITASHELL_ERROR_INVALID_MAGIC;
 
   int i;
   for (i = 0; i < header->count; i++) {
@@ -98,13 +98,13 @@ int setSfoString(void *buffer, const char *name, const char *string) {
     }
   }
 
-  return -2;
+  return VITASHELL_ERROR_NOT_FOUND;
 }
 
 int SFOReader(const char *file) {
   uint8_t *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   int size = 0;
 
@@ -121,7 +121,7 @@ int SFOReader(const char *file) {
 
   SfoHeader *sfo_header = (SfoHeader *)buffer;
   if (sfo_header->magic != SFO_MAGIC)
-    return -1;
+    return VITASHELL_ERROR_INVALID_MAGIC;
 
   int base_pos = 0, rel_pos = 0;
 

@@ -359,7 +359,7 @@ int addArchiveNodeRecursive(ArchiveFileNode *parent, char *name, SceIoStat *stat
   ArchiveFileNode *prev = NULL;
   
   if (!parent)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
   
   ArchiveFileNode *res = _findArchiveNode(parent, name, &parent, &prev, &name, &p);
   
@@ -509,7 +509,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   int res;
 
   if (!list)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   FileListEntry *entry = malloc(sizeof(FileListEntry));
   if (entry) {
@@ -771,7 +771,7 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
     
   ArchiveFileNode *node = findArchiveNode(file + archive_path_start);
   if (!node)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
   
   if (stat)
     memcpy(stat, &node->stat, sizeof(SceIoStat));

@@ -206,7 +206,7 @@ int makeHeadBin() {
 
   // Enforce TITLE_ID format
   if (strlen(titleid) != 9)
-    return -1;
+    return VITASHELL_ERROR_INVALID_TITLEID;
 
   // Get content id
   char contentid[48];

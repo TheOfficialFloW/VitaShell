@@ -73,7 +73,7 @@ static void utf8_to_utf16(const uint8_t *src, uint16_t *dst) {
 
 int initImeDialog(const char *title, const char *initial_text, int max_text_length, int type, int option, int password) {
   if (ime_dialog_running)
-    return -1;
+    return VITASHELL_ERROR_ALREADY_RUNNING;
 
   ime_initial_text = initial_text;
 

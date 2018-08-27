@@ -48,6 +48,7 @@
 
 #include "file.h"
 #include "vitashell_config.h"
+#include "vitashell_error.h"
 
 #define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
 

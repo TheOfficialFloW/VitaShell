@@ -210,7 +210,7 @@ int fileListGetPsarcEntries(FileList *list, const char *path, int sort) {
   int res;
   
   if (!list)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   SceFiosDH dh = -1;
   SceFiosBuffer buf = SCE_FIOS_BUFFER_INITIALIZER;

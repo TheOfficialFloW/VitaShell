@@ -130,7 +130,7 @@ static void calculateDialogBoxSize() {
 
 int sceMsgDialogInit(const SceMsgDialogParam *param) {
   if (!param)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   memset(&uncommon_dialog, 0, sizeof(UncommonDialog));
 
@@ -138,7 +138,7 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
     case SCE_MSG_DIALOG_MODE_USER_MSG:
     {
       if (!param->userMsgParam || !param->userMsgParam->msg)
-        return -1;
+        return VITASHELL_ERROR_ILLEGAL_ADDR;
 
       strncpy(uncommon_dialog.msg, (char *)param->userMsgParam->msg, sizeof(uncommon_dialog.msg) - 1);
       uncommon_dialog.buttonType = param->userMsgParam->buttonType;
@@ -148,7 +148,7 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
     case SCE_MSG_DIALOG_MODE_PROGRESS_BAR:
     {
       if (!param->progBarParam || !param->progBarParam->msg)
-        return -1;
+        return VITASHELL_ERROR_ILLEGAL_ADDR;
 
       strncpy(uncommon_dialog.msg, (char *)param->progBarParam->msg, sizeof(uncommon_dialog.msg) - 1);
       uncommon_dialog.buttonType = SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL;
@@ -163,7 +163,7 @@ int sceMsgDialogInit(const SceMsgDialogParam *param) {
     }
     
     default:
-      return -1;
+      return VITASHELL_ERROR_INVALID_ARGUMENT;
   }
 
   uncommon_dialog.dialog_status = UNCOMMON_DIALOG_OPENING;
@@ -234,7 +234,7 @@ SceCommonDialogStatus sceMsgDialogGetStatus(void) {
 
 int sceMsgDialogClose(void) {
   if (uncommon_dialog.status != SCE_COMMON_DIALOG_STATUS_RUNNING)
-    return -1;
+    return VITASHELL_ERROR_NOT_RUNNING;
 
   uncommon_dialog.dialog_status = UNCOMMON_DIALOG_CLOSING;
   return 0;
@@ -242,7 +242,7 @@ int sceMsgDialogClose(void) {
 
 int sceMsgDialogTerm(void) {
   if (uncommon_dialog.status == SCE_COMMON_DIALOG_STATUS_NONE)
-    return -1;
+    return VITASHELL_ERROR_NOT_RUNNING;
 
   uncommon_dialog.status = SCE_COMMON_DIALOG_STATUS_NONE;
   return 0;
@@ -250,7 +250,7 @@ int sceMsgDialogTerm(void) {
 
 int sceMsgDialogGetResult(SceMsgDialogResult *result) {
   if (!result)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   result->buttonId = uncommon_dialog.buttonId;
   return 0;
@@ -268,7 +268,7 @@ int sceMsgDialogProgressBarSetMsg(SceMsgDialogProgressBarTarget target, const Sc
 
 int sceMsgDialogProgressBarSetValue(SceMsgDialogProgressBarTarget target, SceUInt32 rate) {
   if (rate > 100)
-    return -1;
+    return VITASHELL_ERROR_INVALID_ARGUMENT;
 
   uncommon_dialog.progress = rate;
   return 0;

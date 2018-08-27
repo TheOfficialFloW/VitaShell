@@ -506,11 +506,11 @@ static int search_thread(SceSize args, SearchParams *argp) {
 int textViewer(const char *file) {
   TextEditorState *s = malloc(sizeof(TextEditorState));
   if (!s) 
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   char *buffer_base = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer_base)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   s->running = 1;
   s->hex_viewer = 0; 

@@ -228,7 +228,7 @@ static int zipAddPath(zipFile zf, const char *path, int filename_start, int leve
 int makeZip(const char *zip_file, const char *src_path, int filename_start, int level, int append, FileProcessParam *param) {
   zipFile zf = zipOpen64(zip_file, append);
   if (zf == NULL)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   int res = zipAddPath(zf, src_path, filename_start, level, param);
 
