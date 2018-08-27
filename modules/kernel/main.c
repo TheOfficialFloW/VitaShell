@@ -34,6 +34,9 @@
 int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func);
 int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr);
 
+int ksceNpDrmGetRifVitaKey(void *license_buf, uint8_t *klicensee, uint32_t *flags,
+                           uint32_t *sku_flag, uint64_t *start_time, uint64_t *expiration_time);
+
 typedef struct {
   const char *dev;
   const char *dev2;
@@ -91,8 +94,8 @@ int shellKernelIsUx0Redirected(const char *blkdev, const char *blkdev2) {
     return 0;
   }
 
-  ksceKernelStrncpyUserToKernel(k_blkdev, blkdev, sizeof(k_blkdev)-1);
-  ksceKernelStrncpyUserToKernel(k_blkdev2, blkdev2, sizeof(k_blkdev2)-1);
+  ksceKernelStrncpyUserToKernel(k_blkdev, (uintptr_t)blkdev, sizeof(k_blkdev)-1);
+  ksceKernelStrncpyUserToKernel(k_blkdev2, (uintptr_t)blkdev2, sizeof(k_blkdev2)-1);
 
   if (mount && mount->dev && mount->dev->blkdev && strcmp(mount->dev->blkdev, k_blkdev) == 0) {
     EXIT_SYSCALL(state);
@@ -113,8 +116,8 @@ int shellKernelRedirectUx0(const char *blkdev, const char *blkdev2) {
     return -1;
   }
 
-  ksceKernelStrncpyUserToKernel(ux0_blkdev, blkdev, sizeof(ux0_blkdev)-1);
-  ksceKernelStrncpyUserToKernel(ux0_blkdev2, blkdev2, sizeof(ux0_blkdev2)-1);
+  ksceKernelStrncpyUserToKernel(ux0_blkdev, (uintptr_t)blkdev, sizeof(ux0_blkdev)-1);
+  ksceKernelStrncpyUserToKernel(ux0_blkdev2, (uintptr_t)blkdev2, sizeof(ux0_blkdev2)-1);
 
   mount->dev = &ux0_dev;
   mount->dev2 = &ux0_dev;
@@ -230,12 +233,12 @@ int shellKernelGetRifVitaKey(const void *license_buf, void *klicensee) {
   memset(k_klicensee, 0, sizeof(k_klicensee));
 
   if (license_buf)
-    ksceKernelMemcpyUserToKernel(k_license_buf, license_buf, sizeof(k_license_buf));
+    ksceKernelMemcpyUserToKernel(k_license_buf, (uintptr_t)license_buf, sizeof(k_license_buf));
 
-  int res = ksceNpDrmGetRifVitaKey(k_license_buf, k_klicensee, NULL, NULL, NULL, NULL);
+  int res = ksceNpDrmGetRifVitaKey(k_license_buf, (uint8_t *)k_klicensee, NULL, NULL, NULL, NULL);
 
   if (klicensee)
-    ksceKernelMemcpyKernelToUser(klicensee, k_klicensee, sizeof(k_klicensee));
+    ksceKernelMemcpyKernelToUser((uintptr_t)klicensee, k_klicensee, sizeof(k_klicensee));
 
   return res;
 }

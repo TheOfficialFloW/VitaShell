@@ -57,10 +57,6 @@ ENDFUNCTION()
 
 file(GLOB res_files RELATIVE
   ${CMAKE_SOURCE_DIR}
-	${CMAKE_CURRENT_BINARY_DIR}/modules/kernel/kernel.skprx
-  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/user.suprx
-  ${CMAKE_CURRENT_BINARY_DIR}/modules/patch/patch.skprx
-  ${CMAKE_CURRENT_BINARY_DIR}/modules/usbdevice/usbdevice.skprx
   resources/umass.skprx
   resources/default/*.png
   resources/default/*.txt
@@ -70,7 +66,13 @@ file(GLOB res_files RELATIVE
   resources/*.txt
   resources/*.bin
 )
-add_resources(vitashell_res ${res_files})
+add_resources(vitashell_res
+  ${res_files}
+  build/modules/kernel/kernel.skprx
+  build/modules/user/user.suprx
+  build/modules/patch/patch.skprx
+  build/modules/usbdevice/usbdevice.skprx
+)
 
 add_executable(VitaShell
   ${vitashell_res}
@@ -134,6 +136,10 @@ add_executable(VitaShell
 )
 
 add_dependencies(VitaShell vitashell_user_stubs)
+add_dependencies(VitaShell kernel.skprx)
+add_dependencies(VitaShell user.suprx)
+add_dependencies(VitaShell patch.skprx)
+add_dependencies(VitaShell usbdevice.skprx)
 
 target_link_libraries(VitaShell
   ${CMAKE_CURRENT_BINARY_DIR}/modules/user/vitashell_user_stubs/libVitaShellUser_stub_weak.a
@@ -196,9 +202,9 @@ vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} eboot.bin
   VERSION ${VITA_VERSION}
   NAME ${VITA_APP_NAME}
   FILE pkg/sce_sys/icon0.png sce_sys/icon0.png
-     pkg/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
-     pkg/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
-     pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+       pkg/sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
+       pkg/sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
+       pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
 )
 
 add_custom_target(release

@@ -57,31 +57,31 @@ static void oggDecodeThread(void *_buf2, unsigned int numSamples, void *pdata){
     short *_buf = (short *)_buf2;
     //static short OGG_mixBuffer[VITA_NUM_AUDIO_SAMPLES * 2 * 2]__attribute__ ((aligned(64)));
     //static unsigned long OGG_tempmixleft = 0;
-	int current_section;
+    int current_section;
 
-	if (OGG_isPlaying) {	// Playing , so mix up a buffer
+    if (OGG_isPlaying) {    // Playing , so mix up a buffer
         outputInProgress = 1;
-		while (OGG_tempmixleft < numSamples) {	//  Not enough in buffer, so we must mix more
-			unsigned long bytesRequired = (numSamples - OGG_tempmixleft) * 4;	// 2channels, 16bit = 4 bytes per sample
-			//unsigned long ret = ov_read(&OGG_VorbisFile, (char *) &OGG_mixBuffer[OGG_tempmixleft * 2], bytesRequired, &current_section); //libtremor
+        while (OGG_tempmixleft < numSamples) {    //  Not enough in buffer, so we must mix more
+            unsigned long bytesRequired = (numSamples - OGG_tempmixleft) * 4;    // 2channels, 16bit = 4 bytes per sample
+            //unsigned long ret = ov_read(&OGG_VorbisFile, (char *) &OGG_mixBuffer[OGG_tempmixleft * 2], bytesRequired, &current_section); //libtremor
             unsigned long ret = ov_read(&OGG_VorbisFile, (char *) &OGG_mixBuffer[OGG_tempmixleft * 2], bytesRequired, 0, 2, 1, &current_section); //ogg-vorbis
-			if (!ret) {	//EOF
+            if (!ret) {    //EOF
                 OGG_isPlaying = 0;
-				OGG_eos = 1;
+                OGG_eos = 1;
                 outputInProgress = 0;
-				return;
-			} else if (ret < 0) {
-				if (ret == OV_HOLE)
-					continue;
+                return;
+            } else if (ret < 0) {
+                if (ret == OV_HOLE)
+                    continue;
                 OGG_isPlaying = 0;
-				OGG_eos = 1;
+                OGG_eos = 1;
                 outputInProgress = 0;
-				return;
-			}
-			OGG_tempmixleft += ret / 4;	// back down to sample num
-		}
+                return;
+            }
+            OGG_tempmixleft += ret / 4;    // back down to sample num
+        }
         OGG_info.instantBitrate = ov_bitrate_instant(&OGG_VorbisFile);
-		OGG_milliSeconds = ov_time_tell(&OGG_VorbisFile);
+        OGG_milliSeconds = ov_time_tell(&OGG_VorbisFile);
 
         if (OGG_newFilePos >= 0)
         {
@@ -95,9 +95,9 @@ static void oggDecodeThread(void *_buf2, unsigned int numSamples, void *pdata){
                 OGG_setPlayingSpeed(0);
         }
 
-		if (OGG_tempmixleft >= numSamples) {	//  Buffer has enough, so copy across
-			int count, count2;
-			short *_buf2;
+        if (OGG_tempmixleft >= numSamples) {    //  Buffer has enough, so copy across
+            int count, count2;
+            short *_buf2;
             //Volume boost:
             if (!OGG_volume_boost){
                 for (count = 0; count < VITA_NUM_AUDIO_SAMPLES; count++) {
@@ -114,18 +114,18 @@ static void oggDecodeThread(void *_buf2, unsigned int numSamples, void *pdata){
                     *(_buf2 + 1) = volume_boost(&OGG_mixBuffer[count2 + 1], &OGG_volume_boost);
                 }
             }
-			//  Move the pointers
-			OGG_tempmixleft -= numSamples;
-			//  Now shuffle the buffer along
-			for (count = 0; count < OGG_tempmixleft * 2; count++)
-			    OGG_mixBuffer[count] = OGG_mixBuffer[numSamples * 2 + count];
-		}
+            //  Move the pointers
+            OGG_tempmixleft -= numSamples;
+            //  Now shuffle the buffer along
+            for (count = 0; count < OGG_tempmixleft * 2; count++)
+                OGG_mixBuffer[count] = OGG_mixBuffer[numSamples * 2 + count];
+        }
         outputInProgress = 0;
-    } else {			//  Not Playing , so clear buffer
+    } else {            //  Not Playing , so clear buffer
         int count;
         for (count = 0; count < numSamples * 2; count++)
             *(_buf + count) = 0;
-	}
+    }
 }
 
 
@@ -135,54 +135,54 @@ static void oggDecodeThread(void *_buf2, unsigned int numSamples, void *pdata){
 size_t ogg_callback_read(void *ptr, size_t size, size_t nmemb, void *datasource)
 {
     int res = sceIoRead(*(int *) datasource, ptr, size * nmemb);
-	if (res == 0x80010013) {
-		OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
-		if (OGG_file >= 0) {
-			sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
-		}
+    if (res == 0x80010013) {
+        OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
+        if (OGG_file >= 0) {
+            sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
+        }
 
-		res = sceIoRead(*(int *) datasource, ptr, size * nmemb);
-	}
-	return res;
+        res = sceIoRead(*(int *) datasource, ptr, size * nmemb);
+    }
+    return res;
 }
 int ogg_callback_seek(void *datasource, ogg_int64_t offset, int whence)
 {
     int res = sceIoLseek32(*(int *) datasource, (unsigned int) offset, whence);
-	if (res == 0x80010013) {
-		OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
-		if (OGG_file >= 0) {
-			sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
-		}
+    if (res == 0x80010013) {
+        OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
+        if (OGG_file >= 0) {
+            sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
+        }
 
-	    res = sceIoLseek32(*(int *) datasource, (unsigned int) offset, whence);
-	}
-	return res;
+        res = sceIoLseek32(*(int *) datasource, (unsigned int) offset, whence);
+    }
+    return res;
 }
 long ogg_callback_tell(void *datasource)
 {
     int res = sceIoLseek32(*(int *) datasource, 0, SEEK_CUR);
-	if (res == 0x80010013) {
-		OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
-		if (OGG_file >= 0) {
-			sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
-		}
+    if (res == 0x80010013) {
+        OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
+        if (OGG_file >= 0) {
+            sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
+        }
 
-	    res = sceIoLseek32(*(int *) datasource, 0, SEEK_CUR);
-	}
-	return (long)res;
+        res = sceIoLseek32(*(int *) datasource, 0, SEEK_CUR);
+    }
+    return (long)res;
 }
 int ogg_callback_close(void *datasource)
 {
     int res = sceIoClose(*(int *) datasource);
-	if (res == 0x80010013) {
-		OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
-		if (OGG_file >= 0) {
-			sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
-		}
+    if (res == 0x80010013) {
+        OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
+        if (OGG_file >= 0) {
+            sceIoLseek32(OGG_file, (uint32_t)OGG_getFilePosition(), SCE_SEEK_SET);
+        }
 
-		res = sceIoClose(*(int *) datasource);
-	}
-	return res;
+        res = sceIoClose(*(int *) datasource);
+    }
+    return res;
 }
 
 void readOggTagData(char *source, char *dest){
@@ -201,52 +201,52 @@ void readOggTagData(char *source, char *dest){
 }
 
 void splitComment(char *comment, char *name, char *value){
-	char *result = NULL;
-	result = strtok(comment, "=");
-	int count = 0;
+    char *result = NULL;
+    result = strtok(comment, "=");
+    int count = 0;
 
-	while(result != NULL && count < 2){
-		if (strlen(result) > 0){
-			switch (count){
-				case 0:
-					strncpy(name, result, 30);
-					name[30] = '\0';
-					break;
-				case 1:
-					readOggTagData(result, value);
-					value[256] = '\0';
-					break;
-			}
-			count++;
-		}
-		result = strtok(NULL, "=");
-	}
+    while(result != NULL && count < 2){
+        if (strlen(result) > 0){
+            switch (count){
+                case 0:
+                    strncpy(name, result, 30);
+                    name[30] = '\0';
+                    break;
+                case 1:
+                    readOggTagData(result, value);
+                    value[256] = '\0';
+                    break;
+            }
+            count++;
+        }
+        result = strtok(NULL, "=");
+    }
 }
 
 void getOGGTagInfo(OggVorbis_File *inVorbisFile, struct fileInfo *targetInfo){
-	int i;
-	char name[31];
-	char value[257];
+    int i;
+    char name[31];
+    char value[257];
 
-	vorbis_comment *comment = ov_comment(inVorbisFile, -1);
-	for (i=0;i<comment->comments; i++){
-		splitComment(comment->user_comments[i], name, value);
-		if (!strcasecmp(name, "TITLE"))
-			strcpy(targetInfo->title, value);
-		else if(!strcasecmp(name, "ALBUM"))
-			strcpy(targetInfo->album, value);
-		else if(!strcasecmp(name, "ARTIST"))
-			strcpy(targetInfo->artist, value);
-		else if(!strcasecmp(name, "GENRE"))
-			strcpy(targetInfo->genre, value);
-		else if(!strcasecmp(name, "DATE") || !strcasecmp(name, "YEAR")){
+    vorbis_comment *comment = ov_comment(inVorbisFile, -1);
+    for (i=0;i<comment->comments; i++){
+        splitComment(comment->user_comments[i], name, value);
+        if (!strcasecmp(name, "TITLE"))
+            strcpy(targetInfo->title, value);
+        else if(!strcasecmp(name, "ALBUM"))
+            strcpy(targetInfo->album, value);
+        else if(!strcasecmp(name, "ARTIST"))
+            strcpy(targetInfo->artist, value);
+        else if(!strcasecmp(name, "GENRE"))
+            strcpy(targetInfo->genre, value);
+        else if(!strcasecmp(name, "DATE") || !strcasecmp(name, "YEAR")){
             strncpy(targetInfo->year, value, 4);
             targetInfo->year[4] = '\0';
-		}else if(!strcasecmp(name, "TRACKNUMBER")){
+        }else if(!strcasecmp(name, "TRACKNUMBER")){
             strncpy(targetInfo->trackNumber, value, 7);
-			targetInfo->trackNumber[7] = '\0';
-		}
-		/*else if(!strcmp(name, "COVERART_UUENCODED")){
+            targetInfo->trackNumber[7] = '\0';
+        }
+        /*else if(!strcmp(name, "COVERART_UUENCODED")){
             FILE *out = fopen("ms0:/coverart.jpg", "wb");
             FILE *outEnc = fopen("ms0:/coverart.txt", "wb");
             unsigned char base64Buffer[MAX_IMAGE_DIMENSION];
@@ -256,7 +256,7 @@ void getOGGTagInfo(OggVorbis_File *inVorbisFile, struct fileInfo *targetInfo){
             fclose(outEnc);
             fclose(out);
         }*/
-	}
+    }
 
     OGG_info = *targetInfo;
     OGG_tagRead = 1;
@@ -269,27 +269,27 @@ void OGGgetInfo(){
     OGG_info.needsME = 0;
 
     vorbis_info *vi = ov_info(&OGG_VorbisFile, -1);
-	OGG_info.kbit = vi->bitrate_nominal/1000;
+    OGG_info.kbit = vi->bitrate_nominal/1000;
     OGG_info.instantBitrate = vi->bitrate_nominal;
-	OGG_info.hz = vi->rate;
-	OGG_info.length = (long)ov_time_total(&OGG_VorbisFile, -1)/1000;
+    OGG_info.hz = vi->rate;
+    OGG_info.length = (long)ov_time_total(&OGG_VorbisFile, -1)/1000;
     if (vi->channels == 1){
         strcpy(OGG_info.mode, "single channel");
-		OGG_channels = 1;
+        OGG_channels = 1;
     }else if (vi->channels == 2){
         strcpy(OGG_info.mode, "normal LR stereo");
-		OGG_channels = 2;
-	}
+        OGG_channels = 2;
+    }
     strcpy(OGG_info.emphasis, "no");
 
-	int h = 0;
-	int m = 0;
-	int s = 0;
-	long secs = OGG_info.length;
-	h = secs / 3600;
-	m = (secs - h * 3600) / 60;
-	s = secs - h * 3600 - m * 60;
-	snprintf(OGG_info.strLength, sizeof(OGG_info.strLength), "%2.2i:%2.2i:%2.2i", h, m, s);
+    int h = 0;
+    int m = 0;
+    int s = 0;
+    long secs = OGG_info.length;
+    h = secs / 3600;
+    m = (secs - h * 3600) / 60;
+    s = secs - h * 3600 - m * 60;
+    snprintf(OGG_info.strLength, sizeof(OGG_info.strLength), "%2.2i:%2.2i:%2.2i", h, m, s);
 
     if (!OGG_tagRead)
         getOGGTagInfo(&OGG_VorbisFile, &OGG_info);
@@ -311,16 +311,16 @@ void OGG_Init(int channel){
 
 
 int OGG_Load(char *filename){
-	outputInProgress = 0;
-	OGG_isPlaying = 0;
-	OGG_milliSeconds = 0;
-	OGG_eos = 0;
+    outputInProgress = 0;
+    OGG_isPlaying = 0;
+    OGG_milliSeconds = 0;
+    OGG_eos = 0;
     OGG_playingSpeed = 0;
     OGG_playingDelta = 0;
-	strcpy(OGG_fileName, filename);
-	//Apro il file OGG:
+    strcpy(OGG_fileName, filename);
+    //Apro il file OGG:
     OGG_file = sceIoOpen(OGG_fileName, SCE_O_RDONLY, 0777);
-	if (OGG_file >= 0) {
+    if (OGG_file >= 0) {
         OGG_info.fileSize = sceIoLseek(OGG_file, 0, SCE_SEEK_END);
         sceIoLseek(OGG_file, 0, SCE_SEEK_SET);
         ov_callbacks ogg_callbacks;
@@ -329,47 +329,47 @@ int OGG_Load(char *filename){
         ogg_callbacks.seek_func = ogg_callback_seek;
         ogg_callbacks.close_func = ogg_callback_close;
         ogg_callbacks.tell_func = ogg_callback_tell;
-		if (ov_open_callbacks(&OGG_file, &OGG_VorbisFile, NULL, 0, ogg_callbacks) < 0){
+        if (ov_open_callbacks(&OGG_file, &OGG_VorbisFile, NULL, 0, ogg_callbacks) < 0){
             sceIoClose(OGG_file);
             OGG_file = -1;
             return ERROR_OPENING;
         }
-	}else{
-		return ERROR_OPENING;
-	}
+    }else{
+        return ERROR_OPENING;
+    }
 
-	OGGgetInfo();
+    OGGgetInfo();
     //Controllo il sample rate:
     if (vitaAudioSetFrequency(OGG_audio_channel, OGG_info.hz) < 0){
         OGG_FreeTune();
         return ERROR_INVALID_SAMPLE_RATE;
     }
-	return OPENING_OK;
+    return OPENING_OK;
 }
 
 int OGG_IsPlaying() {
-	return OGG_isPlaying;
+    return OGG_isPlaying;
 }
 
 int OGG_Play(){
-	OGG_isPlaying = 1;
-	return 0;
+    OGG_isPlaying = 1;
+    return 0;
 }
 
 void OGG_Pause(){
-	OGG_isPlaying = !OGG_isPlaying;
+    OGG_isPlaying = !OGG_isPlaying;
 }
 
 int OGG_Stop(){
-	OGG_isPlaying = 0;
+    OGG_isPlaying = 0;
     //This is to be sure that oggDecodeThread isn't messing with &OGG_VorbisFile
     while (outputInProgress == 1)
         sceKernelDelayThread(100000);
-	return 0;
+    return 0;
 }
 
 void OGG_FreeTune(){
-	ov_clear(&OGG_VorbisFile);
+    ov_clear(&OGG_VorbisFile);
     if (OGG_file >= 0)
         sceIoClose(OGG_file);
     OGG_file = -1;
@@ -378,22 +378,22 @@ void OGG_FreeTune(){
 }
 
 void OGG_GetTimeString(char *dest){
-	char timeString[9];
-	long secs = (long)OGG_milliSeconds/1000;
-	int h = secs / 3600;
-	int m = (secs - h * 3600) / 60;
-	int s = secs - h * 3600 - m * 60;
-	snprintf(timeString, sizeof(timeString), "%2.2i:%2.2i:%2.2i", h, m, s);
-	strcpy(dest, timeString);
+    char timeString[9];
+    long secs = (long)OGG_milliSeconds/1000;
+    int h = secs / 3600;
+    int m = (secs - h * 3600) / 60;
+    int s = secs - h * 3600 - m * 60;
+    snprintf(timeString, sizeof(timeString), "%2.2i:%2.2i:%2.2i", h, m, s);
+    strcpy(dest, timeString);
 }
 
 
 int OGG_EndOfStream(){
-	return OGG_eos;
+    return OGG_eos;
 }
 
 struct fileInfo *OGG_GetInfo(){
-	return &OGG_info;
+    return &OGG_info;
 }
 
 
@@ -404,9 +404,9 @@ struct fileInfo OGG_GetTagInfoOnly(char *filename){
 
     strcpy(OGG_fileName, filename);
     initFileInfo(&tempInfo);
-	//Apro il file OGG:
-	tempFile = sceIoOpen(filename, SCE_O_RDONLY, 0777);
-	if (tempFile >= 0) {
+    //Apro il file OGG:
+    tempFile = sceIoOpen(filename, SCE_O_RDONLY, 0777);
+    if (tempFile >= 0) {
         //sceIoLseek(tempFile, 0, SCE_SEEK_SET);
         ov_callbacks ogg_callbacks;
 
@@ -415,7 +415,7 @@ struct fileInfo OGG_GetTagInfoOnly(char *filename){
         ogg_callbacks.close_func = ogg_callback_close;
         ogg_callbacks.tell_func = ogg_callback_tell;
 
-		if (ov_open_callbacks(&tempFile, &vf, NULL, 0, ogg_callbacks) < 0){
+        if (ov_open_callbacks(&tempFile, &vf, NULL, 0, ogg_callbacks) < 0){
             sceIoClose(tempFile);
             return tempInfo;
         }
@@ -423,7 +423,7 @@ struct fileInfo OGG_GetTagInfoOnly(char *filename){
         ov_clear(&vf);
         if (tempFile >= 0)
             sceIoClose(tempFile);
-	}
+    }
 
     return tempInfo;
 }
@@ -436,14 +436,14 @@ float OGG_GetPercentage(){
         if (perc > 100)
             perc = 100;
     }
-	return perc;
+    return perc;
 }
 
 void OGG_End(){
     OGG_Stop();
-	vitaAudioSetChannelCallback(OGG_audio_channel, 0,0);
-	OGG_FreeTune();
-	endAudioLib();
+    vitaAudioSetChannelCallback(OGG_audio_channel, 0,0);
+    OGG_FreeTune();
+    endAudioLib();
 }
 
 int OGG_setMute(int onOff){
@@ -463,30 +463,30 @@ void OGG_setVolumeBoost(int boost){
 }
 
 int OGG_getVolumeBoost(){
-	return OGG_volume_boost;
+    return OGG_volume_boost;
 }
 
 
 int OGG_setPlayingSpeed(int playingSpeed){
-	if (playingSpeed >= MIN_PLAYING_SPEED && playingSpeed <= MAX_PLAYING_SPEED){
-		OGG_playingSpeed = playingSpeed;
-		if (playingSpeed == 0)
-			setVolume(OGG_audio_channel, 0x8000);
-		else
-			setVolume(OGG_audio_channel, FASTFORWARD_VOLUME);
+    if (playingSpeed >= MIN_PLAYING_SPEED && playingSpeed <= MAX_PLAYING_SPEED){
+        OGG_playingSpeed = playingSpeed;
+        if (playingSpeed == 0)
+            setVolume(OGG_audio_channel, 0x8000);
+        else
+            setVolume(OGG_audio_channel, FASTFORWARD_VOLUME);
         OGG_playingDelta = VITA_NUM_AUDIO_SAMPLES * (int)(OGG_playingSpeed/2);
-		return 0;
-	}else{
-		return -1;
-	}
+        return 0;
+    }else{
+        return -1;
+    }
 }
 
 int OGG_getPlayingSpeed(){
-	return OGG_playingSpeed;
+    return OGG_playingSpeed;
 }
 
 int OGG_GetStatus(){
-	return 0;
+    return 0;
 }
 
 void OGG_setVolumeBoostType(char *boostType){
@@ -498,7 +498,7 @@ void OGG_setVolumeBoostType(char *boostType){
 
 //Functions for filter (equalizer):
 int OGG_setFilter(double tFilter[32], int copyFilter){
-	return 0;
+    return 0;
 }
 
 void OGG_enableFilter(){}
@@ -506,11 +506,11 @@ void OGG_enableFilter(){}
 void OGG_disableFilter(){}
 
 int OGG_isFilterSupported(){
-	return 0;
+    return 0;
 }
 
 int OGG_isFilterEnabled(){
-	return 0;
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
