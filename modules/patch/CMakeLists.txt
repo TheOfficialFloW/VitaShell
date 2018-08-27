@@ -23,10 +23,3 @@ target_link_libraries(patch
 )
 
 vita_create_self(patch.skprx patch CONFIG exports.yml UNSAFE)
-
-vita_create_stubs(stubs patch ${CMAKE_SOURCE_DIR}/exports.yml KERNEL)
-
-add_custom_target(copy
-  COMMAND cp patch.skprx ../../../resources/patch.skprx
-  DEPENDS patch.skprx
-)

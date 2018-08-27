@@ -22,7 +22,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+ + 11 -fno-rtti -fno-exceptions")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2808000000000000")
 
+add_subdirectory(modules/kernel)
+add_subdirectory(modules/user)
+add_subdirectory(modules/patch)
+add_subdirectory(modules/usbdevice)
+
 include_directories(
+  modules/kernel
+  modules/user
 )
 
 link_directories(
@@ -50,6 +57,11 @@ ENDFUNCTION()
 
 file(GLOB res_files RELATIVE
   ${CMAKE_SOURCE_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}/modules/kernel/kernel.skprx
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/user.suprx
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/patch/patch.skprx
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/usbdevice/usbdevice.skprx
+  resources/umass.skprx
   resources/default/*.png
   resources/default/*.txt
   resources/electron/*.png
@@ -57,8 +69,6 @@ file(GLOB res_files RELATIVE
   resources/*.png
   resources/*.txt
   resources/*.bin
-  resources/*.suprx
-  resources/*.skprx
 )
 add_resources(vitashell_res ${res_files})
 
@@ -123,7 +133,10 @@ add_executable(VitaShell
   libmad/timer.c
 )
 
+add_dependencies(VitaShell vitashell_user_stubs)
+
 target_link_libraries(VitaShell
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/vitashell_user_stubs/libVitaShellUser_stub_weak.a
   ftpvita
   vita2d
   vorbisfile
@@ -142,7 +155,6 @@ target_link_libraries(VitaShell
   crypto
   expat
   taihen_stub
-  VitaShellUser_stub_weak
   SceAppMgr_stub
   SceAppUtil_stub
   SceAudio_stub

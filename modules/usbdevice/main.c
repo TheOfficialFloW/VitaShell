@@ -75,8 +75,10 @@ int module_start(SceSize args, void *argp) {
   hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0x1738, zero, 0x6E);
 
   // Add patches to support exFAT
-  hooks[1] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoOpenRef, "SceUsbstorVStorDriver", 0x40FD29C7, 0x75192972, ksceIoOpenPatched);
-  hooks[2] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoReadRef, "SceUsbstorVStorDriver", 0x40FD29C7, 0xE17EFC03, ksceIoReadPatched);
+  hooks[1] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoOpenRef, "SceUsbstorVStorDriver",
+                                            0x40FD29C7, 0x75192972, ksceIoOpenPatched);
+  hooks[2] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoReadRef, "SceUsbstorVStorDriver",
+                                            0x40FD29C7, 0xE17EFC03, ksceIoReadPatched);
 
   return SCE_KERNEL_START_SUCCESS;
 }

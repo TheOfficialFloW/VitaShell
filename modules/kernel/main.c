@@ -127,7 +127,8 @@ int _shellKernelMountById(ShellMountIdArgs *args) {
   int res;
 
   void *(* sceAppMgrFindProcessInfoByPid)(void *data, SceUID pid);
-  int (* sceAppMgrMountById)(SceUID pid, void *info, int id, const char *titleid, const char *path, const char *desired_mount_point, const void *klicensee, char *mount_point);
+  int (* sceAppMgrMountById)(SceUID pid, void *info, int id, const char *titleid, const char *path,
+                             const char *desired_mount_point, const void *klicensee, char *mount_point);
   int (* _ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 
   // Get tai module info
@@ -154,9 +155,11 @@ int _shellKernelMountById(ShellMountIdArgs *args) {
       break;
   }
 
-  res = module_get_export_func(KERNEL_PID, "SceKernelModulemgr", 0xC445FA63, 0xD269F915, (uintptr_t *)&_ksceKernelGetModuleInfo);
+  res = module_get_export_func(KERNEL_PID, "SceKernelModulemgr",
+                               0xC445FA63, 0xD269F915, (uintptr_t *)&_ksceKernelGetModuleInfo);
   if (res < 0)
-    res = module_get_export_func(KERNEL_PID, "SceKernelModulemgr", 0x92C9FFC2, 0xDAA90093, (uintptr_t *)&_ksceKernelGetModuleInfo);
+    res = module_get_export_func(KERNEL_PID, "SceKernelModulemgr",
+                                 0x92C9FFC2, 0xDAA90093, (uintptr_t *)&_ksceKernelGetModuleInfo);
   if (res < 0)
     return res;
 
@@ -192,8 +195,14 @@ int _shellKernelMountById(ShellMountIdArgs *args) {
   if (args->klicensee)
     ksceKernelMemcpyUserToKernel(klicensee, (uintptr_t)args->klicensee, 0x10);
 
-  res = sceAppMgrMountById(process_id, info + 0x580, args->id, args->process_titleid ? process_titleid : NULL, args->path ? path : NULL,
-                           args->desired_mount_point ? desired_mount_point : NULL, args->klicensee ? klicensee : NULL, mount_point);
+  res = sceAppMgrMountById(process_id,
+                           info + 0x580,
+                           args->id,
+                           args->process_titleid ? process_titleid : NULL,
+                           args->path ? path : NULL,
+                           args->desired_mount_point ? desired_mount_point : NULL,
+                           args->klicensee ? klicensee : NULL,
+                           mount_point);
 
   if (args->mount_point)
     ksceKernelStrncpyKernelToUser((uintptr_t)args->mount_point, mount_point, 15);
@@ -257,11 +266,13 @@ int module_start(SceSize args, void *argp) {
   }
 
   // Fake safe mode so that SceUsbMass can be loaded
-  tmp1 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSysrootIsSafeModeRef, "SceSysmem", 0x2ED7F97A, 0x834439A7, ksceSysrootIsSafeModePatched);
+  tmp1 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSysrootIsSafeModeRef, "SceSysmem",
+                                        0x2ED7F97A, 0x834439A7, ksceSysrootIsSafeModePatched);
   if (tmp1 < 0)
     return SCE_KERNEL_START_SUCCESS;
   // this patch is only needed on handheld units
-  tmp2 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSblAimgrIsDolceRef, "SceSysmem", 0xFD00C69A, 0x71608CA3, ksceSblAimgrIsDolcePatched);
+  tmp2 = taiHookFunctionExportForKernel(KERNEL_PID, &ksceSblAimgrIsDolceRef, "SceSysmem",
+                                        0xFD00C69A, 0x71608CA3, ksceSblAimgrIsDolcePatched);
   if (tmp2 < 0)
     return SCE_KERNEL_START_SUCCESS;
 
@@ -277,7 +288,8 @@ int module_start(SceSize args, void *argp) {
     return SCE_KERNEL_START_SUCCESS;
 
   // Fake safe mode in SceUsbServ
-  hookid = taiHookFunctionImportForKernel(KERNEL_PID, &ksceSysrootIsSafeModeRef, "SceUsbServ", 0x2ED7F97A, 0x834439A7, ksceSysrootIsSafeModePatched);
+  hookid = taiHookFunctionImportForKernel(KERNEL_PID, &ksceSysrootIsSafeModeRef, "SceUsbServ",
+                                          0x2ED7F97A, 0x834439A7, ksceSysrootIsSafeModePatched);
 
   return SCE_KERNEL_START_SUCCESS;
 }
