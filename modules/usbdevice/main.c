@@ -80,6 +80,8 @@ int module_start(SceSize args, void *argp) {
   hooks[2] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoReadRef, "SceUsbstorVStorDriver",
                                             0x40FD29C7, 0xE17EFC03, ksceIoReadPatched);
 
+  ksceUdcdStopCurrentInternal(2);
+
   return SCE_KERNEL_START_SUCCESS;
 }
 

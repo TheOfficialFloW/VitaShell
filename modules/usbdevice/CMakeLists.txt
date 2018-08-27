@@ -19,6 +19,7 @@ add_executable(usbdevice
 )
 
 target_link_libraries(usbdevice
+  SceUdcdForDriver_stub
   SceIofilemgrForDriver_stub
   SceSysclibForDriver_stub
   taihenForKernel_stub
