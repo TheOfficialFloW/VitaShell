@@ -381,7 +381,8 @@ static int exportMedia(char *path, uint32_t *songs, uint32_t *videos, uint32_t *
     PhotoExportParam param;
     memset(&param, 0, sizeof(PhotoExportParam));
     param.version = 0x03150021;
-    res = scePhotoExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL, NULL, out, MAX_PATH_LENGTH);
+    res = scePhotoExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL,
+                                 NULL, out, MAX_PATH_LENGTH);
     if (res < 0)
       return (res == 0x80101A0B) ? 0 : res;
 
@@ -404,7 +405,8 @@ static int exportMedia(char *path, uint32_t *songs, uint32_t *videos, uint32_t *
 
     MusicExportParam param;
     memset(&param, 0, sizeof(MusicExportParam));
-    res = sceMusicExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL, musicExportProgress, &args, out, MAX_PATH_LENGTH);
+    res = sceMusicExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL,
+                                 musicExportProgress, &args, out, MAX_PATH_LENGTH);
     if (res < 0)
       return (res == 0x8010530A) ? 0 : res;
 
@@ -417,7 +419,8 @@ static int exportMedia(char *path, uint32_t *songs, uint32_t *videos, uint32_t *
     VideoExportOutputParam out_param;
     memset(&out_param, 0, sizeof(VideoExportOutputParam));
 
-    res = sceVideoExportFromFile(&in_param, 1, buf, process_param ? process_param->cancelHandler : NULL, NULL, NULL, 0, &out_param);
+    res = sceVideoExportFromFile(&in_param, 1, buf, process_param ? process_param->cancelHandler : NULL,
+                                 NULL, NULL, 0, &out_param);
     if (res < 0)
       return (res == 0x8010540A) ? 0 : res;
 

@@ -47,8 +47,8 @@ static int theme_count = 0;
 static char *theme_name = NULL;
 
 static ConfigEntry settings_entries[] = {
-  { "USBDEVICE", CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.usbdevice },
-  { "SELECT_BUTTON", CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.select_button },
+  { "USBDEVICE",          CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.usbdevice },
+  { "SELECT_BUTTON",      CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.select_button },
   { "DISABLE_AUTOUPDATE", CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_autoupdate },
 };
 
@@ -71,12 +71,12 @@ SettingsMenuOption main_settings[] = {
 
 SettingsMenuOption power_settings[] = {
   { VITASHELL_SETTINGS_REBOOT,    SETTINGS_OPTION_TYPE_CALLBACK, (void *)rebootDevice, NULL, 0, NULL, 0, NULL },
-  { VITASHELL_SETTINGS_POWEROFF,    SETTINGS_OPTION_TYPE_CALLBACK, (void *)shutdownDevice, NULL, 0, NULL, 0, NULL },
-  { VITASHELL_SETTINGS_STANDBY,    SETTINGS_OPTION_TYPE_CALLBACK, (void *)suspendDevice, NULL, 0, NULL, 0, NULL },
+  { VITASHELL_SETTINGS_POWEROFF,  SETTINGS_OPTION_TYPE_CALLBACK, (void *)shutdownDevice, NULL, 0, NULL, 0, NULL },
+  { VITASHELL_SETTINGS_STANDBY,   SETTINGS_OPTION_TYPE_CALLBACK, (void *)suspendDevice, NULL, 0, NULL, 0, NULL },
 };
 
 SettingsMenuEntry vitashell_settings_menu_entries[] = {
-  { VITASHELL_SETTINGS_MAIN, main_settings, sizeof(main_settings) / sizeof(SettingsMenuOption) },
+  { VITASHELL_SETTINGS_MAIN,  main_settings,  sizeof(main_settings) / sizeof(SettingsMenuOption) },
   { VITASHELL_SETTINGS_POWER, power_settings, sizeof(power_settings) / sizeof(SettingsMenuOption) },
 };
 

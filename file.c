@@ -178,7 +178,8 @@ int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param) {
   return 1;
 }
 
-int getPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path)) {
+int getPathInfo(const char *path, uint64_t *size, uint32_t *folders,
+                uint32_t *files, int (* handler)(const char *path)) {
   SceUID dfd = sceIoDopen(path);
   if (dfd >= 0) {
     int res = 0;

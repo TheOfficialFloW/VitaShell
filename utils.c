@@ -370,8 +370,12 @@ void getTimeString(char string[16], int time_format, SceDateTime *time) {
 
   switch(time_format) {
     case SCE_SYSTEM_PARAM_TIME_FORMAT_12HR:
-      snprintf(string, 16, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour - 12) : ((time_local.hour == 0) ? 12 : time_local.hour), time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
+    {
+      int hour = ((time_local.hour == 0) ? 12 : time_local.hour);
+      snprintf(string, 16, "%02d:%02d %s", (time_local.hour > 12) ? (time_local.hour - 12) : hour,
+                                           time_local.minute, time_local.hour >= 12 ? "PM" : "AM");
       break;
+    }
 
     case SCE_SYSTEM_PARAM_TIME_FORMAT_24HR:
       snprintf(string, 16, "%02d:%02d", time_local.hour, time_local.minute);

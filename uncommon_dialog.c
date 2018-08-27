@@ -281,8 +281,8 @@ int drawUncommonDialog() {
   // Dialog background
   vita2d_draw_texture_scale_rotate_hotspot(dialog_image, uncommon_dialog.x + uncommon_dialog.width / 2.0f,
                                            uncommon_dialog.y + uncommon_dialog.height / 2.0f,
-                                           uncommon_dialog.scale * (uncommon_dialog.width/vita2d_texture_get_width(dialog_image)),
-                                           uncommon_dialog.scale * (uncommon_dialog.height/vita2d_texture_get_height(dialog_image)),
+                                           uncommon_dialog.scale * (uncommon_dialog.width / vita2d_texture_get_width(dialog_image)),
+                                           uncommon_dialog.scale * (uncommon_dialog.height / vita2d_texture_get_height(dialog_image)),
                                            0.0f, vita2d_texture_get_width(dialog_image) / 2.0f, vita2d_texture_get_height(dialog_image) / 2.0f);
 
   // Easing out

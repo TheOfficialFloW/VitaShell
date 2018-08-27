@@ -66,6 +66,8 @@ file(GLOB res_files RELATIVE
   resources/*.txt
   resources/*.bin
 )
+
+# ugly hack
 add_resources(vitashell_res
   ${res_files}
   build/modules/kernel/kernel.skprx
@@ -207,6 +209,7 @@ vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} eboot.bin
        pkg/sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
 )
 
+# for network update
 add_custom_target(release
   COMMAND cp eboot.bin ../release/eboot.bin
   COMMAND cp VitaShell.vpk_param.sfo ../release/param.sfo

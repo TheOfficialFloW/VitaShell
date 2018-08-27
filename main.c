@@ -1970,7 +1970,7 @@ int main(int argc, const char *argv[]) {
   
   // Automatic network update
   if (!vitashell_config.disable_autoupdate) {
-    SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x10000100, 0x100000, 0, 0, NULL);
+    SceUID thid = sceKernelCreateThread("network_update_thread", network_update_thread, 0x10000100, 0x100000, 0, 0, NULL);
     if (thid >= 0)
       sceKernelStartThread(thid, 0, NULL);
   }

@@ -560,7 +560,8 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   return 0;
 }
 
-int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path)) {
+int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders,
+                       uint32_t *files, int (* handler)(const char *path)) {
   if (is_psarc)
     return getPsarcPathInfo(path, size, folders, files, handler);
   

@@ -225,7 +225,8 @@ void loadTheme() {
   int i;
 
   // Load default config file
-  readConfigBuffer(&_binary_resources_default_colors_txt_start, (int)&_binary_resources_default_colors_txt_size, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
+  readConfigBuffer(&_binary_resources_default_colors_txt_start, (int)&_binary_resources_default_colors_txt_size,
+                   colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
   // Load custom config file
   if (use_custom_config) {

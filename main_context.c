@@ -1230,4 +1230,3 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
 
   return CONTEXT_MENU_CLOSING;
 }
-

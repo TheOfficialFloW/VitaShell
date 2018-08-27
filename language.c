@@ -278,7 +278,8 @@ void loadLanguage(int id) {
   };
 
   // Load default config file
-  readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
+  readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size,
+                   language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 
   // Load custom config file
   if (use_custom_config) {

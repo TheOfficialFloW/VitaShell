@@ -332,14 +332,17 @@ int hexViewer(const char *file) {
         // Character hex
         uint8_t high_nibble = (ch >> 4) & 0xF;
         uint8_t low_nibble = ch & 0xF;
-        int w = pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE), START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && nibble_x == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", high_nibble);
-        pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE) + w, START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && (nibble_x + 1) == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", low_nibble);
+        int w = pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE), START_Y + ((y + 1) * FONT_Y_SPACE),
+                               (on_line && nibble_x == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", high_nibble);
+        pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE) + w, START_Y + ((y + 1) * FONT_Y_SPACE),
+                       (on_line && (nibble_x + 1) == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", low_nibble);
 
         // Character
         ch = (ch >= 0x20) ? ch : '.';
         int width = font_size_cache[(int)ch];
         uint8_t byte_nibble_pos = nibble_pos - (nibble_pos % 2);
-        pgf_draw_textf(HEX_CHAR_X + (x * FONT_X_SPACE) + (FONT_X_SPACE - width) / 2.0f, START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && nibble_x == byte_nibble_pos) ? HEX_NIBBLE_COLOR : color, "%c", ch);
+        pgf_draw_textf(HEX_CHAR_X + (x * FONT_X_SPACE) + (FONT_X_SPACE - width) / 2.0f, START_Y + ((y + 1) * FONT_Y_SPACE),
+                       (on_line && nibble_x == byte_nibble_pos) ? HEX_NIBBLE_COLOR : color, "%c", ch);
       }
 
       // Offset y

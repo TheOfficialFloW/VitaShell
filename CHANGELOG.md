@@ -4,6 +4,7 @@
 
 - Fixed bug in USB connection, where your Memory Card could be corrupted.
 - Fixed line breaks in SFO files and long names will now scroll.
+- Fixed compatibility with `udcd_uvc.skprx ` thanks to xerpi.
 
 ### Changelog 1.94
 
