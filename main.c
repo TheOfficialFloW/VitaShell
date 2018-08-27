@@ -233,7 +233,7 @@ static void refreshMarkList() {
     FileListEntry *next = entry->next;
 
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, entry->name);
 
     // Check if the entry still exits. If not, remove it from list
     SceIoStat stat;
@@ -260,7 +260,7 @@ static void refreshCopyList() {
     FileListEntry *next = entry->next;
 
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", copy_list.path, entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_list.path, entry->name);
 
     // Check if the entry still exits. If not, remove it from list
     SceIoStat stat;
@@ -875,8 +875,8 @@ static int dialogSteps() {
             char old_path[MAX_PATH_LENGTH];
             char new_path[MAX_PATH_LENGTH];
 
-            snprintf(old_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, old_name);
-            snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
+            snprintf(old_path, MAX_PATH_LENGTH, "%s%s", file_list.path, old_name);
+            snprintf(new_path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
             int res = sceIoRename(old_path, new_path);
             if (res < 0) {
@@ -902,7 +902,7 @@ static int dialogSteps() {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
           char path[MAX_PATH_LENGTH];
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
+          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
           int res = sceIoMkdir(path, 0777);
           if (res < 0) {
@@ -931,7 +931,7 @@ static int dialogSteps() {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
           char path[MAX_PATH_LENGTH];
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
+          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
           SceUID fd = sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT, 0777);
           if (fd < 0) {
@@ -980,7 +980,7 @@ static int dialogSteps() {
         if (level[0] == '\0') {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
-          snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, compress_name);
+          snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, compress_name);
 
           CompressArguments args;
           args.file_list = &file_list;
@@ -1028,7 +1028,7 @@ static int dialogSteps() {
         }
         
         // Place the full file path in cur_file
-        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
         HashArguments args;
         args.file_path = cur_file;
@@ -1063,7 +1063,7 @@ static int dialogSteps() {
 
         if (install_list.length > 0) {
           FileListEntry *entry = install_list.head;
-          snprintf(install_path, MAX_PATH_LENGTH - 1, "%s%s", install_list.path, entry->name);
+          snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
           args.file = install_path;
 
           // Focus
@@ -1301,7 +1301,7 @@ static int dialogSteps() {
           is_in_archive = 1;
           dir_level_archive = dir_level;
 
-          snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+          snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
           strcat(file_list.path, file_entry->name);
           addEndSlash(file_list.path);
@@ -1635,7 +1635,7 @@ static int fileBrowserMenuCtrl() {
         if (res < 0)
           errorDialog(res);
       } else {
-        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
         int type = handleFile(cur_file, file_entry);
 
         // Archive mode
@@ -1643,7 +1643,7 @@ static int fileBrowserMenuCtrl() {
           is_in_archive = 1;
           dir_level_archive = dir_level;
 
-          snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+          snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
           strcat(file_list.path, file_entry->name);
           addEndSlash(file_list.path);
@@ -1766,10 +1766,8 @@ static int shellMain() {
     // Start drawing
     startDrawing(bg_browser_image);
 
-    // Draw shell info
+    // Draw
     drawShellInfo(file_list.path);
-
-    // Draw scroll bar
     drawScrollBar(base_pos, file_list.length);
 
     // Draw
@@ -1919,16 +1917,10 @@ static int shellMain() {
       }
     }
 
-    // Draw settings menu
+    // Draw
     drawSettingsMenu();
-
-    // Draw context menu
     drawContextMenu();
-
-    // Draw adhoc dialog
     drawAdhocDialog();
-    
-    // Draw property dialog
     drawPropertyDialog();
 
     // End drawing
@@ -1967,13 +1959,9 @@ int main(int argc, const char *argv[]) {
   if (current_pad[PAD_LTRIGGER])
     use_custom_config = 0;
   
-  // Load settings
+  // Load stuff
   loadSettingsConfig();
-
-  // Load theme
   loadTheme();
-
-  // Load language
   loadLanguage(language);
 
   // Init context menu width

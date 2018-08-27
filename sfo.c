@@ -109,7 +109,7 @@ int SFOReader(const char *file) {
   int size = 0;
 
   if (isInArchive()) {
-    size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE); 
+    size = ReadArchiveFile(file, buffer, BIG_BUFFER_SIZE);
   } else {
     size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
   }
@@ -125,20 +125,31 @@ int SFOReader(const char *file) {
 
   int base_pos = 0, rel_pos = 0;
 
+  int scroll_count = 0;
+  float scroll_x = FILE_X;
+
   while (1) {
     readPad();
 
     if (pressed_pad[PAD_CANCEL]) {
-      break;  
+      break;
     }
 
     if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
+      int old_pos = base_pos + rel_pos;
+
       if (rel_pos > 0) {
         rel_pos--;
       } else if (base_pos > 0) {
         base_pos--;
       }
+
+      if (old_pos != base_pos + rel_pos) {
+        scroll_count = 0;
+      }
     } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
+      int old_pos = base_pos + rel_pos;
+
       if ((rel_pos + 1) < sfo_header->count) {
         if ((rel_pos + 1) < MAX_POSITION) {
           rel_pos++;
@@ -146,15 +157,17 @@ int SFOReader(const char *file) {
           base_pos++;
         }
       }
+
+      if (old_pos != base_pos + rel_pos) {
+        scroll_count = 0;
+      }
     }
 
     // Start drawing
     startDrawing(bg_text_image);
 
-    // Draw shell info
+    // Draw
     drawShellInfo(file);
-
-    // Draw scroll bar
     drawScrollBar(base_pos, sfo_header->count);
 
     int i;
@@ -163,26 +176,79 @@ int SFOReader(const char *file) {
 
       uint32_t color = (rel_pos == i) ? TEXT_FOCUS_COLOR : TEXT_COLOR;
 
-      char *name = (char *)buffer + sfo_header->keyofs + entries->nameofs;
-      pgf_draw_textf(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, "%s", name);
+      char *name = (char *)(buffer + sfo_header->keyofs + entries->nameofs);
+      float name_x = pgf_draw_text(SHELL_MARGIN_X, START_Y + (FONT_Y_SPACE * i), color, name);
 
       char string[128];
 
-      void *data = (void *)buffer + sfo_header->valofs + entries->dataofs;
+      void *data = (void *)(buffer + sfo_header->valofs + entries->dataofs);
       switch (entries->type) {
         case PSF_TYPE_BIN:
+        {
+          string[0] = '\0';
+
+          int i;
+          for (i = 0; i < entries->valsize; i++) {
+            char ch[4];
+            sprintf(ch, "%02X", ((uint8_t *)data)[i]);
+            strlcat(string, ch, sizeof(string) - 1);
+          }
+
           break;
-          
+        }
+
         case PSF_TYPE_STR:
-          snprintf(string, sizeof(string), "%s", (char *)data);
+        {
+          strncpy(string, (char *)data, sizeof(string) - 1);
+          int len = strlen(string);
+          int i;
+          for (i = 0; i < len; i++)
+            if (string[i] == '\n')
+              string[i] = ' ';
           break;
-          
+        }
+
         case PSF_TYPE_VAL:
+        {
           snprintf(string, sizeof(string), "0x%X", *(unsigned int *)data);
           break;
+        }
       }
 
-      pgf_draw_textf(ALIGN_RIGHT(INFORMATION_X, pgf_text_width(string)), START_Y + (FONT_Y_SPACE * i), color, string);
+      // Draw
+      float width = pgf_text_width(string);
+      float aligned_x = ALIGN_RIGHT(INFORMATION_X, width);
+      float min_x = aligned_x >= (name_x + 100.0f) ? aligned_x : (name_x + 100.0f);
+      float y = START_Y + (FONT_Y_SPACE * i);
+
+      vita2d_enable_clipping();
+      vita2d_set_clip_rectangle(min_x + 1.0f, y, INFORMATION_X + 1.0f, y + FONT_Y_SPACE);
+
+      float x = min_x;
+
+      if (i == rel_pos) {
+        int width_int = (int)width;
+        if (aligned_x < (name_x + 100.0f)) {
+          if (scroll_count < 60) {
+            scroll_x = x;
+          } else if (scroll_count < width_int + 90) {
+            scroll_x--;
+          } else if (scroll_count < width_int + 120) {
+            color = (color & 0x00FFFFFF) | ((((color >> 24) * (scroll_count - width_int - 90)) / 30) << 24); // fade-in in 0.5s
+            scroll_x = x;
+          } else {
+            scroll_count = 0;
+          }
+
+          scroll_count++;
+
+          x = scroll_x;
+        }
+      }
+
+      pgf_draw_text(x, y, color, string);
+
+      vita2d_disable_clipping();
     }
 
     // End drawing

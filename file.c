@@ -190,7 +190,7 @@ int getPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *f
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (handler && handler(new_path)) {
           free(new_path);
@@ -254,7 +254,7 @@ int removePath(const char *path, FileProcessParam *param) {
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
           int ret = removePath(new_path, param);
@@ -468,10 +468,10 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-        snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
+        snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
         char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
-        snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
+        snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
         int ret = 0;
 
@@ -562,10 +562,10 @@ int movePath(const char *src_path, const char *dst_path, int flags, FileProcessP
         res = sceIoDread(dfd, &dir);
         if (res > 0) {
           char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-          snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
+          snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
           char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
-          snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
+          snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
           // Recursive move
           int ret = movePath(new_src_path, new_dst_path, flags, param);

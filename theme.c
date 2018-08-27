@@ -241,16 +241,16 @@ void loadTheme() {
 
     if (theme_name) {
       // Load colors config
-      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
+      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
       readConfig(path, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
       
       // Font
-      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
+      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
       font = vita2d_load_custom_pgf(path);
       
       // Load theme
       for (i = 0; i < N_THEME_IMAGES; i++) {
-        snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/%s", theme_name, theme_images[i].name);
+        snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/%s", theme_name, theme_images[i].name);
         if (theme_images[i].texture && *(theme_images[i].texture) == NULL)
           *(theme_images[i].texture) = vita2d_load_PNG_file(path);
       }

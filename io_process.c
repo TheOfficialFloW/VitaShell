@@ -116,7 +116,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
 
   int i;
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
     getPathInfo(path, NULL, &folders, &files, NULL);
     mark_entry = mark_entry->next;
   }
@@ -130,7 +130,7 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
   mark_entry = head;
 
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 
     FileProcessParam param;
     param.value = &value;
@@ -191,8 +191,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
     int i;
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
-      snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
 
       int res = movePath(src_path, dst_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
       if (res < 0) {
@@ -239,7 +239,7 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
     int i;
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 
       if (args->copy_mode == COPY_MODE_EXTRACT) {
         getArchivePathInfo(src_path, &size, &folders, &files, NULL);
@@ -263,8 +263,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
     copy_entry = args->copy_list->head;
 
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
-      snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
 
       FileProcessParam param;
       param.value = &value;
@@ -447,7 +447,7 @@ int exportPath(char *path, uint32_t *songs, uint32_t *videos, uint32_t *pictures
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
           int ret = exportPath(new_path, songs, videos, pictures, param);
@@ -523,7 +523,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 
   int i;
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
     getPathInfo(path, &size, NULL, &files, mediaPathHandler);
     mark_entry = mark_entry->next;
   }
@@ -549,7 +549,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
   mark_entry = head;
 
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 
     FileProcessParam param;
     param.value = &value;
