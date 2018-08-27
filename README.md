@@ -102,7 +102,12 @@ Credits
 Changelog
 ---------
 
+### Changelog 1.95
+
+- Fixed bug in USB connection, where your Memory Card could be corrupted.
+
 ### Changelog 1.94
+
 - Added ability to umount all partitions that you can mount.
 - Fixed crash when using StorageMgr.
 

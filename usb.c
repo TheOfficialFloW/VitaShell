@@ -135,7 +135,6 @@ int umountUsbUx0() {
 int remount_uma0 = 0, remount_xmc0 = 0, remount_imc0 = 0, remount_ux0 = 0;
 
 void remount_partitions() {
-  // Remount partitions
   if (remount_ux0)
     vshIoMount(0x800, NULL, 0, 0, 0, 0);
   if (remount_imc0)
@@ -153,6 +152,28 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
 
   // Destroy other apps
   sceAppMgrDestroyOtherApp();
+
+  // Load and start usbdevice module
+  res = taiLoadStartKernelModule(usbDevicePath, 0, NULL, 0);
+  if (res < 0)
+    goto ERROR_LOAD_MODULE;
+
+  modid = res;
+
+  // Stop MTP driver
+  res = sceMtpIfStopDriver(1);
+  if (res < 0)
+    goto ERROR_STOP_DRIVER;
+
+  // Set device information
+  res = sceUsbstorVStorSetDeviceInfo("\"PS Vita\" MC", "1.00");
+  if (res < 0)
+    goto ERROR_USBSTOR_VSTOR;
+
+  // Set image file path
+  res = sceUsbstorVStorSetImgFilePath(imgFilePath);
+  if (res < 0)
+    goto ERROR_USBSTOR_VSTOR;
 
   // Umount all partitions
   remount_uma0 = remount_xmc0 = remount_imc0 = remount_ux0 = 0;
@@ -173,28 +194,6 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
     remount_ux0 = 1;
   }
 
-  // Load and start usbdevice module
-  res = taiLoadStartKernelModule(usbDevicePath, 0, NULL, 0);
-  if (res < 0)
-    goto ERROR_LOAD_MODULE;
-
-  modid = res;
-
-  // Stop MTP driver
-  res = sceMtpIfStopDriver(1);
-  if (res < 0 && res != 0x8054360C)
-    goto ERROR_STOP_DRIVER;
-
-  // Set device information
-  res = sceUsbstorVStorSetDeviceInfo("\"PS Vita\" MC", "1.00");
-  if (res < 0)
-    goto ERROR_USBSTOR_VSTOR;
-
-  // Set image file path
-  res = sceUsbstorVStorSetImgFilePath(imgFilePath);
-  if (res < 0)
-    goto ERROR_USBSTOR_VSTOR;
-
   // Start USB storage
   res = sceUsbstorVStorStart(type);
   if (res < 0)
@@ -203,13 +202,13 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
   return modid;
 
 ERROR_USBSTOR_VSTOR:
+  remount_partitions();
   sceMtpIfStartDriver(1);
 
 ERROR_STOP_DRIVER:
   taiStopUnloadKernelModule(modid, 0, NULL, 0, NULL, NULL);
 
 ERROR_LOAD_MODULE:
-  remount_partitions();
   return res;
 }
 
