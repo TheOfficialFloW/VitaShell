@@ -193,11 +193,8 @@ int makeHeadBin() {
   // Read param.sfo
   void *sfo_buffer = NULL;
   int res = allocateReadFile(PACKAGE_DIR "/sce_sys/param.sfo", &sfo_buffer);
-  if (res < 0) {
-    if (sfo_buffer)
-      free(sfo_buffer);
+  if (res < 0)
     return res;
-  }
 
   // Get title id
   char titleid[12];
@@ -336,7 +333,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
       // Team molecule's request: Full permission access warning
       uint64_t authid = *(uint64_t *)(buffer + 0x80);
-      if (authid != 0x2F00000000000002) {
+      if (!vitashell_config.disable_warning && authid != 0x2F00000000000002) {
         closeWaitDialog();
 
         initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_WARNING]);
@@ -399,7 +396,7 @@ int install_thread(SceSize args_size, InstallArguments *args) {
 
     // Team molecule's request: Full permission access warning
     int unsafe = archiveCheckFilesForUnsafeFself(); // 0: Safe, 1: Unsafe, 2: Dangerous
-    if (unsafe) {
+    if (!vitashell_config.disable_warning && unsafe) {
       closeWaitDialog();
 
       initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[unsafe == 2 ? INSTALL_BRICK_WARNING : INSTALL_WARNING]);

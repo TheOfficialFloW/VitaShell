@@ -2,6 +2,7 @@
 
 ### Changelog 1.95
 
+- Added option to disable warning messages when installing vpks.
 - Fixed bug in USB connection, where your Memory Card could be corrupted.
 - Fixed line breaks in SFO files and long names will now scroll.
 - Fixed compatibility with `udcd_uvc.skprx ` thanks to xerpi.

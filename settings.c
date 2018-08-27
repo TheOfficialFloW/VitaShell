@@ -57,16 +57,17 @@ static ConfigEntry theme_entries[] = {
 };
 
 SettingsMenuOption main_settings[] = {
-  // { VITASHELL_SETTINGS_LANGUAGE,    SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &language },
-  { VITASHELL_SETTINGS_THEME,          SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0, NULL, 0, NULL },
+  // { VITASHELL_SETTINGS_LANGUAGE,     SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &language },
+  { VITASHELL_SETTINGS_THEME,           SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0, NULL, 0, NULL },
   
-  { VITASHELL_SETTINGS_USBDEVICE,      SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
+  { VITASHELL_SETTINGS_USBDEVICE,       SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
     usbdevice_options, sizeof(usbdevice_options) / sizeof(char **), &vitashell_config.usbdevice },
-  { VITASHELL_SETTINGS_SELECT_BUTTON,  SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
+  { VITASHELL_SETTINGS_SELECT_BUTTON,   SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
     select_button_options, sizeof(select_button_options) / sizeof(char **), &vitashell_config.select_button },
-  { VITASHELL_SETTINGS_NO_AUTO_UPDATE, SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_autoupdate },
-  
-  { VITASHELL_SETTINGS_RESTART_SHELL,  SETTINGS_OPTION_TYPE_CALLBACK, (void *)restartShell, NULL, 0, NULL, 0, NULL },
+  { VITASHELL_SETTINGS_NO_AUTO_UPDATE,  SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_autoupdate },
+  { VITASHELL_SETTINGS_WARNING_MESSAGE, SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_warning },
+
+  { VITASHELL_SETTINGS_RESTART_SHELL,   SETTINGS_OPTION_TYPE_CALLBACK, (void *)restartShell, NULL, 0, NULL, 0, NULL },
 };
 
 SettingsMenuOption power_settings[] = {

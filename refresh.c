@@ -60,11 +60,8 @@ int refreshNeeded(const char *app_path)
   snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
   void *sfo_buffer = NULL;
   int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
-  if (sfo_size < 0) {
-    if (sfo_buffer)
-      free(sfo_buffer);
+  if (sfo_size < 0)
     return sfo_size;
-  }
 
   // Get title and content ids
   char titleid[12], contentid[50];
