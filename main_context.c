@@ -424,25 +424,6 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
   }
 
-  // Invisible 'Paste' if the files to move are not from the same partition
-  if (copy_mode == COPY_MODE_MOVE) {
-    char *p = strchr(file_list.path, ':');
-    char *q = strchr(copy_list.path, ':');
-    if (p && q) {
-      *p = '\0';
-      *q = '\0';
-
-      if (strcasecmp(file_list.path, copy_list.path) != 0) {
-        menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
-      }
-
-      *q = ':';
-      *p = ':';
-    } else {
-      menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
-    }
-  }
-
   // Invisible write operations in archives
   // TODO: read-only mount points
   if (isInArchive() || (pfs_mounted_path[0] && strstr(file_list.path, pfs_mounted_path) && read_only)) {
