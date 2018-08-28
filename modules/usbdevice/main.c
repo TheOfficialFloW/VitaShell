@@ -18,6 +18,7 @@
 
 #include <psp2kern/kernel/modulemgr.h>
 #include <psp2kern/io/fcntl.h>
+#include <psp2kern/udcd.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -88,10 +89,8 @@ int module_start(SceSize args, void *argp) {
 int module_stop(SceSize args, void *argp) {
   if (hooks[2] >= 0)
     taiHookReleaseForKernel(hooks[2], ksceIoReadRef);
-
   if (hooks[1] >= 0)
     taiHookReleaseForKernel(hooks[1], ksceIoOpenRef);
-
   if (hooks[0] >= 0)
     taiInjectReleaseForKernel(hooks[0]);
 
