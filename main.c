@@ -1527,14 +1527,14 @@ static int fileBrowserMenuCtrl() {
       }
     }
   }
-
+/*
   // QR
   if (hold_pad[PAD_LTRIGGER] && hold_pad[PAD_RTRIGGER] && enabledQR()) {
     startQR();
     initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
     setDialogStep(DIALOG_STEP_QR);
   }
-  
+*/
   // Move  
   if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     int old_pos = base_pos + rel_pos;
@@ -1556,6 +1556,29 @@ static int fileBrowserMenuCtrl() {
         rel_pos++;
       } else if ((base_pos + rel_pos + 1) < file_list.length) {
         base_pos++;
+      }
+    }
+
+    if (old_pos != base_pos + rel_pos) {
+      scroll_count = 0;
+    }
+  }
+
+  // Page skip
+  if (hold_pad[PAD_LTRIGGER] || hold_pad[PAD_RTRIGGER]) {
+    int old_pos = base_pos + rel_pos;
+
+    if (hold_pad[PAD_LTRIGGER]) { // Skip page up
+      base_pos = base_pos - MAX_ENTRIES;
+      if (base_pos < 0) {
+        base_pos = 0;
+        rel_pos = 0;
+      }
+    } else { // Skip page down
+      base_pos = base_pos + MAX_ENTRIES;
+      if (base_pos >= file_list.length - MAX_POSITION) {
+        base_pos = MAX(file_list.length - MAX_POSITION, 0);
+        rel_pos = MIN(MAX_POSITION - 1, file_list.length - 1);
       }
     }
 
@@ -1774,7 +1797,7 @@ static int shellMain() {
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos);
     if (file_entry) {
       int i;
-      for (i = 0; i < MAX_ENTRIES && (base_pos+i) < file_list.length; i++) {
+      for (i = 0; i < MAX_ENTRIES && (base_pos + i) < file_list.length; i++) {
         uint32_t color = FILE_COLOR;
         float y = START_Y + (i * FONT_Y_SPACE);
 

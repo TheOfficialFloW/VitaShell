@@ -163,6 +163,29 @@ int SFOReader(const char *file) {
       }
     }
 
+    // Page skip
+    if (hold_pad[PAD_LTRIGGER] || hold_pad[PAD_RTRIGGER]) {
+      int old_pos = base_pos + rel_pos;
+
+      if (hold_pad[PAD_LTRIGGER]) { // Skip page up
+        base_pos = base_pos - MAX_ENTRIES;
+        if (base_pos < 0) {
+          base_pos = 0;
+          rel_pos = 0;
+        }
+      } else { // Skip page down
+        base_pos = base_pos + MAX_ENTRIES;
+        if (base_pos >= (int)sfo_header->count - MAX_POSITION) {
+          base_pos = MAX((int)sfo_header->count - MAX_POSITION, 0);
+          rel_pos = MIN(MAX_POSITION - 1, (int)sfo_header->count - 1);
+        }
+      }
+
+      if (old_pos != base_pos + rel_pos) {
+        scroll_count = 0;
+      }
+    }
+
     // Start drawing
     startDrawing(bg_text_image);
 
