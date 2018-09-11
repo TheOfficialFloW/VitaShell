@@ -431,8 +431,8 @@ static int handleFile(const char *file, FileListEntry *entry) {
 //    }
 //    free(base);
 //  }
-//  snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH, entry->name);
-//  createSymLink(target, file);
+  snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH, entry->name);
+  createSymLink(target, file);
 
   return type;
 }
@@ -1639,6 +1639,7 @@ static int fileBrowserMenuCtrl() {
     if (now - time_last_bookmars > THRESHOLD_LAST_PAD_BOOKMARKS_WAIT) {
       if (strncmp(file_list.path, VITASHELL_BOOKMARKS_PATH, MAX_PATH_LENGTH) != 0) {
           char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
+          sort_mode = SORT_BY_NAME;
           jump_to_directory_track_current_path(path);
           time_last_bookmars = now;
       }
@@ -1650,6 +1651,7 @@ static int fileBrowserMenuCtrl() {
     if (now - time_last_recent_files > THRESHOLD_LAST_PAD_RECENT_FILES_WAIT) {
       if (strncmp(file_list.path, VITASHELL_RECENT_PATH, MAX_PATH_LENGTH) != 0) {
         char path[MAX_PATH_LENGTH] = VITASHELL_RECENT_PATH;
+        sort_mode = SORT_BY_DATE;
         jump_to_directory_track_current_path(path);
         time_last_recent_files = now;
       }
@@ -1760,6 +1762,13 @@ static int fileBrowserMenuCtrl() {
         fileBrowserHandleSymlink(file_entry);
       } else if (file_entry->is_folder) {
         fileBrowserHandleFolder(file_entry);
+
+        char *contains = strstr(file_list.path, VITASHELL_RECENT_PATH);
+        if (contains) {
+          sort_mode = SORT_BY_DATE;
+        } else {
+          sort_mode = SORT_BY_NAME;
+        }
       } else {
         fileBrowserHandleFile(file_entry);
       }
@@ -1932,15 +1941,6 @@ static int shellMain() {
       refresh = REFRESH_MODE_NORMAL;
     }
     if (refresh != REFRESH_MODE_NONE) {
-        // TODO: store old sort mode before overwrite
-        // better place: When opening directory
-        char *contains = strstr(file_list.path, VITASHELL_RECENT_PATH);
-        if (contains) {
-          sort_mode = SORT_BY_DATE;
-          free(contains);
-        } else {
-          sort_mode = SORT_BY_NAME;
-        }
       // Refresh lists
       refreshFileList();
       refreshMarkList();
