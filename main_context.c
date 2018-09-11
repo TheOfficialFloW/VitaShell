@@ -133,6 +133,7 @@ enum MenuMoreEntrys {
   MENU_MORE_ENTRY_INSTALL_FOLDER,
   MENU_MORE_ENTRY_EXPORT_MEDIA,
   MENU_MORE_ENTRY_CALCULATE_SHA1,
+  MENU_MORE_ENTRY_SHOW_BOOKMARKS
 };
 
 MenuEntry menu_more_entries[] = {
@@ -141,6 +142,7 @@ MenuEntry menu_more_entries[] = {
   { INSTALL_FOLDER, 14, 0, CTX_INVISIBLE },
   { EXPORT_MEDIA,   15, 0, CTX_INVISIBLE },
   { CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
+  { BOOKMARKS_SHOW, 17, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
