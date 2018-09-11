@@ -19,7 +19,7 @@
 #ifndef __VITASHELL_USER_H__
 #define __VITASHELL_USER_H__
 
-#include <vitashell_kernel.h>
+#include "vitashell_kernel.h"
 
 int shellUserIsUx0Redirected(const char *blkdev, const char *blkdev2);
 int shellUserRedirectUx0(const char *blkdev, const char *blkdev2);

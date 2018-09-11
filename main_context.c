@@ -258,7 +258,7 @@ int pfsMount(const char *path) {
   memset(klicensee, 0, sizeof(klicensee));
 
 /*
-  snprintf(work_path, MAX_PATH_LENGTH - 1, "%ssce_sys/package/work.bin", path);
+  snprintf(work_path, MAX_PATH_LENGTH, "%ssce_sys/package/work.bin", path);
   if (ReadFile(work_path, license_buf, sizeof(license_buf)) == sizeof(license_buf)) {
     int res = shellUserGetRifVitaKey(license_buf, klicensee);
     debugPrintf("read license: 0x%08X\n", res);
@@ -457,25 +457,6 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
   }
 
-  // Invisible 'Paste' if the files to move are not from the same partition
-  if (copy_mode == COPY_MODE_MOVE) {
-    char *p = strchr(file_list.path, ':');
-    char *q = strchr(copy_list.path, ':');
-    if (p && q) {
-      *p = '\0';
-      *q = '\0';
-
-      if (strcasecmp(file_list.path, copy_list.path) != 0) {
-        menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
-      }
-
-      *q = ':';
-      *p = ':';
-    } else {
-      menu_main_entries[MENU_MAIN_ENTRY_PASTE].visibility = CTX_INVISIBLE;
-    }
-  }
-
   // Invisible write operations in archives
   // TODO: read-only mount points
   if (isInArchive() || (pfs_mounted_path[0] && strstr(file_list.path, pfs_mounted_path) && read_only)) {
@@ -506,7 +487,7 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
   } else {
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%ssce_pfs", file_list.path, file_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%ssce_pfs", file_list.path, file_entry->name);
 
     if (!checkFolderExist(path))
       menu_main_entries[MENU_MAIN_ENTRY_OPEN_DECRYPTED].visibility = CTX_INVISIBLE;
@@ -629,13 +610,13 @@ void setContextMenuMoreVisibilities() {
         break;
       }
 
-      snprintf(check_path, MAX_PATH_LENGTH - 1, "%s%s/eboot.bin", file_list.path, file_entry->name);
+      snprintf(check_path, MAX_PATH_LENGTH, "%s%s/eboot.bin", file_list.path, file_entry->name);
       if (!checkFileExist(check_path)) {
         menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
         break;
       }
 
-      snprintf(check_path, MAX_PATH_LENGTH - 1, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
+      snprintf(check_path, MAX_PATH_LENGTH, "%s%s/sce_sys/param.sfo", file_list.path, file_entry->name);
       if (!checkFileExist(check_path)) {
         menu_more_entries[MENU_MORE_ENTRY_INSTALL_FOLDER].visibility = CTX_INVISIBLE;
         break;
@@ -863,18 +844,18 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
 
         pfsUmount();
 
-        snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
         res = pfsMount(path);
 
         // In case we're at ux0:patch or grw0:patch we need to apply the mounting at ux0:app or gro0:app
         if (res < 0) {
           if (strncasecmp(file_list.path, "ux0:patch", 9) == 0 ||
               strncasecmp(file_list.path, "grw0:patch", 10) == 0) {
-            snprintf(path, MAX_PATH_LENGTH - 1, "ux0:app/%s", file_entry->name);
+            snprintf(path, MAX_PATH_LENGTH, "ux0:app/%s", file_entry->name);
             res = pfsMount(path);
 
             if (res < 0) {
-              snprintf(path, MAX_PATH_LENGTH - 1, "gro0:app/%s", file_entry->name);
+              snprintf(path, MAX_PATH_LENGTH, "gro0:app/%s", file_entry->name);
               res = pfsMount(path);
             }
           }
@@ -1056,7 +1037,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
     {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry) {
-        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
         initPropertyDialog(cur_file, file_entry);
       }
 
@@ -1184,7 +1165,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
       int i;
       for (i = 0; i < file_list.length - 1; i++) {
         char path[MAX_PATH_LENGTH];
-        snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
         int type = getFileType(path);
         if (type == FILE_TYPE_VPK) {
@@ -1207,7 +1188,7 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
     {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry) {
-        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
         initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_FOLDER_QUESTION]);
         setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
       }
@@ -1252,9 +1233,9 @@ static int contextMenuBookmarksEnterCallback(int sel, void *context) {
     case MENU_BOOKMARKS_NEW: {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry) {
-        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
         char target[MAX_PATH_LENGTH];
-        snprintf(target, MAX_PATH_LENGTH - 1, "%s%s", VITASHELL_BOOKMARKS_PATH, file_entry->name);
+        snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_BOOKMARKS_PATH, file_entry->name);
         int res;
         if ((res = createSymLink(target, cur_file)) < 0) {
           errorDialog(res);
@@ -1283,10 +1264,10 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
       int count = 1;
       while (1) {
         if (count == 1) {
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path,
+          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path,
                    language_container[NEW_FILE]);
         } else {
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s (%d)", file_list.path,
+          snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path,
                    language_container[NEW_FILE], count);
         }
         if (!checkFileExist(path))
@@ -1306,10 +1287,10 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
       int count = 1;
       while (1) {
         if (count == 1) {
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path,
+          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path,
                    language_container[NEW_FOLDER]);
         } else {
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s (%d)", file_list.path,
+          snprintf(path, MAX_PATH_LENGTH, "%s%s (%d)", file_list.path,
                    language_container[NEW_FOLDER], count);
         }
 
@@ -1330,4 +1311,3 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
 
   return CONTEXT_MENU_CLOSING;
 }
-

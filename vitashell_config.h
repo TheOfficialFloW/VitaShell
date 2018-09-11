@@ -35,6 +35,7 @@ typedef struct {
   int usbdevice;
   int select_button;
   int disable_autoupdate;
+  int disable_warning;
 } VitaShellConfig;
 
 #endif

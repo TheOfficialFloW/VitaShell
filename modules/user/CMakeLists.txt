@@ -14,30 +14,22 @@ include("${VITASDK}/share/vita.cmake" REQUIRED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -nostdlib")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
 
+include_directories(
+  ../kernel
+)
+
 add_executable(user
   main.c
 )
 
+add_dependencies(user vitashell_kernel_stubs)
+
 target_link_libraries(user
+  ${CMAKE_CURRENT_BINARY_DIR}/../kernel/vitashell_kernel_stubs/libVitaShellKernel2_stub.a
   SceLibKernel_stub
   SceIofilemgr_stub
-  VitaShellKernel2_stub
 )
 
 vita_create_self(user.suprx user CONFIG exports.yml UNSAFE)
 
-vita_create_stubs(stubs user ${CMAKE_SOURCE_DIR}/exports.yml)
-
-install(DIRECTORY ${CMAKE_BINARY_DIR}/stubs/
-  DESTINATION lib
-  FILES_MATCHING PATTERN "*.a"
-)
-
-install(FILES vitashell_user.h
-  DESTINATION include
-)
-
-add_custom_target(copy
-  COMMAND cp user.suprx ../../../resources/user.suprx
-  DEPENDS user.suprx
-)
+vita_create_stubs(vitashell_user_stubs user exports.yml)

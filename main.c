@@ -308,7 +308,7 @@ static void refreshMarkList() {
     FileListEntry *next = entry->next;
 
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, entry->name);
 
     // Check if the entry still exits. If not, remove it from list
     SceIoStat stat;
@@ -335,7 +335,7 @@ static void refreshCopyList() {
     FileListEntry *next = entry->next;
 
     char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", copy_list.path, entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_list.path, entry->name);
 
     // Check if the entry still exits. If not, remove it from list
     SceIoStat stat;
@@ -968,8 +968,8 @@ static int dialogSteps() {
             char old_path[MAX_PATH_LENGTH];
             char new_path[MAX_PATH_LENGTH];
 
-            snprintf(old_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, old_name);
-            snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
+            snprintf(old_path, MAX_PATH_LENGTH, "%s%s", file_list.path, old_name);
+            snprintf(new_path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
             int res = sceIoRename(old_path, new_path);
             if (res < 0) {
@@ -995,7 +995,7 @@ static int dialogSteps() {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
           char path[MAX_PATH_LENGTH];
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
+          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
           int res = sceIoMkdir(path, 0777);
           if (res < 0) {
@@ -1024,7 +1024,7 @@ static int dialogSteps() {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
           char path[MAX_PATH_LENGTH];
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, name);
+          snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, name);
 
           SceUID fd = sceIoOpen(path, SCE_O_WRONLY | SCE_O_CREAT, 0777);
           if (fd < 0) {
@@ -1073,7 +1073,7 @@ static int dialogSteps() {
         if (level[0] == '\0') {
           setDialogStep(DIALOG_STEP_NONE);
         } else {
-          snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, compress_name);
+          snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, compress_name);
 
           CompressArguments args;
           args.file_list = &file_list;
@@ -1121,7 +1121,7 @@ static int dialogSteps() {
         }
         
         // Place the full file path in cur_file
-        snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
         HashArguments args;
         args.file_path = cur_file;
@@ -1156,7 +1156,7 @@ static int dialogSteps() {
 
         if (install_list.length > 0) {
           FileListEntry *entry = install_list.head;
-          snprintf(install_path, MAX_PATH_LENGTH - 1, "%s%s", install_list.path, entry->name);
+          snprintf(install_path, MAX_PATH_LENGTH, "%s%s", install_list.path, entry->name);
           args.file = install_path;
 
           // Focus
@@ -1394,7 +1394,7 @@ static int dialogSteps() {
           is_in_archive = 1;
           dir_level_archive = dir_level;
 
-          snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+          snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
           strcat(file_list.path, file_entry->name);
           addEndSlash(file_list.path);
@@ -1624,13 +1624,14 @@ static int fileBrowserMenuCtrl() {
       }
     }
   }
-
+/*
   // QR
   if (hold_pad[PAD_LTRIGGER] && hold_pad[PAD_RTRIGGER] && enabledQR()) {
     startQR();
     initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
     setDialogStep(DIALOG_STEP_QR);
   }
+*/
 
   // bookmarks shortcut
   if (hold_pad[PAD_RTRIGGER] && pressed_pad[PAD_RTRIGGER]) {
@@ -1663,7 +1664,7 @@ static int fileBrowserMenuCtrl() {
     time_last_pad_ltrigger = now;
   }
 
-  // Move  
+  // Move
   if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
     int old_pos = base_pos + rel_pos;
 
@@ -1684,6 +1685,29 @@ static int fileBrowserMenuCtrl() {
         rel_pos++;
       } else if ((base_pos + rel_pos + 1) < file_list.length) {
         base_pos++;
+      }
+    }
+
+    if (old_pos != base_pos + rel_pos) {
+      scroll_count = 0;
+    }
+  }
+
+  // Page skip
+  if (hold_pad[PAD_LTRIGGER] || hold_pad[PAD_RTRIGGER]) {
+    int old_pos = base_pos + rel_pos;
+
+    if (hold_pad[PAD_LTRIGGER]) { // Skip page up
+      base_pos = base_pos - MAX_ENTRIES;
+      if (base_pos < 0) {
+        base_pos = 0;
+        rel_pos = 0;
+      }
+    } else { // Skip page down
+      base_pos = base_pos + MAX_ENTRIES;
+      if (base_pos >= file_list.length - MAX_POSITION) {
+        base_pos = MAX(file_list.length - MAX_POSITION, 0);
+        rel_pos = MIN(MAX_POSITION - 1, file_list.length - 1);
       }
     }
 
@@ -1940,17 +1964,15 @@ static int shellMain() {
     // Start drawing
     startDrawing(bg_browser_image);
 
-    // Draw shell info
+    // Draw
     drawShellInfo(file_list.path);
-
-    // Draw scroll bar
     drawScrollBar(base_pos, file_list.length);
 
     // Draw
     FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos);
     if (file_entry) {
       int i;
-      for (i = 0; i < MAX_ENTRIES && (base_pos+i) < file_list.length; i++) {
+      for (i = 0; i < MAX_ENTRIES && (base_pos + i) < file_list.length; i++) {
         uint32_t color = FILE_COLOR;
         float y = START_Y + (i * FONT_Y_SPACE);
 
@@ -2111,16 +2133,10 @@ static int shellMain() {
       }
     }
 
-    // Draw settings menu
+    // Draw
     drawSettingsMenu();
-
-    // Draw context menu
     drawContextMenu();
-
-    // Draw adhoc dialog
     drawAdhocDialog();
-    
-    // Draw property dialog
     drawPropertyDialog();
 
     // End drawing
@@ -2159,13 +2175,9 @@ int main(int argc, const char *argv[]) {
   if (current_pad[PAD_LTRIGGER])
     use_custom_config = 0;
   
-  // Load settings
+  // Load stuff
   loadSettingsConfig();
-
-  // Load theme
   loadTheme();
-
-  // Load language
   loadLanguage(language);
 
   // Init context menu width
@@ -2174,7 +2186,7 @@ int main(int argc, const char *argv[]) {
   
   // Automatic network update
   if (!vitashell_config.disable_autoupdate) {
-    SceUID thid = sceKernelCreateThread("network_update_thread", (SceKernelThreadEntry)network_update_thread, 0x10000100, 0x100000, 0, 0, NULL);
+    SceUID thid = sceKernelCreateThread("network_update_thread", network_update_thread, 0x10000100, 0x100000, 0, 0, NULL);
     if (thid >= 0)
       sceKernelStartThread(thid, 0, NULL);
   }

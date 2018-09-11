@@ -160,7 +160,7 @@ static int decompressGzip(uint8_t *dst, int size_dst, uint8_t *src, int size_src
 int coredumpViewer(const char *file) {
   void *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   int size = ReadFile(file, buffer, BIG_BUFFER_SIZE);
 
@@ -168,7 +168,7 @@ int coredumpViewer(const char *file) {
     void *out_buf = memalign(4096, BIG_BUFFER_SIZE);
     if (!out_buf) {
       free(buffer);
-      return -2;
+      return VITASHELL_ERROR_NO_MEMORY;
     }
 
     int out_size = decompressGzip(out_buf, BIG_BUFFER_SIZE, buffer, size);
@@ -191,7 +191,7 @@ int coredumpViewer(const char *file) {
       ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
       ehdr->e_ident[EI_MAG3] != ELFMAG3) {
     free(buffer);
-    return -4;
+    return VITASHELL_ERROR_INVALID_MAGIC;
   }
 
   char thname[32], modname[32];
@@ -207,7 +207,7 @@ int coredumpViewer(const char *file) {
       void *program = malloc(phdr[i].p_filesz);
       if (!program) {
         free(buffer);
-        return -5;
+        return VITASHELL_ERROR_NO_MEMORY;
       }
 
       memcpy(program, buffer + phdr[i].p_offset, phdr[i].p_filesz);

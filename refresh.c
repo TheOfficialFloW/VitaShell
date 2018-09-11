@@ -57,14 +57,11 @@ int refreshNeeded(const char *app_path)
   int res, is_app = (app_path[6] == 'p');
 
   // Read param.sfo
-  snprintf(sfo_path, MAX_PATH_LENGTH - 1, "%s/sce_sys/param.sfo", app_path);
+  snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
   void *sfo_buffer = NULL;
   int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
-  if (sfo_size < 0) {
-    if (sfo_buffer)
-      free(sfo_buffer);
+  if (sfo_size < 0)
     return sfo_size;
-  }
 
   // Get title and content ids
   char titleid[12], contentid[50];
@@ -84,18 +81,18 @@ int refreshNeeded(const char *app_path)
     // Check if bounded rif file exits
     _sceNpDrmGetRifName(rif_name, 0, aid);
     if (is_app)
-      snprintf(sfo_path, MAX_PATH_LENGTH - 1, "ux0:license/app/%s/%s", titleid, rif_name);
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
     else
-      snprintf(sfo_path, MAX_PATH_LENGTH - 1, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
     if (checkFileExist(sfo_path))
       return 0;
 
     // Check if fixed rif file exits
     _sceNpDrmGetFixedRifName(rif_name, 0, 0);
     if (is_app)
-      snprintf(sfo_path, MAX_PATH_LENGTH - 1, "ux0:license/app/%s/%s", titleid, rif_name);
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
     else
-      snprintf(sfo_path, MAX_PATH_LENGTH - 1, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
     if (checkFileExist(sfo_path))
       return 0;
   }
@@ -108,7 +105,7 @@ int refreshApp(const char *app_path)
   char work_bin_path[MAX_PATH_LENGTH];
   int res;
 
-  snprintf(work_bin_path, MAX_PATH_LENGTH - 1, "%s/sce_sys/package/work.bin", app_path);
+  snprintf(work_bin_path, MAX_PATH_LENGTH, "%s/sce_sys/package/work.bin", app_path);
 
   // Remove work.bin for custom homebrews
   if (isCustomHomebrew(work_bin_path)) {
@@ -117,7 +114,7 @@ int refreshApp(const char *app_path)
     // If available, restore work.bin from licenses.db
     void *sfo_buffer = NULL;
     char sfo_path[MAX_PATH_LENGTH], contentid[50];
-    snprintf(sfo_path, MAX_PATH_LENGTH - 1, "%s/sce_sys/param.sfo", app_path);
+    snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
     int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
     if (sfo_size > 0) {
       getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
@@ -199,7 +196,7 @@ void app_callback(void* data, const char* dir, const char* subdir)
     return;
 
   if (refresh_data->refresh_pass) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s/%s", dir, subdir);
+    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
     if (refreshNeeded(path)) {
       // Move the directory to temp for installation
       removePath(APP_TEMP, NULL);
@@ -226,7 +223,7 @@ void dlc_callback_inner(void* data, const char* dir, const char* subdir)
     return;
 
   if (dlc_data->refresh_data->refresh_pass) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s/%s", dir, subdir);
+    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
     if (dlc_data->list_size < MAX_DLC_PER_TITLE)
       dlc_data->list[dlc_data->list_size++] = strdup(path);
   } else {
@@ -252,7 +249,7 @@ void dlc_callback_outer(void* data, const char* dir, const char* subdir)
     // 2. Refresh the moved dlc_data
     for (int i = 0; i < dlc_data.list_size; i++) {
       if (refreshNeeded(dlc_data.list[i])) {
-        snprintf(path, MAX_PATH_LENGTH - 1, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
+        snprintf(path, MAX_PATH_LENGTH, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
         removePath(path, NULL);
         sceIoRename(dlc_data.list[i], path);
       } else {
@@ -265,7 +262,7 @@ void dlc_callback_outer(void* data, const char* dir, const char* subdir)
     // Now that the dlc we need are out of addcont/title_id, refresh them
     for (int i = 0; i < dlc_data.list_size; i++) {
       if (dlc_data.list[i] != NULL) {
-        snprintf(path, MAX_PATH_LENGTH - 1, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
+        snprintf(path, MAX_PATH_LENGTH, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
         if (refreshApp(path) == 1)
           refresh_data->refreshed++;
         else
