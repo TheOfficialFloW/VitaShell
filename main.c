@@ -1931,18 +1931,16 @@ static int shellMain() {
       pfsUmount(); // umount game data at resume
       refresh = REFRESH_MODE_NORMAL;
     }
-
     if (refresh != REFRESH_MODE_NONE) {
-      // TODO: store old sort mode before overwrite
-      // better place: When opening directory
-      char * contains = strstr(file_list.path, VITASHELL_RECENT_PATH);
-      if (contains) {
-        sort_mode = SORT_BY_DATE;
-        free(contains);
-      } else {
-        sort_mode = SORT_BY_NAME;
-      }
-
+        // TODO: store old sort mode before overwrite
+        // better place: When opening directory
+        char *contains = strstr(file_list.path, VITASHELL_RECENT_PATH);
+        if (contains) {
+          sort_mode = SORT_BY_DATE;
+          free(contains);
+        } else {
+          sort_mode = SORT_BY_NAME;
+        }
       // Refresh lists
       refreshFileList();
       refreshMarkList();
