@@ -84,6 +84,7 @@ SEARCH                               = "Search"
 BOOKMARKS                            = "Bookmarks"
 BOOKMARKS_SHOW                       = "Show bookmarks"
 BOOKMARKS_NEW                        = "New bookmark"
+BOOKMARK_CREATED                     = "Bookmark added"
 
 # File browser properties strings
 PROPERTY_NAME                        = "Name"

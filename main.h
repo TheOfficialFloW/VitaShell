@@ -257,11 +257,6 @@ extern char archive_path[MAX_PATH_LENGTH];
 
 extern int base_pos, rel_pos;
 extern int sort_mode, copy_mode;
-extern SceInt64 time_last_pad_rtrigger;
-extern SceInt64 time_last_pad_ltrigger;
-
-#define THRESHOLD_LAST_PAD_RTRIGGER 1000000
-#define THRESHOLD_LAST_PAD_LTRIGGER THRESHOLD_LAST_PAD_RTRIGGER
 
 // minimum time to pass before shortcutting to recent files/ bookmarks via L/R keys
 extern SceInt64 time_last_recent_files, time_last_bookmars;

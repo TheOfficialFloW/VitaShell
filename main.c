@@ -96,9 +96,6 @@ int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 
 // Use custom config
 int use_custom_config = 1;
-
-SceInt64 time_last_pad_rtrigger;
-SceInt64 time_last_pad_ltrigger;
 SceInt64 time_last_recent_files, time_last_bookmars;
 
 static void setFocusOnFilename(const char *name);
@@ -420,22 +417,22 @@ static int handleFile(const char *file, FileListEntry *entry) {
   }
 
   // create recent symlink of folder and file
+  // TODO: add folders as well to recent?
   char target[MAX_PATH_LENGTH];
-  // TODO: do we want to add folders too?
 //  char * base = getBaseDirectory(file);
 //  if (base) {
 //    removeEndSlash(base);
 //    char* folder_name = getFilename(base);
 //    if (folder_name) {
-//      snprintf(target, MAX_PATH_LENGTH - 1, "%s%s", VITASHELL_RECENT_PATH, folder_name);
+//      snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH, folder_name);
 //      addEndSlash(base);
 //      createSymLink(target, base);
 //      free(folder_name);
 //    }
 //    free(base);
 //  }
-  snprintf(target, MAX_PATH_LENGTH - 1, "%s%s", VITASHELL_RECENT_PATH, entry->name);
-  createSymLink(target, file);
+//  snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH, entry->name);
+//  createSymLink(target, file);
 
   return type;
 }
@@ -1624,6 +1621,7 @@ static int fileBrowserMenuCtrl() {
       }
     }
   }
+
 /*
   // QR
   if (hold_pad[PAD_LTRIGGER] && hold_pad[PAD_RTRIGGER] && enabledQR()) {
@@ -1634,34 +1632,28 @@ static int fileBrowserMenuCtrl() {
 */
 
   // bookmarks shortcut
-  if (hold_pad[PAD_RTRIGGER] && pressed_pad[PAD_RTRIGGER]) {
+  if (current_pad[PAD_RTRIGGER] && current_pad[PAD_SQUARE]) {
     SceInt64 now = sceKernelGetSystemTimeWide();
-    if (now - time_last_bookmars > THRESHOLD_LAST_PAD_BOOKMARKS_WAIT
-        && now - time_last_pad_rtrigger < THRESHOLD_LAST_PAD_RTRIGGER) {
-      // wait for THRESHOLD_LAST_PAD_BOOKMARKS_WAIT before switching to bookmarks again
-      // because switching too quickly back and forth causes VS to crash
-
+    // switching too quickly back and forth between recent and bookmarks
+    // causes VS to crash
+    if (now - time_last_bookmars > THRESHOLD_LAST_PAD_BOOKMARKS_WAIT) {
       if (strncmp(file_list.path, VITASHELL_BOOKMARKS_PATH, MAX_PATH_LENGTH) != 0) {
-        char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
-        jump_to_directory_track_current_path(path);
-        time_last_bookmars = now;
+          char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
+          jump_to_directory_track_current_path(path);
+          time_last_bookmars = now;
       }
     }
-    time_last_pad_rtrigger = now;
   }
-
   // recent files shortcut
-  if (hold_pad[PAD_LTRIGGER] && pressed_pad[PAD_LTRIGGER]) {
+  if (current_pad[PAD_LTRIGGER] && current_pad[PAD_SQUARE]) {
     SceInt64 now = sceKernelGetSystemTimeWide();
-    if (now - time_last_recent_files > THRESHOLD_LAST_PAD_RECENT_FILES_WAIT
-        && now - time_last_pad_ltrigger < THRESHOLD_LAST_PAD_LTRIGGER) {
+    if (now - time_last_recent_files > THRESHOLD_LAST_PAD_RECENT_FILES_WAIT) {
       if (strncmp(file_list.path, VITASHELL_RECENT_PATH, MAX_PATH_LENGTH) != 0) {
         char path[MAX_PATH_LENGTH] = VITASHELL_RECENT_PATH;
         jump_to_directory_track_current_path(path);
         time_last_recent_files = now;
       }
     }
-    time_last_pad_ltrigger = now;
   }
 
   // Move

@@ -1234,7 +1234,9 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
         int res;
         if ((res = createSymLink(target, cur_file)) < 0) {
           errorDialog(res);
-        };
+        } else {
+          infoDialog(language_container[BOOKMARK_CREATED]);
+        }
       } else {
         errorDialog(-2);
       }
