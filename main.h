@@ -258,6 +258,8 @@ extern char archive_path[MAX_PATH_LENGTH];
 extern int base_pos, rel_pos;
 extern int sort_mode, copy_mode;
 
+extern int last_set_sort_mode;
+
 // minimum time to pass before shortcutting to recent files/ bookmarks via L/R keys
 extern SceInt64 time_last_recent_files, time_last_bookmars;
 #define THRESHOLD_LAST_PAD_RECENT_FILES_WAIT 1000000

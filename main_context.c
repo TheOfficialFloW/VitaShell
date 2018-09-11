@@ -1047,6 +1047,8 @@ static int contextMenuSortEnterCallback(int sel, void *context) {
       break;
   }
 
+  last_set_sort_mode = sort_mode;
+
   // Refresh list
   refreshFileList();
 
