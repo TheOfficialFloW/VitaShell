@@ -1765,53 +1765,13 @@ static int fileBrowserMenuCtrl() {
 }
 
 static void create_recent_symlink(FileListEntry *file_entry) {
-  // create directory recent symlink
-//  char * base = getBaseDirectory(cur_file);
-//  if (base) {
-//    removeEndSlash(base);
-//    char* folder_name = getFilename(base);
-//    if (folder_name) {
-//      char target[MAX_PATH_LENGTH];
-//      int count = 1;
-//      while(1) {
-//        if (count == 1) {
-//          snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH, folder_name);
-//        } else {
-//          snprintf(target, MAX_PATH_LENGTH, "%s%s (%d)", VITASHELL_RECENT_PATH,
-//                   folder_name, count);
-//        }
-//        if (!checkFileExist(target))
-//          break;
-//        count ++;
-//      }
-//      addEndSlash(base);
-//      createSymLink(target, base);
-//      free(folder_name);
-//    }
-//    free(base);
-//  }
-  {
-    char target[MAX_PATH_LENGTH];
-    snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH,
-                 file_entry->name);
-//    int count = 1;
-//    while (1) {
-//      if (count == 1) {
-//        snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH,
-//                 file_entry->name);
-//      } else {
-//        snprintf(target, MAX_PATH_LENGTH, "%s%s (%d)", VITASHELL_RECENT_PATH,
-//                 file_entry->name, count);
-//      }
-//      if (!checkFileExist(target))
-//        break;
-//      count++;
-//    }
-    snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+  char target[MAX_PATH_LENGTH];
+  snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH,
+               file_entry->name);
+  snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
-    // create file recent symlink
-    createSymLink(target, cur_file);
-  }
+  // create file recent symlink
+  createSymLink(target, cur_file);
 }
 
 static void fileBrowserHandleFile(FileListEntry *file_entry) {
