@@ -1,14 +1,19 @@
 # Changelog
 
-### Changelog 1.95
+### Changelog 1.96
+- Added ability to skip pages in file browser and SFO viewer using L/R triggers.
+  (QR download has been temporarily removed and will be reimplemented later).
+- Added ability to move files between partitions by copying&removing.
+- Fixed bug where the option to disable warning message was not saved.
+- Undone usb changes because people reported an issue with vpk installation with it.
 
+### Changelog 1.95
 - Added option to disable warning messages when installing vpks.
 - Fixed bug in USB connection, where your Memory Card could be corrupted.
 - Fixed line breaks in SFO files and long names will now scroll.
 - Fixed compatibility with `udcd_uvc.skprx ` thanks to xerpi.
 
 ### Changelog 1.94
-
 - Added ability to umount all partitions that you can mount.
 - Fixed crash when using StorageMgr.
 

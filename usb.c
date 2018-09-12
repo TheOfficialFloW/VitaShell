@@ -132,20 +132,6 @@ int umountUsbUx0() {
   return 0;
 }
 
-int remount_uma0 = 0, remount_xmc0 = 0, remount_imc0 = 0, remount_ux0 = 0;
-
-void remount_partitions() {
-  if (remount_ux0)
-    vshIoMount(0x800, NULL, 0, 0, 0, 0);
-  if (remount_imc0)
-    vshIoMount(0xD00, NULL, 0, 0, 0, 0);
-  if (remount_xmc0)
-    vshIoMount(0xE00, NULL, 0, 0, 0, 0);
-  if (remount_uma0)
-    vshIoMount(0xF00, NULL, 0, 0, 0, 0);
-  remount_uma0 = remount_xmc0 = remount_imc0 = remount_ux0 = 0;  
-}
-
 SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
   SceUID modid = -1;
   int res;
@@ -175,25 +161,6 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
   if (res < 0)
     goto ERROR_USBSTOR_VSTOR;
 
-  // Umount all partitions
-  remount_uma0 = remount_xmc0 = remount_imc0 = remount_ux0 = 0;
-  if (checkFolderExist("uma0:")) {
-    vshIoUmount(0xF00, 0, 0, 0);
-    remount_uma0 = 1;
-  }
-  if (checkFolderExist("xmc0:")) {
-    vshIoUmount(0xE00, 0, 0, 0);
-    remount_xmc0 = 1;
-  }
-  if (checkFolderExist("imc0:")) {
-    vshIoUmount(0xD00, 0, 0, 0);
-    remount_imc0 = 1;
-  }
-  if (checkFolderExist("ux0:")) {
-    vshIoUmount(0x800, 0, 0, 0);
-    remount_ux0 = 1;
-  }
-
   // Start USB storage
   res = sceUsbstorVStorStart(type);
   if (res < 0)
@@ -202,7 +169,6 @@ SceUID startUsb(const char *usbDevicePath, const char *imgFilePath, int type) {
   return modid;
 
 ERROR_USBSTOR_VSTOR:
-  remount_partitions();
   sceMtpIfStartDriver(1);
 
 ERROR_STOP_DRIVER:
@@ -230,8 +196,20 @@ int stopUsb(SceUID modid) {
   if (res < 0)
     return res;
 
-  // Remount partitions
-  remount_partitions();
+  // Remount Memory Card
+  remount(0x800);
+
+  // Remount imc0:
+  if (checkFolderExist("imc0:"))
+    remount(0xD00);
+
+  // Remount xmc0:
+  if (checkFolderExist("xmc0:"))
+    remount(0xE00);
+
+  // Remount uma0:
+  if (checkFolderExist("uma0:"))
+    remount(0xF00);
 
   return 0;
 }
