@@ -1627,6 +1627,7 @@ static int fileBrowserMenuCtrl() {
   // bookmarks shortcut
   if (current_pad[PAD_RTRIGGER] && current_pad[PAD_SQUARE]) {
     SceInt64 now = sceKernelGetSystemTimeWide();
+
     // switching too quickly back and forth between recent and bookmarks
     // causes VS to crash
     if (now - time_last_bookmars > THRESHOLD_LAST_PAD_BOOKMARKS_WAIT) {

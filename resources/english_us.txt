@@ -81,10 +81,10 @@ EXPORT_MEDIA                         = "Export media"
 CUT                                  = "Cut"
 INSERT_EMPTY_LINE                    = "Insert empty line"
 SEARCH                               = "Search"
-BOOKMARKS                            = "Bookmarks"
 BOOKMARKS_SHOW                       = "Show bookmarks"
 BOOKMARKS_NEW                        = "New bookmark"
 BOOKMARK_CREATED                     = "Bookmark added"
+RECENT_FILES_SHOW                    = "Recent files"
 
 # File browser properties strings
 PROPERTY_NAME                        = "Name"
