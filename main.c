@@ -106,8 +106,6 @@ static void fileBrowserHandleFile(FileListEntry* file_entry);
 
 static void create_recent_symlink(FileListEntry *file_entry);
 
-static void delete_all_symlink_directory_path();
-
 // escape from dir hierarchy with a symlink
 typedef struct SymlinkDirectoryPath {
   struct SymlinkDirectoryPath* previous;
@@ -130,10 +128,6 @@ static void storeSymlinkPath(SymlinkDirectoryPath * path) {
     symlink_directory_path = path;
     symlink_directory_path->previous = prev;
   }
-}
-
-static void delete_all_symlink_directory_path() {
-
 }
 
 int getDialogStep() {
@@ -1799,6 +1793,8 @@ static int fileBrowserMenuCtrl() {
 }
 
 static void create_recent_symlink(FileListEntry *file_entry) {
+  if (isInArchive()) return;
+
   char target[MAX_PATH_LENGTH];
   snprintf(target, MAX_PATH_LENGTH, "%s%s."SYMLINK_EXT, VITASHELL_RECENT_PATH,
                file_entry->name);
@@ -1854,6 +1850,16 @@ static void fileBrowserHandleFolder(FileListEntry *file_entry) {
 // where this jump came from and not the hierarchically higher folder
 int jump_to_directory_track_current_path(char *path) {
   SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
+
+  int archive = 0;
+  while(isInArchive()) {
+    archive = 1;
+    dirUp();
+  }
+  if (archive) {
+    dirUpCloseArchive();
+  }
+
   if (symlink_path) {
     strncpy(symlink_path->last_path, file_list.path, MAX_PATH_LENGTH);
     strncpy(symlink_path->last_hook, path, MAX_PATH_LENGTH);
