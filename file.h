@@ -36,6 +36,7 @@
 
 #define SYMLINK_HEADER_SIZE 4
 #define SYMLINK_MAX_SIZE  (SYMLINK_HEADER_SIZE + MAX_PATH_LENGTH)
+#define SYMLINK_EXT "lnk"
 extern const char symlink_header_bytes[SYMLINK_HEADER_SIZE];
 
 

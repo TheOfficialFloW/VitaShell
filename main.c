@@ -1771,7 +1771,7 @@ static int fileBrowserMenuCtrl() {
 
 static void create_recent_symlink(FileListEntry *file_entry) {
   char target[MAX_PATH_LENGTH];
-  snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_RECENT_PATH,
+  snprintf(target, MAX_PATH_LENGTH, "%s%s."SYMLINK_EXT, VITASHELL_RECENT_PATH,
                file_entry->name);
   snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
