@@ -1152,8 +1152,6 @@ int createSymLink(const char *store_location, const char *target) {
   return 0;
 }
 
-
-
 // get directory path from filename
 // result has slash at the end
 char * getBaseDirectory(const char * path) {
