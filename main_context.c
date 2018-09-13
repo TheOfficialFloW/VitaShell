@@ -73,13 +73,12 @@ enum MenuMainEntrys {
   MENU_MAIN_ENTRY_PASTE,
   MENU_MAIN_ENTRY_DELETE,
   MENU_MAIN_ENTRY_RENAME,
-  MENU_MAIN_ENTRY_NEW,
   MENU_MAIN_ENTRY_PROPERTIES,
+  MENU_MAIN_ENTRY_NEW,
   MENU_MAIN_ENTRY_SORT_BY,
   MENU_MAIN_ENTRY_MORE,
   MENU_MAIN_ENTRY_ADHOC,
   MENU_MAIN_ENTRY_BOOKMARKS,
-
 };
 
 MenuEntry menu_main_entries[] = {
@@ -90,13 +89,12 @@ MenuEntry menu_main_entries[] = {
   { PASTE,          5, 0, CTX_INVISIBLE },
   { DELETE,         7, 0, CTX_INVISIBLE },
   { RENAME,         8, 0, CTX_INVISIBLE },
-  { NEW,            10, CTX_FLAG_MORE, CTX_VISIBLE },
-  { PROPERTIES,     11, 0, CTX_INVISIBLE },
+  { PROPERTIES,     10, 0, CTX_INVISIBLE },
+  { NEW,            12, CTX_FLAG_MORE, CTX_VISIBLE },
   { SORT_BY,        13, CTX_FLAG_MORE, CTX_VISIBLE },
   { MORE,           14, CTX_FLAG_MORE, CTX_INVISIBLE },
   { ADHOC_TRANSFER, 16, CTX_FLAG_MORE, CTX_INVISIBLE },
   { BOOKMARKS,      17, CTX_FLAG_MORE, CTX_INVISIBLE },
-
 };
 
 #define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries) / sizeof(MenuEntry))
@@ -108,9 +106,9 @@ enum MenuSortEntrys {
 };
 
 MenuEntry menu_sort_entries[] = {
-  { BY_NAME, 12, 0, CTX_INVISIBLE },
-  { BY_SIZE, 13, 0, CTX_INVISIBLE },
-  { BY_DATE, 14, 0, CTX_INVISIBLE },
+  { BY_NAME, 13, 0, CTX_INVISIBLE },
+  { BY_SIZE, 14, 0, CTX_INVISIBLE },
+  { BY_DATE, 15, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries) / sizeof(MenuEntry))
@@ -121,8 +119,8 @@ enum MenuBookmarksEntrys {
 };
 
 MenuEntry menu_bookmark_entries[] = {
-    { BOOKMARKS_SHOW, 12, 0, CTX_INVISIBLE },
-    { RECENT_FILES_SHOW, 13, 0, CTX_INVISIBLE },
+  { BOOKMARKS_SHOW,    17, 0, CTX_INVISIBLE },
+  { RECENT_FILES_SHOW, 18, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_BOOKMARK_ENTRIES (sizeof(menu_bookmark_entries) / sizeof(MenuEntry))
@@ -133,8 +131,8 @@ enum MenuAdhocEntrys {
 };
 
 MenuEntry menu_adhoc_entries[] = {
-    { SEND, 12, 0, CTX_INVISIBLE },
-    { RECEIVE, 13, 0, CTX_INVISIBLE },
+  { SEND,    16, 0, CTX_INVISIBLE },
+  { RECEIVE, 17, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_ADHOC_ENTRIES (sizeof(menu_adhoc_entries) / sizeof(MenuEntry))
@@ -148,11 +146,11 @@ enum MenuMoreEntrys {
 };
 
 MenuEntry menu_more_entries[] = {
-  { COMPRESS,       12, 0, CTX_INVISIBLE },
-  { INSTALL_ALL,    13, 0, CTX_INVISIBLE },
-  { INSTALL_FOLDER, 14, 0, CTX_INVISIBLE },
-  { EXPORT_MEDIA,   15, 0, CTX_INVISIBLE },
-  { CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
+  { COMPRESS,       14, 0, CTX_INVISIBLE },
+  { INSTALL_ALL,    15, 0, CTX_INVISIBLE },
+  { INSTALL_FOLDER, 16, 0, CTX_INVISIBLE },
+  { EXPORT_MEDIA,   17, 0, CTX_INVISIBLE },
+  { CALCULATE_SHA1, 18, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
@@ -164,10 +162,9 @@ enum MenuNewEntrys {
 };
 
 MenuEntry menu_new_entries[] = {
-  {NEW_FILE,   10, 0, CTX_INVISIBLE},
-  {NEW_FOLDER, 11, 0, CTX_INVISIBLE},
-  {BOOKMARKS_NEW, 12, 0, CTX_INVISIBLE}
-
+  { NEW_FILE,      10, 0, CTX_INVISIBLE },
+  { NEW_FOLDER,    11, 0, CTX_INVISIBLE },
+  { BOOKMARKS_NEW, 12, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_NEW_ENTRIES (sizeof(menu_new_entries) / sizeof(MenuEntry))
@@ -217,31 +214,30 @@ ContextMenu context_menu_more = {
 };
 
 ContextMenu context_menu_bookmarks = {
-    .parent = &context_menu_main,
-    .entries = menu_bookmark_entries,
-    .n_entries = N_MENU_BOOKMARK_ENTRIES,
-    .max_width = 0.0f,
-    .callback = contextMenuBookmarksEnterCallback,
-    .sel = -1,
+  .parent = &context_menu_main,
+  .entries = menu_bookmark_entries,
+  .n_entries = N_MENU_BOOKMARK_ENTRIES,
+  .max_width = 0.0f,
+  .callback = contextMenuBookmarksEnterCallback,
+  .sel = -1,
 };
 
 ContextMenu context_menu_adhoc = {
-    .parent = &context_menu_main,
-    .entries = menu_adhoc_entries,
-    .n_entries = N_MENU_ADHOC_ENTRIES,
-    .max_width = 0.0f,
-    .callback = contextMenuAdhocEnterCallback,
-    .sel = -1,
+  .parent = &context_menu_main,
+  .entries = menu_adhoc_entries,
+  .n_entries = N_MENU_ADHOC_ENTRIES,
+  .max_width = 0.0f,
+  .callback = contextMenuAdhocEnterCallback,
+  .sel = -1,
 };
 
-
 ContextMenu context_menu_new = {
-    .parent = &context_menu_main,
-    .entries = menu_new_entries,
-    .n_entries = N_MENU_NEW_ENTRIES,
-    .max_width = 0.0f,
-    .callback = contextMenuNewEnterCallback,
-    .sel = -1,
+  .parent = &context_menu_main,
+  .entries = menu_new_entries,
+  .n_entries = N_MENU_NEW_ENTRIES,
+  .max_width = 0.0f,
+  .callback = contextMenuNewEnterCallback,
+  .sel = -1,
 };
 
 /*

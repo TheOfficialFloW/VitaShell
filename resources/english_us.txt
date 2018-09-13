@@ -82,10 +82,10 @@ CUT                                  = "Cut"
 INSERT_EMPTY_LINE                    = "Insert empty line"
 SEARCH                               = "Search"
 BOOKMARKS                            = "Bookmarks"
-ADHOC_TRANSFER                       = "Adhoc"
+ADHOC_TRANSFER                       = "Ad-hoc"
 BOOKMARKS_SHOW                       = "Show bookmarks"
 BOOKMARKS_NEW                        = "New bookmark"
-BOOKMARK_CREATED                     = "Bookmark added"
+BOOKMARK_CREATED                     = "Bookmark added."
 RECENT_FILES_SHOW                    = "Recent files"
 
 # File browser properties strings
