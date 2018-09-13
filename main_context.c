@@ -1387,9 +1387,9 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
     case MENU_NEW_BOOKMARK: {
       FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
       if (file_entry) {
-        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s."SYMLINK_EXT, file_list.path, file_entry->name);
+        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
         char target[MAX_PATH_LENGTH];
-        snprintf(target, MAX_PATH_LENGTH, "%s%s", VITASHELL_BOOKMARKS_PATH, file_entry->name);
+        snprintf(target, MAX_PATH_LENGTH, "%s%s."SYMLINK_EXT, VITASHELL_BOOKMARKS_PATH, file_entry->name);
         int res;
         if ((res = createSymLink(target, cur_file)) < 0) {
           errorDialog(res);
