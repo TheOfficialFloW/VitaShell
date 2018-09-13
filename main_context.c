@@ -553,6 +553,7 @@ void setContextMenuBookmarksVisibilities() {
   if (strcmp(file_list.path, VITASHELL_BOOKMARKS_PATH) == 0) {
     menu_bookmark_entries[MENU_BOOKMARKS_SHOW_BOOKMARKS].visibility = CTX_INVISIBLE;
   }
+
   if (strcmp(file_list.path, VITASHELL_RECENT_PATH) == 0) {
     menu_bookmark_entries[MENU_BOOKMARKS_RECENT_FILES].visibility = CTX_INVISIBLE;
   }
@@ -736,6 +737,10 @@ void setContextMenuNewVisibilities() {
 
   FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
   if (file_entry) {
+    snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
+    if (strncmp(cur_file, VITASHELL_BOOKMARKS_PATH, MAX_PATH_LENGTH) == 0) {
+      menu_new_entries[MENU_NEW_BOOKMARK].visibility = CTX_INVISIBLE;
+    }
     // Invisble entries when on '..'
     if (strcmp(file_entry->name, DIR_UP) == 0 || file_entry->is_symlink) {
       menu_new_entries[MENU_NEW_BOOKMARK].visibility = CTX_INVISIBLE;
