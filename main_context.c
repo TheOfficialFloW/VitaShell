@@ -77,8 +77,9 @@ enum MenuMainEntrys {
   MENU_MAIN_ENTRY_PROPERTIES,
   MENU_MAIN_ENTRY_SORT_BY,
   MENU_MAIN_ENTRY_MORE,
-  MENU_MAIN_ENTRY_SEND,
-  MENU_MAIN_ENTRY_RECEIVE,
+  MENU_MAIN_ENTRY_ADHOC,
+  MENU_MAIN_ENTRY_BOOKMARKS,
+
 };
 
 MenuEntry menu_main_entries[] = {
@@ -93,8 +94,9 @@ MenuEntry menu_main_entries[] = {
   { PROPERTIES,     11, 0, CTX_INVISIBLE },
   { SORT_BY,        13, CTX_FLAG_MORE, CTX_VISIBLE },
   { MORE,           14, CTX_FLAG_MORE, CTX_INVISIBLE },
-  { SEND,           17, 0, CTX_INVISIBLE }, // CTX_FLAG_BARRIER
-  { RECEIVE,        18, 0, CTX_INVISIBLE },
+  { ADHOC_TRANSFER, 16, CTX_FLAG_MORE, CTX_INVISIBLE },
+  { BOOKMARKS,      17, CTX_FLAG_MORE, CTX_INVISIBLE },
+
 };
 
 #define N_MENU_MAIN_ENTRIES (sizeof(menu_main_entries) / sizeof(MenuEntry))
@@ -113,15 +115,36 @@ MenuEntry menu_sort_entries[] = {
 
 #define N_MENU_SORT_ENTRIES (sizeof(menu_sort_entries) / sizeof(MenuEntry))
 
+enum MenuBookmarksEntrys {
+  MENU_BOOKMARKS_SHOW_BOOKMARKS,
+  MENU_BOOKMARKS_RECENT_FILES
+};
+
+MenuEntry menu_bookmark_entries[] = {
+    { BOOKMARKS_SHOW, 12, 0, CTX_INVISIBLE },
+    { RECENT_FILES_SHOW, 13, 0, CTX_INVISIBLE },
+};
+
+#define N_MENU_BOOKMARK_ENTRIES (sizeof(menu_bookmark_entries) / sizeof(MenuEntry))
+
+enum MenuAdhocEntrys {
+  MENU_ADHOC_SEND,
+  MENU_ADHOC_RECEIVE
+};
+
+MenuEntry menu_adhoc_entries[] = {
+    { SEND, 12, 0, CTX_INVISIBLE },
+    { RECEIVE, 13, 0, CTX_INVISIBLE },
+};
+
+#define N_MENU_ADHOC_ENTRIES (sizeof(menu_adhoc_entries) / sizeof(MenuEntry))
+
 enum MenuMoreEntrys {
   MENU_MORE_ENTRY_COMPRESS,
   MENU_MORE_ENTRY_INSTALL_ALL,
   MENU_MORE_ENTRY_INSTALL_FOLDER,
   MENU_MORE_ENTRY_EXPORT_MEDIA,
   MENU_MORE_ENTRY_CALCULATE_SHA1,
-  MENU_MORE_ENTRY_SHOW_BOOKMARKS,
-  MENU_MORE_ENTRY_SHOW_RECENT_FILES
-
 };
 
 MenuEntry menu_more_entries[] = {
@@ -130,8 +153,6 @@ MenuEntry menu_more_entries[] = {
   { INSTALL_FOLDER, 14, 0, CTX_INVISIBLE },
   { EXPORT_MEDIA,   15, 0, CTX_INVISIBLE },
   { CALCULATE_SHA1, 16, 0, CTX_INVISIBLE },
-  { BOOKMARKS_SHOW, 17, 0, CTX_INVISIBLE },
-  { RECENT_FILES_SHOW, 18, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_MORE_ENTRIES (sizeof(menu_more_entries) / sizeof(MenuEntry))
@@ -155,6 +176,8 @@ static int contextMenuHomeEnterCallback(int sel, void *context);
 static int contextMenuMainEnterCallback(int sel, void *context);
 static int contextMenuSortEnterCallback(int sel, void *context);
 static int contextMenuMoreEnterCallback(int sel, void *context);
+static int contextMenuBookmarksEnterCallback(int sel, void *context);
+static int contextMenuAdhocEnterCallback(int sel, void *context);
 static int contextMenuNewEnterCallback(int sel, void *context);
 
 ContextMenu context_menu_home = {
@@ -192,6 +215,25 @@ ContextMenu context_menu_more = {
   .callback = contextMenuMoreEnterCallback,
   .sel = -1,
 };
+
+ContextMenu context_menu_bookmarks = {
+    .parent = &context_menu_main,
+    .entries = menu_bookmark_entries,
+    .n_entries = N_MENU_BOOKMARK_ENTRIES,
+    .max_width = 0.0f,
+    .callback = contextMenuBookmarksEnterCallback,
+    .sel = -1,
+};
+
+ContextMenu context_menu_adhoc = {
+    .parent = &context_menu_main,
+    .entries = menu_adhoc_entries,
+    .n_entries = N_MENU_ADHOC_ENTRIES,
+    .max_width = 0.0f,
+    .callback = contextMenuAdhocEnterCallback,
+    .sel = -1,
+};
+
 
 ContextMenu context_menu_new = {
     .parent = &context_menu_main,
@@ -329,6 +371,26 @@ void initContextMenuWidth() {
   }
   context_menu_new.max_width += 2.0f * CONTEXT_MENU_MARGIN;
   context_menu_new.max_width = MAX(context_menu_new.max_width, CONTEXT_MENU_MIN_WIDTH);
+
+  // bookmarks
+  for (i = 0; i < N_MENU_BOOKMARK_ENTRIES; i++) {
+    context_menu_bookmarks.max_width = MAX(context_menu_bookmarks.max_width, pgf_text_width
+        (language_container[menu_bookmark_entries[i].name]));
+  }
+
+  context_menu_bookmarks.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+  context_menu_bookmarks.max_width = MAX(context_menu_bookmarks.max_width, CONTEXT_MENU_MIN_WIDTH);
+
+  // adhoc
+  for (i = 0; i < N_MENU_ADHOC_ENTRIES; i++) {
+    context_menu_adhoc.max_width = MAX(context_menu_adhoc.max_width, pgf_text_width
+        (language_container[menu_adhoc_entries[i].name]));
+  }
+
+  context_menu_adhoc.max_width += 2.0f * CONTEXT_MENU_MARGIN;
+  context_menu_adhoc.max_width = MAX(context_menu_adhoc.max_width, CONTEXT_MENU_MIN_WIDTH);
+
+
 }
 
 void setContextMenuHomeVisibilities() {
@@ -423,8 +485,6 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_DELETE].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_RENAME].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_PROPERTIES].visibility = CTX_INVISIBLE;
-    menu_main_entries[MENU_MAIN_ENTRY_SEND].visibility = CTX_INVISIBLE;
-    // menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].flags = CTX_FLAG_BARRIER;
   }
 
   // Invisible 'Paste' if nothing is copied yet
@@ -441,8 +501,6 @@ void setContextMenuMainVisibilities() {
     menu_main_entries[MENU_MAIN_ENTRY_DELETE].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_RENAME].visibility = CTX_INVISIBLE;
     menu_main_entries[MENU_MAIN_ENTRY_NEW].visibility = CTX_INVISIBLE;
-    menu_main_entries[MENU_MAIN_ENTRY_SEND].visibility = CTX_INVISIBLE;
-    menu_main_entries[MENU_MAIN_ENTRY_RECEIVE].visibility = CTX_INVISIBLE;
   }
 
   // Mark/Unmark all text
@@ -478,6 +536,73 @@ void setContextMenuMainVisibilities() {
 
   if (i == N_MENU_MAIN_ENTRIES)
     context_menu_main.sel = -1;
+}
+
+void setContextMenuBookmarksVisibilities() {
+  int i;
+  // All visible
+  for (i = 0; i < N_MENU_BOOKMARK_ENTRIES; i++) {
+    if (menu_bookmark_entries[i].visibility == CTX_INVISIBLE)
+      menu_bookmark_entries[i].visibility = CTX_VISIBLE;
+  }
+
+  FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+  if (!file_entry)
+    return;
+
+  if (strcmp(file_list.path, VITASHELL_BOOKMARKS_PATH) == 0) {
+    menu_bookmark_entries[MENU_BOOKMARKS_SHOW_BOOKMARKS].visibility = CTX_INVISIBLE;
+  }
+  if (strcmp(file_list.path, VITASHELL_RECENT_PATH) == 0) {
+    menu_bookmark_entries[MENU_BOOKMARKS_RECENT_FILES].visibility = CTX_INVISIBLE;
+  }
+
+  // Go to first entry
+  for (i = 0; i < N_MENU_BOOKMARK_ENTRIES; i++) {
+    if (menu_bookmark_entries[i].visibility == CTX_VISIBLE) {
+      context_menu_bookmarks.sel = i;
+      break;
+    }
+  }
+
+  if (i == N_MENU_BOOKMARK_ENTRIES)
+    context_menu_bookmarks.sel = -1;
+
+}
+void setContextMenuAdhocVisibilities() {
+  int i;
+  // All visible
+  for (i = 0; i < N_MENU_ADHOC_ENTRIES; i++) {
+    if (menu_adhoc_entries[i].visibility == CTX_INVISIBLE)
+      menu_adhoc_entries[i].visibility = CTX_VISIBLE;
+  }
+
+  FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
+  if (!file_entry)
+    return;
+
+  // Invisble entries when on '..'
+  if (strcmp(file_entry->name, DIR_UP) == 0) {
+    menu_adhoc_entries[MENU_ADHOC_SEND].visibility = CTX_INVISIBLE;
+    // menu_adhoc_entries[MENU_ADHOC_RECEIVE].flags = CTX_FLAG_BARRIER;
+  }
+
+  // Invisible write operations in archives
+  // TODO: read-only mount points
+  if (isInArchive() || (pfs_mounted_path[0] && strstr(file_list.path, pfs_mounted_path) && read_only)) {
+    menu_adhoc_entries[MENU_ADHOC_SEND].visibility = CTX_INVISIBLE;
+    menu_adhoc_entries[MENU_ADHOC_RECEIVE].visibility = CTX_INVISIBLE;
+  }
+  // Go to first entry
+  for (i = 0; i < N_MENU_ADHOC_ENTRIES; i++) {
+    if (menu_adhoc_entries[i].visibility == CTX_VISIBLE) {
+      context_menu_adhoc.sel = i;
+      break;
+    }
+  }
+
+  if (i == N_MENU_ADHOC_ENTRIES)
+    context_menu_adhoc.sel = -1;
 }
 
 void setContextMenuSortVisibilities() {
@@ -1017,18 +1142,19 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
       setContextMenuSortVisibilities();
       return CONTEXT_MENU_MORE_OPENING;
     }
-    case MENU_MAIN_ENTRY_SEND:
+
+    case MENU_MAIN_ENTRY_BOOKMARKS:
     {
-      initNetCheckDialog(SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_JOIN, 60 * 1000 * 1000);
-      setDialogStep(DIALOG_STEP_ADHOC_SEND_NETCHECK);
-      break;
+      setContextMenu(&context_menu_bookmarks);
+      setContextMenuBookmarksVisibilities();
+      return CONTEXT_MENU_MORE_OPENING;
     }
 
-    case MENU_MAIN_ENTRY_RECEIVE:
+    case MENU_MAIN_ENTRY_ADHOC:
     {
-      initNetCheckDialog(SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_CONN, 0);
-      setDialogStep(DIALOG_STEP_ADHOC_RECEIVE_NETCHECK);
-      break;
+      setContextMenu(&context_menu_adhoc);
+      setContextMenuAdhocVisibilities();
+      return CONTEXT_MENU_MORE_OPENING;
     }
   }
 
@@ -1057,6 +1183,40 @@ static int contextMenuSortEnterCallback(int sel, void *context) {
 
   return CONTEXT_MENU_CLOSING;
 }
+static int contextMenuBookmarksEnterCallback(int sel, void *context) {
+  switch (sel) {
+    case MENU_BOOKMARKS_SHOW_BOOKMARKS:
+    {
+      char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
+      jump_to_directory_track_current_path(path);
+      break;
+    }
+    case MENU_BOOKMARKS_RECENT_FILES:
+    {
+      char path[MAX_PATH_LENGTH] = VITASHELL_RECENT_PATH;
+      jump_to_directory_track_current_path(path);
+      break;
+    }
+  }
+  return CONTEXT_MENU_CLOSING;
+}
+
+static int contextMenuAdhocEnterCallback(int sel, void *context) {
+  switch(sel) {
+    case MENU_ADHOC_RECEIVE: {
+      initNetCheckDialog(SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_CONN, 0);
+      setDialogStep(DIALOG_STEP_ADHOC_RECEIVE_NETCHECK);
+      break;
+    };
+    case MENU_ADHOC_SEND : {
+      initNetCheckDialog(SCE_NETCHECK_DIALOG_MODE_PSP_ADHOC_JOIN, 60 * 1000 * 1000);
+      setDialogStep(DIALOG_STEP_ADHOC_SEND_NETCHECK);
+    }
+    break;
+  }
+  return CONTEXT_MENU_CLOSING;
+}
+
 
 static int contextMenuMoreEnterCallback(int sel, void *context) {
   switch (sel) {
@@ -1170,18 +1330,6 @@ static int contextMenuMoreEnterCallback(int sel, void *context) {
       // Ensure user wants to actually take the hash
       initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[HASH_FILE_QUESTION]);
       setDialogStep(DIALOG_STEP_HASH_QUESTION);
-      break;
-    }
-    case MENU_MORE_ENTRY_SHOW_BOOKMARKS:
-    {
-      char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
-      jump_to_directory_track_current_path(path);
-      break;
-    }
-    case MENU_MORE_ENTRY_SHOW_RECENT_FILES:
-    {
-      char path[MAX_PATH_LENGTH] = VITASHELL_RECENT_PATH;
-      jump_to_directory_track_current_path(path);
       break;
     }
   }
