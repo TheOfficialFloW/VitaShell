@@ -34,6 +34,12 @@
 #define HOME_PATH "home"
 #define DIR_UP ".."
 
+#define SYMLINK_HEADER_SIZE 4
+#define SYMLINK_MAX_SIZE  (SYMLINK_HEADER_SIZE + MAX_PATH_LENGTH)
+#define SYMLINK_EXT "lnk"
+extern const char symlink_header_bytes[SYMLINK_HEADER_SIZE];
+
+
 enum FileTypes {
   FILE_TYPE_UNKNOWN,
   FILE_TYPE_ARCHIVE,
@@ -64,6 +70,12 @@ enum FileMoveFlags {
 };
 
 typedef struct {
+  int to_file; // 1: to file, 0: to directory
+  char *target_path;
+  int target_path_length;
+} Symlink;
+
+typedef struct {
   uint64_t *value;
   uint64_t max;
   void (* SetProgress)(uint64_t value, uint64_t max);
@@ -77,6 +89,8 @@ typedef struct FileListEntry {
   int name_length;
   int is_folder;
   int type;
+  int is_symlink;
+  Symlink *symlink;
   SceOff size;
   SceOff size2;
   SceDateTime ctime;
@@ -100,6 +114,10 @@ int WriteFile(const char *file, const void *buf, int size);
 
 int checkFileExist(const char *file);
 int checkFolderExist(const char *folder);
+
+
+char * getBaseDirectory(const char *path);
+char * getFilename(const char *path);
 
 int getFileSize(const char *file);
 int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param);
@@ -126,5 +144,8 @@ int fileListRemoveEntryByName(FileList *list, const char *name);
 void fileListEmpty(FileList *list);
 
 int fileListGetEntries(FileList *list, const char *path, int sort);
+
+int resolveSimLink(Symlink* symlink, const char *target);
+int createSymLink(const char *source_location, const char *target);
 
 #endif

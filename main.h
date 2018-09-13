@@ -60,6 +60,11 @@
 
 #define VITASHELL_LASTDIR "ux0:VitaShell/internal/lastdir.txt"
 
+// needs / at the end
+#define VITASHELL_BOOKMARKS_PATH "ux0:VitaShell/bookmarks/"
+#define VITASHELL_RECENT_PATH "ux0:VitaShell/recent/"
+#define VITASHELL_RECENT_PATH_DELETE_INTERVAL_DAYS 14
+
 #define VITASHELL_TITLEID "VITASHELL"
 
 #define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
@@ -254,6 +259,13 @@ extern char archive_path[MAX_PATH_LENGTH];
 extern int base_pos, rel_pos;
 extern int sort_mode, copy_mode;
 
+extern int last_set_sort_mode;
+
+// minimum time to pass before shortcutting to recent files/ bookmarks via L/R keys
+extern SceInt64 time_last_recent_files, time_last_bookmars;
+#define THRESHOLD_LAST_PAD_RECENT_FILES_WAIT 1000000
+#define THRESHOLD_LAST_PAD_BOOKMARKS_WAIT 1000000
+
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
 
@@ -276,5 +288,6 @@ int isInArchive();
 int refreshFileList();
 
 void ftpvita_PROM(ftpvita_client_info_t *client);
+int jump_to_directory_track_current_path(char *path);
 
 #endif

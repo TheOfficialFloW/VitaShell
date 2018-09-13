@@ -48,6 +48,8 @@ INCLUDE_EXTERN_RESOURCE(default_pause_png);
 INCLUDE_EXTERN_RESOURCE(default_play_png);
 INCLUDE_EXTERN_RESOURCE(default_sfo_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_text_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_file_symlink_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_folder_symlink_icon_png);
 
 INCLUDE_EXTERN_RESOURCE(electron_colors_txt);
 INCLUDE_EXTERN_RESOURCE(electron_archive_icon_png);
@@ -106,7 +108,9 @@ static DefaultFile default_files[] = {
   DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", default_fastforward_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", default_fastrewind_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/file_icon.png", default_file_icon_png, 1),
+  DEFAULT_FILE("ux0:VitaShell/theme/Default/file_symlink_icon.png",default_file_symlink_icon_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", default_folder_icon_png, 1),
+  DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_symlink_icon.png",default_folder_symlink_icon_png,  1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", default_ftp_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/image_icon.png", default_image_icon_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", default_pause_png, 1),
@@ -391,6 +395,27 @@ void initVitaShell() {
       taiStopUnloadKernelModule(kernel_modid, 0, NULL, 0, NULL, NULL);
   }
   user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
+
+  // clear up recent folder frequently
+  SceIoStat stat;
+  SceDateTime now;
+  sceRtcGetCurrentClock(&now, 0);
+  int res = sceIoGetstat(VITASHELL_RECENT_PATH, &stat);
+  if (res >= 0) {
+    if (now.year * 365 + now.day - stat.st_ctime.year * 365 - stat.st_ctime.day
+        >= VITASHELL_RECENT_PATH_DELETE_INTERVAL_DAYS) {
+      removePath(VITASHELL_RECENT_PATH, 0);
+    }
+  }
+
+  if (!checkFolderExist(VITASHELL_BOOKMARKS_PATH)) {
+    sceIoMkdir(VITASHELL_BOOKMARKS_PATH, 0777);
+  }
+  if (!checkFolderExist(VITASHELL_RECENT_PATH)) {
+    sceIoMkdir(VITASHELL_RECENT_PATH, 0777);
+  }
+  time_last_recent_files = 0;
+  time_last_bookmars = 0;
 }
 
 void finishVitaShell() {
