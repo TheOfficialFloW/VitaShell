@@ -1052,7 +1052,7 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
             if (!p) {
               return VITASHELL_ERROR_INTERNAL;
             }
-            snprintf(p, MAX_PATH_LENGTH - 1, "%s%s%s",
+            snprintf(p, MAX_PATH_LENGTH, "%s%s%s",
                      path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
             Symlink* symlink = malloc(sizeof(Symlink));

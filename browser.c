@@ -659,7 +659,7 @@ static void create_recent_symlink(FileListEntry *file_entry) {
 }
 
 static void fileBrowserHandleFile(FileListEntry *file_entry) {
-  snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+  snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
   int type = handleFile(cur_file, file_entry);
 
   // Archive mode
@@ -667,7 +667,7 @@ static void fileBrowserHandleFile(FileListEntry *file_entry) {
     is_in_archive = 1;
     dir_level_archive = dir_level;
 
-    snprintf(archive_path, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+    snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
     strcat(file_list.path, file_entry->name);
     addEndSlash(file_list.path);
@@ -735,7 +735,7 @@ static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
   if ((file_entry->symlink->to_file == 1 && !checkFileExist(file_entry->symlink->target_path))
       || (file_entry->symlink->to_file == 0 && !checkFolderExist(file_entry->symlink->target_path))) {
     // TODO: What if in archive?
-    snprintf(cur_file, MAX_PATH_LENGTH - 1, "%s%s", file_list.path, file_entry->name);
+    snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
     textViewer(cur_file);
     return;
   }
@@ -765,6 +765,9 @@ static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
     }
     fileBrowserHandleFile(resolved_file_entry);
     dirUp();
+
+    free(target_file_name);
+    free(target_base_directory);
   }
   int res = refreshFileList();
   if (res < 0)
