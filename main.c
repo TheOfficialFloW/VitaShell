@@ -161,7 +161,7 @@ void dirUpCloseArchive() {
 
 int change_to_directory(char* lastdir) {
   if (!checkFolderExist(lastdir)) {
-    return -1;
+    return VITASHELL_ERROR_NAVIGATION;
   } else {
     if (isInArchive()) {
       dirUpCloseArchive();
@@ -1826,7 +1826,7 @@ int jump_to_directory_track_current_path(char *path) {
     int _dir_level = dir_level; // we escape from hierarchical dir level structure
     if (change_to_directory(path) < 0) {
       free(symlink_path);
-      return -1;
+      return VITASHELL_ERROR_NAVIGATION;
     }
     WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
     storeSymlinkPath(symlink_path);
@@ -1846,26 +1846,26 @@ static void fileBrowserHandleSymlink(FileListEntry *file_entry) {
   }
   if (file_entry->symlink->to_file == 0) {
     if (jump_to_directory_track_current_path(file_entry->symlink->target_path) < 0) {
-      errorDialog(-4);
+      errorDialog(VITASHELL_ERROR_SYMLINK_INVALID_PATH);
     }
   } else {
     char *target_base_directory = getBaseDirectory(file_entry->symlink->target_path);
     if (!target_base_directory) {
-      errorDialog(-2);
+      errorDialog(VITASHELL_ERROR_SYMLINK_CANT_RESOLVE_BASEDIR);
       return;
     }
     char *target_file_name = getFilename(file_entry->symlink->target_path);
     if (!target_file_name) {
-      errorDialog(-3);
+      errorDialog(VITASHELL_ERROR_SYMLINK_CANT_RESOLVE_FILENAME);
       return;
     }
     if (jump_to_directory_track_current_path(target_base_directory) < 0) {
-      errorDialog(-4); // 0xC
+      errorDialog(VITASHELL_ERROR_SYMLINK_INVALID_PATH);
       return;
     }
     FileListEntry *resolved_file_entry = fileListFindEntry(&file_list, target_file_name);
     if (!resolved_file_entry) {
-      errorDialog(-5);
+      errorDialog(VITASHELL_ERROR_SYMLINK_INVALID_PATH);
       return;
     }
     fileBrowserHandleFile(resolved_file_entry);

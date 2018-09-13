@@ -1049,14 +1049,14 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
           if (dir.d_stat.st_size <= SYMLINK_MAX_SIZE) {
             char *p = malloc(strlen(path) + strlen(dir.d_name) + 2);
             if (!p) {
-              return -1;
+              return VITASHELL_ERROR_INTERNAL;
             }
             snprintf(p, MAX_PATH_LENGTH - 1, "%s%s%s",
                      path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
             Symlink* symlink = malloc(sizeof(Symlink));
             if (!symlink) {
-              return -1;
+              return VITASHELL_ERROR_INTERNAL;
             }
             int res = resolveSimLink(symlink, p);
             if (res < 0) {
@@ -1103,36 +1103,36 @@ int fileListGetEntries(FileList *list, const char *path, int sort) {
 int resolveSimLink(Symlink *symlink, const char *path) {
   SceUID fd = sceIoOpen(path, SCE_O_RDONLY, 0);
   if (fd < 0)
-    return -1;
+    return VITASHELL_ERROR_SYMLINK_INTERNAL;
   char magic[SYMLINK_HEADER_SIZE + 1];
   magic[SYMLINK_HEADER_SIZE] = '\0';
 
   if (sceIoRead(fd, &magic, SYMLINK_HEADER_SIZE) < SYMLINK_HEADER_SIZE) {
     sceIoClose(fd);
-    return -2;
+    return VITASHELL_ERROR_SYMLINK_INTERNAL;
   }
   if(memcmp(magic, symlink_header_bytes, SYMLINK_HEADER_SIZE) != 0) {
     sceIoClose(fd);
-    return -3;
+    return VITASHELL_ERROR_SYMLINK_INTERNAL;
   }
   char *resolve = (char *) malloc(MAX_PATH_LENGTH);
   if (!resolve) {
     sceIoClose(fd);
-    return -4;
+    return VITASHELL_ERROR_INTERNAL;
   }
   int bytes_read = sceIoRead(fd, resolve, MAX_PATH_LENGTH - 1);
   sceIoClose(fd);
 
   if (bytes_read <= 0) {
     free(resolve);
-    return -5;
+    return VITASHELL_ERROR_SYMLINK_INTERNAL;
   }
   resolve[bytes_read] = '\0';
   SceIoStat io_stat;
   memset(&io_stat, 0, sizeof(SceIoStat));
   if (sceIoGetstat(resolve, &io_stat) < 0) {
     free(resolve);
-    return -6;
+    return VITASHELL_ERROR_SYMLINK_INTERNAL;
   }
   symlink->to_file = !SCE_S_ISDIR(io_stat.st_mode);
   symlink->target_path = resolve;
@@ -1144,7 +1144,7 @@ int resolveSimLink(Symlink *symlink, const char *path) {
 int createSymLink(const char* store_location, const char *target) {
   SceUID fd = sceIoOpen(store_location, SCE_O_WRONLY | SCE_O_CREAT, 0777);
   if (fd < 0) {
-    return -1;
+    return VITASHELL_ERROR_SYMLINK_INTERNAL;
   }
   sceIoWrite(fd, (void*) &symlink_header_bytes, SYMLINK_HEADER_SIZE);
   sceIoWrite(fd, (void*) target, strnlen(target, MAX_PATH_LENGTH));
