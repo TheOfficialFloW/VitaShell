@@ -1389,7 +1389,10 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
       if (file_entry) {
         snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
         char target[MAX_PATH_LENGTH];
-        snprintf(target, MAX_PATH_LENGTH, "%s%s."SYMLINK_EXT, VITASHELL_BOOKMARKS_PATH, file_entry->name);
+        char name[MAX_PATH_LENGTH];
+        strncpy(name, file_entry->name, MAX_PATH_LENGTH);
+        removeEndSlash(name);
+        snprintf(target, MAX_PATH_LENGTH, "%s%s."SYMLINK_EXT, VITASHELL_BOOKMARKS_PATH, name);
         int res;
         if ((res = createSymLink(target, cur_file)) < 0) {
           errorDialog(res);
