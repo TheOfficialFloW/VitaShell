@@ -1141,7 +1141,7 @@ int resolveSimLink(Symlink *symlink, const char *path) {
 }
 
 // return < 0 on error
-int createSymLink(const char* store_location, const char *target) {
+int createSymLink(const char *store_location, const char *target) {
   SceUID fd = sceIoOpen(store_location, SCE_O_WRONLY | SCE_O_CREAT, 0777);
   if (fd < 0) {
     return VITASHELL_ERROR_SYMLINK_INTERNAL;
@@ -1179,7 +1179,7 @@ char * getBaseDirectory(const char * path) {
 
 // returns NULL when no filename found or error
 // result is at most MAX_PATH_LEN
-char * getFilename(const char* path) {
+char * getFilename(const char *path) {
   int i;
   int sep_ind = -1;
   int len = strlen(path);

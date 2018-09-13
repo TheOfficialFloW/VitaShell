@@ -159,7 +159,7 @@ void dirUpCloseArchive() {
   }
 }
 
-int change_to_directory(char* lastdir) {
+int change_to_directory(char *lastdir) {
   if (!checkFolderExist(lastdir)) {
     return VITASHELL_ERROR_NAVIGATION;
   } else {

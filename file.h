@@ -70,7 +70,7 @@ enum FileMoveFlags {
 
 typedef struct {
   int to_file; // 1: to file, 0: to directory
-  char* target_path;
+  char *target_path;
   int target_path_length;
 } Symlink;
 
@@ -145,6 +145,6 @@ void fileListEmpty(FileList *list);
 int fileListGetEntries(FileList *list, const char *path, int sort);
 
 int resolveSimLink(Symlink* symlink, const char *target);
-int createSymLink(const char* source_location, const char *target);
+int createSymLink(const char *source_location, const char *target);
 
 #endif
