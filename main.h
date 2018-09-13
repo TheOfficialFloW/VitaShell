@@ -63,6 +63,7 @@
 // needs / at the end
 #define VITASHELL_BOOKMARKS_PATH "ux0:VitaShell/bookmarks/"
 #define VITASHELL_RECENT_PATH "ux0:VitaShell/recent/"
+#define VITASHELL_RECENT_PATH_DELETE_INTERVAL_DAYS 14
 
 #define VITASHELL_TITLEID "VITASHELL"
 

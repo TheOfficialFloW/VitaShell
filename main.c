@@ -1821,6 +1821,8 @@ static void fileBrowserHandleFolder(FileListEntry *file_entry) {
     errorDialog(res);
 }
 
+// escape from dir level structure so that parent directory is browsed
+// where this jump came from and not the hierarchically higher folder
 int jump_to_directory_track_current_path(char *path) {
   SymlinkDirectoryPath *symlink_path = malloc(sizeof(SymlinkDirectoryPath));
   if (symlink_path) {
@@ -1904,6 +1906,7 @@ static int shellMain() {
     ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
     change_to_directory(lastdir);
   }
+
   // Refresh file list
   refreshFileList();
 

@@ -404,6 +404,18 @@ void initVitaShell() {
   }
   time_last_recent_files = 0;
   time_last_bookmars = 0;
+
+  // clear up recent folder every frequently
+  SceIoStat stat;
+  SceDateTime now;
+  sceRtcGetCurrentClock(&now, 0);
+  int res = sceIoGetstat(VITASHELL_RECENT_PATH, &stat);
+  if (res >= 0) {
+    if (now.year * 365 + now.day - stat.st_ctime.year * 365 - stat.st_ctime.day
+        >= VITASHELL_RECENT_PATH_DELETE_INTERVAL_DAYS) {
+      removePath(VITASHELL_RECENT_PATH, 0);
+    }
+  }
 }
 
 void finishVitaShell() {
