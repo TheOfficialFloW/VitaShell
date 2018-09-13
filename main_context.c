@@ -162,9 +162,9 @@ enum MenuNewEntrys {
 };
 
 MenuEntry menu_new_entries[] = {
-  { NEW_FILE,      10, 0, CTX_INVISIBLE },
-  { NEW_FOLDER,    11, 0, CTX_INVISIBLE },
-  { BOOKMARKS_NEW, 12, 0, CTX_INVISIBLE },
+  { NEW_FILE,      12, 0, CTX_INVISIBLE },
+  { NEW_FOLDER,    13, 0, CTX_INVISIBLE },
+  { BOOKMARKS_NEW, 14, 0, CTX_INVISIBLE },
 };
 
 #define N_MENU_NEW_ENTRIES (sizeof(menu_new_entries) / sizeof(MenuEntry))
