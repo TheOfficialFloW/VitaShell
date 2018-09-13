@@ -1625,7 +1625,7 @@ static int fileBrowserMenuCtrl() {
 */
 
   // bookmarks shortcut
-  if (current_pad[PAD_LTRIGGER] && current_pad[PAD_SQUARE]) {
+  if (current_pad[PAD_LEFT] && current_pad[PAD_SQUARE]) {
     SceInt64 now = sceKernelGetSystemTimeWide();
 
     // switching too quickly back and forth between recent and bookmarks
@@ -1642,7 +1642,7 @@ static int fileBrowserMenuCtrl() {
     }
   }
   // recent files shortcut
-  if (current_pad[PAD_LTRIGGER] && current_pad[PAD_TRIANGLE]) {
+  if (current_pad[PAD_LEFT] && current_pad[PAD_TRIANGLE]) {
     SceInt64 now = sceKernelGetSystemTimeWide();
     if (now - time_last_recent_files > THRESHOLD_LAST_PAD_RECENT_FILES_WAIT) {
       if (strncmp(file_list.path, VITASHELL_RECENT_PATH, MAX_PATH_LENGTH) != 0) {
