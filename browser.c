@@ -430,8 +430,54 @@ static int handleFile(const char *file, FileListEntry *entry) {
   return type;
 }
 
+int shortCuts() {
+  // bookmarks shortcut
+  if (current_pad[PAD_SQUARE]) {
+    SceInt64 now = sceKernelGetSystemTimeWide();
+
+    // switching too quickly back and forth between recent and bookmarks
+    // causes VS to crash
+    if (now - time_last_bookmarks > THRESHOLD_LAST_PAD_BOOKMARKS_WAIT) {
+      if (strncmp(file_list.path, VITASHELL_BOOKMARKS_PATH, MAX_PATH_LENGTH) != 0) {
+        char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
+        sort_mode = last_set_sort_mode;
+        jump_to_directory_track_current_path(path);
+        time_last_bookmarks = now;
+        return 0;
+      }
+    }
+  }
+
+  // recent files shortcut
+  if (current_pad[PAD_TRIANGLE]) {
+    SceInt64 now = sceKernelGetSystemTimeWide();
+    if (now - time_last_recent_files > THRESHOLD_LAST_PAD_RECENT_FILES_WAIT) {
+      if (strncmp(file_list.path, VITASHELL_RECENT_PATH, MAX_PATH_LENGTH) != 0) {
+        char path[MAX_PATH_LENGTH] = VITASHELL_RECENT_PATH;
+        sort_mode = SORT_BY_DATE;
+        jump_to_directory_track_current_path(path);
+        time_last_recent_files = now;
+        return 0;
+      }
+    }
+  }
+
+  // QR
+  if (current_pad[PAD_CIRCLE] && enabledQR()) {
+    startQR();
+    initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
+    setDialogStep(DIALOG_STEP_QR);
+  }
+
+  return 0;
+}
+
 static int fileBrowserMenuCtrl() {
   int refresh = 0;
+
+  // Short cuts combo
+  if (current_pad[PAD_LEFT])
+    return shortCuts();
 
   // Settings menu
   if (pressed_pad[PAD_START]) {
@@ -477,47 +523,6 @@ static int fileBrowserMenuCtrl() {
         initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER],
                           vita_ip, vita_port);
         setDialogStep(DIALOG_STEP_FTP);
-      }
-    }
-  }
-
-/*
-  // QR
-  if (hold_pad[PAD_LTRIGGER] && hold_pad[PAD_RTRIGGER] && enabledQR()) {
-    startQR();
-    initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
-    setDialogStep(DIALOG_STEP_QR);
-  }
-*/
-
-  // bookmarks shortcut
-  if (current_pad[PAD_LEFT] && current_pad[PAD_SQUARE]) {
-    SceInt64 now = sceKernelGetSystemTimeWide();
-
-    // switching too quickly back and forth between recent and bookmarks
-    // causes VS to crash
-    if (now - time_last_bookmarks > THRESHOLD_LAST_PAD_BOOKMARKS_WAIT) {
-      if (strncmp(file_list.path, VITASHELL_BOOKMARKS_PATH, MAX_PATH_LENGTH) != 0) {
-          char path[MAX_PATH_LENGTH] = VITASHELL_BOOKMARKS_PATH;
-          sort_mode = last_set_sort_mode;
-          jump_to_directory_track_current_path(path);
-          time_last_bookmarks = now;
-          return 0;
-
-      }
-    }
-  }
-  // recent files shortcut
-  if (current_pad[PAD_LEFT] && current_pad[PAD_TRIANGLE]) {
-    SceInt64 now = sceKernelGetSystemTimeWide();
-    if (now - time_last_recent_files > THRESHOLD_LAST_PAD_RECENT_FILES_WAIT) {
-      if (strncmp(file_list.path, VITASHELL_RECENT_PATH, MAX_PATH_LENGTH) != 0) {
-        char path[MAX_PATH_LENGTH] = VITASHELL_RECENT_PATH;
-        sort_mode = SORT_BY_DATE;
-        jump_to_directory_track_current_path(path);
-        time_last_recent_files = now;
-        return 0;
-
       }
     }
   }
