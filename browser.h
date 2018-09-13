@@ -19,6 +19,11 @@
 #ifndef __BROWSER_H__
 #define __BROWSER_H__
 
+#define MAX_DIR_LEVELS 128
+
+#define HOME_PATH "home"
+#define DIR_UP ".."
+
 extern FileList file_list, mark_list, copy_list, install_list;
 
 extern char cur_file[MAX_PATH_LENGTH];

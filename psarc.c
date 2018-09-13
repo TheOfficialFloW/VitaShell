@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "psarc.h"
 #include "file.h"
 #include "utils.h"

@@ -108,11 +108,14 @@ static void storeSymlinkPath(SymlinkDirectoryPath * path) {
 }
 
 void dirLevelUp() {
-  base_pos_list[dir_level] = base_pos;
-  rel_pos_list[dir_level] = rel_pos;
-  dir_level++;
-  base_pos_list[dir_level] = 0;
-  rel_pos_list[dir_level] = 0;
+  if (dir_level < MAX_DIR_LEVELS - 1) {
+    base_pos_list[dir_level] = base_pos;
+    rel_pos_list[dir_level] = rel_pos;
+    dir_level++;
+    base_pos_list[dir_level] = 0;
+    rel_pos_list[dir_level] = 0;
+  }
+
   base_pos = 0;
   rel_pos = 0;
 }
@@ -234,6 +237,9 @@ static void dirUp() {
   dir_level = 0;
 
 DIR_UP_RETURN:
+  if (dir_level < 0)
+    dir_level = 0;
+
   base_pos = (int)base_pos_list[dir_level];
   rel_pos = (int)rel_pos_list[dir_level];
   dirUpCloseArchive();
