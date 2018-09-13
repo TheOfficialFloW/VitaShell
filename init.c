@@ -396,15 +396,6 @@ void initVitaShell() {
   }
   user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
 
-  if (!checkFolderExist(VITASHELL_BOOKMARKS_PATH)) {
-    sceIoMkdir(VITASHELL_BOOKMARKS_PATH, 0777);
-  }
-  if (!checkFolderExist(VITASHELL_RECENT_PATH)) {
-    sceIoMkdir(VITASHELL_RECENT_PATH, 0777);
-  }
-  time_last_recent_files = 0;
-  time_last_bookmars = 0;
-
   // clear up recent folder frequently
   SceIoStat stat;
   SceDateTime now;
@@ -416,6 +407,15 @@ void initVitaShell() {
       removePath(VITASHELL_RECENT_PATH, 0);
     }
   }
+
+  if (!checkFolderExist(VITASHELL_BOOKMARKS_PATH)) {
+    sceIoMkdir(VITASHELL_BOOKMARKS_PATH, 0777);
+  }
+  if (!checkFolderExist(VITASHELL_RECENT_PATH)) {
+    sceIoMkdir(VITASHELL_RECENT_PATH, 0777);
+  }
+  time_last_recent_files = 0;
+  time_last_bookmars = 0;
 }
 
 void finishVitaShell() {
