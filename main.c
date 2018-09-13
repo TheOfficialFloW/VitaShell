@@ -106,22 +106,34 @@ static void fileBrowserHandleFile(FileListEntry* file_entry);
 
 static void create_recent_symlink(FileListEntry *file_entry);
 
+static void delete_all_symlink_directory_path();
+
+// escape from dir hierarchy with a symlink
 typedef struct SymlinkDirectoryPath {
   struct SymlinkDirectoryPath* previous;
-  char last_path[MAX_PATH_LENGTH]; // contains / at the end
-  char last_hook[MAX_PATH_LENGTH]; // contains / at the end
+  // contains / at the end, is directory where jumped from
+  char last_path[MAX_PATH_LENGTH];
+  // contains / at the end, is directory where jumped to
+  char last_hook[MAX_PATH_LENGTH];
 } SymlinkDirectoryPath;
 
 static SymlinkDirectoryPath* symlink_directory_path = NULL;
+static SymlinkDirectoryPath* symlink_directory_path_head = NULL;
 
 static void storeSymlinkPath(SymlinkDirectoryPath * path) {
-  if (!symlink_directory_path)
+  if (!symlink_directory_path) {
     symlink_directory_path = path;
-  else {
+    symlink_directory_path_head = path;
+    symlink_directory_path->previous = 0;
+  } else {
     SymlinkDirectoryPath *prev = symlink_directory_path;
     symlink_directory_path = path;
     symlink_directory_path->previous = prev;
   }
+}
+
+static void delete_all_symlink_directory_path() {
+
 }
 
 int getDialogStep() {
@@ -204,6 +216,23 @@ static void dirUp() {
       !strstr(copy_list.path, pfs_mounted_path)) { // nothing has been copied from pfs path
     // Then umount
     pfsUmount();
+  }
+
+  // skip all symlink hierarchies when pressing O in bookmarks/ recent files
+  if (symlink_directory_path_head &&
+      ((strncmp(file_list.path, VITASHELL_BOOKMARKS_PATH, MAX_PATH_LENGTH) == 0)
+       || strncmp(file_list.path, VITASHELL_RECENT_PATH, MAX_PATH_LENGTH) == 0)) {
+    strcpy(file_list.path, symlink_directory_path_head->last_path);
+    SymlinkDirectoryPath *e = symlink_directory_path;
+    while(e != NULL) {
+      SymlinkDirectoryPath *prev = e->previous;
+      free(e);
+      dir_level--;
+      e = prev;
+    }
+    symlink_directory_path_head = 0;
+    symlink_directory_path = 0;
+    goto DIR_UP_RETURN;
   }
 
   if (symlink_directory_path
