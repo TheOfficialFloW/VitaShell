@@ -149,7 +149,7 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
   int count = 0;
 
   int i;
-  for (i = 0; i < MIN(size, MIN(size-offset, MAX_LINE_CHARACTERS - 1)); i++) {
+  for (i = 0; i < MIN(size, MIN(size - offset, MAX_LINE_CHARACTERS - 1)); i++) {
     char ch = buffer[offset + i];
     char ch_width = 0;
 
@@ -171,7 +171,7 @@ static int textReadLine(char *buffer, int offset, int size, char *line) {
     }
 
     // Too long
-    if ((line_width+ch_width) >= (MAX_WIDTH-TEXT_START_X + SHELL_MARGIN_X))
+    if ((line_width + ch_width) >= (MAX_WIDTH - TEXT_START_X + SHELL_MARGIN_X))
       break;
 
     // Increase line width
@@ -238,7 +238,7 @@ static CopyEntry *copy_line(TextEditorState *state, int line_number) {
   memcpy(entry->line, &state->buffer[line_start], length);
 
   // Make sure line end with a newline
-  if (entry->line[length-1] != '\n') {
+  if (entry->line[length - 1] != '\n') {
     entry->line[length] = '\n';
     length++;
   }
@@ -259,7 +259,7 @@ static void delete_line(TextEditorState *state, int line_number) {
   int length = textReadLine(state->buffer, line_start, state->size, line);
 
   // Remove line
-  memmove(&state->buffer[line_start], &state->buffer[line_start+length], state->size-line_start);  
+  memmove(&state->buffer[line_start], &state->buffer[line_start + length], state->size - line_start);  
   state->size -= length;
   state->n_lines -= 1;
 
@@ -270,8 +270,8 @@ static void delete_line(TextEditorState *state, int line_number) {
     state->buffer[0] = '\n';
   } 
 
-  if (state->base_pos+state->rel_pos >= state->n_lines) {
-    state->rel_pos = state->n_lines-state->base_pos-1;
+  if (state->base_pos + state->rel_pos >= state->n_lines) {
+    state->rel_pos = state->n_lines - state->base_pos - 1;
   }
 
   if (state->rel_pos < 0) {
@@ -293,7 +293,7 @@ static void insert_line(TextEditorState *state, char *line, int pos) {
   int length = strlen(line);
 
   // Make space for inserted line
-  memmove(&state->buffer[offset+length], &state->buffer[offset], state->size-offset);
+  memmove(&state->buffer[offset + length], &state->buffer[offset], state->size - offset);
   state->size += length;
 
   // Insert the lines
@@ -329,7 +329,7 @@ static void paste_lines(TextEditorState *state, int pos) {
   }
 
   // Make space for pasted lines
-  memmove(&state->buffer[line_start+length], &state->buffer[line_start], state->size-line_start);
+  memmove(&state->buffer[line_start + length], &state->buffer[line_start], state->size - line_start);
   state->size += length;
 
   // Paste the lines
@@ -391,13 +391,13 @@ static int contextMenuEnterCallback(int sel, void *context) {
       qsort(state->selection_list, state->n_selections, sizeof(int), cmp);
 
       // Cut the lines in reversed order to not break the offsets
-      for (i = state->n_selections-1; i >= 0; i--) {
+      for (i = state->n_selections - 1; i >= 0; i--) {
         cut_line(state, state->selection_list[i]);
       }
 
       // Reverse the order of the copied lines
       int j;
-      for (i = 0, j = state->n_selections-1; i < j; i++, j--) {
+      for (i = 0, j = state->n_selections - 1; i < j; i++, j--) {
         CopyEntry tmp = state->copy_buffer[i];
         state->copy_buffer[j] = state->copy_buffer[i];
         state->copy_buffer[i] = tmp;
@@ -407,15 +407,15 @@ static int contextMenuEnterCallback(int sel, void *context) {
       break;
 
     case TEXT_MENU_ENTRY_PASTE:
-      paste_lines(state, state->base_pos+state->rel_pos + 1);
+      paste_lines(state, state->base_pos + state->rel_pos + 1);
       break;
 
     case TEXT_MENU_ENTRY_DELETE:
-      delete_line(state, state->base_pos+state->rel_pos);
+      delete_line(state, state->base_pos + state->rel_pos);
       break;
 
     case TEXT_MENU_ENTRY_INSERT_EMPTY_LINE:
-      insert_line(state, "\n", state->base_pos+state->rel_pos + 1);
+      insert_line(state, "\n", state->base_pos + state->rel_pos + 1);
       break;
 
     case TEXT_MENU_ENTRY_MARK_UNMARK_ALL:
@@ -506,11 +506,11 @@ static int search_thread(SceSize args, SearchParams *argp) {
 int textViewer(const char *file) {
   TextEditorState *s = malloc(sizeof(TextEditorState));
   if (!s) 
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   char *buffer_base = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer_base)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   s->running = 1;
   s->hex_viewer = 0; 
@@ -550,7 +550,7 @@ int textViewer(const char *file) {
     s->buffer[0] = '\n';
   }
 
-  if (s->buffer[s->size-1] != '\n') {
+  if (s->buffer[s->size - 1] != '\n') {
     s->buffer[s->size++] = '\n';
   }
 
@@ -640,10 +640,10 @@ int textViewer(const char *file) {
         } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
           if (s->offset_list[s->rel_pos + 1] < s->size) {
             if ((s->rel_pos + 1) < MAX_POSITION) {
-              if (s->base_pos+s->rel_pos < s->n_lines - 1) 
+              if (s->base_pos + s->rel_pos < s->n_lines - 1) 
                 s->rel_pos++;
             } else {
-              if (s->offset_list[s->base_pos+s->rel_pos + 1] < s->size) {
+              if (s->offset_list[s->base_pos + s->rel_pos + 1] < s->size) {
                 s->base_pos++;
 
                 // Head to tail
@@ -659,11 +659,11 @@ int textViewer(const char *file) {
                 s->list.tail->next = NULL;
 
                 // Update line_number
-                s->list.tail->line_number = s->base_pos+MAX_ENTRIES-1;
+                s->list.tail->line_number = s->base_pos + MAX_ENTRIES - 1;
 
                 // Read
-                int length = textReadLine(s->buffer, s->offset_list[s->base_pos+MAX_ENTRIES-1], s->size, s->list.tail->line);
-                s->offset_list[s->base_pos+MAX_ENTRIES] = s->offset_list[s->base_pos+MAX_ENTRIES-1] + length;
+                int length = textReadLine(s->buffer, s->offset_list[s->base_pos + MAX_ENTRIES - 1], s->size, s->list.tail->line);
+                s->offset_list[s->base_pos + MAX_ENTRIES] = s->offset_list[s->base_pos + MAX_ENTRIES - 1] + length;
 
                 // Update the entry
                 updateTextEntry(s, s->list.tail, MAX_ENTRIES - 1);
@@ -696,7 +696,7 @@ int textViewer(const char *file) {
             }
           } // Skip to next last result
           else if (pressed_pad[PAD_LTRIGGER]) {
-            for (i = s->n_search_results-1; i >= 0; i--) {
+            for (i = s->n_search_results - 1; i >= 0; i--) {
               if (s->search_result_offsets[i] < entry_start_offset) {
                 target_offset = s->search_result_offsets[i] - entry_start_offset;
                 break;
@@ -706,7 +706,7 @@ int textViewer(const char *file) {
 
           if (target_offset != 0) {
             int dir = target_offset > 0 ? 1 : -1;
-            int line = s->base_pos+s->rel_pos;
+            int line = s->base_pos + s->rel_pos;
             int offset = s->offset_list[line];
 
             while (offset < s->size && offset >= 0 && target_offset != 0) {
@@ -733,18 +733,17 @@ int textViewer(const char *file) {
         } else {
           // Page skip
           if (hold_pad[PAD_LTRIGGER] || hold_pad[PAD_RTRIGGER]) {
-
-            if (hold_pad[PAD_LTRIGGER]) {  // Skip page up
-              s->base_pos = s->base_pos-MAX_ENTRIES;
+            if (hold_pad[PAD_LTRIGGER]) { // Skip page up
+              s->base_pos = s->base_pos - MAX_ENTRIES;
               if (s->base_pos < 0) {
                 s->base_pos = 0;
                 s->rel_pos = 0;
               }
-            } else {  // Skip page down
-              s->base_pos = s->base_pos+MAX_ENTRIES;
-              if (s->base_pos >= s->n_lines-MAX_POSITION) {
-                s->base_pos = MAX(s->n_lines-MAX_POSITION, 0);
-                s->rel_pos = MIN(MAX_POSITION-1, s->n_lines - 1);
+            } else { // Skip page down
+              s->base_pos = s->base_pos + MAX_ENTRIES;
+              if (s->base_pos >= s->n_lines - MAX_POSITION) {
+                s->base_pos = MAX(s->n_lines - MAX_POSITION, 0);
+                s->rel_pos = MIN(MAX_POSITION - 1, s->n_lines - 1);
               }
             }
 
@@ -756,24 +755,24 @@ int textViewer(const char *file) {
         // buffer modifying actions
         if (s->modify_allowed && !s->search_running) {
           if(s->edit_line <= 0 && pressed_pad[PAD_ENTER]) {
-            int line_start = s->offset_list[s->base_pos+s->rel_pos];
+            int line_start = s->offset_list[s->base_pos + s->rel_pos];
             
             char line[MAX_LINE_CHARACTERS];
             textReadLine(s->buffer, line_start, s->size, line);
 
             initImeDialog(language_container[EDIT_LINE], line, MAX_LINE_CHARACTERS, SCE_IME_TYPE_DEFAULT, SCE_IME_OPTION_MULTILINE, 0);
 
-            s->edit_line = s->base_pos+s->rel_pos;
+            s->edit_line = s->base_pos + s->rel_pos;
           }
 
           // Delete line
           if (pressed_pad[PAD_LEFT] && s->n_copied_lines < MAX_COPY_BUFFER_SIZE) {
-            delete_line(s, s->base_pos+s->rel_pos);
+            delete_line(s, s->base_pos + s->rel_pos);
           } 
 
           // Insert new line
           if (pressed_pad[PAD_RIGHT]) {
-            insert_line(s, "\n", s->base_pos+s->rel_pos + 1);
+            insert_line(s, "\n", s->base_pos + s->rel_pos + 1);
           }
         }
 
@@ -793,7 +792,7 @@ int textViewer(const char *file) {
 
         // (De-)select current line
         if (pressed_pad[PAD_SQUARE]) {
-          int cur_line = s->base_pos+s->rel_pos;
+          int cur_line = s->base_pos + s->rel_pos;
           int line_selected = 1;
 
           int i;
@@ -876,7 +875,7 @@ int textViewer(const char *file) {
           int length = textReadLine(s->buffer, line_start, s->size, line);
 
           // Don't count newline 
-          if (s->buffer[line_start+length-1] == '\n') {
+          if (s->buffer[line_start + length - 1] == '\n') {
             length--;
           }
 
@@ -885,7 +884,7 @@ int textViewer(const char *file) {
 
           // Move data if size has changed
           if (new_length != length) {
-            memmove(&s->buffer[line_start+new_length], &s->buffer[line_start+length], s->size-line_start-length);
+            memmove(&s->buffer[line_start + new_length], &s->buffer[line_start + length], s->size - line_start - length);
             s->size += (new_length-length);
           }
 
@@ -932,7 +931,7 @@ int textViewer(const char *file) {
       int search_result_on_line = 0;
 
       int entry_start_offset = s->offset_list[entry->line_number];
-      int entry_end_offset = entry_start_offset+line_lenght; 
+      int entry_end_offset = entry_start_offset + line_lenght; 
 
       if (s->n_search_results > 0) {
         int j; 

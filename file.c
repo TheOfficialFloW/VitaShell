@@ -56,7 +56,7 @@ int allocateReadFile(const char *file, void **buffer) {
   *buffer = malloc(size);
   if (!*buffer) {
     sceIoClose(fd);
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
   }
 
   int read = sceIoRead(fd, *buffer, size);
@@ -178,7 +178,8 @@ int getFileSha1(const char *file, uint8_t *pSha1Out, FileProcessParam *param) {
   return 1;
 }
 
-int getPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path)) {
+int getPathInfo(const char *path, uint64_t *size, uint32_t *folders,
+                uint32_t *files, int (* handler)(const char *path)) {
   SceUID dfd = sceIoDopen(path);
   if (dfd >= 0) {
     int res = 0;
@@ -190,7 +191,7 @@ int getPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *f
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (handler && handler(new_path)) {
           free(new_path);
@@ -254,7 +255,7 @@ int removePath(const char *path, FileProcessParam *param) {
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
           int ret = removePath(new_path, param);
@@ -331,13 +332,13 @@ int removePath(const char *path, FileProcessParam *param) {
 int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param) {
   // The source and destination paths are identical
   if (strcasecmp(src_path, dst_path) == 0) {
-    return -1;
+    return VITASHELL_ERROR_SRC_AND_DST_IDENTICAL;
   }
 
   // The destination is a subfolder of the source folder
   int len = strlen(src_path);
   if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
-    return -2;
+    return VITASHELL_ERROR_DST_IS_SUBFOLDER_OF_SRC;
   }
 
   SceUID fdsrc = sceIoOpen(src_path, SCE_O_RDONLY, 0);
@@ -419,13 +420,13 @@ int copyFile(const char *src_path, const char *dst_path, FileProcessParam *param
 int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param) {
   // The source and destination paths are identical
   if (strcasecmp(src_path, dst_path) == 0) {
-    return -1;
+    return VITASHELL_ERROR_SRC_AND_DST_IDENTICAL;
   }
 
   // The destination is a subfolder of the source folder
   int len = strlen(src_path);
   if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
-    return -2;
+    return VITASHELL_ERROR_DST_IS_SUBFOLDER_OF_SRC;
   }
 
   SceUID dfd = sceIoDopen(src_path);
@@ -468,10 +469,10 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-        snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
+        snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
         char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
-        snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
+        snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
         int ret = 0;
 
@@ -502,13 +503,13 @@ int copyPath(const char *src_path, const char *dst_path, FileProcessParam *param
 int movePath(const char *src_path, const char *dst_path, int flags, FileProcessParam *param) {
   // The source and destination paths are identical
   if (strcasecmp(src_path, dst_path) == 0) {
-    return -1;
+    return VITASHELL_ERROR_SRC_AND_DST_IDENTICAL;
   }
 
   // The destination is a subfolder of the source folder
   int len = strlen(src_path);
   if (strncasecmp(src_path, dst_path, len) == 0 && (dst_path[len] == '/' || dst_path[len - 1] == '/')) {
-    return -2;
+    return VITASHELL_ERROR_DST_IS_SUBFOLDER_OF_SRC;
   }
 
   int res = sceIoRename(src_path, dst_path);
@@ -534,7 +535,7 @@ int movePath(const char *src_path, const char *dst_path, int flags, FileProcessP
 
     // One of them is a file and the other a directory, no replacement or integration possible
     if (src_is_dir != dst_is_dir)
-      return -3;
+      return VITASHELL_ERROR_INVALID_TYPE;
 
     // Replace file
     if (!src_is_dir && !dst_is_dir && flags & MOVE_REPLACE) {
@@ -562,10 +563,10 @@ int movePath(const char *src_path, const char *dst_path, int flags, FileProcessP
         res = sceIoDread(dfd, &dir);
         if (res > 0) {
           char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-          snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
+          snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
           char *new_dst_path = malloc(strlen(dst_path) + strlen(dir.d_name) + 2);
-          snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
+          snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", dir.d_name);
 
           // Recursive move
           int ret = movePath(new_src_path, new_dst_path, flags, param);
@@ -718,7 +719,7 @@ FileListEntry *fileListGetNthEntry(FileList *list, int n) {
 
 int fileListGetNumberByName(FileList *list, const char *name) {
   if (!list)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   FileListEntry *entry = list->head;
 
@@ -734,7 +735,7 @@ int fileListGetNumberByName(FileList *list, const char *name) {
     entry = entry->next;
   }
 
-  return -1;
+  return VITASHELL_ERROR_NOT_FOUND;
 }
 
 void fileListAddEntry(FileList *list, FileListEntry *entry, int sort) {
@@ -946,7 +947,7 @@ void fileListEmpty(FileList *list) {
 
 int fileListGetDeviceEntries(FileList *list) {
   if (!list)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   int i;
   for (i = 0; i < N_DEVICES; i++) {
@@ -997,7 +998,7 @@ int fileListGetDeviceEntries(FileList *list) {
 
 int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
   if (!list)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   SceUID dfd = sceIoDopen(path);
   if (dfd < 0)
@@ -1057,7 +1058,7 @@ int fileListGetDirectoryEntries(FileList *list, const char *path, int sort) {
 
 int fileListGetEntries(FileList *list, const char *path, int sort) {
   if (!list)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   if (isInArchive()) {
     return fileListGetArchiveEntries(list, path, sort);

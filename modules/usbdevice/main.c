@@ -18,6 +18,7 @@
 
 #include <psp2kern/kernel/modulemgr.h>
 #include <psp2kern/io/fcntl.h>
+#include <psp2kern/udcd.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -75,8 +76,12 @@ int module_start(SceSize args, void *argp) {
   hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0x1738, zero, 0x6E);
 
   // Add patches to support exFAT
-  hooks[1] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoOpenRef, "SceUsbstorVStorDriver", 0x40FD29C7, 0x75192972, ksceIoOpenPatched);
-  hooks[2] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoReadRef, "SceUsbstorVStorDriver", 0x40FD29C7, 0xE17EFC03, ksceIoReadPatched);
+  hooks[1] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoOpenRef, "SceUsbstorVStorDriver",
+                                            0x40FD29C7, 0x75192972, ksceIoOpenPatched);
+  hooks[2] = taiHookFunctionImportForKernel(KERNEL_PID, &ksceIoReadRef, "SceUsbstorVStorDriver",
+                                            0x40FD29C7, 0xE17EFC03, ksceIoReadPatched);
+
+  ksceUdcdStopCurrentInternal(2);
 
   return SCE_KERNEL_START_SUCCESS;
 }
@@ -84,10 +89,8 @@ int module_start(SceSize args, void *argp) {
 int module_stop(SceSize args, void *argp) {
   if (hooks[2] >= 0)
     taiHookReleaseForKernel(hooks[2], ksceIoReadRef);
-
   if (hooks[1] >= 0)
     taiHookReleaseForKernel(hooks[1], ksceIoOpenRef);
-
   if (hooks[0] >= 0)
     taiInjectReleaseForKernel(hooks[0]);
 

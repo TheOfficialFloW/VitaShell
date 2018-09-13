@@ -34,4 +34,4 @@ char *getLastQR();
 char *getLastDownloadQR();
 void setScannedQR(int scanned);
 
-#endif 
+#endif

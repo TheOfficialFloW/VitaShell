@@ -99,10 +99,10 @@ int checkForUnsafeImports(void *buffer) {
   Elf32_Phdr *phdr = (Elf32_Phdr *)((uint32_t)buffer + ehdr->e_phoff);
 
   if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
-    ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
-    ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
-    ehdr->e_ident[EI_MAG3] != ELFMAG3) {
-    return -1;
+      ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
+      ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
+      ehdr->e_ident[EI_MAG3] != ELFMAG3) {
+    return VITASHELL_ERROR_INVALID_MAGIC;
   }
 
   uint32_t segment = ehdr->e_entry >> 30;

@@ -1,3 +1,4 @@
+# VitaShell swedish translation by Findusthehaxor
 # VitaShell language file
 
 # General strings
@@ -152,6 +153,7 @@ VITASHELL_SETTINGS_THEME             = "Tema"
 VITASHELL_SETTINGS_USBDEVICE         = "USB-enhet"
 VITASHELL_SETTINGS_SELECT_BUTTON     = "SELECT-knapp"
 VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "Avaktivera automatisk uppdatering"
+VITASHELL_SETTINGS_WARNING_MESSAGE   = "Inaktivera varningsmeddelanden"
 VITASHELL_SETTINGS_RESTART_SHELL     = "Starta om VitaShell"
 VITASHELL_SETTINGS_POWER             = "Energi"
 VITASHELL_SETTINGS_REBOOT            = "Starta om"

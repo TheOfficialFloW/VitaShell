@@ -219,6 +219,7 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_USBDEVICE),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_SELECT_BUTTON),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_NO_AUTO_UPDATE),
+    LANGUAGE_ENTRY(VITASHELL_SETTINGS_WARNING_MESSAGE),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_RESTART_SHELL),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_POWER),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_REBOOT),
@@ -278,13 +279,14 @@ void loadLanguage(int id) {
   };
 
   // Load default config file
-  readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
+  readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size,
+                   language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 
   // Load custom config file
   if (use_custom_config) {
     if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
       char path[MAX_PATH_LENGTH];
-      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/language/%s.txt", lang[id]);
+      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/language/%s.txt", lang[id]);
       readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
     }
   }

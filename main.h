@@ -48,12 +48,13 @@
 
 #include "file.h"
 #include "vitashell_config.h"
+#include "vitashell_error.h"
 
 #define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
 
 // VitaShell version major.minor
 #define VITASHELL_VERSION_MAJOR 0x01
-#define VITASHELL_VERSION_MINOR 0x94
+#define VITASHELL_VERSION_MINOR 0x96
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 

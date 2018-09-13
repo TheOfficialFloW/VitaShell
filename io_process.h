@@ -22,11 +22,13 @@
 #include "file.h"
 
 #define COUNTUP_WAIT 100 * 1000
-#define DIALOG_WAIT 900 * 1000
+#define DIALOG_WAIT  900 * 1000
 
-#define COPY_MODE_NORMAL 0
-#define COPY_MODE_MOVE 1
-#define COPY_MODE_EXTRACT 2
+enum CopyModes {
+  COPY_MODE_NORMAL,
+  COPY_MODE_MOVE,
+  COPY_MODE_EXTRACT
+};
 
 typedef struct {
   uint64_t max;

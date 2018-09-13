@@ -210,7 +210,7 @@ int fileListGetPsarcEntries(FileList *list, const char *path, int sort) {
   int res;
   
   if (!list)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   SceFiosDH dh = -1;
   SceFiosBuffer buf = SCE_FIOS_BUFFER_INITIALIZER;
@@ -298,7 +298,7 @@ int getPsarcPathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32
         char *name = dir.fullPath + dir.offsetToName;
         
         char *new_path = malloc(strlen(path) + strlen(name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", name);
+        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", name);
 
         if (handler && handler(new_path)) {
           free(new_path);
@@ -455,10 +455,10 @@ int extractPsarcPath(const char *src_path, const char *dst_path, FileProcessPara
         char *name = dir.fullPath + dir.offsetToName;
 
         char *new_src_path = malloc(strlen(src_path) + strlen(name) + 2);
-        snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", name);
+        snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", name);
 
         char *new_dst_path = malloc(strlen(dst_path) + strlen(name) + 2);
-        snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", name);
+        snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s%s", dst_path, hasEndSlash(dst_path) ? "" : "/", name);
 
         int ret = 0;
 
