@@ -405,7 +405,7 @@ void initVitaShell() {
   time_last_recent_files = 0;
   time_last_bookmars = 0;
 
-  // clear up recent folder every frequently
+  // clear up recent folder frequently
   SceIoStat stat;
   SceDateTime now;
   sceRtcGetCurrentClock(&now, 0);
