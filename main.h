@@ -250,24 +250,11 @@ enum DialogSteps {
   DIALOG_STEP_ADHOC_RECEIVED,
 };
 
-extern FileList file_list, mark_list, copy_list, install_list;
-
-extern char cur_file[MAX_PATH_LENGTH];
-extern char archive_copy_path[MAX_PATH_LENGTH];
-extern char archive_path[MAX_PATH_LENGTH];
-
-extern int base_pos, rel_pos;
-extern int sort_mode, copy_mode;
-
-extern int last_set_sort_mode;
-
-// minimum time to pass before shortcutting to recent files/ bookmarks via L/R keys
-extern SceInt64 time_last_recent_files, time_last_bookmars;
-#define THRESHOLD_LAST_PAD_RECENT_FILES_WAIT 1000000
-#define THRESHOLD_LAST_PAD_BOOKMARKS_WAIT 1000000
-
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
+
+extern char vita_ip[16];
+extern unsigned short int vita_port;
 
 extern VitaShellConfig vitashell_config;
 
@@ -275,19 +262,16 @@ extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
 extern int use_custom_config;
 
-void dirLevelUp();
-
 int getDialogStep();
 void setDialogStep(int step);
+int dialogSteps();
+
+void initFtp();
+void initUsb();
 
 void drawScrollBar(int pos, int n);
 void drawShellInfo(const char *path);
 
-int isInArchive();
-
-int refreshFileList();
-
 void ftpvita_PROM(ftpvita_client_info_t *client);
-int jump_to_directory_track_current_path(char *path);
 
 #endif

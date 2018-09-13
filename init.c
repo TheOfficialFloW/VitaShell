@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "init.h"
 #include "file.h"
 #include "package_installer.h"
@@ -166,6 +167,10 @@ SceUID patch_modid = -1, kernel_modid = -1, user_modid = -1;
 
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
+
+int isSafeMode() {
+  return is_safe_mode;
+}
 
 static void initSceAppUtil() {
   // Init SceAppUtil
@@ -415,7 +420,7 @@ void initVitaShell() {
     sceIoMkdir(VITASHELL_RECENT_PATH, 0777);
   }
   time_last_recent_files = 0;
-  time_last_bookmars = 0;
+  time_last_bookmarks = 0;
 }
 
 void finishVitaShell() {

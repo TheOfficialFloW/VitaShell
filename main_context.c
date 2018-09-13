@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "init.h"
 #include "io_process.h"
 #include "context_menu.h"

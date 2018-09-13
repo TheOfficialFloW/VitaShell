@@ -80,6 +80,7 @@ add_executable(VitaShell
   ${vitashell_res}
   main.c
   main_context.c
+  browser.c
   init.c
   usb.c
   qr.c
