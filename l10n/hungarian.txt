@@ -81,6 +81,12 @@ EXPORT_MEDIA                         = "Média exportálása"
 CUT                                  = "Kivágás"
 INSERT_EMPTY_LINE                    = "Üres sor beillesztése"
 SEARCH                               = "Keresés"
+BOOKMARKS                            = "Könyvjelzők"
+ADHOC_TRANSFER                       = "Ad-hoc"
+BOOKMARKS_SHOW                       = "Könyvjelzők megjelenítése"
+BOOKMARKS_NEW                        = "Új könyvjelzők"
+BOOKMARK_CREATED                     = "Könyvjelző hozzáadva."
+RECENT_FILES_SHOW                    = "Legutóbbi fájlok"
 
 # File browser properties strings
 PROPERTY_NAME                        = "Név"
