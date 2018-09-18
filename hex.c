@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "archive.h"
 #include "file.h"
 #include "text.h"

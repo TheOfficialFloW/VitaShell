@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "psarc.h"
 #include "file.h"
 #include "utils.h"
@@ -224,6 +225,7 @@ int fileListGetPsarcEntries(FileList *list, const char *path, int sort) {
     entry->name = malloc(entry->name_length + 1);
     strcpy(entry->name, DIR_UP);
     entry->is_folder = 1;
+    entry->is_symlink = 0;
     entry->type = FILE_TYPE_UNKNOWN;
     fileListAddEntry(list, entry, sort);
   }
@@ -243,6 +245,7 @@ int fileListGetPsarcEntries(FileList *list, const char *path, int sort) {
       if (sceFiosStatSync(NULL, dir.fullPath, &stat) >= 0) {
         FileListEntry *entry = malloc(sizeof(FileListEntry));
         if (entry) {
+          entry->is_symlink = 0;
           entry->is_folder = stat.statFlags & 0x1;
           if (entry->is_folder) {
             entry->name_length = strlen(name) + 1;

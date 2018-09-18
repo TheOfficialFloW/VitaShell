@@ -1,5 +1,10 @@
 # Changelog
 
+### Changelog 1.97
+- Added support for symlinks which enables ability to set and show bookmarks and recent files. Thanks to abertschi.
+- Added a few shortcuts: left+[]: show bookmarks, left+/\: show recent files, left+O: QR scanner.
+- Fixed bug in ad-hoc dialog where X is always the enter button.
+
 ### Changelog 1.96
 - Added ability to skip pages in file browser and SFO viewer using L/R triggers.
   (QR download has been temporarily removed and will be reimplemented later).

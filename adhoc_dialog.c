@@ -696,7 +696,7 @@ int initAdhocDialog() {
 void adhocDialogCtrl() {
   adhocUpdatePeerList();
   
-  if (pressed_pad[PAD_CROSS]) {
+  if (pressed_pad[PAD_ENTER]) {
     if (peer_count > 0) {
       SceNetAdhocctlPeerInfo *curr = peer_list;
       int i;

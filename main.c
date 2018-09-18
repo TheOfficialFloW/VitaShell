@@ -18,6 +18,7 @@
 
 #include "main.h"
 #include "main_context.h"
+#include "browser.h"
 #include "init.h"
 #include "io_process.h"
 #include "refresh.h"
@@ -48,53 +49,22 @@
 
 int _newlib_heap_size_user = 128 * 1024 * 1024;
 
-// Dialog step
 static volatile int dialog_step = DIALOG_STEP_NONE;
 
-// File lists
-FileList file_list, mark_list, copy_list, install_list;
-
-// Paths
-char cur_file[MAX_PATH_LENGTH];
-char archive_copy_path[MAX_PATH_LENGTH];
-char archive_path[MAX_PATH_LENGTH];
-
 static char install_path[MAX_PATH_LENGTH];
-static char focus_name[MAX_NAME_LENGTH], compress_name[MAX_NAME_LENGTH];
-
-// Position
-int base_pos = 0, rel_pos = 0;
-static int base_pos_list[MAX_DIR_LEVELS];
-static int rel_pos_list[MAX_DIR_LEVELS];
-static int dir_level = 0;
-
-// Modes
-int sort_mode = SORT_BY_NAME;
-int copy_mode = COPY_MODE_NORMAL;
-int file_type = FILE_TYPE_UNKNOWN;
-
-// Archive
-static int is_in_archive = 0;
-static char dir_level_archive = -1;
-
-// FTP
-static char vita_ip[16];
-static unsigned short int vita_port;
+static char compress_name[MAX_NAME_LENGTH];
 
 static SceUID usbdevice_modid = -1;
 
 static SceKernelLwMutexWork dialog_mutex;
 
-// Scrolling filename
-static int scroll_count = 0;
-static float scroll_x = FILE_X;
+char vita_ip[16];
+unsigned short int vita_port;
 
 VitaShellConfig vitashell_config;
 
-// Enter and cancel buttons
 int SCE_CTRL_ENTER = SCE_CTRL_CROSS, SCE_CTRL_CANCEL = SCE_CTRL_CIRCLE;
 
-// Use custom config
 int use_custom_config = 1;
 
 int getDialogStep() {
@@ -108,243 +78,6 @@ void setDialogStep(int step) {
   sceKernelLockLwMutex(&dialog_mutex, 1, NULL);
   dialog_step = step;
   sceKernelUnlockLwMutex(&dialog_mutex, 1);
-}
-
-void dirLevelUp() {
-  base_pos_list[dir_level] = base_pos;
-  rel_pos_list[dir_level] = rel_pos;
-  dir_level++;
-  base_pos_list[dir_level] = 0;
-  rel_pos_list[dir_level] = 0;
-  base_pos = 0;
-  rel_pos = 0;
-}
-
-int isInArchive() {
-  return is_in_archive;
-}
-
-void dirUpCloseArchive() {
-  if (isInArchive() && dir_level_archive >= dir_level) {
-    is_in_archive = 0;
-    archiveClose();
-    dir_level_archive = -1;
-  }
-}
-
-static void dirUp() {
-  if (pfs_mounted_path[0] &&
-      strcmp(file_list.path, pfs_mounted_path) == 0 && // we're about to leave the pfs path
-      !strstr(copy_list.path, pfs_mounted_path)) { // nothing has been copied from pfs path
-    // Then umount
-    pfsUmount();
-  }
-
-  removeEndSlash(file_list.path);
-
-  char *p;
-
-  p = strrchr(file_list.path, '/');
-  if (p) {
-    p[1] = '\0';
-    dir_level--;
-    goto DIR_UP_RETURN;
-  }
-
-  p = strrchr(file_list.path, ':');
-  if (p) {
-    if (strlen(file_list.path) - ((p + 1) - file_list.path) > 0) {
-      p[1] = '\0';
-      dir_level--;
-      goto DIR_UP_RETURN;
-    }
-  }
-
-  strcpy(file_list.path, HOME_PATH);
-  dir_level = 0;
-
-DIR_UP_RETURN:
-  base_pos = (int)base_pos_list[dir_level];
-  rel_pos = (int)rel_pos_list[dir_level];
-  dirUpCloseArchive();
-}
-
-static void setFocusOnFilename(const char *name) {
-  int name_pos = fileListGetNumberByName(&file_list, name);
-  if (name_pos < 0 || name_pos >= file_list.length)
-    return;
-  
-  if (name_pos >= base_pos && name_pos < (base_pos + MAX_POSITION)) {
-    rel_pos = name_pos - base_pos;
-  } else if (name_pos < base_pos) {
-    base_pos = name_pos;
-    rel_pos = 0;
-  } else if (name_pos >= (base_pos + MAX_POSITION)) {
-    rel_pos = MAX_POSITION - 1;
-    base_pos = name_pos - rel_pos;
-  }
-}
-
-int refreshFileList() {
-  int ret = 0, res = 0;
-
-  do {
-    fileListEmpty(&file_list);
-
-    res = fileListGetEntries(&file_list, file_list.path, sort_mode);
-
-    if (res < 0) {
-      ret = res;
-      dirUp();
-    }
-  } while (res < 0);
-    
-  // Position correction
-  if (file_list.length >= MAX_POSITION) {
-    if ((base_pos + rel_pos) >= file_list.length) {
-      rel_pos = MAX_POSITION - 1;
-    }
-    
-    if ((base_pos + MAX_POSITION - 1) >= file_list.length) {
-      base_pos = file_list.length - MAX_POSITION;
-    }
-  } else {
-    if ((base_pos + rel_pos) >= file_list.length) {
-      rel_pos = file_list.length - 1;
-    }
-    
-    base_pos = 0;
-  }
-  
-  return ret;
-}
-
-static void refreshMarkList() {
-  if (isInArchive())
-    return;
-  
-  FileListEntry *entry = mark_list.head;
-
-  int length = mark_list.length;
-
-  int i;
-  for (i = 0; i < length; i++) {
-    // Get next entry already now to prevent crash after entry is removed
-    FileListEntry *next = entry->next;
-
-    char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", file_list.path, entry->name);
-
-    // Check if the entry still exits. If not, remove it from list
-    SceIoStat stat;
-    memset(&stat, 0, sizeof(SceIoStat));
-    if (sceIoGetstat(path, &stat) < 0)
-      fileListRemoveEntry(&mark_list, entry);
-
-    // Next
-    entry = next;
-  }
-}
-
-static void refreshCopyList() {
-  if (copy_list.is_in_archive)
-    return;
-  
-  FileListEntry *entry = copy_list.head;
-
-  int length = copy_list.length;
-
-  int i;
-  for (i = 0; i < length; i++) {
-    // Get next entry already now to prevent crash after entry is removed
-    FileListEntry *next = entry->next;
-
-    char path[MAX_PATH_LENGTH];
-    snprintf(path, MAX_PATH_LENGTH, "%s%s", copy_list.path, entry->name);
-
-    // Check if the entry still exits. If not, remove it from list
-    SceIoStat stat;
-    memset(&stat, 0, sizeof(SceIoStat));
-    if (sceIoGetstat(path, &stat) < 0)
-      fileListRemoveEntry(&copy_list, entry);
-
-    // Next
-    entry = next;
-  }
-}
-
-static int handleFile(const char *file, FileListEntry *entry) {
-  int res = 0;
-
-	// try to fix GPU freeze
-	vita2d_wait_rendering_done();
-
-  int type = getFileType(file);
-
-  switch (type) {
-    case FILE_TYPE_PSP2DMP:
-    case FILE_TYPE_MP3:
-    case FILE_TYPE_OGG:
-    case FILE_TYPE_VPK:
-    case FILE_TYPE_ARCHIVE:
-      if (isInArchive())
-        type = FILE_TYPE_UNKNOWN;
-
-      break;
-  }
-
-  switch (type) {
-    case FILE_TYPE_PSP2DMP:
-      res = coredumpViewer(file);
-      break;
-      
-    case FILE_TYPE_INI:
-    case FILE_TYPE_TXT:
-    case FILE_TYPE_XML:
-    case FILE_TYPE_UNKNOWN:
-      res = textViewer(file);
-      break;
-      
-    case FILE_TYPE_BMP:
-    case FILE_TYPE_PNG:
-    case FILE_TYPE_JPEG:
-      res = photoViewer(file, type, &file_list, entry, &base_pos, &rel_pos);
-      break;
-
-    case FILE_TYPE_MP3:
-    case FILE_TYPE_OGG:
-      res = audioPlayer(file, type, &file_list, entry, &base_pos, &rel_pos);
-      break;
-      
-    case FILE_TYPE_SFO:
-      res = SFOReader(file);
-      break;
-      
-    case FILE_TYPE_VPK:
-      initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_YESNO, language_container[INSTALL_QUESTION]);
-      setDialogStep(DIALOG_STEP_INSTALL_QUESTION);
-      break;
-      
-    case FILE_TYPE_ARCHIVE:
-      archiveClearPassword();
-      res = archiveOpen(file);
-      if (res >= 0 && archiveNeedPassword()) {
-        initImeDialog(language_container[ENTER_PASSWORD], "", 128, SCE_IME_TYPE_BASIC_LATIN, 0, 1);
-        setDialogStep(DIALOG_STEP_ENTER_PASSWORD);
-      }
-      break;
-      
-    default:
-      res = textViewer(file);
-      break;
-  }
-
-  if (res < 0) {
-    errorDialog(res);
-    return res;
-  }
-
-  return type;
 }
 
 void drawScrollBar(int pos, int n) {
@@ -447,7 +180,7 @@ void drawShellInfo(const char *path) {
   // home (SAFE/UNSAFE MODE)
   if (strcmp(path_first_line, HOME_PATH) == 0) {    
     pgf_draw_textf(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, "%s (%s)", HOME_PATH,
-                   is_safe_mode ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
+                   isSafeMode() ? language_container[SAFE_MODE] : language_container[UNSAFE_MODE]);
   } else {
     // Path
     pgf_draw_text(SHELL_MARGIN_X, PATH_Y, PATH_COLOR, path_first_line);
@@ -455,13 +188,13 @@ void drawShellInfo(const char *path) {
   }
 }
 
-static void initFtp() {
+void initFtp() {
   // Add all the current mountpoints to ftpvita
   int i;
   for (i = 0; i < getNumberOfDevices(); i++) {
     char **devices = getDevices();
     if (devices[i]) {
-      if (is_safe_mode && strcmp(devices[i], "ux0:") != 0)
+      if (isSafeMode() && strcmp(devices[i], "ux0:") != 0)
         continue;
 
       ftpvita_add_device(devices[i]);
@@ -471,7 +204,7 @@ static void initFtp() {
   ftpvita_ext_add_custom_command("PROM", ftpvita_PROM);
 }
 
-static void initUsb() {
+void initUsb() {
   char *path = NULL;
 
   if (vitashell_config.usbdevice == USBDEVICE_MODE_MEMORY_CARD) {
@@ -515,7 +248,7 @@ static void initUsb() {
   }
 }
 
-static int dialogSteps() {
+int dialogSteps() {
   int refresh = REFRESH_MODE_NONE;
 
   int msg_result = updateMessageDialog();
@@ -573,7 +306,7 @@ static int dialogSteps() {
           }
           
           // Focus
-          strcpy(focus_name, compress_name);
+          setFocusName(compress_name);
           
           refresh = REFRESH_MODE_SETFOCUS;
         }
@@ -604,7 +337,7 @@ static int dialogSteps() {
         }
         
         // Focus
-        strcpy(focus_name, copy_list.head->name);
+        setFocusName(copy_list.head->name);
 
         // Empty copy list when moved
         if (getDialogStep() == DIALOG_STEP_MOVED)
@@ -780,7 +513,6 @@ static int dialogSteps() {
         args.copy_list = &copy_list;
         args.archive_path = archive_copy_path;
         args.copy_mode = copy_mode;
-        args.file_type = file_type;
 
         setDialogStep(DIALOG_STEP_COPYING);
 
@@ -909,8 +641,10 @@ static int dialogSteps() {
             errorDialog(res);
           } else {
             // Focus
+            char focus_name[MAX_NAME_LENGTH];
             strcpy(focus_name, name);
             addEndSlash(focus_name);
+            setFocusName(focus_name);
             
             refresh = REFRESH_MODE_SETFOCUS;
             setDialogStep(DIALOG_STEP_NONE);
@@ -940,8 +674,10 @@ static int dialogSteps() {
             sceIoClose(fd);
 
             // Focus
+            char focus_name[MAX_NAME_LENGTH];
             strcpy(focus_name, name);
             addEndSlash(focus_name);
+            setFocusName(focus_name);
 
             refresh = REFRESH_MODE_SETFOCUS;
             setDialogStep(DIALOG_STEP_NONE);
@@ -1298,8 +1034,8 @@ static int dialogSteps() {
             break;
           }
           
-          is_in_archive = 1;
-          dir_level_archive = dir_level;
+          setInArchive();
+          setDirArchiveLevel();
 
           snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
 
@@ -1481,483 +1217,6 @@ static int dialogSteps() {
   return refresh;
 }
 
-static int fileBrowserMenuCtrl() {
-  int refresh = 0;
-
-  // Settings menu
-  if (pressed_pad[PAD_START]) {
-    openSettingsMenu();
-  }
-
-  // SELECT button
-  if (pressed_pad[PAD_SELECT]) {
-    if (vitashell_config.select_button == SELECT_BUTTON_MODE_USB && sceKernelGetModel() == SCE_KERNEL_MODEL_VITA) {
-      if (is_safe_mode) {
-        infoDialog(language_container[EXTENDED_PERMISSIONS_REQUIRED]);
-      } else {
-        SceUdcdDeviceState state;
-        sceUdcdGetDeviceState(&state);
-        
-        if (state.cable & SCE_UDCD_STATUS_CABLE_CONNECTED) {
-          initUsb();
-        } else {
-          initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[USB_NOT_CONNECTED]);
-          setDialogStep(DIALOG_STEP_USB_WAIT);
-        }
-      }
-    } else if (vitashell_config.select_button == SELECT_BUTTON_MODE_FTP || sceKernelGetModel() == SCE_KERNEL_MODEL_VITATV) {
-      // Init FTP
-      if (!ftpvita_is_initialized()) {
-        int res = ftpvita_init(vita_ip, &vita_port);
-        if (res < 0) {
-          initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_CANCEL, language_container[PLEASE_WAIT]);
-          setDialogStep(DIALOG_STEP_FTP_WAIT);
-        } else {
-          initFtp();
-        }
-
-        // Lock power timers
-        powerLock();
-      }
-
-      // Dialog
-      if (ftpvita_is_initialized()) {
-        initMessageDialog(SCE_MSG_DIALOG_BUTTON_TYPE_OK_CANCEL, language_container[FTP_SERVER], vita_ip, vita_port);
-        setDialogStep(DIALOG_STEP_FTP);
-      }
-    }
-  }
-/*
-  // QR
-  if (hold_pad[PAD_LTRIGGER] && hold_pad[PAD_RTRIGGER] && enabledQR()) {
-    startQR();
-    initMessageDialog(MESSAGE_DIALOG_QR_CODE, language_container[QR_SCANNING]);
-    setDialogStep(DIALOG_STEP_QR);
-  }
-*/
-  // Move  
-  if (hold_pad[PAD_UP] || hold2_pad[PAD_LEFT_ANALOG_UP]) {
-    int old_pos = base_pos + rel_pos;
-    
-    if (rel_pos > 0) {
-      rel_pos--;
-    } else if (base_pos > 0) {
-      base_pos--;
-    }
-
-    if (old_pos != base_pos + rel_pos) {
-      scroll_count = 0;
-    }
-  } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
-    int old_pos = base_pos + rel_pos;
-
-    if ((old_pos + 1) < file_list.length) {
-      if ((rel_pos + 1) < MAX_POSITION) {
-        rel_pos++;
-      } else if ((base_pos + rel_pos + 1) < file_list.length) {
-        base_pos++;
-      }
-    }
-
-    if (old_pos != base_pos + rel_pos) {
-      scroll_count = 0;
-    }
-  }
-
-  // Page skip
-  if (hold_pad[PAD_LTRIGGER] || hold_pad[PAD_RTRIGGER]) {
-    int old_pos = base_pos + rel_pos;
-
-    if (hold_pad[PAD_LTRIGGER]) { // Skip page up
-      base_pos = base_pos - MAX_ENTRIES;
-      if (base_pos < 0) {
-        base_pos = 0;
-        rel_pos = 0;
-      }
-    } else { // Skip page down
-      base_pos = base_pos + MAX_ENTRIES;
-      if (base_pos >= file_list.length - MAX_POSITION) {
-        base_pos = MAX(file_list.length - MAX_POSITION, 0);
-        rel_pos = MIN(MAX_POSITION - 1, file_list.length - 1);
-      }
-    }
-
-    if (old_pos != base_pos + rel_pos) {
-      scroll_count = 0;
-    }
-  }
-
-  // Context menu trigger
-  if (pressed_pad[PAD_TRIANGLE]) {
-    if (getContextMenuMode() == CONTEXT_MENU_CLOSED) {
-      if (dir_level > 0) {
-        setContextMenu(&context_menu_main);
-        setContextMenuMainVisibilities();
-        setContextMenuMode(CONTEXT_MENU_OPENING);
-      } else {
-        setContextMenu(&context_menu_home);
-        setContextMenuHomeVisibilities();
-        setContextMenuMode(CONTEXT_MENU_OPENING);
-      }
-    }
-  }
-
-  // Not at 'home'
-  if (dir_level > 0) {
-    // Mark entry    
-    if (pressed_pad[PAD_SQUARE]) {
-      FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-      if (file_entry && strcmp(file_entry->name, DIR_UP) != 0) {
-        if (!fileListFindEntry(&mark_list, file_entry->name)) {
-          fileListAddEntry(&mark_list, fileListCopyEntry(file_entry), SORT_NONE);
-        } else {
-          fileListRemoveEntryByName(&mark_list, file_entry->name);
-        }
-      }
-    }
-
-    // Back
-    if (pressed_pad[PAD_CANCEL]) {
-      scroll_count = 0;
-      fileListEmpty(&mark_list);
-      dirUp();
-      WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
-      refreshFileList();
-    }
-  }
-
-  // Handle
-  if (pressed_pad[PAD_ENTER]) {
-    scroll_count = 0;
-
-    fileListEmpty(&mark_list);
-
-    // Handle file or folder
-    FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos + rel_pos);
-    if (file_entry) {
-      if (file_entry->is_folder) {
-        if (strcmp(file_entry->name, DIR_UP) == 0) {
-          dirUp();
-        } else {
-          if (dir_level == 0) {
-            strcpy(file_list.path, file_entry->name);
-          } else {
-            if (dir_level > 1)
-              addEndSlash(file_list.path);
-            strcat(file_list.path, file_entry->name);
-          }
-
-          dirLevelUp();
-        }
-
-        // Save last dir
-        WriteFile(VITASHELL_LASTDIR, file_list.path, strlen(file_list.path) + 1);
-
-        // Open folder
-        int res = refreshFileList();
-        if (res < 0)
-          errorDialog(res);
-      } else {
-        snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-        int type = handleFile(cur_file, file_entry);
-
-        // Archive mode
-        if (type == FILE_TYPE_ARCHIVE && getDialogStep() != DIALOG_STEP_ENTER_PASSWORD) {
-          is_in_archive = 1;
-          dir_level_archive = dir_level;
-
-          snprintf(archive_path, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
-
-          strcat(file_list.path, file_entry->name);
-          addEndSlash(file_list.path);
-
-          dirLevelUp();
-          refreshFileList();
-        }
-      }
-    }
-  }
-
-  return refresh;
-}
-
-static int shellMain() {
-  // Position
-  memset(base_pos_list, 0, sizeof(base_pos_list));
-  memset(rel_pos_list, 0, sizeof(rel_pos_list));
-
-  // Paths
-  memset(cur_file, 0, sizeof(cur_file));
-  memset(archive_path, 0, sizeof(archive_path));
-
-  // File lists
-  memset(&file_list, 0, sizeof(FileList));
-  memset(&mark_list, 0, sizeof(FileList));
-  memset(&copy_list, 0, sizeof(FileList));
-  memset(&install_list, 0, sizeof(FileList));
-
-  // Current path is 'home'
-  strcpy(file_list.path, HOME_PATH);
-
-  if (use_custom_config) {
-    // Last dir
-    char lastdir[MAX_PATH_LENGTH];
-    ReadFile(VITASHELL_LASTDIR, lastdir, sizeof(lastdir));
-
-    // Calculate dir positions if the dir is valid
-    if (checkFolderExist(lastdir)) {
-      int i;
-      for (i = 0; i < strlen(lastdir) + 1; i++) {
-        if (lastdir[i] == ':' || lastdir[i] == '/') {
-          char ch = lastdir[i + 1];
-          lastdir[i + 1] = '\0';
-
-          char ch2 = lastdir[i];
-          lastdir[i] = '\0';
-
-          char *p = strrchr(lastdir, '/');
-          if (!p)
-            p = strrchr(lastdir, ':');
-          if (!p)
-            p = lastdir - 1;
-
-          lastdir[i] = ch2;
-
-          refreshFileList();
-          setFocusOnFilename(p + 1);
-
-          strcpy(file_list.path, lastdir);
-
-          lastdir[i + 1] = ch;
-
-          dirLevelUp();
-        }
-      }
-    }
-  }
-
-  // Refresh file list
-  refreshFileList();
-
-  // Init settings menu
-  initSettingsMenu();
-
-  while (1) {
-    readPad();
-
-    int refresh = REFRESH_MODE_NONE;
-
-    // Control
-    if (getDialogStep() != DIALOG_STEP_NONE) {
-      refresh = dialogSteps();
-      // scroll_count = 0;
-    } else if (getAdhocDialogStatus() != ADHOC_DIALOG_CLOSED) {
-      adhocDialogCtrl();
-    } else if (getPropertyDialogStatus() != PROPERTY_DIALOG_CLOSED) {
-      propertyDialogCtrl();
-      scroll_count = 0;
-    } else if (getSettingsMenuStatus() != SETTINGS_MENU_CLOSED) {
-      settingsMenuCtrl();
-    } else if (getContextMenuMode() != CONTEXT_MENU_CLOSED) {
-      contextMenuCtrl();
-    } else {
-      refresh = fileBrowserMenuCtrl();
-    }
-
-    // Receive system event
-    SceAppMgrSystemEvent event;
-    sceAppMgrReceiveSystemEvent(&event);
-
-    // Refresh on app resume
-    if (event.systemEvent == SCE_APPMGR_SYSTEMEVENT_ON_RESUME) {
-      sceShellUtilLock(SCE_SHELL_UTIL_LOCK_TYPE_USB_CONNECTION);
-      pfsUmount(); // umount game data at resume
-      refresh = REFRESH_MODE_NORMAL;
-    }
-
-    if (refresh != REFRESH_MODE_NONE) {
-      // Refresh lists
-      refreshFileList();
-      refreshMarkList();
-      refreshCopyList();
-
-      // Focus
-      if (refresh == REFRESH_MODE_SETFOCUS)
-        setFocusOnFilename(focus_name);
-    }
-
-    // Start drawing
-    startDrawing(bg_browser_image);
-
-    // Draw
-    drawShellInfo(file_list.path);
-    drawScrollBar(base_pos, file_list.length);
-
-    // Draw
-    FileListEntry *file_entry = fileListGetNthEntry(&file_list, base_pos);
-    if (file_entry) {
-      int i;
-      for (i = 0; i < MAX_ENTRIES && (base_pos + i) < file_list.length; i++) {
-        uint32_t color = FILE_COLOR;
-        float y = START_Y + (i * FONT_Y_SPACE);
-
-        vita2d_texture *icon = NULL;
-
-        // Folder
-        if (file_entry->is_folder) {
-          color = FOLDER_COLOR;
-          icon = folder_icon;
-        } else {
-          switch (file_entry->type) {
-            case FILE_TYPE_BMP:
-            case FILE_TYPE_PNG:
-            case FILE_TYPE_JPEG:
-              color = IMAGE_COLOR;
-              icon = image_icon;
-              break;
-              
-            case FILE_TYPE_VPK:
-            case FILE_TYPE_ARCHIVE:
-              color = ARCHIVE_COLOR;
-              icon = archive_icon;
-              break;
-              
-            case FILE_TYPE_MP3:
-            case FILE_TYPE_OGG:
-              color = IMAGE_COLOR;
-              icon = audio_icon;
-              break;
-              
-            case FILE_TYPE_SFO:
-              color = SFO_COLOR;
-              icon = sfo_icon;
-              break;
-            
-            case FILE_TYPE_INI:
-            case FILE_TYPE_TXT:
-            case FILE_TYPE_XML:
-              color = TXT_COLOR;
-              icon = text_icon;
-              break;
-              
-            default:
-              color = FILE_COLOR;
-              icon = file_icon;
-              break;
-          }
-        }
-
-        // Draw icon
-        if (icon)
-          vita2d_draw_texture(icon, SHELL_MARGIN_X, y + 3.0f);
-
-        // Current position
-        if (i == rel_pos)
-          color = FOCUS_COLOR;
-
-        // Marked
-        if (fileListFindEntry(&mark_list, file_entry->name))
-          vita2d_draw_rectangle(SHELL_MARGIN_X, y + 3.0f, MARK_WIDTH, FONT_Y_SPACE, MARKED_COLOR);
-
-        // Draw file name
-        vita2d_enable_clipping();
-        vita2d_set_clip_rectangle(FILE_X + 1.0f, y, FILE_X + 1.0f + MAX_NAME_WIDTH, y + FONT_Y_SPACE);
-        
-        float x = FILE_X;
-        
-        if (i == rel_pos) {
-          int width = (int)pgf_text_width(file_entry->name);
-          if (width >= MAX_NAME_WIDTH) {
-            if (scroll_count < 60) {
-              scroll_x = x;
-            } else if (scroll_count < width + 90) {
-              scroll_x--;
-            } else if (scroll_count < width + 120) {
-              color = (color & 0x00FFFFFF) | ((((color >> 24) * (scroll_count - width - 90)) / 30) << 24); // fade-in in 0.5s
-              scroll_x = x;
-            } else {
-              scroll_count = 0;
-            }
-            
-            scroll_count++;
-            
-            x = scroll_x;
-          }
-        }
-
-        pgf_draw_text(x, y, color, file_entry->name);
-
-        vita2d_disable_clipping();
-
-        // File information
-        if (strcmp(file_entry->name, DIR_UP) != 0) {
-          if (dir_level == 0) {
-            char used_size_string[16], max_size_string[16];
-            int max_size_x = ALIGN_RIGHT(INFORMATION_X, pgf_text_width("0000.00 MB"));
-            int separator_x = ALIGN_RIGHT(max_size_x, pgf_text_width("  /  "));
-            if (file_entry->size != 0 && file_entry->size2 != 0) {
-              getSizeString(used_size_string, file_entry->size2 - file_entry->size);
-              getSizeString(max_size_string, file_entry->size2);
-            } else {
-              strcpy(used_size_string, "-");
-              strcpy(max_size_string, "-");
-            }
-            
-            float x = ALIGN_RIGHT(INFORMATION_X, pgf_text_width(max_size_string));
-            pgf_draw_text(x, y, color, max_size_string);
-            pgf_draw_text(separator_x, y, color, "  /");
-            x = ALIGN_RIGHT(separator_x, pgf_text_width(used_size_string));
-            pgf_draw_text(x, y, color, used_size_string);
-          } else {
-            char *str = NULL;
-            if (!file_entry->is_folder) {
-              // Folder/size
-              char string[16];
-              getSizeString(string, file_entry->size);
-              str = string;
-            } else {
-              str = language_container[FOLDER];
-            }
-            pgf_draw_text(ALIGN_RIGHT(INFORMATION_X, pgf_text_width(str)), y, color, str);
-          }
-
-          // Date
-          char date_string[16];
-          getDateString(date_string, date_format, &file_entry->mtime);
-
-          char time_string[24];
-          getTimeString(time_string, time_format, &file_entry->mtime);
-
-          char string[64];
-          sprintf(string, "%s %s", date_string, time_string);
-
-          float x = ALIGN_RIGHT(SCREEN_WIDTH - SHELL_MARGIN_X, pgf_text_width(string));
-          pgf_draw_text(x, y, color, string);
-        }
-
-        // Next
-        file_entry = file_entry->next;
-      }
-    }
-
-    // Draw
-    drawSettingsMenu();
-    drawContextMenu();
-    drawAdhocDialog();
-    drawPropertyDialog();
-
-    // End drawing
-    endDrawing();
-  }
-
-  // Empty lists
-  fileListEmpty(&copy_list);
-  fileListEmpty(&mark_list);
-  fileListEmpty(&file_list);
-
-  return 0;
-}
-
 void ftpvita_PROM(ftpvita_client_info_t *client) {
   char cmd[64];
   char path[MAX_PATH_LENGTH];
@@ -1998,8 +1257,8 @@ int main(int argc, const char *argv[]) {
       sceKernelStartThread(thid, 0, NULL);
   }
 
-  // Main
-  shellMain();
+  // File browser
+  browserMain();
 
   // Finish VitaShell
   finishVitaShell();

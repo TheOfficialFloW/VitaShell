@@ -46,7 +46,6 @@ typedef struct {
   FileList *copy_list;
   const char *archive_path;
   int copy_mode;
-  int file_type;
 } CopyArguments;
 
 typedef struct {
