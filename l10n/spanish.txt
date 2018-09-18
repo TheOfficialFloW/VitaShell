@@ -81,6 +81,12 @@ EXPORT_MEDIA                         = "Exportar multimedia"
 CUT                                  = "Cortar"
 INSERT_EMPTY_LINE                    = "Insertar una línea"
 SEARCH                               = "Buscar"
+BOOKMARKS                            = "Atajos"
+ADHOC_TRANSFER                       = "Transferencia Ad-hoc"
+BOOKMARKS_SHOW                       = "Ver atajos"
+BOOKMARKS_NEW                        = "Nuevo atajo"
+BOOKMARK_CREATED                     = "Atajo creado"
+RECENT_FILES_SHOW                    = "Ver archivos recientes"
 
 # File browser properties strings - Carácteres de las propiedades del explorador de archivos
 PROPERTY_NAME                        = "Nombre"
