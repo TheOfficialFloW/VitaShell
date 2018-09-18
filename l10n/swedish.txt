@@ -79,6 +79,12 @@ EXPORT_MEDIA                         = "Exportera media"
 CUT                                  = "Klipp ut"
 INSERT_EMPTY_LINE                    = "Infoga tom rad"
 SEARCH                               = "Sök"
+BOOKMARKS                            = "Bokmärken"
+BOOKMARK_CREATED                     = "Bokmärke skapat"
+BOOKMARKS_NEW                        = "Nytt bokmärke"
+BOOKMARKS_SHOW                       = "Visa bokmärken"
+ADHOC_TRANSFER                       = "Ad-hoc överföring"
+RECENT_FILES_SHOW                    = "Visa nya filer"
 
 # File browser properties strings
 PROPERTY_NAME                        = "Namn"
