@@ -43,7 +43,7 @@ ENTER_SEARCH_TERM                    = "输入搜索词"
 
 # Context menu strings
 REFRESH_LIVEAREA                     = "刷新 LiveArea™"
-REFRESH_LICENSE_DB                   = "刷新 license database"
+REFRESH_LICENSE_DB                   = "刷新 license 数据库"
 MOUNT_UMA0                           = "挂载 uma0:"
 MOUNT_IMC0                           = "挂载 imc0:"
 MOUNT_XMC0                           = "挂载 xmc0:"
