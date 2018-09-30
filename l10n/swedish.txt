@@ -115,7 +115,7 @@ PROPERTY_FSELF_MODE_SCE              = "SCE-signerad"
 
 # File browser strings
 REFRESHED                            = "Uppdaterade %d objekt."
-COPIED_FILE                          = "Kopierade %d fil."
+COPIED_FILE                          = "Kopierade %d fil(er)."
 COPIED_FOLDER                        = "Kopierade %d mapp."
 COPIED_FILES_FOLDERS                 = "Kopierade %d filer/mappar."
 IMPORTED_LICENSES                    = "%d Importerade Licenser"
