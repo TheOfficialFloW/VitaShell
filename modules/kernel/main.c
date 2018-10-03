@@ -159,7 +159,7 @@ int _shellKernelMountById(ShellMountIdArgs *args) {
 
     case 0x321E4852: // 3.69 retail
       module_get_offset(KERNEL_PID, tai_info.modid, 0, 0x2DE9, (uintptr_t *)&sceAppMgrFindProcessInfoByPid);
-      module_get_offset(KERNEL_PID, tai_info.modid, 0, 0x19B85, (uintptr_t *)&sceAppMgrMountById);
+      module_get_offset(KERNEL_PID, tai_info.modid, 0, 0x19E95, (uintptr_t *)&sceAppMgrMountById);
       break;
   }
 
