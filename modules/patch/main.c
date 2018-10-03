@@ -43,6 +43,11 @@ int module_start(SceSize args, void *argp) {
       hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB344, &nop_nop_opcode, 4);
       hooks[1] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB374, &nop_nop_opcode, 2);
       break;
+      
+    case 0x321E4852: // 3.69 retail
+      hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB34C, &nop_nop_opcode, 4);
+      hooks[1] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB37C, &nop_nop_opcode, 2);
+      break;
   }
 
   return SCE_KERNEL_START_SUCCESS;
