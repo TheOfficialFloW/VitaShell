@@ -2,6 +2,7 @@
   VitaShell
   Copyright (C) 2015-2018, TheFloW
   Copyright (C) 2017, VitaSmith
+  Copyright (C) 2018, TheRadziu
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -34,6 +35,10 @@
 #define APP_TEMP "ux0:temp/app"
 #define DLC_TEMP "ux0:temp/addcont"
 
+// I dont know if those are correct directories but what the hell
+#define PSM_TEMP "ux0:temp/psm"
+#define THEME_TEMP "ux0:temp/theme"
+
 #define MAX_DLC_PER_TITLE 1024
 
 int isCustomHomebrew(const char* path)
@@ -50,11 +55,9 @@ int isCustomHomebrew(const char* path)
   return 1;
 }
 
-int refreshNeeded(const char *app_path)
+int refreshNeeded(const char *app_path, const char* content_type)
 {
   char sfo_path[MAX_PATH_LENGTH];
-  // TODO: Check app vs dlc from SFO
-  int res, is_app = (app_path[6] == 'p');
 
   // Read param.sfo
   snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
@@ -80,18 +83,22 @@ int refreshNeeded(const char *app_path)
 
     // Check if bounded rif file exits
     _sceNpDrmGetRifName(rif_name, 0, aid);
-    if (is_app)
+    if (strcmp(content_type, "app") == 0)
       snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
-    else
+    else if (strcmp(content_type, "theme") == 0)
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/theme/%s-%s/%s", titleid, &contentid[20], rif_name);
+    else if (strcmp(content_type, "dlc") == 0)
       snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
     if (checkFileExist(sfo_path))
       return 0;
 
     // Check if fixed rif file exits
     _sceNpDrmGetFixedRifName(rif_name, 0, 0);
-    if (is_app)
+    if (strcmp(content_type, "app") == 0)
       snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
-    else
+    else if (strcmp(content_type, "theme") == 0)
+      snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/theme/%s-%s/%s", titleid, &contentid[20], rif_name);
+    else if (strcmp(content_type, "dlc") == 0)
       snprintf(sfo_path, MAX_PATH_LENGTH, "ux0:license/addcont/%s/%s/%s", titleid, &contentid[20], rif_name);
     if (checkFileExist(sfo_path))
       return 0;
@@ -131,7 +138,7 @@ int refreshApp(const char *app_path)
     free(sfo_buffer);
   }
 
-  // Promote app/dlc
+  // Promote vita app/vita dlc/theme
   res = promoteApp(app_path);
   return (res < 0) ? res : 1;
 }
@@ -197,7 +204,7 @@ void app_callback(void* data, const char* dir, const char* subdir)
 
   if (refresh_data->refresh_pass) {
     snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
-    if (refreshNeeded(path)) {
+    if (refreshNeeded(path, "app")) {
       // Move the directory to temp for installation
       removePath(APP_TEMP, NULL);
       sceIoRename(path, APP_TEMP);
@@ -248,7 +255,7 @@ void dlc_callback_outer(void* data, const char* dir, const char* subdir)
     // 1. Move all dlc that require refresh out of addcont/title_id
     // 2. Refresh the moved dlc_data
     for (int i = 0; i < dlc_data.list_size; i++) {
-      if (refreshNeeded(dlc_data.list[i])) {
+      if (refreshNeeded(dlc_data.list[i], "dlc")) {
         snprintf(path, MAX_PATH_LENGTH, DLC_TEMP "/%s", &dlc_data.list[i][len + 1]);
         removePath(path, NULL);
         sceIoRename(dlc_data.list[i], path);
@@ -274,6 +281,32 @@ void dlc_callback_outer(void* data, const char* dir, const char* subdir)
   }
 }
 
+void theme_callback(void* data, const char* dir, const char* subdir)
+{
+  refresh_data_t *refresh_data = (refresh_data_t*)data;
+  char path[MAX_PATH_LENGTH];
+
+  if (strcasecmp(subdir, vitashell_titleid) == 0)
+    return;
+
+  if (refresh_data->refresh_pass) {
+    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
+    if (refreshNeeded(path, "theme")) {
+      // Move the directory to temp for installation
+      removePath(THEME_TEMP, NULL);
+      sceIoRename(path, THEME_TEMP);
+      if (refreshApp(THEME_TEMP) == 1)
+        refresh_data->refreshed++;
+      else
+        // Restore folder on error
+        sceIoRename(THEME_TEMP, path);
+    }
+    SetProgress(++refresh_data->processed, refresh_data->count);
+  } else {
+    refresh_data->count++;
+  }
+}
+
 int refresh_thread(SceSize args, void *argp) 
 {
   SceUID thid = -1;
@@ -294,12 +327,17 @@ int refresh_thread(SceSize args, void *argp)
   if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
     goto EXIT;
 
+  // Get the theme count
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:theme", theme_callback, &refresh_data) < 0)
+    goto EXIT;
+
   // Update thread
   thid = createStartUpdateThread(refresh_data.count, 0);
 
   // Make sure we have the temp directories we need
   sceIoMkdir("ux0:temp", 0006);
   sceIoMkdir("ux0:temp/addcont", 0006);
+  sceIoMkdir("ux0:temp/theme", 0006);
   refresh_data.refresh_pass = 1;
 
   // Refresh apps
@@ -310,7 +348,12 @@ int refresh_thread(SceSize args, void *argp)
   if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
     goto EXIT;
 
+  // Refresh theme
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:theme", theme_callback, &refresh_data) < 0)
+    goto EXIT;
+
   sceIoRmdir("ux0:temp/addcont");
+  sceIoRmdir("ux0:temp/theme");
 
   // Set progress to 100%
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
