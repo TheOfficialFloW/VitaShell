@@ -64,10 +64,6 @@ int promoteApp(const char *path) {
     return res;
 
   res = scePromoterUtilityPromotePkgWithRif(path, 1);
-  //res = scePromoterUtilityPromotePkg(path, 1); < NOTE: DONT FUCKING USE IT LMAO
-  debugPrintf("scePromoterUtilityPromotePkgWithRif_path: %s\n", path);
-  debugPrintf("scePromoterUtilityPromotePkgWithRif_res: %x\n", res);
-
   if (res < 0)
     return res;
 
@@ -127,41 +123,33 @@ int checkAppExist(const char *titleid) {
   int ret;
 
   res = loadScePaf();
-  //debugPrintf("loadScePaf(): %x\n", res);
   if (res < 0)
     return res;
 
   res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
-  //debugPrintf("Promoter_util: %x\n", res);
   if (res < 0)
     return res;
 
   res = scePromoterUtilityInit();
-  //debugPrintf("PromoterUtilityInit(): %x\n", res);
   if (res < 0)
     return res;
 
   ret = scePromoterUtilityCheckExist(titleid, &res);
-  //debugPrintf("PromoterUtilityCheckExist: %x\n", res);
   if (res < 0)
     return res;
 
   res = scePromoterUtilityExit();
-  //debugPrintf("PromoterUtilityExit: %x\n", res);
   if (res < 0)
     return res;
 
   res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
-  //debugPrintf("Promoter_util_unload(): %x\n", res);
   if (res < 0)
     return res;
 
   res = unloadScePaf();
-  //debugPrintf("unloadScePaf(): %x\n", res);
   if (res < 0)
     return res;
 
-  //debugPrintf("ret: %x\n", ret);
   return ret >= 0;
 }
 
