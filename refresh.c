@@ -106,17 +106,13 @@ int refreshNeeded(const char *app_path, const char* content_type)
   
   // Check if patch for installed app exists
   else if (strcmp(content_type, "patch") == 0) {
-    if (!checkAppExist(titleid)) {
-      debugPrintf("GAMEID: %s is not installed and does not need patch promotion", titleid);
+    if (!checkAppExist(titleid))
       return 0;
-    }
 	if (checkFileExist(sfo_path)) {
       snprintf(appmeta_path, MAX_PATH_LENGTH, "ux0:appmeta/%s", titleid);
-	  pfsUmount();
-      if(pfsMount(appmeta_path)<0) {
-		debugPrintf("pfsMount failed!");
+      pfsUmount();
+      if(pfsMount(appmeta_path)<0)
         return 0;
-	  }
       //Now read it
 	  snprintf(appmeta_param, MAX_PATH_LENGTH, "ux0:appmeta/%s/param.sfo", titleid);
       int sfo_size = allocateReadFile(appmeta_param, &sfo_buffer);
@@ -126,11 +122,8 @@ int refreshNeeded(const char *app_path, const char* content_type)
       getSfoString(sfo_buffer, "APP_VER", promoted_appver, sizeof(promoted_appver));
       pfsUmount();
 	  //Finally compare it
-	  debugPrintf("GAMEID: %s | APP_VER: %s | APPMETA_VER: %s | SFO_SIZE: %x\n", titleid, appver, promoted_appver);
-	  if (strcmp(appver, promoted_appver) == 0) {
-        debugPrintf("Appver and metaappver are the same! Skipping promotion!\n");
+	  if (strcmp(appver, promoted_appver) == 0)
 	    return 0;
-      }
     }
   }
   return 1;
@@ -169,7 +162,6 @@ int refreshApp(const char *app_path)
 
   // Promote vita app/vita dlc/vita patch (if needed)
   res = promoteApp(app_path);
-  debugPrintf("promoteApp: %s\n", app_path);
   return (res < 0) ? res : 1;
 }
 
@@ -315,8 +307,6 @@ void patch_callback(void* data, const char* dir, const char* subdir)
 {
   refresh_data_t *refresh_data = (refresh_data_t*)data;
   char path[MAX_PATH_LENGTH];
-  
-  debugPrintf("patch_callback_path: %s/%s\n", dir, subdir);
 
   if (refresh_data->refresh_pass) {
     snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
