@@ -124,6 +124,7 @@ int refreshNeeded(const char *app_path, const char* content_type)
         return sfo_size;
       char promoted_appver[8];
       getSfoString(sfo_buffer, "APP_VER", promoted_appver, sizeof(promoted_appver));
+      pfsUmount();
 	  //Finally compare it
 	  debugPrintf("GAMEID: %s | APP_VER: %s | APPMETA_VER: %s | SFO_SIZE: %x\n", titleid, appver, promoted_appver);
 	  if (strcmp(appver, promoted_appver) == 0) {
