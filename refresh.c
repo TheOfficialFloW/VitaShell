@@ -29,7 +29,7 @@
 #include "language.h"
 #include "utils.h"
 #include "rif.h"
-//#include "pfs.c"
+#include "pfs.h"
 
 // Note: The promotion process is *VERY* sensitive to the directories used below
 // Don't change them unless you know what you are doing!

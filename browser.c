@@ -44,6 +44,7 @@
 #include "coredump.h"
 #include "usb.h"
 #include "qr.h"
+#include "pfs.h"
 
 // File lists
 FileList file_list, mark_list, copy_list, install_list;
