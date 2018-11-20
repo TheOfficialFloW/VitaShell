@@ -58,6 +58,9 @@ int isCustomHomebrew(const char* path)
 int refreshNeeded(const char *app_path, const char* content_type)
 {
   char sfo_path[MAX_PATH_LENGTH];
+  char appmeta_path[MAX_PATH_LENGTH];
+  char appmeta_param[MAX_PATH_LENGTH];
+  int mounted_appmeta;
 
   // Read param.sfo
   snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
@@ -101,13 +104,34 @@ int refreshNeeded(const char *app_path, const char* content_type)
       return 0;
   }
   
-  // Check if patch exists
-  else if ((strcmp(content_type, "patch") == 0)&&(!checkAppExist(titleid))) {
-    debugPrintf("GAMEID: %s | APP_VER: %s\n", titleid, appver);
-    if (checkFileExist(sfo_path))
+  // Check if patch for installed app exists
+  else if (strcmp(content_type, "patch") == 0) {
+    if (!checkAppExist(titleid)) {
+      debugPrintf("GAMEID: %s is not installed and does not need patch promotion", titleid);
       return 0;
+    }
+	if (checkFileExist(sfo_path)) {
+      snprintf(appmeta_path, MAX_PATH_LENGTH, "ux0:appmeta/%s", titleid);
+	  pfsUmount();
+      if(pfsMount(appmeta_path)<0) {
+		debugPrintf("pfsMount failed!");
+        return 0;
+	  }
+      //Now read it
+	  snprintf(appmeta_param, MAX_PATH_LENGTH, "ux0:appmeta/%s/param.sfo", titleid);
+      int sfo_size = allocateReadFile(appmeta_param, &sfo_buffer);
+      if (sfo_size < 0)
+        return sfo_size;
+      char promoted_appver[8];
+      getSfoString(sfo_buffer, "APP_VER", promoted_appver, sizeof(promoted_appver));
+	  //Finally compare it
+	  debugPrintf("GAMEID: %s | APP_VER: %s | APPMETA_VER: %s | SFO_SIZE: %x\n", titleid, appver, promoted_appver);
+	  if (strcmp(appver, promoted_appver) == 0) {
+        debugPrintf("Appver and metaappver are the same! Skipping promotion!\n");
+	    return 0;
+      }
+    }
   }
-
   return 1;
 }
 
