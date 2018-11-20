@@ -12,8 +12,8 @@ endif()
 # Project start
 project(VitaShell)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
-set(VITA_APP_NAME "Promo Test")
-set(VITA_TITLEID  "VITASHEL2")
+set(VITA_APP_NAME "VitaShell")
+set(VITA_TITLEID  "VITASHELL")
 set(VITA_VERSION  "01.97")
 
 # Flags and includes
@@ -215,7 +215,7 @@ vita_create_vpk(VitaShell.vpk ${VITA_TITLEID} eboot.bin
 add_custom_target(release
   COMMAND cp eboot.bin ../release/eboot.bin
   COMMAND cp VitaShell.vpk_param.sfo ../release/param.sfo
-  COMMAND cp VitaShell.vpk ../release/VitaShell_promo.vpk
+  COMMAND cp VitaShell.vpk ../release/VitaShell.vpk
   COMMAND cp ../pkg/sce_sys/livearea/contents/template.xml ../release/template.xml
   DEPENDS eboot.bin
   DEPENDS VitaShell.vpk
