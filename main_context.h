@@ -21,15 +21,10 @@
 
 #include "context_menu.h"
 
-extern char pfs_mounted_path[MAX_PATH_LENGTH];
-
 extern ContextMenu context_menu_home;
 extern ContextMenu context_menu_main;
 extern ContextMenu context_menu_sort;
 extern ContextMenu context_menu_more;
-
-int pfsMount(const char *path);
-int pfsUmount();
 
 void initContextMenuWidth();
 void setContextMenuHomeVisibilities();

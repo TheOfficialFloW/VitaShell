@@ -79,6 +79,7 @@ add_resources(vitashell_res
 add_executable(VitaShell
   ${vitashell_res}
   main.c
+  pfs.c
   main_context.c
   browser.c
   init.c
