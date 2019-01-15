@@ -45,6 +45,7 @@ int module_start(SceSize args, void *argp) {
       break;
       
     case 0x321E4852: // 3.69 retail
+    case 0x700DA0CD: // 3.70 retail
       hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB34C, &nop_nop_opcode, 4);
       hooks[1] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB37C, &nop_nop_opcode, 2);
       break;
