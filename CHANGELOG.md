@@ -1,5 +1,8 @@
 # Changelog
 
+### Changelog 1.98
+- Improved "Refresh LiveArea". Thanks to TheRadziu.
+
 ### Changelog 1.97
 - Added support for symlinks which enables ability to set and show bookmarks and recent files. Thanks to abertschi.
 - Added a few shortcuts: left+[]: show bookmarks, left+/\: show recent files, left+O: QR scanner.
