@@ -387,17 +387,25 @@ void initVitaShell() {
   installDefaultFiles();
 
   // Load modules
-  patch_modid = taiLoadKernelModule("ux0:VitaShell/module/patch.skprx", 0, NULL);
-  if (patch_modid >= 0) {
-    int res = taiStartKernelModule(patch_modid, 0, NULL, 0, NULL, NULL);
-    if (res < 0)
-      taiStopUnloadKernelModule(patch_modid, 0, NULL, 0, NULL, NULL);
+  int search_unk[2];
+  SceUID search_modid;
+  search_modid = _vshKernelSearchModuleByName("VitaShellPatch", search_unk);
+  if(search_modid < 0) {
+    patch_modid = taiLoadKernelModule("ux0:VitaShell/module/patch.skprx", 0, NULL);
+    if (patch_modid >= 0) {
+      int res = taiStartKernelModule(patch_modid, 0, NULL, 0, NULL, NULL);
+      if (res < 0)
+        taiStopUnloadKernelModule(patch_modid, 0, NULL, 0, NULL, NULL);
+    }
   }
-  kernel_modid = taiLoadKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL);
-  if (kernel_modid >= 0) {
-    int res = taiStartKernelModule(kernel_modid, 0, NULL, 0, NULL, NULL);
-    if (res < 0)
-      taiStopUnloadKernelModule(kernel_modid, 0, NULL, 0, NULL, NULL);
+  search_modid = _vshKernelSearchModuleByName("VitaShellKernel2", search_unk);
+  if(search_modid < 0) {
+    kernel_modid = taiLoadKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL);
+    if (kernel_modid >= 0) {
+      int res = taiStartKernelModule(kernel_modid, 0, NULL, 0, NULL, NULL);
+      if (res < 0)
+        taiStopUnloadKernelModule(kernel_modid, 0, NULL, 0, NULL, NULL);
+    }
   }
   user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
 
