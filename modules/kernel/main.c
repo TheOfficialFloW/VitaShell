@@ -141,7 +141,7 @@ int _shellKernelMountById(ShellMountIdArgs *args) {
     return SCE_KERNEL_START_SUCCESS;
 
   switch (tai_info.module_nid) {
-    case 0xEB0466DC: // 3.55 retail
+    case 0x94CEFE4B: // 3.55 retail
       module_get_offset(KERNEL_PID, tai_info.modid, 0, 0x2DE1, (uintptr_t *)&sceAppMgrFindProcessInfoByPid);
       module_get_offset(KERNEL_PID, tai_info.modid, 0, 0x19e15, (uintptr_t *)&sceAppMgrMountById);
       break;
