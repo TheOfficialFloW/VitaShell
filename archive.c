@@ -749,7 +749,11 @@ int extractArchivePath(const char *src_path, const char *dst_path, FileProcessPa
       if (entry->is_folder) {
         ret = extractArchivePath(new_src_path, new_dst_path, param);
       } else {
-        ret = extractArchiveFile(new_src_path, new_dst_path, param);
+        if (!vitashell_config.overwrite_files && checkFileExist(new_dst_path)) {
+          ret = extractArchiveFile(new_src_path, getFileNameUpdated(new_dst_path), param);
+        } else {
+          ret = extractArchiveFile(new_src_path, new_dst_path, param);
+        }
       }
         
       free(new_dst_path);
