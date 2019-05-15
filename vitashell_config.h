@@ -36,6 +36,7 @@ typedef struct {
   int select_button;
   int disable_autoupdate;
   int disable_warning;
+  int overwrite_files;
 } VitaShellConfig;
 
 #endif
