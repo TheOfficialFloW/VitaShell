@@ -26,6 +26,12 @@ enum UsbDeviceModes {
   USBDEVICE_MODE_PSVSD,
 };
 
+enum OverwriteModes {
+  OVERWRITE_MODE_ALWAYS,
+  OVERWRITE_MODE_RENAME,
+  OVERWRITE_MODE_SKIP,
+};
+
 enum SelectButtonModes {
   SELECT_BUTTON_MODE_USB,
   SELECT_BUTTON_MODE_FTP,

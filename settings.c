@@ -41,6 +41,7 @@ static int n_settings_entries = 0;
 
 static char *usbdevice_options[4];
 static char *select_button_options[2];
+static char *overwrite_options[3];
 
 static char **theme_options = NULL;
 static int theme_count = 0;
@@ -51,7 +52,7 @@ static ConfigEntry settings_entries[] = {
   { "SELECT_BUTTON",      CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.select_button },
   { "DISABLE_AUTOUPDATE", CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_autoupdate },
   { "DISABLE_WARNING",    CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_warning },
-  { "OVERWRITE_FILES",    CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.overwrite_files },
+  { "OVERWRITE_FILES",    CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.overwrite_files },
 };
 
 static ConfigEntry theme_entries[] = {
@@ -67,9 +68,10 @@ SettingsMenuOption main_settings[] = {
   { VITASHELL_SETTINGS_SELECT_BUTTON,   SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
     select_button_options, sizeof(select_button_options) / sizeof(char **), &vitashell_config.select_button },
   { VITASHELL_SETTINGS_NO_AUTO_UPDATE,  SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_autoupdate },
-  { VITASHELL_SETTINGS_WARNING_MESSAGE, SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_warning },
-  { VITASHELL_SETTINGS_OVERWRITE_FILES, SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.overwrite_files },
-  
+  { VITASHELL_SETTINGS_WARNING_MESSAGE, SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_warning }, 
+  { VITASHELL_SETTINGS_OVERWRITE_FILES, SETTINGS_OPTION_TYPE_OPTIONS, NULL, NULL, 0,
+    overwrite_options, sizeof(overwrite_options) / sizeof(char **), &vitashell_config.overwrite_files },
+
   { VITASHELL_SETTINGS_RESTART_SHELL,   SETTINGS_OPTION_TYPE_CALLBACK, (void *)restartShell, NULL, 0, NULL, 0, NULL },
 };
 
@@ -140,6 +142,10 @@ void initSettingsMenu() {
 
   select_button_options[0] = language_container[VITASHELL_SETTINGS_SELECT_BUTTON_USB];
   select_button_options[1] = language_container[VITASHELL_SETTINGS_SELECT_BUTTON_FTP];
+
+  overwrite_options[0] = language_container[VITASHELL_SETTINGS_OVERWRITE_ALWAYS];
+  overwrite_options[1] = language_container[VITASHELL_SETTINGS_OVERWRITE_RENAME];
+  overwrite_options[2] = language_container[VITASHELL_SETTINGS_OVERWRITE_SKIP];
   
   theme_options = malloc(MAX_THEMES * sizeof(char *));
   
