@@ -767,7 +767,11 @@ int extractArchivePath(const char *src_path, const char *dst_path, FileProcessPa
 
     fileListEmpty(&list);
   } else {
-    return extractArchiveFile(src_path, dst_path, param);
+    if (!vitashell_config.overwrite_files && checkFileExist(dst_path)) {
+      return extractArchiveFile(src_path, getFileNameUpdated(dst_path), param);
+    } else {
+      return extractArchiveFile(src_path, dst_path, param);
+    }
   }
 
   return 1;
