@@ -51,6 +51,7 @@ static ConfigEntry settings_entries[] = {
   { "SELECT_BUTTON",      CONFIG_TYPE_DECIMAL, (int *)&vitashell_config.select_button },
   { "DISABLE_AUTOUPDATE", CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_autoupdate },
   { "DISABLE_WARNING",    CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.disable_warning },
+  { "OVERWRITE_FILES",    CONFIG_TYPE_BOOLEAN, (int *)&vitashell_config.overwrite_files },
 };
 
 static ConfigEntry theme_entries[] = {
@@ -67,7 +68,8 @@ SettingsMenuOption main_settings[] = {
     select_button_options, sizeof(select_button_options) / sizeof(char **), &vitashell_config.select_button },
   { VITASHELL_SETTINGS_NO_AUTO_UPDATE,  SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_autoupdate },
   { VITASHELL_SETTINGS_WARNING_MESSAGE, SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.disable_warning },
-
+  { VITASHELL_SETTINGS_OVERWRITE_FILES, SETTINGS_OPTION_TYPE_BOOLEAN, NULL, NULL, 0, NULL, 0, &vitashell_config.overwrite_files },
+  
   { VITASHELL_SETTINGS_RESTART_SHELL,   SETTINGS_OPTION_TYPE_CALLBACK, (void *)restartShell, NULL, 0, NULL, 0, NULL },
 };
 
