@@ -467,7 +467,8 @@ static int exportMedia(char *path, uint32_t *songs, uint32_t *videos, uint32_t *
   } else if (type == FILE_TYPE_MP4) {
     VideoExportInputParam in_param;
     memset(&in_param, 0, sizeof(VideoExportInputParam));
-    strncpy(in_param.path, path, MAX_PATH_LENGTH);
+    strncpy(in_param.path, path, MAX_PATH_LENGTH-1);
+    in_param.path[MAX_PATH_LENGTH-1] = '\0';
 
     VideoExportOutputParam out_param;
     memset(&out_param, 0, sizeof(VideoExportOutputParam));

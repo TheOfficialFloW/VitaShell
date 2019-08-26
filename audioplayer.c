@@ -92,9 +92,9 @@ void drawLyrics(Lyrics* lyrics, const char *cur_time_string, uint64_t* totalms, 
   char minuteString[3];
   char secondString[3];
 
-  strncpy(hourString,cur_time_string,sizeof(hourString));
-  strncpy(minuteString,cur_time_string + 3,sizeof(minuteString));
-  strncpy(secondString,cur_time_string + 6,sizeof(secondString));
+  strncpy(hourString,cur_time_string,sizeof(hourString)-1);
+  strncpy(minuteString,cur_time_string + 3,sizeof(minuteString)-1);
+  strncpy(secondString,cur_time_string + 6,sizeof(secondString)-1);
 
   *totalms = (((atoi(hourString) * 60) + atoi(minuteString)) * 60 + atoi(secondString)) * 1000;
 

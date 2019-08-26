@@ -1,5 +1,8 @@
 # Changelog
 
+### Changelog 1.99
+- Added support for FW 3.71.
+
 ### Changelog 1.98
 - Improved "Refresh LiveArea". Thanks to TheRadziu.
 

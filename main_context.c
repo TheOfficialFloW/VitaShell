@@ -1310,7 +1310,8 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
         snprintf(cur_file, MAX_PATH_LENGTH, "%s%s", file_list.path, file_entry->name);
         char target[MAX_PATH_LENGTH];
         char name[MAX_PATH_LENGTH];
-        strncpy(name, file_entry->name, MAX_PATH_LENGTH);
+        strncpy(name, file_entry->name, MAX_PATH_LENGTH-1);
+        name[MAX_PATH_LENGTH-1] = '\0';
         removeEndSlash(name);
         snprintf(target, MAX_PATH_LENGTH, "%s%s."SYMLINK_EXT, VITASHELL_BOOKMARKS_PATH, name);
         int res;
