@@ -33,6 +33,7 @@ int module_start(SceSize args, void *argp) {
   uint32_t nop_nop_opcode = 0xBF00BF00;
   switch (info.module_nid) {
     case 0x94CEFE4B: // 3.55 retail
+    case 0xDFBC288C: // 3.57 retail
     case 0xDBB29DB7: // 3.60 retail
     case 0x1C9879D6: // 3.65 retail
       hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB338, &nop_nop_opcode, 4);
