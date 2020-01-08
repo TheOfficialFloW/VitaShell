@@ -28,7 +28,16 @@ typedef struct {
   char *file;
 } InstallArguments;
 
+typedef struct SceImportPromoterUtilArgs{
+	char path[0x80];
+	char titleid[0xC];
+	uint32_t type;
+	uint32_t unk0;
+	char reserved[0x1C];
+} SceImportPromoterUtilArgs;
+
 int promoteApp(const char *path);
+int promotePsm(const char *path, const char *titleid);
 int deleteApp(const char *titleid);
 int checkAppExist(const char *titleid);
 
