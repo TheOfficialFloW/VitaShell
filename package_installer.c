@@ -51,12 +51,14 @@ static int unloadScePaf() {
 int promotePsm(const char *path, const char *titleid)
 {
 
-  SceImportPromoterUtilArgs promoteArgs;
-  memset(&promoteArgs,0x00,sizeof(SceImportPromoterUtilArgs));
-  snprintf(promoteArgs.path,0x7F,"%s",path);
-  snprintf(promoteArgs.titleid,0xC,"%s",titleid);
-  promoteArgs.type = 0x3;
-  promoteArgs.unk0 = 0x1;
+  ScePromoterUtilityImportParams promoteArgs;
+  memset(&promoteArgs,0x00,sizeof(ScePromoterUtilityImportParams));
+  
+  strncpy(promoteArgs.path,path,0x7F);
+  strncpy(promoteArgs.titleid,titleid,0xB);
+  
+  promoteArgs.type = SCE_PKG_TYPE_PSM;
+  promoteArgs.attribute = 0x1;
   
   int res;
 

@@ -3,7 +3,6 @@
   Copyright (C) 2015-2018, TheFloW
   Copyright (C) 2017, VitaSmith
   Copyright (C) 2018, TheRadziu
-  Copyright (C) 2020, SilicaAndPina
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
