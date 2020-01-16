@@ -1,5 +1,9 @@
 # Changelog
 
+### Changelog 2.01
+- Added ability to refresh PSM games. Thanks to KuromeSan.
+- Added support for FW 3.57 and 3.73 Thanks to RealYoti.
+
 ### Changelog 2.00
 - Added support for FW 3.72.
 
