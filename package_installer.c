@@ -48,51 +48,6 @@ static int unloadScePaf() {
   return sceSysmoduleUnloadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, 0, NULL, &buf);
 }
 
-int promotePsm(const char *path, const char *titleid)
-{
-
-  ScePromoterUtilityImportParams promoteArgs;
-  memset(&promoteArgs,0x00,sizeof(ScePromoterUtilityImportParams));
-  
-  strncpy(promoteArgs.path,path,0x7F);
-  strncpy(promoteArgs.titleid,titleid,0xB);
-  
-  promoteArgs.type = SCE_PKG_TYPE_PSM;
-  promoteArgs.attribute = 0x1;
-  
-  int res;
-
-  res = loadScePaf();
-  if (res < 0)
-    return res;
-
-  res = sceSysmoduleLoadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
-  if (res < 0)
-    return res;
-
-  res = scePromoterUtilityInit();
-  if (res < 0)
-    return res;
-
-  res = scePromoterUtilityPromoteImport(&promoteArgs);
-  if (res < 0)
-    return res;
-
-  res = scePromoterUtilityExit();
-  if (res < 0)
-    return res;
-
-  res = sceSysmoduleUnloadModuleInternal(SCE_SYSMODULE_INTERNAL_PROMOTER_UTIL);
-  if (res < 0)
-    return res;
-
-  res = unloadScePaf();
-  if (res < 0)
-    return res;
-
-  return res;
-}
-
 int promoteApp(const char *path) {
   int res;
 
