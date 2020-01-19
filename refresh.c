@@ -89,7 +89,6 @@ int refreshNeeded(const char *app_path, const char* content_type)
 	  
 	  free(cidFile);
 	  
-	  int isExist = checkAppExist(titleid);
   }
   else
   {  
