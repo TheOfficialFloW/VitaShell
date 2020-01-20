@@ -332,17 +332,33 @@ void getSizeString(char string[16], uint64_t size) {
 }
 
 void convertUtcToLocalTime(SceDateTime *time_local, SceDateTime *time_utc) {
+  // sceRtcGetTick and other sceRtc functions fails with year > 9999
+  int year_utc = time_utc->year;
+  int year_delta = year_utc < 9999 ? 0 : year_utc - 9998;
+  time_utc->year -= year_delta;
+
   SceRtcTick tick;
   sceRtcGetTick(time_utc, &tick);
+  time_utc->year = year_utc;
+
   sceRtcConvertUtcToLocalTime(&tick, &tick);
   sceRtcSetTick(time_local, &tick);  
+  time_local->year += year_delta;
 }
 
 void convertLocalTimeToUtc(SceDateTime *time_utc, SceDateTime *time_local) {
+  // sceRtcGetTick and other sceRtc functions fails with year > 9999
+  int year_local = time_local->year;
+  int year_delta = year_local < 9999 ? 0 : year_local - 9998;
+  time_local->year -= year_delta;
+
   SceRtcTick tick;
   sceRtcGetTick(time_local, &tick);
+  time_local->year = year_local;
+
   sceRtcConvertLocalTimeToUtc(&tick, &tick);
   sceRtcSetTick(time_utc, &tick);  
+  time_utc->year += year_delta;
 }
 
 void getDateString(char string[24], int date_format, SceDateTime *time) {
