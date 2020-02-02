@@ -39,14 +39,22 @@ link_directories(
 # Builds
 FUNCTION(ADD_RESOURCES out_var)
   SET(result)
-  FOREACH(in_f ${ARGN})
-  SET(out_f "${CMAKE_CURRENT_BINARY_DIR}/${in_f}.o")
+  FOREACH(ref_f ${ARGN})
+  if (IS_ABSOLUTE "${ref_f}")
+    SET(out_f "${ref_f}.o")
+    STRING(REPLACE "${CMAKE_CURRENT_BINARY_DIR}/" "" in_f "${ref_f}")
+    SET(work_dir "${CMAKE_CURRENT_BINARY_DIR}")
+  else()
+    SET(out_f "${CMAKE_CURRENT_BINARY_DIR}/${ref_f}.o")
+    SET(in_f "${ref_f}")
+    SET(work_dir "${CMAKE_SOURCE_DIR}")
+  endif()
   GET_FILENAME_COMPONENT(out_dir ${out_f} DIRECTORY)
   ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
     COMMAND ${CMAKE_LINKER} -r -b binary -o ${out_f} ${in_f}
-    DEPENDS ${in_f}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DEPENDS ${ref_f}
+    WORKING_DIRECTORY ${work_dir}
     COMMENT "Building resource ${out_f}"
     VERBATIM
     )
@@ -70,10 +78,10 @@ file(GLOB res_files RELATIVE
 # ugly hack
 add_resources(vitashell_res
   ${res_files}
-  build/modules/kernel/kernel.skprx
-  build/modules/user/user.suprx
-  build/modules/patch/patch.skprx
-  build/modules/usbdevice/usbdevice.skprx
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/kernel/kernel.skprx
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/user.suprx
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/patch/patch.skprx
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/usbdevice/usbdevice.skprx
 )
 
 add_executable(VitaShell
@@ -146,7 +154,7 @@ add_dependencies(VitaShell patch.skprx)
 add_dependencies(VitaShell usbdevice.skprx)
 
 target_link_libraries(VitaShell
-  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/vitashell_user_stubs/libVitaShellUser_stub_weak.a
+  ${CMAKE_CURRENT_BINARY_DIR}/modules/user/libVitaShellUser_stub_weak.a
   ftpvita
   vita2d
   vorbisfile
