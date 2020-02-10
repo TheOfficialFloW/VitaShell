@@ -25,7 +25,7 @@ add_executable(user
 add_dependencies(user vitashell_kernel_stubs)
 
 target_link_libraries(user
-  ${CMAKE_CURRENT_BINARY_DIR}/../kernel/vitashell_kernel_stubs/libVitaShellKernel2_stub.a
+  ${CMAKE_CURRENT_BINARY_DIR}/../kernel/libVitaShellKernel2_stub.a
   SceLibKernel_stub
   SceIofilemgr_stub
 )

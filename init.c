@@ -82,14 +82,14 @@ INCLUDE_EXTERN_RESOURCE(electron_settings_png);
 
 INCLUDE_EXTERN_RESOURCE(umass_skprx);
 
-extern unsigned char _binary_build_modules_kernel_kernel_skprx_start;
-extern unsigned char _binary_build_modules_kernel_kernel_skprx_size;
-extern unsigned char _binary_build_modules_user_user_suprx_start;
-extern unsigned char _binary_build_modules_user_user_suprx_size;
-extern unsigned char _binary_build_modules_patch_patch_skprx_start;
-extern unsigned char _binary_build_modules_patch_patch_skprx_size;
-extern unsigned char _binary_build_modules_usbdevice_usbdevice_skprx_start;
-extern unsigned char _binary_build_modules_usbdevice_usbdevice_skprx_size;
+extern unsigned char _binary_modules_kernel_kernel_skprx_start;
+extern unsigned char _binary_modules_kernel_kernel_skprx_size;
+extern unsigned char _binary_modules_user_user_suprx_start;
+extern unsigned char _binary_modules_user_user_suprx_size;
+extern unsigned char _binary_modules_patch_patch_skprx_start;
+extern unsigned char _binary_modules_patch_patch_skprx_size;
+extern unsigned char _binary_modules_usbdevice_usbdevice_skprx_start;
+extern unsigned char _binary_modules_usbdevice_usbdevice_skprx_size;
 
 #define DEFAULT_FILE(path, name, replace) { path, (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size, replace }
 
@@ -149,14 +149,14 @@ static DefaultFile default_files[] = {
 
   DEFAULT_FILE("ux0:VitaShell/module/umass.skprx", umass_skprx, 1),
   
-  { "ux0:VitaShell/module/kernel.skprx",    (void *)&_binary_build_modules_kernel_kernel_skprx_start,
-                                               (int)&_binary_build_modules_kernel_kernel_skprx_size, 1 },
-  { "ux0:VitaShell/module/user.suprx",      (void *)&_binary_build_modules_user_user_suprx_start,
-                                               (int)&_binary_build_modules_user_user_suprx_size, 1 },
-  { "ux0:VitaShell/module/patch.skprx",     (void *)&_binary_build_modules_patch_patch_skprx_start,
-                                               (int)&_binary_build_modules_patch_patch_skprx_size, 1 },
-  { "ux0:VitaShell/module/usbdevice.skprx", (void *)&_binary_build_modules_usbdevice_usbdevice_skprx_start,
-                                               (int)&_binary_build_modules_usbdevice_usbdevice_skprx_size, 1 },
+  { "ux0:VitaShell/module/kernel.skprx",    (void *)&_binary_modules_kernel_kernel_skprx_start,
+                                               (int)&_binary_modules_kernel_kernel_skprx_size, 1 },
+  { "ux0:VitaShell/module/user.suprx",      (void *)&_binary_modules_user_user_suprx_start,
+                                               (int)&_binary_modules_user_user_suprx_size, 1 },
+  { "ux0:VitaShell/module/patch.skprx",     (void *)&_binary_modules_patch_patch_skprx_start,
+                                               (int)&_binary_modules_patch_patch_skprx_size, 1 },
+  { "ux0:VitaShell/module/usbdevice.skprx", (void *)&_binary_modules_usbdevice_usbdevice_skprx_start,
+                                               (int)&_binary_modules_usbdevice_usbdevice_skprx_size, 1 },
 };
 
 char vitashell_titleid[12];
