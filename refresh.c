@@ -65,53 +65,53 @@ int refreshNeeded(const char *app_path, const char* content_type) {
   char titleid[12], contentid[50], appver[8];
   if(strcmp(content_type,"psm") == 0) 
   {
-	  char contentid_path[MAX_PATH_LENGTH];
-	  void *cidFile = NULL;
-	  
-	  //Initalize buffers
-	  memset(titleid,0,12);
-	  memset(contentid,0,50);
-	  memset(appver,0,8);
-	  
-	  snprintf(contentid_path, MAX_PATH_LENGTH, "%s/RW/System/content_id", app_path);
-	  
-	  // Get content id
-	  int contentid_size = allocateReadFile(contentid_path, &cidFile);
-	  if(contentid_size != 48) //Check if valid contentid file
-		return 0;
-	
-	  // Get title id from content id
-	  strncpy(titleid,cidFile+7,9);
-	  strncpy(contentid,cidFile,49);
-	  
-	  
-	  free(cidFile);
+    char contentid_path[MAX_PATH_LENGTH];
+    void *cidFile = NULL;
+    
+    //Initalize buffers
+    memset(titleid,0,12);
+    memset(contentid,0,50);
+    memset(appver,0,8);
+    
+    snprintf(contentid_path, MAX_PATH_LENGTH, "%s/RW/System/content_id", app_path);
+    
+    // Get content id
+    int contentid_size = allocateReadFile(contentid_path, &cidFile);
+    if(contentid_size != 48) //Check if valid contentid file
+    return 0;
+  
+    // Get title id from content id
+    strncpy(titleid,cidFile+7,9);
+    strncpy(contentid,cidFile,49);
+    
+    
+    free(cidFile);
   }
   else {  
-	  // Read param.sfo
-	  snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
-	  
-	  void *sfo_buffer = NULL;
-	  int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
-	  if (sfo_size < 0)
-		return 0;
+    // Read param.sfo
+    snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
+    
+    void *sfo_buffer = NULL;
+    int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
+    if (sfo_size < 0)
+    return 0;
 
-	  // Get title and content ids
-	  
-	  getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
-	  getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
-	  getSfoString(sfo_buffer, "APP_VER", appver, sizeof(appver));
+    // Get title and content ids
+    
+    getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
+    getSfoString(sfo_buffer, "CONTENT_ID", contentid, sizeof(contentid));
+    getSfoString(sfo_buffer, "APP_VER", appver, sizeof(appver));
 
-	  // Free sfo buffer
-	  free(sfo_buffer);
+    // Free sfo buffer
+    free(sfo_buffer);
   }
   
   
   // Check if app or dlc exists
   if (((strcmp(content_type, "app") == 0)||(strcmp(content_type, "dlc") == 0)||(strcmp(content_type,"psm") == 0))&&(checkAppExist(titleid))) {
     char rif_name[48];
-	char rif_path[MAX_PATH_LENGTH];
-	
+  char rif_path[MAX_PATH_LENGTH];
+  
     uint64_t aid;
     sceRegMgrGetKeyBin("/CONFIG/NP", "account_id", &aid, sizeof(uint64_t));
 
@@ -133,31 +133,31 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     if (checkFileExist(rif_path))
       return 0;
   
-  	if(strcmp(content_type,"psm") == 0) 
-		return 0;
+    if(strcmp(content_type,"psm") == 0) 
+    return 0;
  }
   
   // Check if patch for installed app exists
   else if (strcmp(content_type, "patch") == 0) {
     if (!checkAppExist(titleid))
       return 0;
-	if (checkFileExist(sfo_path)) {
-	  void *sfo_buffer = NULL;
+  if (checkFileExist(sfo_path)) {
+    void *sfo_buffer = NULL;
       snprintf(appmeta_path, MAX_PATH_LENGTH, "ux0:appmeta/%s", titleid);
       pfsUmount();
       if(pfsMount(appmeta_path)<0)
         return 0;
       //Now read it
-	  snprintf(appmeta_param, MAX_PATH_LENGTH, "ux0:appmeta/%s/param.sfo", titleid);
+    snprintf(appmeta_param, MAX_PATH_LENGTH, "ux0:appmeta/%s/param.sfo", titleid);
       int sfo_size = allocateReadFile(appmeta_param, &sfo_buffer);
       if (sfo_size < 0)
         return sfo_size;
       char promoted_appver[8];
       getSfoString(sfo_buffer, "APP_VER", promoted_appver, sizeof(promoted_appver));
       pfsUmount();
-	  //Finally compare it
-	  if (strcmp(appver, promoted_appver) == 0)
-	    return 0;
+    //Finally compare it
+    if (strcmp(appver, promoted_appver) == 0)
+      return 0;
     }
   }
   return 1;
@@ -362,36 +362,36 @@ void psm_callback(void* data, const char* dir, const char* subdir) {
     return;
 
   if (refresh_data->refresh_pass) {
-    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);	
-    if (refreshNeeded(path, "psm")) {	  	  
-	  char contentid_path[MAX_PATH_LENGTH];
-	  snprintf(contentid_path, MAX_PATH_LENGTH, "%s/RW/System/content_id", path);
-	  
-	  char titleid[12];
-	  void *cidFile = NULL;
-	  
-	  // Initalize Bufer
-	  memset(titleid,0,12);
+    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);  
+    if (refreshNeeded(path, "psm")) {        
+    char contentid_path[MAX_PATH_LENGTH];
+    snprintf(contentid_path, MAX_PATH_LENGTH, "%s/RW/System/content_id", path);
+    
+    char titleid[12];
+    void *cidFile = NULL;
+    
+    // Initalize Bufer
+    memset(titleid,0,12);
 
-	  // Get content id
-	  allocateReadFile(contentid_path, &cidFile);
-	
-	  // Get title id from content id
-	  strncpy(titleid,cidFile+7,9);
-	  
-	  //free buffers
-	  free(cidFile);
-	  
-	  
-	  // Get promote path
-	  char promote_path[MAX_PATH_LENGTH];
-	  snprintf(promote_path,MAX_PATH_LENGTH,"%s/%s",PSM_TEMP,titleid);
+    // Get content id
+    allocateReadFile(contentid_path, &cidFile);
+  
+    // Get title id from content id
+    strncpy(titleid,cidFile+7,9);
+    
+    //free buffers
+    free(cidFile);
+    
+    
+    // Get promote path
+    char promote_path[MAX_PATH_LENGTH];
+    snprintf(promote_path,MAX_PATH_LENGTH,"%s/%s",PSM_TEMP,titleid);
 
-	  // Move the directory to temp for installation
+    // Move the directory to temp for installation
       removePath(promote_path, NULL);
       sceIoRename(path, promote_path);
 
-	  // Finally call promote
+    // Finally call promote
       if (promotePsm(PSM_TEMP,titleid) == 0)
         refresh_data->refreshed++;
       else
@@ -448,7 +448,7 @@ int refresh_thread(SceSize args, void *argp)  {
   // Refresh dlc
   if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:addcont", dlc_callback_outer, &refresh_data) < 0)
     goto EXIT;
-	
+  
   // Refresh patch
   if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:patch", patch_callback, &refresh_data) < 0)
     goto EXIT;
