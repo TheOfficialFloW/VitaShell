@@ -42,8 +42,7 @@
 
 #define MAX_DLC_PER_TITLE 1024
 
-int isCustomHomebrew(const char* path)
-{
+int isCustomHomebrew(const char* path) {
   uint32_t work[RIF_SIZE/4];
 
   if (ReadFile(path, work, sizeof(work)) != sizeof(work))
@@ -58,8 +57,7 @@ int isCustomHomebrew(const char* path)
 
 
 
-int refreshNeeded(const char *app_path, const char* content_type)
-{
+int refreshNeeded(const char *app_path, const char* content_type) {
   char appmeta_path[MAX_PATH_LENGTH];
   char appmeta_param[MAX_PATH_LENGTH];
   char sfo_path[MAX_PATH_LENGTH];
@@ -88,10 +86,8 @@ int refreshNeeded(const char *app_path, const char* content_type)
 	  
 	  
 	  free(cidFile);
-	  
   }
-  else
-  {  
+  else {  
 	  // Read param.sfo
 	  snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
 	  
@@ -167,8 +163,7 @@ int refreshNeeded(const char *app_path, const char* content_type)
   return 1;
 }
 
-int refreshApp(const char *app_path)
-{
+int refreshApp(const char *app_path) {
   char work_bin_path[MAX_PATH_LENGTH];
   int res;
 
@@ -204,8 +199,7 @@ int refreshApp(const char *app_path)
 }
 
 // target_type should be either SCE_S_IFREG for files or SCE_S_IFDIR for directories
-int parse_dir_with_callback(int target_type, const char* path, void(*callback)(void*, const char*, const char*), void* data)
-{
+int parse_dir_with_callback(int target_type, const char* path, void(*callback)(void*, const char*, const char*), void* data) {
   SceUID dfd = sceIoDopen(path);
   if (dfd >= 0) {
     int res = 0;
@@ -254,8 +248,7 @@ typedef struct {
   uint8_t* rif;
 } license_data_t;
 
-void app_callback(void* data, const char* dir, const char* subdir)
-{
+void app_callback(void* data, const char* dir, const char* subdir) {
   refresh_data_t *refresh_data = (refresh_data_t*)data;
   char path[MAX_PATH_LENGTH];
 
@@ -280,8 +273,7 @@ void app_callback(void* data, const char* dir, const char* subdir)
   }
 }
 
-void dlc_callback_inner(void* data, const char* dir, const char* subdir)
-{
+void dlc_callback_inner(void* data, const char* dir, const char* subdir) {
   dlc_data_t *dlc_data = (dlc_data_t*)data;
   char path[MAX_PATH_LENGTH];
 
@@ -298,8 +290,7 @@ void dlc_callback_inner(void* data, const char* dir, const char* subdir)
   }
 }
 
-void dlc_callback_outer(void* data, const char* dir, const char* subdir)
-{
+void dlc_callback_outer(void* data, const char* dir, const char* subdir) {
   refresh_data_t *refresh_data = (refresh_data_t*)data;
   dlc_data_t dlc_data;
   dlc_data.refresh_data = refresh_data;
@@ -341,8 +332,7 @@ void dlc_callback_outer(void* data, const char* dir, const char* subdir)
   }
 }
 
-void patch_callback(void* data, const char* dir, const char* subdir)
-{
+void patch_callback(void* data, const char* dir, const char* subdir) {
   refresh_data_t *refresh_data = (refresh_data_t*)data;
   char path[MAX_PATH_LENGTH];
 
@@ -364,8 +354,7 @@ void patch_callback(void* data, const char* dir, const char* subdir)
   }
 }
 
-void psm_callback(void* data, const char* dir, const char* subdir)
-{
+void psm_callback(void* data, const char* dir, const char* subdir) {
   refresh_data_t *refresh_data = (refresh_data_t*)data;
   char path[MAX_PATH_LENGTH];
 
@@ -415,8 +404,7 @@ void psm_callback(void* data, const char* dir, const char* subdir)
   }
 }
 
-int refresh_thread(SceSize args, void *argp) 
-{
+int refresh_thread(SceSize args, void *argp)  {
   SceUID thid = -1;
   refresh_data_t refresh_data = { 0, 0, 0, 0 };
 
@@ -495,8 +483,7 @@ EXIT:
 // Note: This is currently not optimized AT ALL.
 // Ultimately, we want to use a single transaction and avoid trying to
 // re-insert rifs that are already present.
-void license_file_callback(void* data, const char* dir, const char* file)
-{
+void license_file_callback(void* data, const char* dir, const char* file) {
   license_data_t *license_data = (license_data_t*)data;
   char path[MAX_PATH_LENGTH];
 
@@ -520,8 +507,7 @@ void license_file_callback(void* data, const char* dir, const char* file)
   }
 }
 
-void license_dir_callback(void* data, const char* dir, const char* subdir)
-{
+void license_dir_callback(void* data, const char* dir, const char* subdir) {
   license_data_t *license_data = (license_data_t*)data;
   char path[MAX_PATH_LENGTH];
 
@@ -533,8 +519,7 @@ void license_dir_callback(void* data, const char* dir, const char* subdir)
   license_data->cur_depth--;
 }
 
-int license_thread(SceSize args, void *argp)
-{
+int license_thread(SceSize args, void *argp) {
   SceUID thid = -1;
   license_data_t license_data = { 0, 0, 0, 0, 0, 1, malloc(RIF_SIZE) };
 
