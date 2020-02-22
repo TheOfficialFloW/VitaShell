@@ -78,7 +78,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     // Get content id
     int contentid_size = allocateReadFile(contentid_path, &cidFile);
     if(contentid_size != 48) //Check if valid contentid file
-    return 0;
+      return 0;
   
     // Get title id from content id
     strncpy(titleid,cidFile+7,9);
@@ -94,7 +94,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     void *sfo_buffer = NULL;
     int sfo_size = allocateReadFile(sfo_path, &sfo_buffer);
     if (sfo_size < 0)
-    return 0;
+      return 0;
 
     // Get title and content ids
     
@@ -110,7 +110,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
   // Check if app or dlc exists
   if (((strcmp(content_type, "app") == 0)||(strcmp(content_type, "dlc") == 0)||(strcmp(content_type,"psm") == 0))&&(checkAppExist(titleid))) {
     char rif_name[48];
-  char rif_path[MAX_PATH_LENGTH];
+    char rif_path[MAX_PATH_LENGTH];
   
     uint64_t aid;
     sceRegMgrGetKeyBin("/CONFIG/NP", "account_id", &aid, sizeof(uint64_t));
@@ -134,7 +134,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
       return 0;
   
     if(strcmp(content_type,"psm") == 0) 
-    return 0;
+      return 0;
  }
   
   // Check if patch for installed app exists
@@ -388,15 +388,14 @@ void psm_callback(void* data, const char* dir, const char* subdir) {
     snprintf(promote_path,MAX_PATH_LENGTH,"%s/%s",PSM_TEMP,titleid);
 
     // Move the directory to temp for installation
-      removePath(promote_path, NULL);
-      sceIoRename(path, promote_path);
+    removePath(promote_path, NULL);
+    sceIoRename(path, promote_path);
 
     // Finally call promote
-      if (promotePsm(PSM_TEMP,titleid) == 0)
-        refresh_data->refreshed++;
-      else
-        // Restore folder on error
-        sceIoRename(promote_path, path);
+    if (promotePsm(PSM_TEMP,titleid) == 0)
+      refresh_data->refreshed++;
+    else
+      sceIoRename(promote_path, path); // Restore folder on error
     }
     SetProgress(++refresh_data->processed, refresh_data->count);
   } else {
