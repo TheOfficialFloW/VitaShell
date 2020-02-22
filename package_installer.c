@@ -48,9 +48,7 @@ static int unloadScePaf() {
   return sceSysmoduleUnloadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, 0, NULL, &buf);
 }
 
-int promotePsm(const char *path, const char *titleid)
-{
-
+int promotePsm(const char *path, const char *titleid) {
   ScePromoterUtilityImportParams promoteArgs;
   memset(&promoteArgs,0x00,sizeof(ScePromoterUtilityImportParams));
   
