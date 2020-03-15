@@ -156,7 +156,7 @@ HENKAKU_RESTORE_DEFAULT_SETTINGS     = "설정 초기화"
 HENKAKU_RELOAD_CONFIG                = "taiHEN config.txt 불러오기"
 HENKAKU_RESTORE_DEFAULT_MESSAGE      = "기본 설정이 성공적으로 복구되었습니다."
 HENKAKU_RELOAD_CONFIG_MESSAGE        = "taiHEN config.txt를 성공적으로 다시 불러왔습니다."
-HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "안전하지 않은 홈브류 허용 옵션은\영구적으로 사용자의 기기에 데미지를 줄 수 있습니다.\\패키지를 설치할 때 주의해 주세요."
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "안전하지 않은 홈브류 허용 옵션은\영구적으로 사용자의 기기에 손상을 줄 수 있습니다.\\패키지를 설치할 때 주의해 주세요."
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "메인 설정"
