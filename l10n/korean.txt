@@ -119,7 +119,7 @@ REFRESHED                            = "%d개의 항목이 갱신되었습니다
 COPIED_FILE                          = "%d개의 파일을 복사했습니다."
 COPIED_FOLDER                        = "%d개의 폴더를 복사했습니다."
 COPIED_FILES_FOLDERS                 = "%d개의 파일 및 폴더를 복사했습니다."
-IMPORTED_LICENSES                    = "%d개의 라이센스가 등록되었습니다."
+IMPORTED_LICENSES                    = "%d개의 라이선스가 등록되었습니다."
 
 # Dialog questions
 DELETE_FILE_QUESTION                 = "선택된 파일을 삭제하시겠습니까?"
@@ -148,15 +148,15 @@ REFRESH_LICENSE_DB_QUESTION          = "라이선스 데이터베이스 갱신�
 
 # HENkaku settings strings
 HENKAKU_SETTINGS                     = "HENkaku 설정"
-HENKAKU_ENABLE_PSN_SPOOFING          = "PSN 스푸핑 활성화"
-HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "안전하지 않은 홈브류 활성화 (수정 모드)"
-HENKAKU_ENABLE_VERSION_SPOOFING      = "버전 스푸핑 활성화"
+HENKAKU_ENABLE_PSN_SPOOFING          = "PSN 스푸핑 허용"
+HENKAKU_ENABLE_UNSAFE_HOMEBREW       = "안전하지 않은 홈브류 허용"
+HENKAKU_ENABLE_VERSION_SPOOFING      = "버전 스푸핑 허용"
 HENKAKU_SPOOFED_VERSION              = "스푸핑 버전"
 HENKAKU_RESTORE_DEFAULT_SETTINGS     = "설정 초기화"
 HENKAKU_RELOAD_CONFIG                = "taiHEN config.txt 불러오기"
 HENKAKU_RESTORE_DEFAULT_MESSAGE      = "기본 설정이 성공적으로 복구되었습니다."
 HENKAKU_RELOAD_CONFIG_MESSAGE        = "taiHEN config.txt를 성공적으로 다시 불러왔습니다."
-HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "안전하지 않은 홈브류 활성화 옵션은\영구적으로 사용자의 디바이스에 데미지를 줄 수 있습니다.\\패키지를 설치할 때 주의해 주세요."
+HENKAKU_UNSAFE_HOMEBREW_MESSAGE      = "안전하지 않은 홈브류 허용 옵션은\영구적으로 사용자의 기기에 데미지를 줄 수 있습니다.\\패키지를 설치할 때 주의해 주세요."
 
 # VitaShell settings
 VITASHELL_SETTINGS_MAIN              = "메인 설정"
@@ -164,8 +164,8 @@ VITASHELL_SETTINGS_LANGUAGE          = "언어"
 VITASHELL_SETTINGS_THEME             = "테마"
 VITASHELL_SETTINGS_USBDEVICE         = "USB 장치"
 VITASHELL_SETTINGS_SELECT_BUTTON     = "SELECT 버튼 기능 할당"
-VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "자동 업데이트 비활성화"
-VITASHELL_SETTINGS_WARNING_MESSAGE   = "경고 메시지 비활성화"
+VITASHELL_SETTINGS_NO_AUTO_UPDATE    = "자동 업데이트 비허용"
+VITASHELL_SETTINGS_WARNING_MESSAGE   = "경고 메시지 비허용"
 VITASHELL_SETTINGS_RESTART_SHELL     = "VitaShell 재시작"
 VITASHELL_SETTINGS_POWER             = "전원 설정"
 VITASHELL_SETTINGS_REBOOT            = "기기 다시 시작"
@@ -215,7 +215,7 @@ MEMORY_CARD_NOT_FOUND                = "메모리 카드를 삽입해 주십시�
 GAME_CARD_NOT_FOUND                  = "게임 카드를 삽입해 주십시오."
 MICROSD_NOT_FOUND                    = "MicroSD를 삽입해 주십시오."
 NO_SPACE_ERROR                       = "메모리에 충분한 공간이 없습니다.\적어도 %s의 공간이 추가로 필요합니다."
-EXTENDED_PERMISSIONS_REQUIRED        = "이 기능은 추가적인 기능을 필요로 합니다.\먼저 '안전하지 않은 홈브류 활성화' 항목을 활성화해주세요."
+EXTENDED_PERMISSIONS_REQUIRED        = "이 기능은 추가적인 기능을 필요로 합니다.\먼저 '안전하지 않은 홈브류 허용' 항목을 활성화해주세요."
 WIFI_ERROR                           = "Wi-Fi를 먼저 활성화하셔야 합니다."
 FTP_SERVER                           = "FTP 서버가 아래 주소에서 실행 중입니다.\ftp://%s:%i\\확인 : 백그라운드로 전환\취소 : FTP 연결 중지"
 UPDATE_QUESTION                      = "VitaShell %s을(를) 사용할 수 있습니다.\\이 애플리케이션을 업데이트 하시겠습니까?"
