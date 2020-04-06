@@ -116,9 +116,9 @@ PROPERTY_FSELF_MODE_SCE              = "Firmado SCE"
 
 # File browser strings - Carácteres del explorador de archivos
 REFRESHED                            = "Se actualizaron %d elementos."
-COPIED_FILE                          = "Copiados %d archivo/os."
-COPIED_FOLDER                        = "Copiados %d carpeta/as."
-COPIED_FILES_FOLDERS                 = "Copiados %d archivos y/o carpetas."
+COPIED_FILE                          = "%d archivo/os en el portapapeles."
+COPIED_FOLDER                        = "%d carpeta/as en el portapapeles."
+COPIED_FILES_FOLDERS                 = "%d archivos y/o carpetas en el portapapeles."
 IMPORTED_LICENSES                    = "Se importaron %d licencias."
 
 # Dialog questions - Preguntas del diálogo
