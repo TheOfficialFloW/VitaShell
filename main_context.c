@@ -1023,7 +1023,7 @@ static int contextMenuMainEnterCallback(int sel, void *context) {
         strcpy(name, file_entry->name);
         removeEndSlash(name);
 
-        initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0, 0);
+        initImeDialog(language_container[RENAME], name, MAX_NAME_LENGTH, SCE_IME_TYPE_DEFAULT, 0, 0);
 
         setDialogStep(DIALOG_STEP_RENAME);
       }
@@ -1275,7 +1275,7 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
         count++;
       }
       initImeDialog(language_container[NEW_FILE], path + strlen(file_list.path),
-                    MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0, 0);
+                    MAX_NAME_LENGTH, SCE_IME_TYPE_DEFAULT, 0, 0);
       setDialogStep(DIALOG_STEP_NEW_FILE);
       break;
     };
@@ -1300,7 +1300,7 @@ static int contextMenuNewEnterCallback(int sel, void *context) {
       }
 
       initImeDialog(language_container[NEW_FOLDER], path + strlen(file_list.path),
-                    MAX_NAME_LENGTH, SCE_IME_TYPE_BASIC_LATIN, 0, 0);
+                    MAX_NAME_LENGTH, SCE_IME_TYPE_DEFAULT, 0, 0);
       setDialogStep(DIALOG_STEP_NEW_FOLDER);
       break;
     };
