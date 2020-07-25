@@ -19,6 +19,9 @@
 #ifndef __USB_H__
 #define __USB_H__
 
+int mountGamecardUx0();
+int umountGamecardUx0();
+
 int mountUsbUx0();
 int umountUsbUx0();
 

@@ -29,6 +29,7 @@ typedef struct {
 } InstallArguments;
 
 int promoteApp(const char *path);
+int promotePsm(const char *path, const char *titleid);
 int deleteApp(const char *titleid);
 int checkAppExist(const char *titleid);
 

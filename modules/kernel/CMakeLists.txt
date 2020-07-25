@@ -22,27 +22,14 @@ target_link_libraries(kernel
   SceIofilemgrForDriver_stub
   SceSysclibForDriver_stub
   SceSysmemForDriver_stub
-  SceModulemgrForKernel_stub
   SceModulemgrForDriver_stub
   SceThreadmgrForDriver_stub
+  SceProcessmgrForDriver_stub
+  SceNpDrmForDriver_stub
   taihenForKernel_stub
   taihenModuleUtils_stub
 )
 
 vita_create_self(kernel.skprx kernel CONFIG exports.yml UNSAFE)
 
-vita_create_stubs(stubs kernel ${CMAKE_SOURCE_DIR}/exports.yml KERNEL)
-
-install(DIRECTORY ${CMAKE_BINARY_DIR}/stubs/
-  DESTINATION lib
-  FILES_MATCHING PATTERN "*.a"
-)
-
-install(FILES vitashell_kernel.h
-  DESTINATION include
-)
-
-add_custom_target(copy
-  COMMAND cp kernel.skprx ../../../resources/kernel.skprx
-  DEPENDS kernel.skprx
-)
+vita_create_stubs(vitashell_kernel_stubs kernel exports.yml KERNEL)

@@ -23,7 +23,7 @@ static int netcheck_dialog_running = 0;
 
 int initNetCheckDialog(int mode, int timeoutUs) {
   if (netcheck_dialog_running)
-    return -1;
+    return VITASHELL_ERROR_ALREADY_RUNNING;
 
   SceNetCheckDialogParam param;
   sceNetCheckDialogParamInit(&param);

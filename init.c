@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "init.h"
 #include "file.h"
 #include "package_installer.h"
@@ -48,6 +49,8 @@ INCLUDE_EXTERN_RESOURCE(default_pause_png);
 INCLUDE_EXTERN_RESOURCE(default_play_png);
 INCLUDE_EXTERN_RESOURCE(default_sfo_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_text_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_file_symlink_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_folder_symlink_icon_png);
 
 INCLUDE_EXTERN_RESOURCE(electron_colors_txt);
 INCLUDE_EXTERN_RESOURCE(electron_archive_icon_png);
@@ -77,11 +80,16 @@ INCLUDE_EXTERN_RESOURCE(electron_sfo_icon_png);
 INCLUDE_EXTERN_RESOURCE(electron_text_icon_png);
 INCLUDE_EXTERN_RESOURCE(electron_settings_png);
 
-INCLUDE_EXTERN_RESOURCE(user_suprx);
-INCLUDE_EXTERN_RESOURCE(usbdevice_skprx);
-INCLUDE_EXTERN_RESOURCE(kernel_skprx);
 INCLUDE_EXTERN_RESOURCE(umass_skprx);
-INCLUDE_EXTERN_RESOURCE(patch_skprx);
+
+extern unsigned char _binary_modules_kernel_kernel_skprx_start;
+extern unsigned char _binary_modules_kernel_kernel_skprx_size;
+extern unsigned char _binary_modules_user_user_suprx_start;
+extern unsigned char _binary_modules_user_user_suprx_size;
+extern unsigned char _binary_modules_patch_patch_skprx_start;
+extern unsigned char _binary_modules_patch_patch_skprx_size;
+extern unsigned char _binary_modules_usbdevice_usbdevice_skprx_start;
+extern unsigned char _binary_modules_usbdevice_usbdevice_skprx_size;
 
 #define DEFAULT_FILE(path, name, replace) { path, (void *)&_binary_resources_##name##_start, (int)&_binary_resources_##name##_size, replace }
 
@@ -101,7 +109,9 @@ static DefaultFile default_files[] = {
   DEFAULT_FILE("ux0:VitaShell/theme/Default/fastforward.png", default_fastforward_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/fastrewind.png", default_fastrewind_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/file_icon.png", default_file_icon_png, 1),
+  DEFAULT_FILE("ux0:VitaShell/theme/Default/file_symlink_icon.png",default_file_symlink_icon_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_icon.png", default_folder_icon_png, 1),
+  DEFAULT_FILE("ux0:VitaShell/theme/Default/folder_symlink_icon.png",default_folder_symlink_icon_png,  1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/ftp.png", default_ftp_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/image_icon.png", default_image_icon_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Default/pause.png", default_pause_png, 1),
@@ -137,11 +147,16 @@ static DefaultFile default_files[] = {
   DEFAULT_FILE("ux0:VitaShell/theme/Electron/text_icon.png", electron_text_icon_png, 1),
   DEFAULT_FILE("ux0:VitaShell/theme/Electron/settings.png", electron_settings_png, 1),
 
-  DEFAULT_FILE("ux0:VitaShell/module/user.suprx", user_suprx, 1),
-  DEFAULT_FILE("ux0:VitaShell/module/usbdevice.skprx", usbdevice_skprx, 1),
-  DEFAULT_FILE("ux0:VitaShell/module/kernel.skprx", kernel_skprx, 1),
   DEFAULT_FILE("ux0:VitaShell/module/umass.skprx", umass_skprx, 1),
-  DEFAULT_FILE("ux0:VitaShell/module/patch.skprx", patch_skprx, 1),
+  
+  { "ux0:VitaShell/module/kernel.skprx",    (void *)&_binary_modules_kernel_kernel_skprx_start,
+                                               (int)&_binary_modules_kernel_kernel_skprx_size, 1 },
+  { "ux0:VitaShell/module/user.suprx",      (void *)&_binary_modules_user_user_suprx_start,
+                                               (int)&_binary_modules_user_user_suprx_size, 1 },
+  { "ux0:VitaShell/module/patch.skprx",     (void *)&_binary_modules_patch_patch_skprx_start,
+                                               (int)&_binary_modules_patch_patch_skprx_size, 1 },
+  { "ux0:VitaShell/module/usbdevice.skprx", (void *)&_binary_modules_usbdevice_usbdevice_skprx_start,
+                                               (int)&_binary_modules_usbdevice_usbdevice_skprx_size, 1 },
 };
 
 char vitashell_titleid[12];
@@ -152,6 +167,10 @@ SceUID patch_modid = -1, kernel_modid = -1, user_modid = -1;
 
 // System params
 int language = 0, enter_button = 0, date_format = 0, time_format = 0;
+
+int isSafeMode() {
+  return is_safe_mode;
+}
 
 static void initSceAppUtil() {
   // Init SceAppUtil
@@ -329,6 +348,7 @@ void initVitaShell() {
 
   // Allow writing to ux0:app/VITASHELL
   sceAppMgrUmount("app0:");
+  sceAppMgrUmount("savedata0:");
 
   // Is safe mode
   if (sceIoDevctl("ux0:", 0x3001, NULL, 0, NULL, 0) == 0x80010030)
@@ -367,9 +387,48 @@ void initVitaShell() {
   installDefaultFiles();
 
   // Load modules
-  patch_modid = taiLoadStartKernelModule("ux0:VitaShell/module/patch.skprx", 0, NULL, 0);
-  kernel_modid = taiLoadStartKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL, 0);
+  int search_unk[2];
+  SceUID search_modid;
+  search_modid = _vshKernelSearchModuleByName("VitaShellPatch", search_unk);
+  if(search_modid < 0) {
+    patch_modid = taiLoadKernelModule("ux0:VitaShell/module/patch.skprx", 0, NULL);
+    if (patch_modid >= 0) {
+      int res = taiStartKernelModule(patch_modid, 0, NULL, 0, NULL, NULL);
+      if (res < 0)
+        taiStopUnloadKernelModule(patch_modid, 0, NULL, 0, NULL, NULL);
+    }
+  }
+  search_modid = _vshKernelSearchModuleByName("VitaShellKernel2", search_unk);
+  if(search_modid < 0) {
+    kernel_modid = taiLoadKernelModule("ux0:VitaShell/module/kernel.skprx", 0, NULL);
+    if (kernel_modid >= 0) {
+      int res = taiStartKernelModule(kernel_modid, 0, NULL, 0, NULL, NULL);
+      if (res < 0)
+        taiStopUnloadKernelModule(kernel_modid, 0, NULL, 0, NULL, NULL);
+    }
+  }
   user_modid = sceKernelLoadStartModule("ux0:VitaShell/module/user.suprx", 0, NULL, 0, NULL, NULL);
+
+  // clear up recent folder frequently
+  SceIoStat stat;
+  SceDateTime now;
+  sceRtcGetCurrentClock(&now, 0);
+  int res = sceIoGetstat(VITASHELL_RECENT_PATH, &stat);
+  if (res >= 0) {
+    if (now.year * 365 + now.day - stat.st_ctime.year * 365 - stat.st_ctime.day
+        >= VITASHELL_RECENT_PATH_DELETE_INTERVAL_DAYS) {
+      removePath(VITASHELL_RECENT_PATH, 0);
+    }
+  }
+
+  if (!checkFolderExist(VITASHELL_BOOKMARKS_PATH)) {
+    sceIoMkdir(VITASHELL_BOOKMARKS_PATH, 0777);
+  }
+  if (!checkFolderExist(VITASHELL_RECENT_PATH)) {
+    sceIoMkdir(VITASHELL_RECENT_PATH, 0777);
+  }
+  time_last_recent_files = 0;
+  time_last_bookmarks = 0;
 }
 
 void finishVitaShell() {

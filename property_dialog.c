@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "archive.h"
 #include "init.h"
 #include "theme.h"

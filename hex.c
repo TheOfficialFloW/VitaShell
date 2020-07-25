@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "archive.h"
 #include "file.h"
 #include "text.h"
@@ -76,7 +77,7 @@ int hexViewer(const char *file) {
 
   uint8_t *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   int size = 0;
 
@@ -135,13 +136,13 @@ int hexViewer(const char *file) {
           list.head->previous = NULL;
 
           // Read
-          memcpy(list.head->data, buffer+base_pos, 0x10);
+          memcpy(list.head->data, buffer + base_pos, 0x10);
         }
       } else if (hold_pad[PAD_DOWN] || hold2_pad[PAD_LEFT_ANALOG_DOWN]) {
-        if ((rel_pos+0x10) < size) {
-          if ((rel_pos+0x10) < ((MAX_POSITION - 1) * 0x10)) {
+        if ((rel_pos + 0x10) < size) {
+          if ((rel_pos + 0x10) < ((MAX_POSITION - 1) * 0x10)) {
             rel_pos += 0x10;
-          } else if ((base_pos + rel_pos+0x10) < size) {
+          } else if ((base_pos + rel_pos + 0x10) < size) {
             base_pos += 0x10;
 
             // Head to tail
@@ -157,60 +158,47 @@ int hexViewer(const char *file) {
             list.tail->next = NULL;
 
             // Read
-            memcpy(list.tail->data, buffer+base_pos + (0x10 - 1) * 0x10, 0x10);
+            memcpy(list.tail->data, buffer + base_pos + (0x10 - 1) * 0x10, 0x10);
           }
         }
       }
 
       // Page skip
-      if (hold_pad[PAD_LTRIGGER]) {
-        if ((base_pos + rel_pos) != 0) {
-          if ((base_pos-0x10*0x10) >= 0) {
-            base_pos -= 0x10*0x10;
-          } else {
+      if (hold_pad[PAD_LTRIGGER] || hold_pad[PAD_RTRIGGER]) {
+        if (hold_pad[PAD_LTRIGGER]) { // Skip page up
+          base_pos = base_pos - 0x100;
+          if (base_pos < 0) {
             base_pos = 0;
             rel_pos = 0;
           }
-
-          HexListEntry *entry = list.head;
-
-          int i;
-          for (i = 0; i < 0x10; i++) {
-            memcpy(entry->data, buffer + base_pos + i*0x10, 0x10);
-            entry = entry->next;
+        } else { // Skip page down
+          int last_line = ALIGN(size, 0x10);
+          base_pos = base_pos + 0x100;
+          if (base_pos >= last_line - 0xF0) {
+            base_pos = MAX(last_line - 0xF0, 0);
+            rel_pos = MIN(0xE0, last_line - 0x10);
           }
+        }
+
+        HexListEntry *entry = list.head;
+
+        int i;
+        for (i = 0; i < 0x10; i++) {
+          memcpy(entry->data, buffer + base_pos + i * 0x10, 0x10);
+          entry = entry->next;
         }
       }
 
-      if (hold_pad[PAD_RTRIGGER]) {
-        if (size >= 0xF0) {
-          if ((base_pos + rel_pos+0x1F0) < size) {
-            base_pos += 0x10*0x10;
-          } else {
-            base_pos = ALIGN(size, 0x10) - 0xF0;
-            rel_pos = 0xE0;
-          }
-
-          HexListEntry *entry = list.head;
-
-          int i;
-          for (i = 0; i < 0x10; i++) {
-            memcpy(entry->data, buffer + base_pos + i*0x10, 0x10);
-            entry = entry->next;
-          }
-        }
-      }
-
-      uint8_t max_nibble = (2*0x10) - 1;
+      uint8_t max_nibble = (2 * 0x10) - 1;
 
       // Last line
-      if ((base_pos + rel_pos+0x10) >= size) {
+      if ((base_pos + rel_pos + 0x10) >= size) {
         uint8_t rest = size % 0x10;
 
         if (rest == 0)
           rest = 0x10;
 
-        max_nibble = 2*rest - 1;
+        max_nibble = 2 * rest - 1;
       }
 
       if (nibble_pos > max_nibble) {
@@ -317,7 +305,7 @@ int hexViewer(const char *file) {
 
         uint8_t ch = entry->data[x];
 
-        uint32_t offset = base_pos + x + y*0x10;
+        uint32_t offset = base_pos + x + y * 0x10;
         if (offset >= size)
           break;
 
@@ -332,14 +320,17 @@ int hexViewer(const char *file) {
         // Character hex
         uint8_t high_nibble = (ch >> 4) & 0xF;
         uint8_t low_nibble = ch & 0xF;
-        int w = pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE), START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && nibble_x == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", high_nibble);
-        pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE) + w, START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && (nibble_x + 1) == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", low_nibble);
+        int w = pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE), START_Y + ((y + 1) * FONT_Y_SPACE),
+                               (on_line && nibble_x == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", high_nibble);
+        pgf_draw_textf(HEX_OFFSET_X + (x * HEX_OFFSET_SPACE) + w, START_Y + ((y + 1) * FONT_Y_SPACE),
+                       (on_line && (nibble_x + 1) == nibble_pos) ? HEX_NIBBLE_COLOR : color, "%01X", low_nibble);
 
         // Character
         ch = (ch >= 0x20) ? ch : '.';
         int width = font_size_cache[(int)ch];
         uint8_t byte_nibble_pos = nibble_pos - (nibble_pos % 2);
-        pgf_draw_textf(HEX_CHAR_X + (x * FONT_X_SPACE) + (FONT_X_SPACE - width) / 2.0f, START_Y + ((y + 1) * FONT_Y_SPACE), (on_line && nibble_x == byte_nibble_pos) ? HEX_NIBBLE_COLOR : color, "%c", ch);
+        pgf_draw_textf(HEX_CHAR_X + (x * FONT_X_SPACE) + (FONT_X_SPACE - width) / 2.0f, START_Y + ((y + 1) * FONT_Y_SPACE),
+                       (on_line && nibble_x == byte_nibble_pos) ? HEX_NIBBLE_COLOR : color, "%c", ch);
       }
 
       // Offset y

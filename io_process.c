@@ -45,7 +45,7 @@ static int update_thread(SceSize args_size, UpdateArguments *args) {
     if (args->show_kbs) {
       cur_micros = sceKernelGetProcessTimeWide();
       if (cur_micros >= (last_micros + 1000 * 1000)) {
-        delta_micros = cur_micros-last_micros;
+        delta_micros = cur_micros - last_micros;
         last_micros = cur_micros;
         kbs = (double)(current_value - previous_value) / 1024.0;
         previous_value = current_value;
@@ -110,19 +110,22 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
   FileListEntry *mark_entry = NULL;
 
   // Get paths info
+  uint64_t total = 0;
   uint32_t folders = 0, files = 0;
 
   mark_entry = head;
 
   int i;
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
     getPathInfo(path, NULL, &folders, &files, NULL);
     mark_entry = mark_entry->next;
   }
 
+  total = folders + files;
+
   // Update thread
-  thid = createStartUpdateThread(folders + files, 0);
+  thid = createStartUpdateThread(total, 0);
 
   // Remove process
   uint64_t value = 0;
@@ -130,11 +133,11 @@ int delete_thread(SceSize args_size, DeleteArguments *args) {
   mark_entry = head;
 
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 
     FileProcessParam param;
     param.value = &value;
-    param.max = folders + files;
+    param.max = total;
     param.SetProgress = SetProgress;
     param.cancelHandler = cancelHandler;
     int res = removePath(path, &param);
@@ -180,10 +183,29 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 0);
   sceKernelDelayThread(DIALOG_WAIT); // Needed to see the percentage
 
-  char src_path[MAX_PATH_LENGTH], dst_path[MAX_PATH_LENGTH];
+  char path[MAX_PATH_LENGTH], src_path[MAX_PATH_LENGTH], dst_path[MAX_PATH_LENGTH];
   FileListEntry *copy_entry = NULL;
 
-  if (args->copy_mode == COPY_MODE_MOVE) { // Move
+  // Check if src and dst are in the same partition when moving
+  int diff_partition = 0;
+
+  if (args->copy_mode == COPY_MODE_MOVE) {
+    char *p = strchr(args->file_list->path, ':');
+    char *q = strchr(args->copy_list->path, ':');
+    if (p && q) {
+      *p = '\0';
+      *q = '\0';
+
+      if (strcasecmp(args->file_list->path, args->copy_list->path) != 0) {
+        diff_partition = 1;
+      }
+
+      *q = ':';
+      *p = ':';
+    }
+  }
+
+  if (args->copy_mode == COPY_MODE_MOVE && !diff_partition) { // Move
     // Update thread
     thid = createStartUpdateThread(args->copy_list->length, 0);
 
@@ -191,8 +213,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
 
     int i;
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
-      snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
 
       int res = movePath(src_path, dst_path, MOVE_INTEGRATE | MOVE_REPLACE, NULL);
       if (res < 0) {
@@ -232,14 +254,14 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
     }
 
     // Get src paths info
-    uint64_t size = 0;
+    uint64_t total = 0, size = 0;
     uint32_t folders = 0, files = 0;
 
     copy_entry = args->copy_list->head;
 
     int i;
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
 
       if (args->copy_mode == COPY_MODE_EXTRACT) {
         getArchivePathInfo(src_path, &size, &folders, &files, NULL);
@@ -250,12 +272,16 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
       copy_entry = copy_entry->next;
     }
 
+    total = size + folders * DIRECTORY_SIZE;
+    if (args->copy_mode == COPY_MODE_MOVE)
+      total += files + folders;
+
     // Check memory card free space
     if (checkMemoryCardFreeSpace(args->file_list->path, size))
       goto EXIT;
 
     // Update thread
-    thid = createStartUpdateThread(size + folders * DIRECTORY_SIZE, 1);
+    thid = createStartUpdateThread(total, 1);
 
     // Copy process
     uint64_t value = 0;
@@ -263,12 +289,12 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
     copy_entry = args->copy_list->head;
 
     for (i = 0; i < args->copy_list->length; i++) {
-      snprintf(src_path, MAX_PATH_LENGTH - 1, "%s%s", args->copy_list->path, copy_entry->name);
-      snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, copy_entry->name);
+      snprintf(src_path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+      snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, copy_entry->name);
 
       FileProcessParam param;
       param.value = &value;
-      param.max = size + folders * DIRECTORY_SIZE;
+      param.max = total;
       param.SetProgress = SetProgress;
       param.cancelHandler = cancelHandler;
 
@@ -293,6 +319,30 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
       copy_entry = copy_entry->next;
     }
 
+    // Remove src when moving between partitions
+    if (args->copy_mode == COPY_MODE_MOVE) {
+      copy_entry = args->copy_list->head;
+
+      for (i = 0; i < args->copy_list->length; i++) {
+        snprintf(path, MAX_PATH_LENGTH, "%s%s", args->copy_list->path, copy_entry->name);
+
+        FileProcessParam param;
+        param.value = &value;
+        param.max = total;
+        param.SetProgress = SetProgress;
+        param.cancelHandler = cancelHandler;
+        int res = removePath(path, &param);
+        if (res <= 0) {
+          closeWaitDialog();
+          setDialogStep(DIALOG_STEP_CANCELED);
+          errorDialog(res);
+          goto EXIT;
+        }
+
+        copy_entry = copy_entry->next;
+      }
+    }
+
     // Set progress to 100%
     sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
     sceKernelDelayThread(COUNTUP_WAIT);
@@ -300,7 +350,10 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
     // Close
     sceMsgDialogClose();
 
-    setDialogStep(DIALOG_STEP_COPIED);
+    if (args->copy_mode == COPY_MODE_NORMAL)
+      setDialogStep(DIALOG_STEP_COPIED);
+    else
+      setDialogStep(DIALOG_STEP_MOVED);
   }
 
 EXIT:
@@ -381,7 +434,8 @@ static int exportMedia(char *path, uint32_t *songs, uint32_t *videos, uint32_t *
     PhotoExportParam param;
     memset(&param, 0, sizeof(PhotoExportParam));
     param.version = 0x03150021;
-    res = scePhotoExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL, NULL, out, MAX_PATH_LENGTH);
+    res = scePhotoExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL,
+                                 NULL, out, MAX_PATH_LENGTH);
     if (res < 0)
       return (res == 0x80101A0B) ? 0 : res;
 
@@ -404,7 +458,8 @@ static int exportMedia(char *path, uint32_t *songs, uint32_t *videos, uint32_t *
 
     MusicExportParam param;
     memset(&param, 0, sizeof(MusicExportParam));
-    res = sceMusicExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL, musicExportProgress, &args, out, MAX_PATH_LENGTH);
+    res = sceMusicExportFromFile(path, &param, buf, process_param ? process_param->cancelHandler : NULL,
+                                 musicExportProgress, &args, out, MAX_PATH_LENGTH);
     if (res < 0)
       return (res == 0x8010530A) ? 0 : res;
 
@@ -412,12 +467,14 @@ static int exportMedia(char *path, uint32_t *songs, uint32_t *videos, uint32_t *
   } else if (type == FILE_TYPE_MP4) {
     VideoExportInputParam in_param;
     memset(&in_param, 0, sizeof(VideoExportInputParam));
-    strncpy(in_param.path, path, MAX_PATH_LENGTH);
+    strncpy(in_param.path, path, MAX_PATH_LENGTH-1);
+    in_param.path[MAX_PATH_LENGTH-1] = '\0';
 
     VideoExportOutputParam out_param;
     memset(&out_param, 0, sizeof(VideoExportOutputParam));
 
-    res = sceVideoExportFromFile(&in_param, 1, buf, process_param ? process_param->cancelHandler : NULL, NULL, NULL, 0, &out_param);
+    res = sceVideoExportFromFile(&in_param, 1, buf, process_param ? process_param->cancelHandler : NULL,
+                                 NULL, NULL, 0, &out_param);
     if (res < 0)
       return (res == 0x8010540A) ? 0 : res;
 
@@ -447,7 +504,7 @@ int exportPath(char *path, uint32_t *songs, uint32_t *videos, uint32_t *pictures
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_path = malloc(strlen(path) + strlen(dir.d_name) + 2);
-        snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
+        snprintf(new_path, MAX_PATH_LENGTH, "%s%s%s", path, hasEndSlash(path) ? "" : "/", dir.d_name);
 
         if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
           int ret = exportPath(new_path, songs, videos, pictures, param);
@@ -523,7 +580,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
 
   int i;
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
     getPathInfo(path, &size, NULL, &files, mediaPathHandler);
     mark_entry = mark_entry->next;
   }
@@ -549,7 +606,7 @@ int export_thread(SceSize args_size, ExportArguments *args) {
   mark_entry = head;
 
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 
     FileProcessParam param;
     param.value = &value;

@@ -21,20 +21,18 @@
 
 #include "context_menu.h"
 
-extern char pfs_mounted_path[MAX_PATH_LENGTH];
-
 extern ContextMenu context_menu_home;
 extern ContextMenu context_menu_main;
 extern ContextMenu context_menu_sort;
 extern ContextMenu context_menu_more;
 
-int gameDataMount(const char *path);
-int gameDataUmount();
-
 void initContextMenuWidth();
 void setContextMenuHomeVisibilities();
 void setContextMenuMainVisibilities();
 void setContextMenuSortVisibilities();
+void setContextMenuBookmarksVisibilities();
+void setContextMenuAdhocVisibilities();
 void setContextMenuMoreVisibilities();
+void setContextMenuNewVisibilities();
 
 #endif

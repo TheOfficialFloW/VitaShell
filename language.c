@@ -106,8 +106,14 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(REFRESH_LICENSE_DB),
     LANGUAGE_ENTRY(MOUNT_UMA0),
     LANGUAGE_ENTRY(MOUNT_IMC0),
+    LANGUAGE_ENTRY(MOUNT_XMC0),
+    LANGUAGE_ENTRY(UMOUNT_UMA0),
+    LANGUAGE_ENTRY(UMOUNT_IMC0),
+    LANGUAGE_ENTRY(UMOUNT_XMC0),
     LANGUAGE_ENTRY(MOUNT_USB_UX0),
     LANGUAGE_ENTRY(UMOUNT_USB_UX0),
+    LANGUAGE_ENTRY(MOUNT_GAMECARD_UX0),
+    LANGUAGE_ENTRY(UMOUNT_GAMECARD_UX0),
     LANGUAGE_ENTRY(SORT_BY),
     LANGUAGE_ENTRY(BY_NAME),
     LANGUAGE_ENTRY(BY_SIZE),
@@ -119,11 +125,18 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(PASTE),
     LANGUAGE_ENTRY(DELETE),
     LANGUAGE_ENTRY(RENAME),
+    LANGUAGE_ENTRY(NEW),
+    LANGUAGE_ENTRY(NEW_FILE),
     LANGUAGE_ENTRY(NEW_FOLDER),
     LANGUAGE_ENTRY(PROPERTIES),
     LANGUAGE_ENTRY(SEND),
     LANGUAGE_ENTRY(RECEIVE),
     LANGUAGE_ENTRY(MORE),
+    LANGUAGE_ENTRY(BOOKMARKS),
+    LANGUAGE_ENTRY(ADHOC_TRANSFER),
+    LANGUAGE_ENTRY(BOOKMARKS_SHOW),
+    LANGUAGE_ENTRY(BOOKMARKS_NEW),
+    LANGUAGE_ENTRY(RECENT_FILES_SHOW),
     LANGUAGE_ENTRY(COMPRESS),
     LANGUAGE_ENTRY(INSTALL_ALL),
     LANGUAGE_ENTRY(INSTALL_FOLDER),
@@ -211,6 +224,7 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_USBDEVICE),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_SELECT_BUTTON),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_NO_AUTO_UPDATE),
+    LANGUAGE_ENTRY(VITASHELL_SETTINGS_WARNING_MESSAGE),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_RESTART_SHELL),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_POWER),
     LANGUAGE_ENTRY(VITASHELL_SETTINGS_REBOOT),
@@ -225,9 +239,10 @@ void loadLanguage(int id) {
 
     // USB strings
     LANGUAGE_ENTRY(USB_CONNECTED),
-    LANGUAGE_ENTRY(USB_UMA0_MOUNTED),
     LANGUAGE_ENTRY(USB_UX0_MOUNTED),
     LANGUAGE_ENTRY(USB_UX0_UMOUNTED),
+    LANGUAGE_ENTRY(GAMECARD_UX0_MOUNTED),
+    LANGUAGE_ENTRY(GAMECARD_UX0_UMOUNTED),
     LANGUAGE_ENTRY(USB_NOT_CONNECTED),
     LANGUAGE_ENTRY(USB_CONNECTION_NOT_AVAILABLE),
     LANGUAGE_ENTRY(USB_WAIT_ATTACH),
@@ -246,7 +261,12 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(ADHOC_CLIENT_DECLINED),
     
     // Others
+    LANGUAGE_ENTRY(UMA0_MOUNTED),
     LANGUAGE_ENTRY(IMC0_MOUNTED),
+    LANGUAGE_ENTRY(XMC0_MOUNTED),
+    LANGUAGE_ENTRY(UMA0_UMOUNTED),
+    LANGUAGE_ENTRY(IMC0_UMOUNTED),
+    LANGUAGE_ENTRY(XMC0_UMOUNTED),
     LANGUAGE_ENTRY(SAFE_MODE),
     LANGUAGE_ENTRY(UNSAFE_MODE),
     LANGUAGE_ENTRY(PLEASE_WAIT),
@@ -261,16 +281,18 @@ void loadLanguage(int id) {
     LANGUAGE_ENTRY(ARCHIVE_NAME),
     LANGUAGE_ENTRY(COMPRESSION_LEVEL),
     LANGUAGE_ENTRY(ENTER_PASSWORD),
+    LANGUAGE_ENTRY(BOOKMARK_CREATED)
   };
 
   // Load default config file
-  readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
+  readConfigBuffer(&_binary_resources_english_us_txt_start, (int)&_binary_resources_english_us_txt_size,
+                   language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
 
   // Load custom config file
   if (use_custom_config) {
     if (id >= 0 && id < (sizeof(lang) / sizeof(char *))) {
       char path[MAX_PATH_LENGTH];
-      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/language/%s.txt", lang[id]);
+      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/language/%s.txt", lang[id]);
       readConfig(path, language_entries, sizeof(language_entries) / sizeof(ConfigEntry));
     }
   }

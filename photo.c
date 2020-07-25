@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "archive.h"
 #include "photo.h"
 #include "file.h"
@@ -170,12 +171,12 @@ static void resetImageInfo(vita2d_texture *tex, float *width, float *height, flo
 int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry, int *base_pos, int *rel_pos) {
   char *buffer = memalign(4096, BIG_BUFFER_SIZE);
   if (!buffer)
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
 
   vita2d_texture *tex = loadImage(file, type, buffer);
   if (!tex) {
     free(buffer);
-    return -1;
+    return VITASHELL_ERROR_NO_MEMORY;
   }
 
   // Variables
@@ -224,7 +225,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
 
         if (!entry->is_folder) {
           char path[MAX_PATH_LENGTH];
-          snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", list->path, entry->name);
+          snprintf(path, MAX_PATH_LENGTH, "%s%s", list->path, entry->name);
           int type = getFileType(path);
           if (type == FILE_TYPE_BMP || type == FILE_TYPE_JPEG || type == FILE_TYPE_PNG) {
             vita2d_wait_rendering_done();
@@ -233,7 +234,7 @@ int photoViewer(const char *file, int type, FileList *list, FileListEntry *entry
             tex = loadImage(path, type, buffer);
             if (!tex) {
               free(buffer);
-              return -1;
+              return VITASHELL_ERROR_NO_MEMORY;
             }
 
             // Reset image

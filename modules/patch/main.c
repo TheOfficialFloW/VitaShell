@@ -32,6 +32,8 @@ int module_start(SceSize args, void *argp) {
   // Patch to allow Memory Card remount
   uint32_t nop_nop_opcode = 0xBF00BF00;
   switch (info.module_nid) {
+    case 0x94CEFE4B: // 3.55 retail
+    case 0xDFBC288C: // 3.57 retail
     case 0xDBB29DB7: // 3.60 retail
     case 0x1C9879D6: // 3.65 retail
       hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB338, &nop_nop_opcode, 4);
@@ -39,8 +41,18 @@ int module_start(SceSize args, void *argp) {
       break;
       
     case 0x54E2E984: // 3.67 retail
+    case 0xC3C538DE: // 3.68 retail
       hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB344, &nop_nop_opcode, 4);
       hooks[1] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB374, &nop_nop_opcode, 2);
+      break;
+      
+    case 0x321E4852: // 3.69 retail
+    case 0x700DA0CD: // 3.70 retail
+    case 0xF7846B4E: // 3.71 retail
+    case 0xA8E80BA8: // 3.72 retail
+    case 0xB299D195: // 3.73 retail
+      hooks[0] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB34C, &nop_nop_opcode, 4);
+      hooks[1] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, 0xB37C, &nop_nop_opcode, 2);
       break;
   }
 

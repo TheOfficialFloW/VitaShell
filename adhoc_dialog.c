@@ -188,7 +188,7 @@ int sendPath(const char *src_path, FileProcessParam *param) {
       res = sceIoDread(dfd, &dir);
       if (res > 0) {
         char *new_src_path = malloc(strlen(src_path) + strlen(dir.d_name) + 2);
-        snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
+        snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s%s", src_path, hasEndSlash(src_path) ? "" : "/", dir.d_name);
 
         int ret = 0;
 
@@ -252,7 +252,7 @@ int send_thread(SceSize args_size, SendArguments *args) {
 
   int i;
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
     getPathInfo(path, &size, &folders, &files, NULL);
     mark_entry = mark_entry->next;
   }
@@ -276,7 +276,7 @@ int send_thread(SceSize args_size, SendArguments *args) {
   mark_entry = head;
 
   for (i = 0; i < count; i++) {
-    snprintf(path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, mark_entry->name);
+    snprintf(path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, mark_entry->name);
 
     FileProcessParam param;
     param.value = &value;
@@ -447,7 +447,7 @@ int receive_thread(SceSize args_size, ReceiveArguments *args) {
     
     // New path
     char dst_path[MAX_PATH_LENGTH];
-    snprintf(dst_path, MAX_PATH_LENGTH - 1, "%s%s", args->file_list->path, path + server_info.path_len);
+    snprintf(dst_path, MAX_PATH_LENGTH, "%s%s", args->file_list->path, path + server_info.path_len);
 
     // Folder
     if (info.type == SHARE_TYPE_FOLDER) {
@@ -696,7 +696,7 @@ int initAdhocDialog() {
 void adhocDialogCtrl() {
   adhocUpdatePeerList();
   
-  if (pressed_pad[PAD_CROSS]) {
+  if (pressed_pad[PAD_ENTER]) {
     if (peer_count > 0) {
       SceNetAdhocctlPeerInfo *curr = peer_list;
       int i;

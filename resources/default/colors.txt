@@ -24,6 +24,8 @@ ARCHIVE_COLOR                = 0xFF007FFF    # Orange
 SCROLL_BAR_COLOR             = 0xFFFF7F00    # Azure
 SCROLL_BAR_BG_COLOR          = 0xFF7F7F7F    # Gray
 MARKED_COLOR                 = 0x4FFF7F00    # Azure with alpha
+FILE_SYMLINK_COLOR           = 0xFFFFFFFF    # White
+FOLDER_SYMLINK_COLOR         = 0xFFFFFFFF    # White
 
 # Context menu colors
 CONTEXT_MENU_TEXT_COLOR      = 0xFFFFFFFF    # White

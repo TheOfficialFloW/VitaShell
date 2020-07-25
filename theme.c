@@ -34,7 +34,9 @@ INCLUDE_EXTERN_RESOURCE(default_cover_png);
 INCLUDE_EXTERN_RESOURCE(default_fastforward_png);
 INCLUDE_EXTERN_RESOURCE(default_fastrewind_png);
 INCLUDE_EXTERN_RESOURCE(default_file_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_file_symlink_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_folder_icon_png);
+INCLUDE_EXTERN_RESOURCE(default_folder_symlink_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_ftp_png);
 INCLUDE_EXTERN_RESOURCE(default_image_icon_png);
 INCLUDE_EXTERN_RESOURCE(default_pause_png);
@@ -58,6 +60,8 @@ int SETTINGS_MENU_OPTION_COLOR;
 // File browser colors
 int FOCUS_COLOR;
 int FILE_COLOR;
+int FILE_SYMLINK_COLOR;
+int FOLDER_SYMLINK_COLOR;
 int SFO_COLOR;
 int TXT_COLOR;
 int FOLDER_COLOR;
@@ -105,7 +109,8 @@ int AUDIO_TIME_TOTAL;
 int AUDIO_TIME_BAR;
 int AUDIO_TIME_BAR_BG;
 
-vita2d_texture *folder_icon = NULL, *file_icon = NULL, *archive_icon = NULL, *image_icon = NULL, *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
+vita2d_texture *folder_icon = NULL, *folder_symlink_icon = NULL, *file_icon = NULL,*file_symlink_icon = NULL, *archive_icon =NULL, *image_icon = NULL,
+    *audio_icon = NULL, *sfo_icon = NULL, *text_icon = NULL,
          *ftp_image = NULL, *dialog_image = NULL, *context_image = NULL, *context_more_image = NULL, *settings_image = NULL, *battery_image = NULL,
          *battery_bar_red_image = NULL, *battery_bar_green_image = NULL, *battery_bar_charge_image = NULL, *bg_browser_image = NULL, *bg_hex_image = NULL, *bg_text_image = NULL,
          *bg_photo_image = NULL, *bg_audio_image = NULL, *cover_image = NULL, *play_image = NULL, *pause_image = NULL, *fastforward_image = NULL, *fastrewind_image = NULL;
@@ -142,7 +147,11 @@ ThemeImage theme_images[] = {
   { "fastforward.png", &_binary_resources_default_fastforward_png_start, &fastforward_image },
   { "fastrewind.png", &_binary_resources_default_fastrewind_png_start, &fastrewind_image },
   { "file_icon.png", &_binary_resources_default_file_icon_png_start, &file_icon },
+  { "file_symlink_icon.png", &_binary_resources_default_file_symlink_icon_png_start,
+      &file_symlink_icon },
   { "folder_icon.png", &_binary_resources_default_folder_icon_png_start, &folder_icon },
+  { "folder_symlink_icon.png", &_binary_resources_default_folder_symlink_icon_png_start,
+      &folder_symlink_icon },
   { "ftp.png", &_binary_resources_default_ftp_png_start, &ftp_image },
   { "image_icon.png", &_binary_resources_default_image_icon_png_start, &image_icon },
   { "pause.png", &_binary_resources_default_pause_png_start, &pause_image },
@@ -174,6 +183,8 @@ void loadTheme() {
     // File browser colors
     COLOR_ENTRY(FOCUS_COLOR),
     COLOR_ENTRY(FILE_COLOR),
+    COLOR_ENTRY(FILE_SYMLINK_COLOR),
+    COLOR_ENTRY(FOLDER_SYMLINK_COLOR),
     COLOR_ENTRY(SFO_COLOR),
     COLOR_ENTRY(TXT_COLOR),
     COLOR_ENTRY(FOLDER_COLOR),
@@ -225,7 +236,8 @@ void loadTheme() {
   int i;
 
   // Load default config file
-  readConfigBuffer(&_binary_resources_default_colors_txt_start, (int)&_binary_resources_default_colors_txt_size, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
+  readConfigBuffer(&_binary_resources_default_colors_txt_start, (int)&_binary_resources_default_colors_txt_size,
+                   colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
 
   // Load custom config file
   if (use_custom_config) {
@@ -241,16 +253,16 @@ void loadTheme() {
 
     if (theme_name) {
       // Load colors config
-      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
+      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/colors.txt", theme_name);
       readConfig(path, colors_entries, sizeof(colors_entries) / sizeof(ConfigEntry));
       
       // Font
-      snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
+      snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/font.pgf", theme_name);
       font = vita2d_load_custom_pgf(path);
       
       // Load theme
       for (i = 0; i < N_THEME_IMAGES; i++) {
-        snprintf(path, MAX_PATH_LENGTH - 1, "ux0:VitaShell/theme/%s/%s", theme_name, theme_images[i].name);
+        snprintf(path, MAX_PATH_LENGTH, "ux0:VitaShell/theme/%s/%s", theme_name, theme_images[i].name);
         if (theme_images[i].texture && *(theme_images[i].texture) == NULL)
           *(theme_images[i].texture) = vita2d_load_PNG_file(path);
       }

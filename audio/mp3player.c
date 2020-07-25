@@ -57,13 +57,13 @@ static int MP3_channels = 0;
 static int MP3_tagRead = 0;
 
 // The following variables are maintained and updated by the tracker during playback
-static int MP3_isPlaying;		// Set to true when a mod is being played
+static int MP3_isPlaying;        // Set to true when a mod is being played
 static long MP3_suspendPosition = -1;
 static long MP3_suspendIsPlaying = 0;
 
 typedef struct  {
-	short left;
-	short right;
+    short left;
+    short right;
 } Sample;
 
 //////////////////////////////////////////////////////////////////////
@@ -106,15 +106,15 @@ static void ApplyFilter(struct mad_frame *Frame){
      */
     Samples = MAD_NSBSAMPLES(&Frame->header);
     if (Frame->header.mode != MAD_MODE_SINGLE_CHANNEL)
-	for (Channel = 0; Channel < 2; Channel++)
-	    for (Sample = 0; Sample < Samples; Sample++)
-		for (SubBand = 0; SubBand < 32; SubBand++)
-			Frame->sbsample[Channel][Sample][SubBand] =
-			mad_f_mul(Frame->sbsample[Channel][Sample][SubBand], Filter[SubBand]);
+    for (Channel = 0; Channel < 2; Channel++)
+        for (Sample = 0; Sample < Samples; Sample++)
+        for (SubBand = 0; SubBand < 32; SubBand++)
+            Frame->sbsample[Channel][Sample][SubBand] =
+            mad_f_mul(Frame->sbsample[Channel][Sample][SubBand], Filter[SubBand]);
     else
-	for (Sample = 0; Sample < Samples; Sample++)
-	    for (SubBand = 0; SubBand < 32; SubBand++)
-			Frame->sbsample[0][Sample][SubBand] = mad_f_mul(Frame->sbsample[0][Sample][SubBand], Filter[SubBand]);
+    for (Sample = 0; Sample < Samples; Sample++)
+        for (SubBand = 0; SubBand < 32; SubBand++)
+            Frame->sbsample[0][Sample][SubBand] = mad_f_mul(Frame->sbsample[0][Sample][SubBand], Filter[SubBand]);
 }
 
 
@@ -123,17 +123,17 @@ static void ApplyFilter(struct mad_frame *Frame){
 // short (16 bits).
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 short convertSample(mad_fixed_t sample) {
-	// round
-	sample += (1L << (MAD_F_FRACBITS - 16));
+    // round
+    sample += (1L << (MAD_F_FRACBITS - 16));
 
-	// clip
-	if (sample >= MAD_F_ONE)
-    	sample = MAD_F_ONE - 1;
-	else if (sample < -MAD_F_ONE)
-	    sample = -MAD_F_ONE;
+    // clip
+    if (sample >= MAD_F_ONE)
+        sample = MAD_F_ONE - 1;
+    else if (sample < -MAD_F_ONE)
+        sample = -MAD_F_ONE;
 
-	// quantize
-	return sample >> (MAD_F_FRACBITS + 1 - 16);
+    // quantize
+    return sample >> (MAD_F_FRACBITS + 1 - 16);
 }
 
 
@@ -141,60 +141,60 @@ short convertSample(mad_fixed_t sample) {
 //Streaming functions (adapted from Ghoti's MusiceEngine.c):
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int fillFileBuffer() {
-	// Find out how much to keep and how much to fill.
-	const unsigned int   bytesToKeep   = Stream.bufend - Stream.next_frame;
-	unsigned int         bytesToFill   = sizeof(fileBuffer) - bytesToKeep;
+    // Find out how much to keep and how much to fill.
+    const unsigned int   bytesToKeep   = Stream.bufend - Stream.next_frame;
+    unsigned int         bytesToFill   = sizeof(fileBuffer) - bytesToKeep;
 
-	// Want to keep any bytes?
-	if (bytesToKeep)
-		memmove(fileBuffer, fileBuffer + sizeof(fileBuffer) - bytesToKeep, bytesToKeep);
+    // Want to keep any bytes?
+    if (bytesToKeep)
+        memmove(fileBuffer, fileBuffer + sizeof(fileBuffer) - bytesToKeep, bytesToKeep);
 
-	// Read into the rest of the file buffer.
-	unsigned char* bufferPos = fileBuffer + bytesToKeep;
-	while (bytesToFill > 0){
-		int bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
+    // Read into the rest of the file buffer.
+    unsigned char* bufferPos = fileBuffer + bytesToKeep;
+    while (bytesToFill > 0){
+        int bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
 
-		if (bytesRead == 0x80010013) {
-			MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
-			if (MP3_fd >= 0) {
-				sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
-			}
+        if (bytesRead == 0x80010013) {
+            MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+            if (MP3_fd >= 0) {
+                sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+            }
 
-			bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
-		}
+            bytesRead = sceIoRead(MP3_fd, bufferPos, bytesToFill);
+        }
 
-		// EOF?
-		if (bytesRead <= 0)
-			return 2;
+        // EOF?
+        if (bytesRead <= 0)
+            return 2;
 
-		// Adjust where we're writing to.
-		bytesToFill -= bytesRead;
-		bufferPos += bytesRead;
-		MP3_filePos += bytesRead;
-	}
-	return 0;
+        // Adjust where we're writing to.
+        bytesToFill -= bytesRead;
+        bufferPos += bytesRead;
+        MP3_filePos += bytesRead;
+    }
+    return 0;
 }
 
 void decode() {
-	while ((mad_frame_decode(&Frame, &Stream) == -1) && ((Stream.error == MAD_ERROR_BUFLEN) || (Stream.error == MAD_ERROR_BUFPTR))){
-		int tmp;
-		tmp = fillFileBuffer();
-		if (tmp==2)
+    while ((mad_frame_decode(&Frame, &Stream) == -1) && ((Stream.error == MAD_ERROR_BUFLEN) || (Stream.error == MAD_ERROR_BUFPTR))){
+        int tmp;
+        tmp = fillFileBuffer();
+        if (tmp==2)
             eos = 1;
-		mad_stream_buffer(&Stream, fileBuffer, sizeof(fileBuffer));
-	}
+        mad_stream_buffer(&Stream, fileBuffer, sizeof(fileBuffer));
+    }
     //Equalizers and volume boost (NEW METHOD):
     if (DoFilter || MP3_volume_boost)
         ApplyFilter(&Frame);
 
     mad_timer_add(&Timer, Frame.header.duration);
-	mad_synth_frame(&Synth, &Frame);
+    mad_synth_frame(&Synth, &Frame);
 }
 
 void convertLeftSamples(Sample* first, Sample* last, const mad_fixed_t* src) {
-	Sample* dst;
-	for (dst = first; dst != last; ++dst){
-		dst->left = convertSample(*src++);
+    Sample* dst;
+    for (dst = first; dst != last; ++dst){
+        dst->left = convertSample(*src++);
         //Volume Boost (OLD METHOD):
         if (MP3_volume_boost_old)
             dst->left = volume_boost(&dst->left, &MP3_volume_boost_old);
@@ -202,9 +202,9 @@ void convertLeftSamples(Sample* first, Sample* last, const mad_fixed_t* src) {
 }
 
 void convertRightSamples(Sample* first, Sample* last, const mad_fixed_t* src) {
-	Sample* dst;
-	for (dst = first; dst != last; ++dst){
-		dst->right = convertSample(*src++);
+    Sample* dst;
+    for (dst = first; dst != last; ++dst){
+        dst->right = convertSample(*src++);
         //Volume Boost (OLD METHOD):
         if (MP3_volume_boost_old)
             dst->right = volume_boost(&dst->right, &MP3_volume_boost_old);
@@ -217,16 +217,16 @@ void convertRightSamples(Sample* first, Sample* last, const mad_fixed_t* src) {
 static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
     Sample *destination = (Sample*)buffer;
 
-    if (MP3_isPlaying == TRUE) {	//  Playing , so mix up a buffer
+    if (MP3_isPlaying == TRUE) {    //  Playing , so mix up a buffer
         MP3_outputInProgress = 1;
-    	while (samplesToWrite > 0) 	{
+        while (samplesToWrite > 0)     {
             const unsigned int samplesAvailable = Synth.pcm.length - samplesRead;
             if (samplesAvailable > samplesToWrite) {
                 convertLeftSamples(destination, destination + samplesToWrite, &Synth.pcm.samples[0][samplesRead]);
-				if (MP3_channels == 2)
-	                convertRightSamples(destination, destination + samplesToWrite, &Synth.pcm.samples[1][samplesRead]);
-				else
-	                convertRightSamples(destination, destination + samplesToWrite, &Synth.pcm.samples[0][samplesRead]);
+                if (MP3_channels == 2)
+                    convertRightSamples(destination, destination + samplesToWrite, &Synth.pcm.samples[1][samplesRead]);
+                else
+                    convertRightSamples(destination, destination + samplesToWrite, &Synth.pcm.samples[0][samplesRead]);
 
                 samplesRead += samplesToWrite;
                 samplesToWrite = 0;
@@ -236,15 +236,15 @@ static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
                     if (!MP3_newFilePos)
                         MP3_newFilePos = ID3v2TagSize(MP3_fileName);
 
-					int res = sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET);
-					if (res == 0x80010013) {
-						MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
-						if (MP3_fd >= 0) {
-							sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
-						}
+                    int res = sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET);
+                    if (res == 0x80010013) {
+                        MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+                        if (MP3_fd >= 0) {
+                            sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+                        }
 
-						res = sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET);
-					}
+                        res = sceIoLseek32(MP3_fd, MP3_newFilePos, SCE_SEEK_SET);
+                    }
 
                     if (res != MP3_filePos){
                         MP3_filePos = MP3_newFilePos;
@@ -253,17 +253,17 @@ static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
                     MP3_newFilePos = -1;
                 }
 
-		        //Check for playing speed:
+                //Check for playing speed:
                 if (MP3_playingSpeed){
-					int res = sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR);
-					if (res == 0x80010013) {
-						MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
-						if (MP3_fd >= 0) {
-							sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
-						}
+                    int res = sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR);
+                    if (res == 0x80010013) {
+                        MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+                        if (MP3_fd >= 0) {
+                            sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+                        }
 
-						res = sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR);
-					}
+                        res = sceIoLseek32(MP3_fd, 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed, SCE_SEEK_CUR);
+                    }
 
                     if (res != MP3_filePos){
                         MP3_filePos += 2 * INPUT_BUFFER_SIZE * MP3_playingSpeed;
@@ -273,10 +273,10 @@ static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
                 }
             }else{
                 convertLeftSamples(destination, destination + samplesAvailable, &Synth.pcm.samples[0][samplesRead]);
-				if 	(MP3_channels == 2)
-	                convertRightSamples(destination, destination + samplesAvailable, &Synth.pcm.samples[1][samplesRead]);
-				else
-	                convertRightSamples(destination, destination + samplesAvailable, &Synth.pcm.samples[0][samplesRead]);
+                if     (MP3_channels == 2)
+                    convertRightSamples(destination, destination + samplesAvailable, &Synth.pcm.samples[1][samplesRead]);
+                else
+                    convertRightSamples(destination, destination + samplesAvailable, &Synth.pcm.samples[0][samplesRead]);
 
                 samplesRead = 0;
                 decode();
@@ -286,11 +286,11 @@ static void MP3Callback(void *buffer, unsigned int samplesToWrite, void *pdata){
             }
         }
         MP3_outputInProgress = 0;
-    } else {			//  Not Playing , so clear buffer
-		int count;
-		for (count = 0; count < samplesToWrite; count++){
-			destination[count].left	= 0;
-			destination[count].right = 0;
+    } else {            //  Not Playing , so clear buffer
+        int count;
+        for (count = 0; count < samplesToWrite; count++){
+            destination[count].left    = 0;
+            destination[count].right = 0;
         }
     }
 }
@@ -303,8 +303,8 @@ void MP3_Init(int channel){
     initAudioLib();
     myChannel = channel;
     MP3_isPlaying = FALSE;
-	MP3_playingSpeed = 0;
-	MP3_volume_boost = 0;
+    MP3_playingSpeed = 0;
+    MP3_volume_boost = 0;
     MP3_volume_boost_old = 0;
 
     initFileInfo(&MP3_info);
@@ -317,7 +317,7 @@ void MP3_Init(int channel){
 
     /* First the structures used by libmad must be initialized. */
     mad_stream_init(&Stream);
-	mad_header_init(&Header);
+    mad_header_init(&Header);
     mad_frame_init(&Frame);
     mad_synth_init(&Synth);
     mad_timer_reset(&Timer);
@@ -354,7 +354,7 @@ void getMP3TagInfo(char *filename, struct fileInfo *targetInfo){
     strcpy(targetInfo->year, ID3.ID3Year);
     strcpy(targetInfo->genre, ID3.ID3GenreText);
     strcpy(targetInfo->trackNumber, ID3.ID3TrackText);
-	targetInfo->length = ID3.ID3Length;
+    targetInfo->length = ID3.ID3Length;
     targetInfo->encapsulatedPictureType = ID3.ID3EncapsulatedPictureType;
     targetInfo->encapsulatedPictureOffset = ID3.ID3EncapsulatedPictureOffset;
     targetInfo->encapsulatedPictureLength = ID3.ID3EncapsulatedPictureLength;
@@ -365,40 +365,40 @@ void getMP3TagInfo(char *filename, struct fileInfo *targetInfo){
 }
 
 int MP3getInfo(){
-	unsigned long FrameCount = 0;
+    unsigned long FrameCount = 0;
     int fd;
     int bufferSize = 1024*496;
     uint8_t *localBuffer;
 
     int has_xing = 0;
     struct xing xing;
-	memset(&xing, 0, sizeof xing);
+    memset(&xing, 0, sizeof xing);
 
     long singleDataRed = 0;
-	struct mad_stream stream;
-	struct mad_header header;
+    struct mad_stream stream;
+    struct mad_header header;
     int timeFromID3 = 0;
     float mediumBitrate = 0.0f;
 
     if (!MP3_tagRead)
         getMP3TagInfo(MP3_fileName, &MP3_info);
 
-	mad_stream_init (&stream);
-	mad_header_init (&header);
+    mad_stream_init (&stream);
+    mad_header_init (&header);
 
     fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
     if (fd < 0)
         return -1;
 
-	long size = sceIoLseek(fd, 0, SCE_SEEK_END);
+    long size = sceIoLseek(fd, 0, SCE_SEEK_END);
     sceIoLseek(fd, 0, SCE_SEEK_SET);
 
-	double startPos = ID3v2TagSize(MP3_fileName);
+    double startPos = ID3v2TagSize(MP3_fileName);
     //Check for xing frame:
-	unsigned char *xing_buffer;
-	xing_buffer = (unsigned char *)malloc(XING_BUFFER_SIZE);
-	if (xing_buffer != NULL)
-	{
+    unsigned char *xing_buffer;
+    xing_buffer = (unsigned char *)malloc(XING_BUFFER_SIZE);
+    if (xing_buffer != NULL)
+    {
         sceIoRead(fd, xing_buffer, XING_BUFFER_SIZE);
         if(parse_xing(xing_buffer, 0, &xing))
         {
@@ -410,7 +410,7 @@ int MP3getInfo(){
         free(xing_buffer);
     }
 
-	sceIoLseek32(fd, startPos, SCE_SEEK_SET);
+    sceIoLseek32(fd, startPos, SCE_SEEK_SET);
     startPos = SeekNextFrameMP3(fd);
     size -= startPos;
 
@@ -419,91 +419,91 @@ int MP3getInfo(){
     localBuffer = (unsigned char *) malloc(sizeof(unsigned char) * bufferSize);
     unsigned char *buff = localBuffer;
 
-	MP3_channels = 2;
-	MP3_info.fileType = MP3_TYPE;
+    MP3_channels = 2;
+    MP3_info.fileType = MP3_TYPE;
     MP3_info.defaultCPUClock = MP3_defaultCPUClock;
     MP3_info.needsME = 0;
-	MP3_info.fileSize = size;
+    MP3_info.fileSize = size;
     MP3_info.framesDecoded = 0;
 
     double totalBitrate = 0;
     int i = 0;
 
-	for (i=0; i<3; i++){
+    for (i=0; i<3; i++){
         memset(localBuffer, 0, bufferSize);
         singleDataRed = sceIoRead(fd, localBuffer, bufferSize);
-    	mad_stream_buffer (&stream, localBuffer, singleDataRed);
+        mad_stream_buffer (&stream, localBuffer, singleDataRed);
 
         while (1){
-    		if (mad_header_decode (&header, &stream) == -1){
+            if (mad_header_decode (&header, &stream) == -1){
                 if (stream.buffer == NULL || stream.error == MAD_ERROR_BUFLEN)
                     break;
-    			else if (MAD_RECOVERABLE(stream.error)){
-    				continue;
-    			}else{
-    				break;
-    			}
-    		}
-    		//Informazioni solo dal primo frame:
-    	    if (FrameCount++ == 0){
-    			switch (header.layer) {
-    			case MAD_LAYER_I:
-    				strcpy(MP3_info.layer,"I");
-    				break;
-    			case MAD_LAYER_II:
-    				strcpy(MP3_info.layer,"II");
-    				break;
-    			case MAD_LAYER_III:
-    				strcpy(MP3_info.layer,"III");
-    				break;
-    			default:
-    				strcpy(MP3_info.layer,"unknown");
-    				break;
-    			}
+                else if (MAD_RECOVERABLE(stream.error)){
+                    continue;
+                }else{
+                    break;
+                }
+            }
+            //Informazioni solo dal primo frame:
+            if (FrameCount++ == 0){
+                switch (header.layer) {
+                case MAD_LAYER_I:
+                    strcpy(MP3_info.layer,"I");
+                    break;
+                case MAD_LAYER_II:
+                    strcpy(MP3_info.layer,"II");
+                    break;
+                case MAD_LAYER_III:
+                    strcpy(MP3_info.layer,"III");
+                    break;
+                default:
+                    strcpy(MP3_info.layer,"unknown");
+                    break;
+                }
 
-    			MP3_info.kbit = header.bitrate / 1000;
-    			MP3_info.instantBitrate = header.bitrate;
-    			MP3_info.hz = header.samplerate;
-    			switch (header.mode) {
-    			case MAD_MODE_SINGLE_CHANNEL:
-    				strcpy(MP3_info.mode, "single channel");
-					MP3_channels = 1;
-    				break;
-    			case MAD_MODE_DUAL_CHANNEL:
-    				strcpy(MP3_info.mode, "dual channel");
-					MP3_channels = 2;
-					break;
-    			case MAD_MODE_JOINT_STEREO:
-    				strcpy(MP3_info.mode, "joint (MS/intensity) stereo");
-					MP3_channels = 2;
-    				break;
-    			case MAD_MODE_STEREO:
-    				strcpy(MP3_info.mode, "normal LR stereo");
-					MP3_channels = 2;
-    				break;
-    			default:
-    				strcpy(MP3_info.mode, "unknown");
-					MP3_channels = 2;
-    				break;
-    			}
+                MP3_info.kbit = header.bitrate / 1000;
+                MP3_info.instantBitrate = header.bitrate;
+                MP3_info.hz = header.samplerate;
+                switch (header.mode) {
+                case MAD_MODE_SINGLE_CHANNEL:
+                    strcpy(MP3_info.mode, "single channel");
+                    MP3_channels = 1;
+                    break;
+                case MAD_MODE_DUAL_CHANNEL:
+                    strcpy(MP3_info.mode, "dual channel");
+                    MP3_channels = 2;
+                    break;
+                case MAD_MODE_JOINT_STEREO:
+                    strcpy(MP3_info.mode, "joint (MS/intensity) stereo");
+                    MP3_channels = 2;
+                    break;
+                case MAD_MODE_STEREO:
+                    strcpy(MP3_info.mode, "normal LR stereo");
+                    MP3_channels = 2;
+                    break;
+                default:
+                    strcpy(MP3_info.mode, "unknown");
+                    MP3_channels = 2;
+                    break;
+                }
 
-    			switch (header.emphasis) {
-    			case MAD_EMPHASIS_NONE:
-    				strcpy(MP3_info.emphasis,"no");
-    				break;
-    			case MAD_EMPHASIS_50_15_US:
-    				strcpy(MP3_info.emphasis,"50/15 us");
-    				break;
-    			case MAD_EMPHASIS_CCITT_J_17:
-    				strcpy(MP3_info.emphasis,"CCITT J.17");
-    				break;
-    			case MAD_EMPHASIS_RESERVED:
-    				strcpy(MP3_info.emphasis,"reserved(!)");
-    				break;
-    			default:
-    				strcpy(MP3_info.emphasis,"unknown");
-    				break;
-    			}
+                switch (header.emphasis) {
+                case MAD_EMPHASIS_NONE:
+                    strcpy(MP3_info.emphasis,"no");
+                    break;
+                case MAD_EMPHASIS_50_15_US:
+                    strcpy(MP3_info.emphasis,"50/15 us");
+                    break;
+                case MAD_EMPHASIS_CCITT_J_17:
+                    strcpy(MP3_info.emphasis,"CCITT J.17");
+                    break;
+                case MAD_EMPHASIS_RESERVED:
+                    strcpy(MP3_info.emphasis,"reserved(!)");
+                    break;
+                default:
+                    strcpy(MP3_info.emphasis,"unknown");
+                    break;
+                }
 
                 //Check if lenght found in tag info:
                 if (MP3_info.length > 0){
@@ -515,7 +515,7 @@ int MP3getInfo(){
             }
 
             totalBitrate += header.bitrate;
-		}
+        }
         if (size == bufferSize)
             break;
         else if (i==0)
@@ -525,11 +525,11 @@ int MP3getInfo(){
 
         if (timeFromID3 || has_xing)
             break;
-	}
-	mad_header_finish (&header);
-	mad_stream_finish (&stream);
+    }
+    mad_header_finish (&header);
+    mad_stream_finish (&stream);
     if (buff)
-    	free(buff);
+        free(buff);
     sceIoClose(fd);
 
     int secs = 0;
@@ -538,21 +538,21 @@ int MP3getInfo(){
         /* modify header.duration since we don't need it anymore */
         mad_timer_multiply(&header.duration, xing.frames);
         secs = mad_timer_count(header.duration, MAD_UNITS_SECONDS);
-		MP3_info.length = secs;
-	}
+        MP3_info.length = secs;
+    }
     else if (!MP3_info.length){
-		mediumBitrate = totalBitrate / (float)FrameCount;
-		secs = size * 8 / mediumBitrate;
+        mediumBitrate = totalBitrate / (float)FrameCount;
+        secs = size * 8 / mediumBitrate;
         MP3_info.length = secs;
     }else{
         secs = MP3_info.length;
     }
 
-	//Formatto in stringa la durata totale:
-	int h = secs / 3600;
-	int m = (secs - h * 3600) / 60;
-	int s = secs - h * 3600 - m * 60;
-	snprintf(MP3_info.strLength, sizeof(MP3_info.strLength), "%2.2i:%2.2i:%2.2i", h, m, s);
+    //Formatto in stringa la durata totale:
+    int h = secs / 3600;
+    int m = (secs - h * 3600) / 60;
+    int s = secs - h * 3600 - m * 60;
+    snprintf(MP3_info.strLength, sizeof(MP3_info.strLength), "%2.2i:%2.2i:%2.2i", h, m, s);
 
     return 0;
 }
@@ -574,7 +574,7 @@ void MP3_End(){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int MP3_Load(char *filename){
     eos = 0;
-	MP3_outputInProgress = 0;
+    MP3_outputInProgress = 0;
     MP3_filePos = 0;
     fileSize = 0;
     samplesRead = 0;
@@ -582,9 +582,9 @@ int MP3_Load(char *filename){
     if (MP3_fd < 0)
         return ERROR_OPENING;
     fileSize = sceIoLseek32(MP3_fd, 0, SCE_SEEK_END);
-	sceIoLseek32(MP3_fd, 0, SCE_SEEK_SET);
-	tagsize = ID3v2TagSize(filename);
-	sceIoLseek32(MP3_fd, tagsize, SCE_SEEK_SET);
+    sceIoLseek32(MP3_fd, 0, SCE_SEEK_SET);
+    tagsize = ID3v2TagSize(filename);
+    sceIoLseek32(MP3_fd, tagsize, SCE_SEEK_SET);
     SeekNextFrameMP3(MP3_fd);
 
     MP3_isPlaying = FALSE;
@@ -604,25 +604,25 @@ int MP3_Load(char *filename){
 }
 
 int MP3_IsPlaying() {
-	return MP3_isPlaying;
+    return MP3_isPlaying;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This function initialises for playing, and starts
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int MP3_Play(){
-	//Azzero il timer:
+    //Azzero il timer:
     if (eos == 1){
-		mad_timer_reset(&Timer);
-	}
+        mad_timer_reset(&Timer);
+    }
 
-	// See if I'm already playing
+    // See if I'm already playing
     if (MP3_isPlaying)
-		return FALSE;
+        return FALSE;
 
     MP3_isPlaying = TRUE;
 
-	return TRUE;
+    return TRUE;
 }
 
 
@@ -659,8 +659,8 @@ void MP3_GetTimeString(char *dest){
 // Get Percentage
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 float MP3_GetPercentage(){
-	//Calcolo posizione in %:
-	float perc = 0.0f;
+    //Calcolo posizione in %:
+    float perc = 0.0f;
 
     if (fileSize > 0){
         perc = ((float)MP3_filePos) / ((float)fileSize - (float)tagsize) * 100.0;
@@ -676,7 +676,7 @@ float MP3_GetPercentage(){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int MP3_EndOfStream(){
     if (eos == 1)
-		return 1;
+        return 1;
     return 0;
 }
 
@@ -685,7 +685,7 @@ int MP3_EndOfStream(){
 //Get info on file:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct fileInfo *MP3_GetInfo(){
-	return &MP3_info;
+    return &MP3_info;
 }
 
 
@@ -696,7 +696,7 @@ struct fileInfo MP3_GetTagInfoOnly(char *filename){
     struct fileInfo tempInfo;
     initFileInfo(&tempInfo);
     getMP3TagInfo(filename, &tempInfo);
-	return tempInfo;
+    return tempInfo;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -739,7 +739,7 @@ void MP3_setVolumeBoost(int boost){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int MP3_getVolumeBoost(){
     if (MP3_volume_boost_type == BOOST_NEW){
-    	return(MP3_volume_boost);
+        return(MP3_volume_boost);
     }else{
         return(MP3_volume_boost_old);
     }
@@ -750,41 +750,41 @@ int MP3_getVolumeBoost(){
 //Set Filter:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int MP3_setFilter(double tFilter[32], int copyFilter){
-	//Converto i db:
-	double AmpFactor;
-	int i;
+    //Converto i db:
+    double AmpFactor;
+    int i;
 
-	for (i = 0; i < 32; i++){
-		//Check for volume boost:
-		if (MP3_volume_boost){
-			AmpFactor=pow(10.,(tFilter[i] + MP3_volume_boost * DB_forBoost)/20);
-		}else{
-			AmpFactor=pow(10.,tFilter[i]/20);
-		}
-		if(AmpFactor>mad_f_todouble(MAD_F_MAX))
-		{
-			DoFilter = 0;
-			return(0);
-		}else{
-			Filter[i]=mad_f_tofixed(AmpFactor);
-		}
-		if (copyFilter){
-			filterDouble[i] = tFilter[i];
-		}
-	}
-	return(1);
+    for (i = 0; i < 32; i++){
+        //Check for volume boost:
+        if (MP3_volume_boost){
+            AmpFactor=pow(10.,(tFilter[i] + MP3_volume_boost * DB_forBoost)/20);
+        }else{
+            AmpFactor=pow(10.,tFilter[i]/20);
+        }
+        if(AmpFactor>mad_f_todouble(MAD_F_MAX))
+        {
+            DoFilter = 0;
+            return(0);
+        }else{
+            Filter[i]=mad_f_tofixed(AmpFactor);
+        }
+        if (copyFilter){
+            filterDouble[i] = tFilter[i];
+        }
+    }
+    return(1);
 }
 
 
 int MP3_isFilterSupported(){
-	return 1;
+    return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Check if filter is enabled:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int MP3_isFilterEnabled(){
-	return DoFilter;
+    return DoFilter;
 }
 
 
@@ -792,7 +792,7 @@ int MP3_isFilterEnabled(){
 //Enable filter:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MP3_enableFilter(){
-	DoFilter = 1;
+    DoFilter = 1;
 }
 
 
@@ -800,30 +800,30 @@ void MP3_enableFilter(){
 //Disable filter:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MP3_disableFilter(){
-	DoFilter = 0;
+    DoFilter = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Get playing speed:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int MP3_getPlayingSpeed(){
-	return MP3_playingSpeed;
+    return MP3_playingSpeed;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Set playing speed:
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int MP3_setPlayingSpeed(int playingSpeed){
-	if (playingSpeed >= MIN_PLAYING_SPEED && playingSpeed <= MAX_PLAYING_SPEED){
-		MP3_playingSpeed = playingSpeed;
-		if (playingSpeed == 0)
+    if (playingSpeed >= MIN_PLAYING_SPEED && playingSpeed <= MAX_PLAYING_SPEED){
+        MP3_playingSpeed = playingSpeed;
+        if (playingSpeed == 0)
             setVolume(myChannel, 0x8000);
-		else
-    		setVolume(myChannel, FASTFORWARD_VOLUME);
-		return 0;
-	}else{
-		return -1;
-	}
+        else
+            setVolume(myChannel, FASTFORWARD_VOLUME);
+        return 0;
+    }else{
+        return -1;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -846,36 +846,36 @@ void MP3_fadeOut(float seconds){
 int MP3_suspend(){
     MP3_suspendPosition = MP3_filePos;
     MP3_suspendIsPlaying = MP3_isPlaying;
-	/*MP3_Stop();
+    /*MP3_Stop();
     MP3_FreeTune();*/
 
-	MP3_isPlaying = FALSE;
+    MP3_isPlaying = FALSE;
     mad_synth_finish(&Synth);
     mad_header_finish(&Header);
     mad_frame_finish(&Frame);
     mad_stream_finish(&Stream);
 
     sceIoClose(MP3_fd);
-	MP3_fd = -1;
+    MP3_fd = -1;
     return 0;
 }
 
 int MP3_resume(){
-	if (MP3_suspendPosition >= 0){
-		mad_stream_init(&Stream);
-		mad_header_init(&Header);
-		mad_frame_init(&Frame);
-		mad_synth_init(&Synth);
-		mad_timer_reset(&Timer);
-		MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
-		if (MP3_fd >= 0){
-			MP3_filePos = MP3_suspendPosition;
-			sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
-			mad_timer_set(&Timer, (int)((float)MP3_info.length / 100.0 * MP3_GetPercentage()), 1, 1);
-			MP3_isPlaying = MP3_suspendIsPlaying;
-		}
-	}
-	MP3_suspendPosition = -1;
+    if (MP3_suspendPosition >= 0){
+        mad_stream_init(&Stream);
+        mad_header_init(&Header);
+        mad_frame_init(&Frame);
+        mad_synth_init(&Synth);
+        mad_timer_reset(&Timer);
+        MP3_fd = sceIoOpen(MP3_fileName, SCE_O_RDONLY, 0777);
+        if (MP3_fd >= 0){
+            MP3_filePos = MP3_suspendPosition;
+            sceIoLseek32(MP3_fd, MP3_filePos, SCE_SEEK_SET);
+            mad_timer_set(&Timer, (int)((float)MP3_info.length / 100.0 * MP3_GetPercentage()), 1, 1);
+            MP3_isPlaying = MP3_suspendIsPlaying;
+        }
+    }
+    MP3_suspendPosition = -1;
     return 0;
 }
 

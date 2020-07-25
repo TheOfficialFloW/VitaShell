@@ -48,16 +48,22 @@
 
 #include "file.h"
 #include "vitashell_config.h"
+#include "vitashell_error.h"
 
 #define INCLUDE_EXTERN_RESOURCE(name) extern unsigned char _binary_resources_##name##_start; extern unsigned char _binary_resources_##name##_size; \
 
 // VitaShell version major.minor
-#define VITASHELL_VERSION_MAJOR 0x01
-#define VITASHELL_VERSION_MINOR 0x83
+#define VITASHELL_VERSION_MAJOR 0x02
+#define VITASHELL_VERSION_MINOR 0x00
 
 #define VITASHELL_VERSION ((VITASHELL_VERSION_MAJOR << 0x18) | (VITASHELL_VERSION_MINOR << 0x10))
 
 #define VITASHELL_LASTDIR "ux0:VitaShell/internal/lastdir.txt"
+
+// needs / at the end
+#define VITASHELL_BOOKMARKS_PATH "ux0:VitaShell/bookmarks/"
+#define VITASHELL_RECENT_PATH "ux0:VitaShell/recent/"
+#define VITASHELL_RECENT_PATH_DELETE_INTERVAL_DAYS 14
 
 #define VITASHELL_TITLEID "VITASHELL"
 
@@ -176,6 +182,8 @@ enum DialogSteps {
   DIALOG_STEP_USB,
 
   DIALOG_STEP_RENAME,
+
+  DIALOG_STEP_NEW_FILE,
   DIALOG_STEP_NEW_FOLDER,
 
   DIALOG_STEP_COPYING,
@@ -242,17 +250,11 @@ enum DialogSteps {
   DIALOG_STEP_ADHOC_RECEIVED,
 };
 
-extern FileList file_list, mark_list, copy_list, install_list;
-
-extern char cur_file[MAX_PATH_LENGTH];
-extern char archive_copy_path[MAX_PATH_LENGTH];
-extern char archive_path[MAX_PATH_LENGTH];
-
-extern int base_pos, rel_pos;
-extern int sort_mode, copy_mode;
-
 extern vita2d_pgf *font;
 extern char font_size_cache[256];
+
+extern char vita_ip[16];
+extern unsigned short int vita_port;
 
 extern VitaShellConfig vitashell_config;
 
@@ -260,17 +262,15 @@ extern int SCE_CTRL_ENTER, SCE_CTRL_CANCEL;
 
 extern int use_custom_config;
 
-void dirLevelUp();
-
 int getDialogStep();
 void setDialogStep(int step);
+int dialogSteps();
+
+void initFtp();
+void initUsb();
 
 void drawScrollBar(int pos, int n);
 void drawShellInfo(const char *path);
-
-int isInArchive();
-
-int refreshFileList();
 
 void ftpvita_PROM(ftpvita_client_info_t *client);
 

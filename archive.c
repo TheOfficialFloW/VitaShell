@@ -17,6 +17,7 @@
 */
 
 #include "main.h"
+#include "browser.h"
 #include "archive.h"
 #include "psarc.h"
 #include "file.h"
@@ -180,7 +181,7 @@ struct archive *open_archive(const char *filename) {
             for (part_format = 0; part_format < 4; part_format++) {
               strcpy(format, "%s%s.part%0Xd.rar");
               format[11] = '1' + part_format;
-              snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, 1);
+              snprintf(new_path, MAX_PATH_LENGTH, format, path, name, 1);
               if (checkFileExist(new_path)) {
                 type = 1;
                 break;
@@ -191,7 +192,7 @@ struct archive *open_archive(const char *filename) {
         
         // Check for .rXX archives
         if (type == 0) {
-          snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s.r00", path, name);
+          snprintf(new_path, MAX_PATH_LENGTH, "%s%s.r00", path, name);
           if (checkFileExist(new_path)) {
             strcpy(format, "%s%s.r%02d");
             type = 2;
@@ -213,7 +214,7 @@ struct archive *open_archive(const char *filename) {
           
           // Append other parts
           while (1) {
-            snprintf(new_path, MAX_PATH_LENGTH - 1, format, path, name, num);
+            snprintf(new_path, MAX_PATH_LENGTH, format, path, name, num);
             if (!checkFileExist(new_path))
               break;
             
@@ -359,7 +360,7 @@ int addArchiveNodeRecursive(ArchiveFileNode *parent, char *name, SceIoStat *stat
   ArchiveFileNode *prev = NULL;
   
   if (!parent)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
   
   ArchiveFileNode *res = _findArchiveNode(parent, name, &parent, &prev, &name, &p);
   
@@ -509,7 +510,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   int res;
 
   if (!list)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
 
   FileListEntry *entry = malloc(sizeof(FileListEntry));
   if (entry) {
@@ -517,6 +518,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
     entry->name = malloc(entry->name_length + 1);
     strcpy(entry->name, DIR_UP);
     entry->is_folder = 1;
+    entry->is_symlink = 0;
     entry->type = FILE_TYPE_UNKNOWN;
     fileListAddEntry(list, entry, sort);
   }
@@ -528,6 +530,7 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   while (curr) {
     FileListEntry *entry = malloc(sizeof(FileListEntry));
     if (entry) {
+      entry->is_symlink = 0;
       entry->is_folder = SCE_S_ISDIR(curr->stat.st_mode);
       if (entry->is_folder) {
         entry->name_length = strlen(curr->name) + 1;
@@ -560,7 +563,8 @@ int fileListGetArchiveEntries(FileList *list, const char *path, int sort) {
   return 0;
 }
 
-int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint32_t *files, int (* handler)(const char *path)) {
+int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders,
+                       uint32_t *files, int (* handler)(const char *path)) {
   if (is_psarc)
     return getPsarcPathInfo(path, size, folders, files, handler);
   
@@ -581,7 +585,7 @@ int getArchivePathInfo(const char *path, uint64_t *size, uint32_t *folders, uint
     int i;
     for (i = 0; i < list.length - 1; i++, entry = entry->next) {
       char *new_path = malloc(strlen(path) + strlen(entry->name) + 2);
-      snprintf(new_path, MAX_PATH_LENGTH - 1, "%s%s", path, entry->name);
+      snprintf(new_path, MAX_PATH_LENGTH, "%s%s", path, entry->name);
       
       if (handler && handler(new_path)) {
         free(new_path);
@@ -735,10 +739,10 @@ int extractArchivePath(const char *src_path, const char *dst_path, FileProcessPa
     int i;
     for (i = 0; i < list.length - 1; i++, entry = entry->next) {
       char *new_src_path = malloc(strlen(src_path) + strlen(entry->name) + 2);
-      snprintf(new_src_path, MAX_PATH_LENGTH - 1, "%s%s", src_path, entry->name);
+      snprintf(new_src_path, MAX_PATH_LENGTH, "%s%s", src_path, entry->name);
 
       char *new_dst_path = malloc(strlen(dst_path) + strlen(entry->name) + 2);
-      snprintf(new_dst_path, MAX_PATH_LENGTH - 1, "%s%s", dst_path, entry->name);
+      snprintf(new_dst_path, MAX_PATH_LENGTH, "%s%s", dst_path, entry->name);
 
       int ret = 0;
       
@@ -771,7 +775,7 @@ int archiveFileGetstat(const char *file, SceIoStat *stat) {
     
   ArchiveFileNode *node = findArchiveNode(file + archive_path_start);
   if (!node)
-    return -1;
+    return VITASHELL_ERROR_ILLEGAL_ADDR;
   
   if (stat)
     memcpy(stat, &node->stat, sizeof(SceIoStat));
