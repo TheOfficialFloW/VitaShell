@@ -94,10 +94,7 @@ void convertToImportsTable3xx(SceImportsTable2xx *import_2xx, SceImportsTable3xx
   }
 }
 
-int checkForUnsafeImports(void *buffer) {
-  Elf32_Ehdr *ehdr = (Elf32_Ehdr *)buffer;
-  Elf32_Phdr *phdr = (Elf32_Phdr *)((uint32_t)buffer + ehdr->e_phoff);
-
+int checkForUnsafeImports(const Elf32_Ehdr *ehdr, const Elf32_Phdr *phdr, void *buffer) {
   if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
       ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
       ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
@@ -108,7 +105,10 @@ int checkForUnsafeImports(void *buffer) {
   uint32_t segment = ehdr->e_entry >> 30;
   uint32_t offset = ehdr->e_entry & 0x3FFFFFFF;
 
-  uint32_t text_addr = (uint32_t)buffer + phdr[segment].p_offset;
+  uint32_t text_addr = (uint32_t)buffer;
+  for (int i = 0; i < segment; i++) {
+    text_addr += phdr[segment].p_filesz;
+  }
 
   SceModuleInfo *mod_info = (SceModuleInfo *)(text_addr + offset);
 
