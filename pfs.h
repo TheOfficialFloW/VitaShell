@@ -19,11 +19,11 @@
 #ifndef __PFS_H__
 #define __PFS_H__
 
-char pfs_mounted_path[MAX_PATH_LENGTH];
-char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
-int read_only;
+extern char pfs_mounted_path[];
+extern char pfs_mount_point[];
+extern int read_only;
 
-int known_pfs_ids[4];
+extern int known_pfs_ids[];
 int pfsMount(const char *path);
 int pfsUmount();
 

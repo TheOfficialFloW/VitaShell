@@ -214,7 +214,7 @@ typedef struct {
 /*  SCE relocation entry */
 
 // assuming LSB of bitfield is listed first
-union {
+typedef union {
   Elf32_Word r_short         : 4;
   struct {
     Elf32_Word r_short     : 4;
