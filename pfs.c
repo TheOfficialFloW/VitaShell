@@ -41,6 +41,10 @@
   0x3F0: vs0:data/external
 */
 
+char pfs_mounted_path[MAX_PATH_LENGTH];
+char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
+int read_only;
+
 int known_pfs_ids[] = {
   0x6E,
   0x12E,
