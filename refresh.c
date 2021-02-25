@@ -116,7 +116,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     sceRegMgrGetKeyBin("/CONFIG/NP", "account_id", &aid, sizeof(uint64_t));
 
     // Check if bounded rif file exits
-    _sceNpDrmGetRifName(rif_name, 0, aid);
+    _sceNpDrmGetRifName(rif_name, aid);
     if (strcmp(content_type, "app") == 0)
       snprintf(rif_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
     else if (strcmp(content_type, "dlc") == 0)
@@ -125,7 +125,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
       return 0;
   
     // Check if fixed rif file exits
-    _sceNpDrmGetFixedRifName(rif_name, 0, 0);
+    _sceNpDrmGetFixedRifName(rif_name, 0);
     if (strcmp(content_type, "app") == 0)
       snprintf(rif_path, MAX_PATH_LENGTH, "ux0:license/app/%s/%s", titleid, rif_name);
     else if (strcmp(content_type, "dlc") == 0)
