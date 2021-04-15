@@ -277,7 +277,8 @@ int copy_thread(SceSize args_size, CopyArguments *args) {
       total += files + folders;
 
     // Check memory card free space
-    if (checkMemoryCardFreeSpace(args->file_list->path, size))
+    // If the copy destination is host0 :, the check will fail, so host0: will not be checked.
+    if (strncmp(args->file_list->path, "host0:", 6) != 0 && checkMemoryCardFreeSpace(args->file_list->path, size))
       goto EXIT;
 
     // Update thread
