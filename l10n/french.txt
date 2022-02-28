@@ -1,5 +1,8 @@
 # VitaShell french translation by xy2_ 
-# Updated by: Dragoon1010 (for VitaShell 1.51), littlebalup (for VitaShell 1.78), ToshiRaw_ (for VitaShell 2.02)
+# Updated by: 
+# Dragoon1010 (for VitaShell 1.51), 
+# littlebalup (for VitaShell 1.78), 
+# ToshiRaw_ (for VitaShell 2.02).
 
 # General strings
 ERROR                                = "Erreur 0x%08X."
