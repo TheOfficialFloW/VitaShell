@@ -1,5 +1,9 @@
 # Changelog
 
+### Changelog 2.03
+
+- Add OFW 3.74 support
+
 ### Changelog 2.02
 - Reverted PSM refresh due to crashes.
 
