@@ -243,7 +243,7 @@ int makeHeadBin() {
   getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
 
   // Enforce TITLE_ID format
-  if (strlen(titleid) != 9)
+  if ((strlen(titleid) != 9) || (strncmp(titleid, strupr(titleid), 9) != 0))
     return VITASHELL_ERROR_INVALID_TITLEID;
 
   // Get content id
