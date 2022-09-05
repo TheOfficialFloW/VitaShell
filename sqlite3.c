@@ -71,7 +71,7 @@ static int vita_xWrite(sqlite3_file *file, const void *buf, int count, sqlite_in
 static int vita_xSync(sqlite3_file *file, int flags)
 {
   vfs_file *p = (vfs_file*)file;
-  int r = sceIoSyncByFd(*p->fd);
+  int r = sceIoSyncByFd(*p->fd, 0);
   LOG("xSync %x, %x => %x\n", *p->fd, flags, r);
   if (IS_ERROR(r))
     return SQLITE_IOERR_FSYNC;
