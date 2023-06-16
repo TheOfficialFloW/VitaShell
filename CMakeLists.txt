@@ -101,6 +101,7 @@ add_executable(VitaShell
   network_download.c
   context_menu.c
   archive.c
+  pbp.c
   psarc.c
   photo.c
   audioplayer.c

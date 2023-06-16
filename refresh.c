@@ -31,6 +31,7 @@
 #include "utils.h"
 #include "rif.h"
 #include "pfs.h"
+#include "pbp.h"
 
 // Note: The promotion process is *VERY* sensitive to the directories used below
 // Don't change them unless you know what you are doing!
@@ -39,6 +40,7 @@
 #define PATCH_TEMP "ux0:temp/patch"
 #define PSM_TEMP "ux0:temp/game"
 #define THEME_TEMP "ux0:temp/theme"
+#define PSP_TEMP "ux0:pspemu/temp/game"
 
 #define MAX_DLC_PER_TITLE 1024
 
@@ -63,6 +65,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
   char sfo_path[MAX_PATH_LENGTH];
   int mounted_appmeta;
   char titleid[12], contentid[50], appver[8];
+  
   if(strcmp(content_type,"psm") == 0) 
   {
     char contentid_path[MAX_PATH_LENGTH];
@@ -87,6 +90,45 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     
     free(cidFile);
   }
+  else if(strcmp(content_type, "psp")) {
+      // read eboot.pbp
+      char ebootpbp_path[MAX_PATH_LENGTH];
+      
+      // Initalize buffers
+      memset(titleid,0,12);
+      memset(contentid,0,50);
+      memset(appver,0,8);
+      
+	  // the vita actually uses the folder name as the title id in PSP case
+	  // this is also important for e.g cloning trick
+	  char* app_directory = getFilename(app_path);
+	  if(TITLEID_FMT_CHECK(app_directory)){
+		  if(app_directory != NULL)
+			free(app_directory);
+		  
+		  return 0;
+	  }
+	  
+	  strncpy(titleid, app_directory, 12);
+	  free(app_directory);
+	  
+      snprintf(ebootpbp_path, MAX_PATH_LENGTH, "%s/EBOOT.PBP", app_path);
+      
+      // Get content_id
+      if(!get_pbp_content_id(ebootpbp_path, contentid)) 
+        return 0;
+      
+      
+      // Get param.sfo
+      void *sfo_buffer = NULL;
+      int sfo_size = get_pbp_sfo(ebootpbp_path, &sfo_buffer);
+      if(sfo_size <= 0)
+        return 0;
+      
+      getSfoString(sfo_buffer, "APP_VER", appver, sizeof(appver));
+      
+      free(sfo_buffer);
+  }
   else {  
     // Read param.sfo
     snprintf(sfo_path, MAX_PATH_LENGTH, "%s/sce_sys/param.sfo", app_path);
@@ -108,7 +150,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
   
   
   // Check if app or dlc exists
-  if (((strcmp(content_type, "app") == 0)||(strcmp(content_type, "dlc") == 0)||(strcmp(content_type,"psm") == 0))&&(checkAppExist(titleid))) {
+  if (((strcmp(content_type, "app") == 0)||(strcmp(content_type, "dlc") == 0) && (checkAppExist(titleid))) {
     char rif_name[48];
     char rif_path[MAX_PATH_LENGTH];
   
@@ -133,10 +175,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     if (checkFileExist(rif_path))
       return 0;
   
-    if(strcmp(content_type,"psm") == 0) 
-      return 0;
  }
-  
   // Check if patch for installed app exists
   else if (strcmp(content_type, "patch") == 0) {
     if (!checkAppExist(titleid))
@@ -159,6 +198,13 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     if (strcmp(appver, promoted_appver) == 0)
       return 0;
     }
+  }
+  // license not needed to promote psp or psm contents
+  else if((strcmp(content_type, "psm" == 0) || (strcmp(content_type, "psp" == 0)) && (checkAppExist(titleid))) { 
+    if(strcmp(content_type, "psp") == 0) {
+      // TODO: check __sce_ebootpbp
+    }
+    return 0;
   }
   return 1;
 }
@@ -247,6 +293,7 @@ typedef struct {
   int max_depth;
   uint8_t* rif;
 } license_data_t;
+
 
 void app_callback(void* data, const char* dir, const char* subdir) {
   refresh_data_t *refresh_data = (refresh_data_t*)data;
@@ -354,15 +401,76 @@ void patch_callback(void* data, const char* dir, const char* subdir) {
   }
 }
 
+void psp_callback(void* data, const char* dir, const char* subdir) {
+  refresh_data_t *refresh_data = (refresh_data_t*)data;
+  char path[MAX_PATH_LENGTH];
+
+  if (refresh_data->refresh_pass) {
+      snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
+	  if (refreshNeeded(path, "psp")){
+		  removePath(PSP_TEMP, NULL);
+		  char content_id[0x30];
+		  char game_folder[MAX_PATH_LENGTH];
+		  
+		  char eboot_pbp[MAX_PATH_LENGTH];
+		  char license_rif[MAX_PATH_LENGTH];
+		  
+		  // get path to executables
+		  snprintf(game_folder, MAX_PATH_LENGTH, "%s/PSP/GAME/%s", path, subdir);
+		  snprintf(eboot_pbp, MAX_PATH_LENGTH, "%s/EBOOT.PBP", game_folder, eboot_pbp);
+		  
+		  if(get_pbp_content_id(eboot_pbp, contentid)){
+			// create directories
+			char promote_psp_folder[MAX_PATH_LENGTH];
+			char promote_psp_game_folder[MAX_PATH_LENGTH];
+			char promote_psp_license_folder[MAX_PATH_LENGTH];
+     		
+			char promote_license_rif[MAX_PATH_LENGTH];
+			char promote_game_folder[MAX_PATH_LENGTH];
+			
+			snprintf(promote_psp_folder, "%s/PSP", PSP_TEMP); 
+			snprintf(promote_psp_game_folder, "%s/PSP/GAME", PSP_TEMP); 
+			snprintf(promote_psp_license_folder, "%s/PSP/LICENSE", PSP_TEMP); 
+			
+			snprintf(promote_license_rif, "%s/PSP/LICENSE/%s.rif", PSP_TEMP, contentid); 
+			snprintf(promote_game_folder, "%s/PSP/GAME/%s", PSP_TEMP, subdir); 
+			
+			// get current rif location
+			snprintf(license_rif, MAX_PATH_LENGTH, "s/PSP/LICENSE/%s.rif", path, contentid);
+			
+			// create the promote directories
+			sceIoMkdir(promote_psp_folder, 0006);
+			sceIoMkdir(promote_psp_game_folder, 0006);
+			sceIoMkdir(promote_psp_license_folder, 0006);
+			
+			// copy the rif to the promote location
+			copyFile(license_rif, promote_license_rif, NULL);
+			sceIoRename(path, promote_game_folder);
+			
+		    // finally call promote
+			if (promoteCma(PSP_TEMP, subdir, SCE_PKG_TYPE_VITA) == 0)
+			  refresh_data->refreshed++;
+			else
+			  sceIoRename(promote_game_folder, path); // Restore folder on error
+			  removePath(PSP_TEMP, NULL); // delete what was created 
+			}
+		  }
+		  
+		  
+	  }
+    SetProgress(++refresh_data->processed, refresh_data->count);
+  } else {
+    refresh_data->count++;
+  }
+
+}
+
 void psm_callback(void* data, const char* dir, const char* subdir) {
   refresh_data_t *refresh_data = (refresh_data_t*)data;
   char path[MAX_PATH_LENGTH];
 
-  if (strcasecmp(subdir, vitashell_titleid) == 0)
-    return;
-
   if (refresh_data->refresh_pass) {
-    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);  
+    snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
     if (refreshNeeded(path, "psm")) {        
     char contentid_path[MAX_PATH_LENGTH];
     snprintf(contentid_path, MAX_PATH_LENGTH, "%s/RW/System/content_id", path);
@@ -385,14 +493,14 @@ void psm_callback(void* data, const char* dir, const char* subdir) {
     
     // Get promote path
     char promote_path[MAX_PATH_LENGTH];
-    snprintf(promote_path,MAX_PATH_LENGTH,"%s/%s",PSM_TEMP,titleid);
+    snprintf(promote_path,MAX_PATH_LENGTH,"%s/%s",PSM_TEMP, titleid);
 
     // Move the directory to temp for installation
     removePath(promote_path, NULL);
     sceIoRename(path, promote_path);
 
     // Finally call promote
-    if (promotePsm(PSM_TEMP,titleid) == 0)
+    if (promoteCma(PSM_TEMP, titleid, SCE_PKG_TYPE_PSM) == 0)
       refresh_data->refreshed++;
     else
       sceIoRename(promote_path, path); // Restore folder on error
@@ -429,15 +537,21 @@ int refresh_thread(SceSize args, void *argp)  {
   // Get the psm count
   if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:psm", psm_callback, &refresh_data) < 0)
     goto EXIT;
+ 
+  // Get the psp count
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:pspemu/PSP/GAME", psp_callback, &refresh_data) < 0)
+    goto EXIT;
 
   // Update thread
   thid = createStartUpdateThread(refresh_data.count, 0);
 
   // Make sure we have the temp directories we need
   sceIoMkdir("ux0:temp", 0006);
+  sceIoMkdir("ux0:pspemu", 0006);
   sceIoMkdir(DLC_TEMP, 0006);
   sceIoMkdir(PATCH_TEMP, 0006);
   sceIoMkdir(PSM_TEMP, 0006);
+  sceIoMkdir(PSP_TEMP, 0006);
   refresh_data.refresh_pass = 1;
 
   // Refresh apps
@@ -456,9 +570,14 @@ int refresh_thread(SceSize args, void *argp)  {
   if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:psm", psm_callback, &refresh_data) < 0)
     goto EXIT;
 
+  // Refresh psp
+  if (parse_dir_with_callback(SCE_S_IFDIR, "ux0:pspemu/PSP/GAME", psp_callback, &refresh_data) < 0)
+    goto EXIT;
+
   sceIoRmdir(DLC_TEMP);
   sceIoRmdir(PATCH_TEMP);
   sceIoRmdir(PSM_TEMP);
+  sceIoRmdir(PSP_TEMP);
 
   // Set progress to 100%
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);

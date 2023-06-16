@@ -48,14 +48,14 @@ static int unloadScePaf() {
   return sceSysmoduleUnloadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, 0, NULL, &buf);
 }
 
-int promotePsm(const char *path, const char *titleid) {
+int promoteCma(const char *path, const char *titleid, int type) {
   int res;
   
   ScePromoterUtilityImportParams promoteArgs;
   memset(&promoteArgs,0x00,sizeof(ScePromoterUtilityImportParams));
   strncpy(promoteArgs.path,path,0x7F);
   strncpy(promoteArgs.titleid,titleid,0xB);
-  promoteArgs.type = SCE_PKG_TYPE_PSM;
+  promoteArgs.type = type;
   promoteArgs.attribute = 0x1;
 
   res = loadScePaf();
@@ -89,8 +89,11 @@ int promotePsm(const char *path, const char *titleid) {
   return res;
 }
 
-int promoteApp(const char *path) {
+// for some reason, psp only seems to work if you use PromotePkg, not PromotePkgWithRif.
+// and also only if you do an asyncronous promote
+int promotePsp(const char *path) {
   int res;
+  int state = -1;
 
   res = loadScePaf();
   if (res < 0)
@@ -104,10 +107,17 @@ int promoteApp(const char *path) {
   if (res < 0)
     return res;
 
-  res = scePromoterUtilityPromotePkgWithRif(path, 1);
+  res = scePromoterUtilityPromotePkg(path, 0);
   if (res < 0)
     return res;
 
+  // wait for promote to finish  
+  while(state != 0){ scePromoterUtilityGetState(&state); };
+  scePromoterUtilityGetResult(&res);
+
+  if(res < 0)
+    return res;
+  
   res = scePromoterUtilityExit();
   if (res < 0)
     return res;
@@ -243,7 +253,7 @@ int makeHeadBin() {
   getSfoString(sfo_buffer, "TITLE_ID", titleid, sizeof(titleid));
 
   // Enforce TITLE_ID format
-  if ((strlen(titleid) != 9) || (strncmp(titleid, strupr(titleid), 9) != 0))
+  if (TITLEID_FMT_CHECK(titleid))
     return VITASHELL_ERROR_INVALID_TITLEID;
 
   // Get content id
@@ -290,6 +300,7 @@ int makeHeadBin() {
 
   return 0;
 }
+
 
 int installPackage(const char *file) {
   int res;
