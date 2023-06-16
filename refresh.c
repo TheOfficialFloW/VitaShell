@@ -150,7 +150,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
   
   
   // Check if app or dlc exists
-  if (((strcmp(content_type, "app") == 0) || (strcmp(content_type, "dlc") == 0)) && (checkAppExist(titleid)) {
+  if(((strcmp(content_type, "app") == 0) || (strcmp(content_type, "dlc") == 0)) && (checkAppExist(titleid))) {
     char rif_name[48];
     char rif_path[MAX_PATH_LENGTH];
   
