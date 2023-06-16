@@ -89,11 +89,8 @@ int promoteCma(const char *path, const char *titleid, int type) {
   return res;
 }
 
-// for some reason, psp only seems to work if you use PromotePkg, not PromotePkgWithRif.
-// and also only if you do an asyncronous promote
-int promotePsp(const char *path) {
+int promoteApp(const char *path) {
   int res;
-  int state = -1;
 
   res = loadScePaf();
   if (res < 0)
@@ -107,17 +104,10 @@ int promotePsp(const char *path) {
   if (res < 0)
     return res;
 
-  res = scePromoterUtilityPromotePkg(path, 0);
+  res = scePromoterUtilityPromotePkgWithRif(path, 1);
   if (res < 0)
     return res;
 
-  // wait for promote to finish  
-  while(state != 0){ scePromoterUtilityGetState(&state); };
-  scePromoterUtilityGetResult(&res);
-
-  if(res < 0)
-    return res;
-  
   res = scePromoterUtilityExit();
   if (res < 0)
     return res;

@@ -90,7 +90,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     
     free(cidFile);
   }
-  else if(strcmp(content_type, "psp")) {
+  else if(strcmp(content_type, "psp") == 0) {
       // read eboot.pbp
       char ebootpbp_path[MAX_PATH_LENGTH];
       
@@ -99,25 +99,20 @@ int refreshNeeded(const char *app_path, const char* content_type) {
       memset(contentid,0,50);
       memset(appver,0,8);
       
-	  // the vita actually uses the folder name as the title id in PSP case
-	  // this is also important for e.g cloning trick
-	  char* app_directory = getFilename(app_path);
-	  if(TITLEID_FMT_CHECK(app_directory)){
-		  if(app_directory != NULL)
-			free(app_directory);
-		  
-		  return 0;
-	  }
-	  
-	  strncpy(titleid, app_directory, 12);
-	  free(app_directory);
-	  
+      // the vita actually uses the folder name as the title id in PSP case
+      // this is also important for e.g cloning trick
+      char* app_directory = getFilename(app_path);
+      if(TITLEID_FMT_CHECK(app_directory)){
+        if(app_directory != NULL) free(app_directory);
+        return 0;
+      }
+      strncpy(titleid, app_directory, 12);
+      free(app_directory);	  
       snprintf(ebootpbp_path, MAX_PATH_LENGTH, "%s/EBOOT.PBP", app_path);
-      
+
       // Get content_id
       if(!get_pbp_content_id(ebootpbp_path, contentid)) 
         return 0;
-      
       
       // Get param.sfo
       void *sfo_buffer = NULL;
@@ -127,6 +122,10 @@ int refreshNeeded(const char *app_path, const char* content_type) {
       
       getSfoString(sfo_buffer, "APP_VER", appver, sizeof(appver));
       
+      // ps1 do not have APP_VER
+      if(strcmp(appver, "") == 0)
+        strcpy(appver, "01.00");
+
       free(sfo_buffer);
   }
   else {  
@@ -407,54 +406,69 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
 
   if (refresh_data->refresh_pass) {
       snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
-	  if (refreshNeeded(path, "psp")){
-		  removePath(PSP_TEMP, NULL);
-		  char contentid[0x30];
-		  char game_folder[MAX_PATH_LENGTH];
-		  
-		  char eboot_pbp[MAX_PATH_LENGTH];
-		  char license_rif[MAX_PATH_LENGTH];
-		  
-		  // get path to executables
-		  snprintf(game_folder, MAX_PATH_LENGTH, "%s/PSP/GAME/%s", path, subdir);
-		  snprintf(eboot_pbp, MAX_PATH_LENGTH, "%s/EBOOT.PBP", game_folder, eboot_pbp);
-		  
-		  if(get_pbp_content_id(eboot_pbp, contentid)){
-			// create directories
-			char promote_psp_folder[MAX_PATH_LENGTH];
-			char promote_psp_game_folder[MAX_PATH_LENGTH];
-			char promote_psp_license_folder[MAX_PATH_LENGTH];
-     		
-			char promote_license_rif[MAX_PATH_LENGTH];
-			char promote_game_folder[MAX_PATH_LENGTH];
-			
-			snprintf(promote_psp_folder, "%s/PSP", PSP_TEMP); 
-			snprintf(promote_psp_game_folder, "%s/PSP/GAME", PSP_TEMP); 
-			snprintf(promote_psp_license_folder, "%s/PSP/LICENSE", PSP_TEMP); 
-			
-			snprintf(promote_license_rif, "%s/PSP/LICENSE/%s.rif", PSP_TEMP, contentid); 
-			snprintf(promote_game_folder, "%s/PSP/GAME/%s", PSP_TEMP, subdir); 
-			
-			// get current rif location
-			snprintf(license_rif, MAX_PATH_LENGTH, "s/PSP/LICENSE/%s.rif", path, contentid);
-			
-			// create the promote directories
-			sceIoMkdir(promote_psp_folder, 0006);
-			sceIoMkdir(promote_psp_game_folder, 0006);
-			sceIoMkdir(promote_psp_license_folder, 0006);
-			
-			// copy the rif to the promote location
-			copyFile(license_rif, promote_license_rif, NULL);
-			sceIoRename(path, promote_game_folder);
-			
-		    // finally call promote
-			if (promoteCma(PSP_TEMP, subdir, SCE_PKG_TYPE_VITA) == 0)
-			  refresh_data->refreshed++;
-			else
-			  sceIoRename(promote_game_folder, path); // Restore folder on error
-			  removePath(PSP_TEMP, NULL); // delete what was created 
-			}
-		}
+      if (refreshNeeded(path, "psp")) {
+        char contentid[0x30];
+        
+        char sce_ebootpbp[MAX_PATH_LENGTH];
+        char eboot_pbp[MAX_PATH_LENGTH];
+        char license_rif[MAX_PATH_LENGTH];
+        
+        snprintf(eboot_pbp, MAX_PATH_LENGTH, "%s/EBOOT.PBP", path);
+        snprintf(sce_ebootpbp, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", path);
+        
+        // cache current __sce_ebootpbp signature file
+        void* sce_ebootpbp_sig_data = NULL;
+        int sce_ebootpbp_sz = allocateReadFile(sce_ebootpbp, &sce_ebootpbp_sig_data);
+        
+        if(get_pbp_content_id(eboot_pbp, contentid)) {
+          // create directories
+          char promote_psp_folder[MAX_PATH_LENGTH];
+          char promote_psp_game_folder[MAX_PATH_LENGTH];
+          char promote_psp_license_folder[MAX_PATH_LENGTH];
+          
+          char promote_license_rif[MAX_PATH_LENGTH];
+          char promote_game_folder[MAX_PATH_LENGTH];
+          
+          snprintf(promote_psp_folder, MAX_PATH_LENGTH, "%s/PSP", PSP_TEMP); 
+          snprintf(promote_psp_game_folder, MAX_PATH_LENGTH, "%s/PSP/GAME", PSP_TEMP); 
+          snprintf(promote_psp_license_folder, MAX_PATH_LENGTH, "%s/PSP/LICENSE", PSP_TEMP); 
+          
+          snprintf(promote_license_rif, MAX_PATH_LENGTH, "%s/PSP/LICENSE/%s.rif", PSP_TEMP, contentid); 
+          snprintf(promote_game_folder, MAX_PATH_LENGTH, "%s/PSP/GAME/%s", PSP_TEMP, subdir); 
+
+          // get current rif location
+          snprintf(license_rif, MAX_PATH_LENGTH, "ux0:/pspemu/PSP/LICENSE/%s.rif", contentid);	
+
+          // create the promote directories
+          sceIoMkdir(promote_psp_folder, 0006);
+          sceIoMkdir(promote_psp_game_folder, 0006);
+          sceIoMkdir(promote_psp_license_folder, 0006);
+          
+          // copy the rif to the promote location
+          copyFile(license_rif, promote_license_rif, NULL);
+          sceIoRename(path, promote_game_folder);
+          
+          // promote will fail if __sce_ebootpbp signature file is invalid (or for another account)
+          // the thing is, if you promote without this file present
+          // the vita will just generate a new one for your current account
+          // so here we force regeneration of it ..
+          sceIoRemove(sce_ebootpbp);
+          
+          if (promoteCma(PSP_TEMP, subdir, SCE_PKG_TYPE_VITA) == 0) {
+            refresh_data->refreshed++;
+          }
+          else {
+            sceIoRename(promote_game_folder, path); // Restore folder on error
+            if(sce_ebootpbp_sz > 0)
+              WriteFile(sce_ebootpbp, sce_ebootpbp_sig_data, sce_ebootpbp_sz); // Restore __sce_ebootpbp
+
+            removePath(PSP_TEMP, NULL); // delete what was created 
+          }
+        }
+
+        if(sce_ebootpbp_sig_data != NULL)
+          free(sce_ebootpbp_sig_data);
+      }
     SetProgress(++refresh_data->processed, refresh_data->count);
   } else {
     refresh_data->count++;

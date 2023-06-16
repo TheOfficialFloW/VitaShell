@@ -28,9 +28,9 @@ int read_content_id_data_psp(SceUID pbp_fd, char* content_id) {
   if(read_sz < sizeof(DataPspHeader)) return 0;
 
   // copy the content id from data.psp header to this content_id buffer
-  strncpy(content_id, data_psp_header.content_id, sizeof(npumdimg_header.content_id));
+  strncpy(content_id, data_psp_header.content_id, sizeof(data_psp_header.content_id));
   
-  return 0;
+  return (strlen(content_id) == 36);
 }
 
 int read_content_id_npumdimg(SceUID pbp_fd, char* content_id) {
@@ -43,7 +43,7 @@ int read_content_id_npumdimg(SceUID pbp_fd, char* content_id) {
   // copy the content id from npumdimg_header to this content_id buffer
   strncpy(content_id, npumdimg_header.content_id, sizeof(npumdimg_header.content_id));
   
-  return 1;
+  return (strlen(content_id) == 36);
 }
 
 int read_data_psar_header(SceUID pbp_fd, char* content_id) {
@@ -60,15 +60,18 @@ int read_data_psar_header(SceUID pbp_fd, char* content_id) {
   read_sz = sceIoRead(pbp_fd, data_psar_magic, sizeof(data_psar_magic));
   if(read_sz < sizeof(data_psar_magic)) return 0;
   
-  if(memcmp(data_psar_magic, "NPUMDIMG") == 0) { // psp
+  if(memcmp(data_psar_magic, "NPUMDIMG", 0x8) == 0) { // psp
     // seek to start of npumdimg
     sceIoLseek(pbp_fd, pbp_header.data_psar_ptr, SCE_SEEK_SET);
     
     // read content_id from npumdimg
-    return read_content_id_data_psp(pbp_fd, &pbp_header, content_id);
+    return read_content_id_npumdimg(pbp_fd, content_id);
   }
-  else if(memcmp(data_psar_magic, "PSISOIMG") == 0 || memcmp(data_psar_magic, "PSTITLEI") == 0) { // ps1
+  else if(memcmp(data_psar_magic, "PSISOIMG", 0x8) == 0 || memcmp(data_psar_magic, "PSTITLEI", 0x8) == 0) { // ps1
     sceIoLseek(pbp_fd, pbp_header.data_psp_ptr, SCE_SEEK_SET);
+	
+	// read content_id from data.psp
+	return read_content_id_data_psp(pbp_fd, content_id);
   }
   else{ // update package, homebrew, etc, 
     return 0; 
@@ -92,7 +95,7 @@ int read_sfo(SceUID pbp_fd, void** param_sfo_buffer){
   if(*param_sfo_buffer == NULL) return 0;
   
   // seek to the start of param.sfo
-  sceIoLseek(pbp_header.param_sfo_ptr, SCE_SEEK_SET);
+  sceIoLseek(pbp_fd, pbp_header.param_sfo_ptr, SCE_SEEK_SET);
   
   // read the param.sfo file
   read_sz = sceIoRead(pbp_fd, *param_sfo_buffer,  param_sfo_size);
@@ -105,7 +108,7 @@ int read_sfo(SceUID pbp_fd, void** param_sfo_buffer){
   return param_sfo_size;
 }
 
-int get_pbp_sfo(const char pbp_file, void** param_sfo_buffer) {
+int get_pbp_sfo(const char* pbp_file, void** param_sfo_buffer) {
   PbpHeader pbp_header;
   
   if(param_sfo_buffer == NULL) return;
@@ -114,7 +117,7 @@ int get_pbp_sfo(const char pbp_file, void** param_sfo_buffer) {
   int res = 0;
   
   if(pbp_file != NULL) {
-    SceUID pbp_fd = sceIoOpen(pbp_file);
+    SceUID pbp_fd = sceIoOpen(pbp_file, SCE_O_RDONLY, 0777);
     if(pbp_fd < 0) return NULL;
     
     // read param.sfo from pbp
@@ -130,9 +133,9 @@ int get_pbp_content_id(const char* pbp_file, char* content_id) {
   int res = 0;
   
   if(pbp_file != NULL && content_id != NULL) {
-    SceUID pbp_fd = sceIoOpen(pbp_file);
+    SceUID pbp_fd = sceIoOpen(pbp_file, SCE_O_RDONLY, 0777);
     if(pbp_fd < 0) return 0;
-    res = read_content_id(pbp_fd, content_id);
+    res = read_data_psar_header(pbp_fd, content_id);
     
     // check the content id is valid
     if(res) {
