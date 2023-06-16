@@ -22,10 +22,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+ + 11 -fno-rtti -fno-exceptions")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2808000000000000")
 
-add_subdirectory(modules/kernel)
-add_subdirectory(modules/user)
-add_subdirectory(modules/patch)
-add_subdirectory(modules/usbdevice)
+#add_subdirectory(modules/kernel)
+#add_subdirectory(modules/user)
+#add_subdirectory(modules/patch)
+#add_subdirectory(modules/usbdevice)
 
 include_directories(
   modules/kernel

@@ -150,7 +150,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
   
   
   // Check if app or dlc exists
-  if (((strcmp(content_type, "app") == 0)||(strcmp(content_type, "dlc") == 0) && (checkAppExist(titleid))) {
+  if (((strcmp(content_type, "app") == 0) || (strcmp(content_type, "dlc") == 0)) && (checkAppExist(titleid)) {
     char rif_name[48];
     char rif_path[MAX_PATH_LENGTH];
   
@@ -454,10 +454,7 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
 			  sceIoRename(promote_game_folder, path); // Restore folder on error
 			  removePath(PSP_TEMP, NULL); // delete what was created 
 			}
-		  }
-		  
-		  
-	  }
+		}
     SetProgress(++refresh_data->processed, refresh_data->count);
   } else {
     refresh_data->count++;
