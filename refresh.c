@@ -200,7 +200,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     }
   }
   // license not needed to promote psp or psm contents
-  else if((strcmp(content_type, "psm" == 0) || (strcmp(content_type, "psp" == 0)) && (checkAppExist(titleid))) { 
+  else if((strcmp(content_type, "psm") == 0) || (strcmp(content_type, "psp") == 0) && (checkAppExist(titleid))) { 
     if(strcmp(content_type, "psp") == 0) {
       // TODO: check __sce_ebootpbp
     }
