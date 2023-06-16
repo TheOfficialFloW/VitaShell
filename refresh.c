@@ -409,7 +409,7 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
       snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
 	  if (refreshNeeded(path, "psp")){
 		  removePath(PSP_TEMP, NULL);
-		  char content_id[0x30];
+		  char contentid[0x30];
 		  char game_folder[MAX_PATH_LENGTH];
 		  
 		  char eboot_pbp[MAX_PATH_LENGTH];
