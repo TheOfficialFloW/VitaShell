@@ -126,48 +126,6 @@ int read_sfo(SceUID pbp_fd, void** param_sfo_buffer){
   return param_sfo_size;
 }
 
-int get_pbp_sfo(const char* pbp_file, void** param_sfo_buffer) {
-  PbpHeader pbp_header;
-  
-  if(param_sfo_buffer == NULL) return NULL;
-  *param_sfo_buffer = NULL;
-  
-  int res = 0;
-  
-  if(pbp_file != NULL) {
-    SceUID pbp_fd = sceIoOpen(pbp_file, SCE_O_RDONLY, 0777);
-    if(pbp_fd < 0) return NULL;
-    
-    // read param.sfo from pbp
-    res = read_sfo(pbp_fd, param_sfo_buffer);
-    
-    sceIoClose(pbp_fd);	
-  }
-  
-  return res;
-}
-
-int get_pbp_content_id(const char* pbp_file, char* content_id) {  
-  int res = 0;
-  
-  if(pbp_file != NULL && content_id != NULL) {
-    SceUID pbp_fd = sceIoOpen(pbp_file, SCE_O_RDONLY, 0777);
-    if(pbp_fd < 0) return 0;
-    res = read_data_psar_header(pbp_fd, content_id);
-    
-    // check the content id is valid
-    if(res) {
-      int content_id_len = strnlen(content_id, 0x30);
-      if(content_id_len != 0x24) res = 0;
-    }
-    
-    sceIoClose(pbp_fd);	
-  }
-  
-  return res;
-  
-}
-
 int hash_pbp(SceUID pbp_fd, char* out_hash) {
   char wbuf[0x7c0]; 
   
@@ -207,9 +165,51 @@ int hash_pbp(SceUID pbp_fd, char* out_hash) {
   
   return 1;
 }
-int _vshNpDrmEbootSigGenMultiDisc(const char *eboot_pbp_path, const void *sce_discinfo, void *eboot_signature, int *sw_version);
 
-int gen_sce_ebootpbp(const char* pbp_file, const char* psp_game_folder){
+
+int get_pbp_sfo(const char* pbp_file, void** param_sfo_buffer) {
+  PbpHeader pbp_header;
+  
+  if(param_sfo_buffer == NULL) return NULL;
+  *param_sfo_buffer = NULL;
+  
+  int res = 0;
+  
+  if(pbp_file != NULL) {
+    SceUID pbp_fd = sceIoOpen(pbp_file, SCE_O_RDONLY, 0);
+    if(pbp_fd < 0) return NULL;
+    
+    // read param.sfo from pbp
+    res = read_sfo(pbp_fd, param_sfo_buffer);
+    
+    sceIoClose(pbp_fd);
+  }
+  
+  return res;
+}
+
+int get_pbp_content_id(const char* pbp_file, char* content_id) {  
+  int res = 0;
+  
+  if(pbp_file != NULL && content_id != NULL) {
+    SceUID pbp_fd = sceIoOpen(pbp_file, SCE_O_RDONLY, 0);
+    if(pbp_fd < 0) return 0;
+    res = read_data_psar_header(pbp_fd, content_id);
+    
+    // check the content id is valid
+    if(res) {
+      int content_id_len = strnlen(content_id, 0x30);
+      if(content_id_len != 0x24) res = 0;
+    }
+   
+    sceIoClose(pbp_fd);
+  }
+  
+  return res;
+  
+}
+
+int gen_sce_ebootpbp(const char* psp_game_folder){
   int res = 0;
   
   char pbp_hash[0x20];
@@ -219,23 +219,34 @@ int gen_sce_ebootpbp(const char* pbp_file, const char* psp_game_folder){
   
   void* sony_sce_discinfo = NULL;
   int sony_sce_discinfo_sz = allocateReadFile("vs0:/NPXS10028/__sce_discinfo", &sony_sce_discinfo);  
+  if(psp_game_folder != NULL) {
+    char ebootpbp_path[MAX_PATH_LENGTH];  
+    char sce_ebootpbp_path[MAX_PATH_LENGTH];
+    char sce_discinfo_path[MAX_PATH_LENGTH];
   
-  char sce_ebootpbp_path[MAX_PATH_LENGTH];
-  char sce_discinfo_path[MAX_PATH_LENGTH];
-  
-  snprintf(sce_ebootpbp_path, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", psp_game_folder); 
-  snprintf(sce_discinfo_path, MAX_PATH_LENGTH, "%s/__sce_discinfo", psp_game_folder); 
+    snprintf(ebootpbp_path,     MAX_PATH_LENGTH, "%s/EBOOT.PBP",      psp_game_folder);
+    snprintf(sce_ebootpbp_path, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", psp_game_folder); 
+    snprintf(sce_discinfo_path, MAX_PATH_LENGTH, "%s/__sce_discinfo", psp_game_folder); 
 
-  memset(pbp_hash, 0x00, sizeof(pbp_hash));
-  memset(sce_ebootpbp, 0x00, sizeof(pbp_hash));
-  sceClibPrintf("pbp_file: %s, psp_game_folder: %s\n", pbp_file, psp_game_folder);
-  if(pbp_file != NULL) {
-    SceUID pbp_fd = sceIoOpen(pbp_file, SCE_O_RDONLY, 0777);
-    if(pbp_fd < 0) return pbp_fd;
+    memset(pbp_hash, 0x00, sizeof(pbp_hash));
+    memset(sce_ebootpbp, 0x00, sizeof(pbp_hash));
+ 
+    SceUID pbp_fd = sceIoOpen(ebootpbp_path, SCE_O_RDONLY, 0);
+    
+    if(pbp_fd < 0) {
+      if(sony_sce_discinfo != NULL)
+        free(sony_sce_discinfo);
+      return pbp_fd;
+    }
     
     int pbp_type = determine_pbp_type(pbp_fd, &pbp_header); // determine pbp header
-    sceClibPrintf("pbp_type: %x\n", pbp_type);
-    if(pbp_type == PBP_TYPE_UNKNOWN) return res;
+
+    if(pbp_type == PBP_TYPE_UNKNOWN){
+      if(sony_sce_discinfo != NULL)
+        free(sony_sce_discinfo);
+      sceIoClose(pbp_fd);
+      return res;
+    }
     
     res = hash_pbp(pbp_fd, pbp_hash); // hash eboot.pbp
     
@@ -243,12 +254,11 @@ int gen_sce_ebootpbp(const char* pbp_file, const char* psp_game_folder){
     
      // actually generate the __sce_ebootpbp or __sce_discinfo 
      if(pbp_type == PBP_TYPE_NPUMDIMG)
-       res = _vshNpDrmEbootSigGenPsp(pbp_file, pbp_hash, sce_ebootpbp, &sw_version);
+       res = _vshNpDrmEbootSigGenPsp(ebootpbp_path, pbp_hash, sce_ebootpbp, &sw_version);
     else if(pbp_type == PBP_TYPE_PSISOIMG)                              
-      res = _vshNpDrmEbootSigGenPs1(pbp_file, pbp_hash, sce_ebootpbp, &sw_version);
+      res = _vshNpDrmEbootSigGenPs1(ebootpbp_path, pbp_hash, sce_ebootpbp, &sw_version);
     else if(pbp_type == PBP_TYPE_PSTITLEIMG)
-       res = _vshNpDrmEbootSigGenMultiDisc(pbp_file, sony_sce_discinfo, sce_ebootpbp, &sw_version);
-
+       res = _vshNpDrmEbootSigGenMultiDisc(ebootpbp_path, sony_sce_discinfo, sce_ebootpbp, &sw_version);
     if(res >= 0) { // write __sce_ebootpbp
       if(pbp_type == PBP_TYPE_NPUMDIMG || pbp_type == PBP_TYPE_PSISOIMG)
         res = WriteFile(sce_ebootpbp_path, sce_ebootpbp, 0x200);

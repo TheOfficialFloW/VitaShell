@@ -100,5 +100,5 @@ typedef struct PbpHeader
 
 int get_pbp_sfo(const char* pbp_file, void** param_sfo_buffer);
 int get_pbp_content_id(const char* pbp_file, char* content_id);
-int gen_sce_ebootpbp(const char* pbp_file, const char* psp_game_folder);
+int gen_sce_ebootpbp(const char* psp_game_folder);
 #endif

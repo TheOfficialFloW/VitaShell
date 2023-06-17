@@ -19,6 +19,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <psp2/vshbridge.h>
 #include "main.h"
 #include "init.h"
 #include "io_process.h"
@@ -56,10 +57,6 @@ int isCustomHomebrew(const char* path) {
 
   return 1;
 }
-
-
-
-int _vshNpDrmEbootSigVerify(const char *eboot_pbp_path, const char *eboot_signature, long* unk0);
 
 int refreshNeeded(const char *app_path, const char* content_type) {
   char appmeta_path[MAX_PATH_LENGTH];
@@ -489,16 +486,29 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
           sceIoMkdir(promote_psp_license_folder, 0006);
           
           // copy the rif to the promote location
-          copyFile(license_rif, promote_license_rif, NULL);
-          sceIoRename(path, promote_game_folder);
+          int res = copyFile(license_rif, promote_license_rif, NULL);
+          if(res < 0) {
+            // generate fake psp license
+            SceNpDrmLicense license;
+            memset(&license, 0x00, sizeof(SceNpDrmLicense));
+            license.account_id = 0x0123456789ABCDEFLL;
+            memset(license.ecdsa_signature, 0xFF, 0x28);
+            strncpy(license.content_id, contentid, 0x30);
+            WriteFile(promote_license_rif, &license, offsetof(SceNpDrmLicense, flags));
+          }
           
           // promote will fail if __sce_ebootpbp signature file is invalid (or for another account)
           // so we have to generate a new one ..
           sceIoRemove(sce_ebootpbp);
           sceIoRemove(sce_discinfo);
          
-          int ebootgen = gen_sce_ebootpbp(eboot_pbp, path);
-          if (promoteCma(PSP_TEMP, subdir, SCE_PKG_TYPE_VITA) == 0 && ebootgen == 0) {
+          int eboot_gen = gen_sce_ebootpbp(path);
+
+          // move path to promote folder
+          sceIoRename(path, promote_game_folder);
+          
+          int promote = promoteCma(PSP_TEMP, subdir, SCE_PKG_TYPE_VITA);
+          if (promote == 0 && eboot_gen >= 0) {
             refresh_data->refreshed++;
           }
           else {
@@ -507,16 +517,15 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
           }
 
           // if eboot signature generation was unsuccessful, write original signature back
-          if(ebootgen < 0) {
+          if(eboot_gen < 0) {
             if(sce_ebootpbp_sz > 0)
               WriteFile(sce_ebootpbp, sce_ebootpbp_sig_data, sce_ebootpbp_sz); // Restore __sce_ebootpbp on error
 
             if(sce_discinfo_sz > 0)
-              WriteFile(sce_ebootpbp, sce_discinfo_sig_data, sce_discinfo_sz); // Restore __sce_discinfo on error
+              WriteFile(sce_discinfo, sce_discinfo_sig_data, sce_discinfo_sz); // Restore __sce_discinfo on error
           }
 
         }
-
         
         if(sce_ebootpbp_sig_data != NULL)
           free(sce_ebootpbp_sig_data);
