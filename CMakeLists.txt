@@ -125,6 +125,7 @@ add_executable(VitaShell
   utils.c
   elf.c
   sha1.c
+  sha256.c
   minizip/zip.c
   minizip/ioapi.c
   bm.c

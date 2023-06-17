@@ -15,7 +15,8 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include <psp2/vshbridge.h>
+#include "sha256.h"
 #include "main.h"
 #include "pbp.h"
 #include "sfo.h"
@@ -28,7 +29,7 @@ int read_content_id_data_psp(SceUID pbp_fd, char* content_id) {
   if(read_sz < sizeof(DataPspHeader)) return 0;
 
   // copy the content id from data.psp header to this content_id buffer
-  strncpy(content_id, data_psp_header.content_id, sizeof(data_psp_header.content_id));
+  strncpy(content_id, data_psp_header.content_id, 0x30);
   
   return (strlen(content_id) == 36);
 }
@@ -41,43 +42,60 @@ int read_content_id_npumdimg(SceUID pbp_fd, char* content_id) {
   if(read_sz < sizeof(NpUmdImgHeader)) return 0;
   
   // copy the content id from npumdimg_header to this content_id buffer
-  strncpy(content_id, npumdimg_header.content_id, sizeof(npumdimg_header.content_id));
+  strncpy(content_id, npumdimg_header.content_id, 0x30);
   
   return (strlen(content_id) == 36);
 }
 
-int read_data_psar_header(SceUID pbp_fd, char* content_id) {
-  PbpHeader pbp_header;
+int determine_pbp_type(SceUID pbp_fd, PbpHeader* pbp_header) {
   char data_psar_magic[0x8];
   
-  int read_sz = sceIoRead(pbp_fd, &pbp_header, sizeof(PbpHeader));
+  int read_sz = sceIoRead(pbp_fd, pbp_header, sizeof(PbpHeader));
   if(read_sz < sizeof(PbpHeader)) return 0;
   
   // seek to data.psar
-  sceIoLseek(pbp_fd, pbp_header.data_psar_ptr, SCE_SEEK_SET);
+  sceIoLseek(pbp_fd, pbp_header->data_psar_ptr, SCE_SEEK_SET);
   
   // read magic value to determine pbp type
   read_sz = sceIoRead(pbp_fd, data_psar_magic, sizeof(data_psar_magic));
   if(read_sz < sizeof(data_psar_magic)) return 0;
   
-  if(memcmp(data_psar_magic, "NPUMDIMG", 0x8) == 0) { // psp
+  if(memcmp(data_psar_magic,      "NPUMDIMG", 0x8) == 0) { // psp
+    return PBP_TYPE_NPUMDIMG;
+  }
+  else if(memcmp(data_psar_magic, "PSISOIMG", 0x8) == 0) { // ps1 single disc
+    return PBP_TYPE_PSISOIMG;
+  }
+  else if(memcmp(data_psar_magic, "PSTITLEI", 0x8) == 0) { // ps1 multi disc
+    return PBP_TYPE_PSTITLEIMG;
+  }
+  else{ // update package, homebrew, etc, 
+    return PBP_TYPE_UNKNOWN; 
+  }
+  
+  if(read_sz < sizeof(PbpHeader)) return PBP_TYPE_UNKNOWN;
+}
+
+int read_data_psar_header(SceUID pbp_fd, char* content_id) {
+  PbpHeader pbp_header;
+  int pbp_type = determine_pbp_type(pbp_fd, &pbp_header);
+  if(pbp_type == PBP_TYPE_NPUMDIMG) {
     // seek to start of npumdimg
     sceIoLseek(pbp_fd, pbp_header.data_psar_ptr, SCE_SEEK_SET);
     
     // read content_id from npumdimg
     return read_content_id_npumdimg(pbp_fd, content_id);
   }
-  else if(memcmp(data_psar_magic, "PSISOIMG", 0x8) == 0 || memcmp(data_psar_magic, "PSTITLEI", 0x8) == 0) { // ps1
+  else if(pbp_type == PBP_TYPE_PSISOIMG || pbp_type == PBP_TYPE_PSTITLEIMG) {
+    // seek to start of data.psp
     sceIoLseek(pbp_fd, pbp_header.data_psp_ptr, SCE_SEEK_SET);
-	
-	// read content_id from data.psp
-	return read_content_id_data_psp(pbp_fd, content_id);
+
+    // read content_id from data.psp
+    return read_content_id_data_psp(pbp_fd, content_id);	  
   }
-  else{ // update package, homebrew, etc, 
+  else {
     return 0; 
-  }
-  
-  if(read_sz < sizeof(PbpHeader)) return 0;
+  }  
 }
 
 int read_sfo(SceUID pbp_fd, void** param_sfo_buffer){
@@ -100,9 +118,9 @@ int read_sfo(SceUID pbp_fd, void** param_sfo_buffer){
   // read the param.sfo file
   read_sz = sceIoRead(pbp_fd, *param_sfo_buffer,  param_sfo_size);
   if(read_sz < param_sfo_size) {
-	  free(*param_sfo_buffer);
-	  *param_sfo_buffer = NULL;
-	  return 0;
+     free(*param_sfo_buffer);
+     *param_sfo_buffer = NULL;
+     return 0;
   }
   
   return param_sfo_size;
@@ -111,7 +129,7 @@ int read_sfo(SceUID pbp_fd, void** param_sfo_buffer){
 int get_pbp_sfo(const char* pbp_file, void** param_sfo_buffer) {
   PbpHeader pbp_header;
   
-  if(param_sfo_buffer == NULL) return;
+  if(param_sfo_buffer == NULL) return NULL;
   *param_sfo_buffer = NULL;
   
   int res = 0;
@@ -148,4 +166,99 @@ int get_pbp_content_id(const char* pbp_file, char* content_id) {
   
   return res;
   
+}
+
+int hash_pbp(SceUID pbp_fd, char* out_hash) {
+  char wbuf[0x7c0]; 
+  
+  // seek to the start of the eboot.pbp
+  sceIoLseek(pbp_fd, 0x00, SCE_SEEK_SET);
+  
+  // inital read
+  int read_sz = sceIoRead(pbp_fd, wbuf, sizeof(wbuf));
+  if(read_sz < sizeof(PbpHeader)) return read_sz;
+  
+  // calculate data hash size
+  size_t hash_sz = (((PbpHeader*)wbuf)->data_psar_ptr + 0x1C0000);
+
+  // initalize hash
+  SHA256_CTX ctx;
+  sha256_init(&ctx);
+  
+  // first hash
+  sha256_update(&ctx, wbuf, read_sz);
+  size_t total_hashed = read_sz;  
+  
+  do {
+    read_sz = sceIoRead(pbp_fd, wbuf, sizeof(wbuf));
+    
+    if((total_hashed + read_sz) > hash_sz)
+      read_sz = (hash_sz - total_hashed); // calculate remaining 
+    
+    sha256_update(&ctx, wbuf, read_sz);
+    total_hashed += read_sz;
+    
+    if(read_sz < sizeof(wbuf)) // treat EOF as complete
+      total_hashed = hash_sz;
+    
+  } while(total_hashed < hash_sz);
+  
+  sha256_final(&ctx, out_hash);
+  
+  return 1;
+}
+int _vshNpDrmEbootSigGenMultiDisc(const char *eboot_pbp_path, const void *sce_discinfo, void *eboot_signature, int *sw_version);
+
+int gen_sce_ebootpbp(const char* pbp_file, const char* psp_game_folder){
+  int res = 0;
+  
+  char pbp_hash[0x20];
+  char sce_ebootpbp[0x200];
+  int sw_version = 0;
+  PbpHeader pbp_header;
+  
+  void* sony_sce_discinfo = NULL;
+  int sony_sce_discinfo_sz = allocateReadFile("vs0:/NPXS10028/__sce_discinfo", &sony_sce_discinfo);  
+  
+  char sce_ebootpbp_path[MAX_PATH_LENGTH];
+  char sce_discinfo_path[MAX_PATH_LENGTH];
+  
+  snprintf(sce_ebootpbp_path, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", psp_game_folder); 
+  snprintf(sce_discinfo_path, MAX_PATH_LENGTH, "%s/__sce_discinfo", psp_game_folder); 
+
+  memset(pbp_hash, 0x00, sizeof(pbp_hash));
+  memset(sce_ebootpbp, 0x00, sizeof(pbp_hash));
+  sceClibPrintf("pbp_file: %s, psp_game_folder: %s\n", pbp_file, psp_game_folder);
+  if(pbp_file != NULL) {
+    SceUID pbp_fd = sceIoOpen(pbp_file, SCE_O_RDONLY, 0777);
+    if(pbp_fd < 0) return pbp_fd;
+    
+    int pbp_type = determine_pbp_type(pbp_fd, &pbp_header); // determine pbp header
+    sceClibPrintf("pbp_type: %x\n", pbp_type);
+    if(pbp_type == PBP_TYPE_UNKNOWN) return res;
+    
+    res = hash_pbp(pbp_fd, pbp_hash); // hash eboot.pbp
+    
+    sceIoClose(pbp_fd);
+    
+     // actually generate the __sce_ebootpbp or __sce_discinfo 
+     if(pbp_type == PBP_TYPE_NPUMDIMG)
+       res = _vshNpDrmEbootSigGenPsp(pbp_file, pbp_hash, sce_ebootpbp, &sw_version);
+    else if(pbp_type == PBP_TYPE_PSISOIMG)                              
+      res = _vshNpDrmEbootSigGenPs1(pbp_file, pbp_hash, sce_ebootpbp, &sw_version);
+    else if(pbp_type == PBP_TYPE_PSTITLEIMG)
+       res = _vshNpDrmEbootSigGenMultiDisc(pbp_file, sony_sce_discinfo, sce_ebootpbp, &sw_version);
+
+    if(res >= 0) { // write __sce_ebootpbp
+      if(pbp_type == PBP_TYPE_NPUMDIMG || pbp_type == PBP_TYPE_PSISOIMG)
+        res = WriteFile(sce_ebootpbp_path, sce_ebootpbp, 0x200);
+      else if(pbp_type == PBP_TYPE_PSTITLEIMG)
+        res = WriteFile(sce_discinfo_path, sce_ebootpbp, 0x100);
+    }
+  }
+  
+  if(sony_sce_discinfo != NULL)
+    free(sony_sce_discinfo);
+  
+  return res;
 }

@@ -19,6 +19,14 @@
 #ifndef __PBP_H__
 #define __PBP_H__
 
+
+typedef enum PbpType{
+  PBP_TYPE_NPUMDIMG   = 0,
+  PBP_TYPE_PSISOIMG   = 1,
+  PBP_TYPE_PSTITLEIMG = 2,
+  PBP_TYPE_UNKNOWN    = 3
+} PbpType;
+
 // for PSISOIMG and PSTITLEIMG contents
 
 typedef struct DataPspHeader{
@@ -92,5 +100,5 @@ typedef struct PbpHeader
 
 int get_pbp_sfo(const char* pbp_file, void** param_sfo_buffer);
 int get_pbp_content_id(const char* pbp_file, char* content_id);
-
+int gen_sce_ebootpbp(const char* pbp_file, const char* psp_game_folder);
 #endif

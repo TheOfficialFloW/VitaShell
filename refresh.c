@@ -59,6 +59,8 @@ int isCustomHomebrew(const char* path) {
 
 
 
+int _vshNpDrmEbootSigVerify(const char *eboot_pbp_path, const char *eboot_signature, long* unk0);
+
 int refreshNeeded(const char *app_path, const char* content_type) {
   char appmeta_path[MAX_PATH_LENGTH];
   char appmeta_param[MAX_PATH_LENGTH];
@@ -201,7 +203,42 @@ int refreshNeeded(const char *app_path, const char* content_type) {
   // license not needed to promote psp or psm contents
   else if((strcmp(content_type, "psm") == 0) || (strcmp(content_type, "psp") == 0) && (checkAppExist(titleid))) { 
     if(strcmp(content_type, "psp") == 0) {
-      // TODO: check __sce_ebootpbp
+      char eboot_signature[0x200];
+	  
+      // get path to eboot.pbp
+      char ebootpbp_path[MAX_PATH_LENGTH];
+      snprintf(ebootpbp_path, MAX_PATH_LENGTH, "%s/EBOOT.PBP", app_path);
+      
+      // get path to __sce_ebootpbp
+     char sce_ebootpbp[MAX_PATH_LENGTH];
+      snprintf(sce_ebootpbp, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", app_path);
+      
+      // get path to __sce_discinfo
+      char sce_discinfo[MAX_PATH_LENGTH];
+      snprintf(sce_discinfo, MAX_PATH_LENGTH, "%s/__sce_discinfo", app_path);
+      
+      // check EBOOT.PBP exists
+      if(getFileSize(ebootpbp_path) < 0)
+        return 0;
+      
+      int sce_ebootpbp_exist = (getFileSize(sce_ebootpbp) >= 0);
+      int sce_discinfo_exist = (getFileSize(sce_discinfo) >= 0);
+    
+      // verify __sce_ebootpbp
+      if(sce_ebootpbp_exist) {
+        int read_sz = ReadFile(sce_ebootpbp, eboot_signature, 0x200);
+        
+		long unk0;
+		int verify = _vshNpDrmEbootSigVerify(ebootpbp_path, eboot_signature, &unk0);
+		
+        if(verify < 0) // if signature is invalid, then needs refresh
+          return 1;
+        
+        return 0;
+      }
+      else if(!sce_discinfo_exist) { // _vshNpDrmEbootSigVerify doesn't seem to work on these ..
+        return 1;
+      }
     }
     return 0;
   }
@@ -410,15 +447,22 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
         char contentid[0x30];
         
         char sce_ebootpbp[MAX_PATH_LENGTH];
+        char sce_discinfo[MAX_PATH_LENGTH];
         char eboot_pbp[MAX_PATH_LENGTH];
         char license_rif[MAX_PATH_LENGTH];
         
         snprintf(eboot_pbp, MAX_PATH_LENGTH, "%s/EBOOT.PBP", path);
         snprintf(sce_ebootpbp, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", path);
+        snprintf(sce_discinfo, MAX_PATH_LENGTH, "%s/__sce_discinfo", path);
         
         // cache current __sce_ebootpbp signature file
         void* sce_ebootpbp_sig_data = NULL;
         int sce_ebootpbp_sz = allocateReadFile(sce_ebootpbp, &sce_ebootpbp_sig_data);
+
+        // cache current __sce_ebootpbp signature file
+        void* sce_discinfo_sig_data = NULL;
+        int sce_discinfo_sz = allocateReadFile(sce_discinfo, &sce_discinfo_sig_data);
+
         
         if(get_pbp_content_id(eboot_pbp, contentid)) {
           // create directories
@@ -449,24 +493,35 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
           sceIoRename(path, promote_game_folder);
           
           // promote will fail if __sce_ebootpbp signature file is invalid (or for another account)
-          // the thing is, if you promote without this file present
-          // the vita will just generate a new one for your current account
-          // so here we force regeneration of it ..
+          // so we have to generate a new one ..
           sceIoRemove(sce_ebootpbp);
-          
-          if (promoteCma(PSP_TEMP, subdir, SCE_PKG_TYPE_VITA) == 0) {
+          sceIoRemove(sce_discinfo);
+         
+          int ebootgen = gen_sce_ebootpbp(eboot_pbp, path);
+          if (promoteCma(PSP_TEMP, subdir, SCE_PKG_TYPE_VITA) == 0 && ebootgen == 0) {
             refresh_data->refreshed++;
           }
           else {
             sceIoRename(promote_game_folder, path); // Restore folder on error
-            if(sce_ebootpbp_sz > 0)
-              WriteFile(sce_ebootpbp, sce_ebootpbp_sig_data, sce_ebootpbp_sz); // Restore __sce_ebootpbp
-
             removePath(PSP_TEMP, NULL); // delete what was created 
           }
+
+          // if eboot signature generation was unsuccessful, write original signature back
+          if(ebootgen < 0) {
+            if(sce_ebootpbp_sz > 0)
+              WriteFile(sce_ebootpbp, sce_ebootpbp_sig_data, sce_ebootpbp_sz); // Restore __sce_ebootpbp on error
+
+            if(sce_discinfo_sz > 0)
+              WriteFile(sce_ebootpbp, sce_discinfo_sig_data, sce_discinfo_sz); // Restore __sce_discinfo on error
+          }
+
         }
 
+        
         if(sce_ebootpbp_sig_data != NULL)
+          free(sce_ebootpbp_sig_data);
+  
+        if(sce_discinfo_sig_data != NULL)
           free(sce_ebootpbp_sig_data);
       }
     SetProgress(++refresh_data->processed, refresh_data->count);
@@ -483,40 +538,42 @@ void psm_callback(void* data, const char* dir, const char* subdir) {
   if (refresh_data->refresh_pass) {
     snprintf(path, MAX_PATH_LENGTH, "%s/%s", dir, subdir);
     if (refreshNeeded(path, "psm")) {        
-    char contentid_path[MAX_PATH_LENGTH];
-    snprintf(contentid_path, MAX_PATH_LENGTH, "%s/RW/System/content_id", path);
-    
-    char titleid[12];
-    void *cidFile = NULL;
-    
-    // Initalize Bufer
-    memset(titleid,0,12);
-
-    // Get content id
-    allocateReadFile(contentid_path, &cidFile);
+      char contentid_path[MAX_PATH_LENGTH];
+      snprintf(contentid_path, MAX_PATH_LENGTH, "%s/RW/System/content_id", path);
+      
+      char titleid[12];
+      void *cidFile = NULL;
+      
+      // Initalize Bufer
+      memset(titleid,0,12);
   
-    // Get title id from content id
-    strncpy(titleid,cidFile+7,9);
-    
-    //free buffers
-    free(cidFile);
-    
-    
-    // Get promote path
-    char promote_path[MAX_PATH_LENGTH];
-    snprintf(promote_path,MAX_PATH_LENGTH,"%s/%s",PSM_TEMP, titleid);
-
-    // Move the directory to temp for installation
-    removePath(promote_path, NULL);
-    sceIoRename(path, promote_path);
-
-    // Finally call promote
-    if (promoteCma(PSM_TEMP, titleid, SCE_PKG_TYPE_PSM) == 0)
-      refresh_data->refreshed++;
-    else
-      sceIoRename(promote_path, path); // Restore folder on error
+      // Get content id
+      allocateReadFile(contentid_path, &cidFile);
+  
+      // Get title id from content id
+      strncpy(titleid,cidFile+7,9);
+      
+      //free buffers
+      free(cidFile);
+      
+      
+      // Get promote path
+      char promote_path[MAX_PATH_LENGTH];
+      snprintf(promote_path,MAX_PATH_LENGTH,"%s/%s",PSM_TEMP, titleid);
+  
+      // Move the directory to temp for installation
+      removePath(promote_path, NULL);
+      sceIoRename(path, promote_path);
+  
+      // Finally call promote
+      if (promoteCma(PSM_TEMP, titleid, SCE_PKG_TYPE_PSM) == 0) {
+        refresh_data->refreshed++;
+      }
+      else{
+        sceIoRename(promote_path, path); // Restore folder on error
+      }
+      SetProgress(++refresh_data->processed, refresh_data->count);
     }
-    SetProgress(++refresh_data->processed, refresh_data->count);
   } else {
     refresh_data->count++;
   }
