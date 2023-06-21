@@ -97,6 +97,8 @@ int refreshNeeded(const char *app_path, const char* content_type) {
       memset(titleid,0,12);
       memset(contentid,0,50);
       memset(appver,0,8);
+  
+      snprintf(ebootpbp_path, MAX_PATH_LENGTH, "%s/EBOOT.PBP", app_path);
       
       // the vita actually uses the folder name as the title id in PSP case
       // this is also important for e.g cloning trick
@@ -108,7 +110,11 @@ int refreshNeeded(const char *app_path, const char* content_type) {
       strncpy(titleid, app_directory, 12);
       free(app_directory);	  
       snprintf(ebootpbp_path, MAX_PATH_LENGTH, "%s/EBOOT.PBP", app_path);
-
+      
+      int pbp_type = get_pbp_type(ebootpbp_path);
+      if(pbp_type == PBP_TYPE_UNKNOWN)
+        return 0;
+      
       // Get content_id
       if(!get_pbp_content_id(ebootpbp_path, contentid)) 
         return 0;
@@ -119,13 +125,21 @@ int refreshNeeded(const char *app_path, const char* content_type) {
       if(sfo_size <= 0)
         return 0;
       
+	  // always use real disc id from param.sfo for PS1 titles because
+	  // if a ps1 game is installed to the wrong directory, will give
+	  // "Failed to open the memory card" error message.
+	  if(pbp_type == PBP_TYPE_PSISOIMG || pbp_type == PBP_TYPE_PSTITLEIMG)
+        getSfoString(sfo_buffer, "DISC_ID", titleid, sizeof(titleid));
+	
       getSfoString(sfo_buffer, "APP_VER", appver, sizeof(appver));
-      
+        
       // ps1 do not have APP_VER
       if(strcmp(appver, "") == 0)
         strcpy(appver, "01.00");
 
-      free(sfo_buffer);
+      // free sfo_buffer
+      if(sfo_buffer != NULL)
+        free(sfo_buffer);
   }
   else {  
     // Read param.sfo
@@ -451,88 +465,124 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
         snprintf(eboot_pbp, MAX_PATH_LENGTH, "%s/EBOOT.PBP", path);
         snprintf(sce_ebootpbp, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", path);
         snprintf(sce_discinfo, MAX_PATH_LENGTH, "%s/__sce_discinfo", path);
-        
-        // cache current __sce_ebootpbp signature file
-        void* sce_ebootpbp_sig_data = NULL;
-        int sce_ebootpbp_sz = allocateReadFile(sce_ebootpbp, &sce_ebootpbp_sig_data);
-
-        // cache current __sce_ebootpbp signature file
-        void* sce_discinfo_sig_data = NULL;
-        int sce_discinfo_sz = allocateReadFile(sce_discinfo, &sce_discinfo_sig_data);
-
-        
-        if(get_pbp_content_id(eboot_pbp, contentid)) {
-          // create directories
-          char promote_psp_folder[MAX_PATH_LENGTH];
-          char promote_psp_game_folder[MAX_PATH_LENGTH];
-          char promote_psp_license_folder[MAX_PATH_LENGTH];
+		
+		// get pbp type
+		int pbp_type = get_pbp_type(eboot_pbp);
+        if(pbp_type != PBP_TYPE_UNKNOWN) {
+		  
+          // cache current __sce_ebootpbp signature file
+          void* sce_ebootpbp_sig_data = NULL;
+          int sce_ebootpbp_sz = allocateReadFile(sce_ebootpbp, &sce_ebootpbp_sig_data);
+		  
+          // cache current __sce_ebootpbp signature file
+          void* sce_discinfo_sig_data = NULL;
+          int sce_discinfo_sz = allocateReadFile(sce_discinfo, &sce_discinfo_sig_data);
+		  
           
-          char promote_license_rif[MAX_PATH_LENGTH];
-          char promote_game_folder[MAX_PATH_LENGTH];
+          if(get_pbp_content_id(eboot_pbp, contentid)) {
+            // create directories
+            char promote_psp_folder[MAX_PATH_LENGTH];
+            char promote_psp_game_folder[MAX_PATH_LENGTH];
+            char promote_psp_license_folder[MAX_PATH_LENGTH];
+            
+            char promote_license_rif[MAX_PATH_LENGTH];
+            char promote_game_folder[MAX_PATH_LENGTH];
+            
+            snprintf(promote_psp_folder, MAX_PATH_LENGTH, "%s/PSP", PSP_TEMP); 
+            snprintf(promote_psp_game_folder, MAX_PATH_LENGTH, "%s/PSP/GAME", PSP_TEMP); 
+            snprintf(promote_psp_license_folder, MAX_PATH_LENGTH, "%s/PSP/LICENSE", PSP_TEMP); 
+            
+            snprintf(promote_license_rif, MAX_PATH_LENGTH, "%s/PSP/LICENSE/%s.rif", PSP_TEMP, contentid);
+            
+            void *sfo_buffer = NULL;
+            int sfo_size = get_pbp_sfo(eboot_pbp, &sfo_buffer);
           
-          snprintf(promote_psp_folder, MAX_PATH_LENGTH, "%s/PSP", PSP_TEMP); 
-          snprintf(promote_psp_game_folder, MAX_PATH_LENGTH, "%s/PSP/GAME", PSP_TEMP); 
-          snprintf(promote_psp_license_folder, MAX_PATH_LENGTH, "%s/PSP/LICENSE", PSP_TEMP); 
+            if(sfo_size >= 0) {
+              
+              char discid[12];
+              
+              getSfoString(sfo_buffer, "DISC_ID", discid, sizeof(discid));
+              
+              // maintain compatiblity with psp bubble cloning, and other tricks
+              // use folder name as disc id, *only* on npumdimg
+              if(pbp_type == PBP_TYPE_NPUMDIMG)
+                strncpy(discid, subdir, sizeof(discid));
+              
+              // ensure its installing PS1 to the correct folder ..
+              // if ps1 installed to incorrect folder, will give
+              // 'cannot open the memory card' error message			  
+              snprintf(promote_game_folder, MAX_PATH_LENGTH, "%s/PSP/GAME/%s", PSP_TEMP, discid); 
+              sceClibPrintf("promote_game_folder: %s\n", promote_game_folder);
+              sceClibPrintf("game_folder: %s\n", path);
+              
+              // get current rif location
+              snprintf(license_rif, MAX_PATH_LENGTH, "ux0:/pspemu/PSP/LICENSE/%s.rif", contentid);	
+              
+              // create the promote directories
+			          
+              sceIoMkdir("ux0:pspemu", 0006);
+              sceIoMkdir("ux0:pspemu/temp", 0006);
+              sceIoMkdir(PSP_TEMP, 0006);
+              sceIoMkdir(promote_psp_folder, 0006);
+              sceIoMkdir(promote_psp_game_folder, 0006);
+              sceIoMkdir(promote_psp_license_folder, 0006);
+              
+              // copy the rif to the promote location
+              int res = copyFile(license_rif, promote_license_rif, NULL);
+              
+              if(res < 0) { // no rif found?
+                // generate fake psp license
+                SceNpDrmLicense license;
+                memset(&license, 0x00, sizeof(SceNpDrmLicense));
+                license.account_id = 0x0123456789ABCDEFLL;
+                memset(license.ecdsa_signature, 0xFF, 0x28);
+                strncpy(license.content_id, contentid, 0x30);
+                WriteFile(promote_license_rif, &license, offsetof(SceNpDrmLicense, flags));
+              }
+              
+              // promote will fail if __sce_ebootpbp signature file is invalid (or for another account)
+              // so we have to generate a new one ..
+              sceIoRemove(sce_ebootpbp);
+              sceIoRemove(sce_discinfo);
+              
+              int eboot_gen = gen_sce_ebootpbp(path);
+              
+              // move path to promote folder
+              sceIoRename(path, promote_game_folder);
+              
+              int promote = promoteCma(PSP_TEMP, discid, SCE_PKG_TYPE_PSP);
+              
+              sceClibPrintf("eboot_gen: %x, promote %x\n", eboot_gen, promote);
+              
+              if (promote == 0 && eboot_gen >= 0) {
+                refresh_data->refreshed++;
+              }
+              else {
+                sceIoRename(promote_game_folder, path); // Restore folder on error
+                removePath(PSP_TEMP, NULL); // delete what was created 
+              }
+              
+              // if eboot signature generation was unsuccessful, write original signature back
+              if(eboot_gen < 0) {
+                if(sce_ebootpbp_sz > 0)
+                  WriteFile(sce_ebootpbp, sce_ebootpbp_sig_data, sce_ebootpbp_sz); // Restore __sce_ebootpbp on error
+              
+                if(sce_discinfo_sz > 0)
+                  WriteFile(sce_discinfo, sce_discinfo_sig_data, sce_discinfo_sz); // Restore __sce_discinfo on error
+              }
+            }
+            if(sfo_buffer != NULL)
+              free(sfo_buffer);
           
-          snprintf(promote_license_rif, MAX_PATH_LENGTH, "%s/PSP/LICENSE/%s.rif", PSP_TEMP, contentid); 
-          snprintf(promote_game_folder, MAX_PATH_LENGTH, "%s/PSP/GAME/%s", PSP_TEMP, subdir); 
-
-          // get current rif location
-          snprintf(license_rif, MAX_PATH_LENGTH, "ux0:/pspemu/PSP/LICENSE/%s.rif", contentid);	
-
-          // create the promote directories
-          sceIoMkdir(promote_psp_folder, 0006);
-          sceIoMkdir(promote_psp_game_folder, 0006);
-          sceIoMkdir(promote_psp_license_folder, 0006);
-          
-          // copy the rif to the promote location
-          int res = copyFile(license_rif, promote_license_rif, NULL);
-          if(res < 0) {
-            // generate fake psp license
-            SceNpDrmLicense license;
-            memset(&license, 0x00, sizeof(SceNpDrmLicense));
-            license.account_id = 0x0123456789ABCDEFLL;
-            memset(license.ecdsa_signature, 0xFF, 0x28);
-            strncpy(license.content_id, contentid, 0x30);
-            WriteFile(promote_license_rif, &license, offsetof(SceNpDrmLicense, flags));
           }
           
-          // promote will fail if __sce_ebootpbp signature file is invalid (or for another account)
-          // so we have to generate a new one ..
-          sceIoRemove(sce_ebootpbp);
-          sceIoRemove(sce_discinfo);
-         
-          int eboot_gen = gen_sce_ebootpbp(path);
-
-          // move path to promote folder
-          sceIoRename(path, promote_game_folder);
+          if(sce_ebootpbp_sig_data != NULL)
+            free(sce_ebootpbp_sig_data);
           
-          int promote = promoteCma(PSP_TEMP, subdir, SCE_PKG_TYPE_VITA);
-          if (promote == 0 && eboot_gen >= 0) {
-            refresh_data->refreshed++;
-          }
-          else {
-            sceIoRename(promote_game_folder, path); // Restore folder on error
-            removePath(PSP_TEMP, NULL); // delete what was created 
-          }
-
-          // if eboot signature generation was unsuccessful, write original signature back
-          if(eboot_gen < 0) {
-            if(sce_ebootpbp_sz > 0)
-              WriteFile(sce_ebootpbp, sce_ebootpbp_sig_data, sce_ebootpbp_sz); // Restore __sce_ebootpbp on error
-
-            if(sce_discinfo_sz > 0)
-              WriteFile(sce_discinfo, sce_discinfo_sig_data, sce_discinfo_sz); // Restore __sce_discinfo on error
-          }
-
-        }
-        
-        if(sce_ebootpbp_sig_data != NULL)
-          free(sce_ebootpbp_sig_data);
-  
-        if(sce_discinfo_sig_data != NULL)
-          free(sce_ebootpbp_sig_data);
-      }
+          if(sce_discinfo_sig_data != NULL)
+            free(sce_ebootpbp_sig_data);
+         }
+	  }
     SetProgress(++refresh_data->processed, refresh_data->count);
   } else {
     refresh_data->count++;
@@ -591,7 +641,7 @@ void psm_callback(void* data, const char* dir, const char* subdir) {
 int refresh_thread(SceSize args, void *argp)  {
   SceUID thid = -1;
   refresh_data_t refresh_data = { 0, 0, 0, 0 };
-
+  
   // Lock power timers
   powerLock();
 
@@ -625,6 +675,7 @@ int refresh_thread(SceSize args, void *argp)  {
   // Make sure we have the temp directories we need
   sceIoMkdir("ux0:temp", 0006);
   sceIoMkdir("ux0:pspemu", 0006);
+  sceIoMkdir("ux0:pspemu/temp", 0006);
   sceIoMkdir(DLC_TEMP, 0006);
   sceIoMkdir(PATCH_TEMP, 0006);
   sceIoMkdir(PSM_TEMP, 0006);
@@ -655,7 +706,7 @@ int refresh_thread(SceSize args, void *argp)  {
   sceIoRmdir(PATCH_TEMP);
   sceIoRmdir(PSM_TEMP);
   sceIoRmdir(PSP_TEMP);
-
+  
   // Set progress to 100%
   sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
   sceKernelDelayThread(COUNTUP_WAIT);
@@ -671,7 +722,8 @@ EXIT:
 
   // Unlock power timers
   powerUnlock();
-
+  
+  
   return sceKernelExitDeleteThread(0);
 }
 

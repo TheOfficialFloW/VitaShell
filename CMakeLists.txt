@@ -22,10 +22,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+ + 11 -fno-rtti -fno-exceptions")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2808000000000000")
 
-#add_subdirectory(modules/kernel)
-#add_subdirectory(modules/user)
-#add_subdirectory(modules/patch)
-#add_subdirectory(modules/usbdevice)
+add_subdirectory(modules/kernel)
+add_subdirectory(modules/user)
+add_subdirectory(modules/patch)
+add_subdirectory(modules/usbdevice)
 
 include_directories(
   modules/kernel
@@ -150,10 +150,10 @@ add_executable(VitaShell
 )
 
 add_dependencies(VitaShell vitashell_user_stubs)
-add_dependencies(VitaShell kernel.skprx)
-add_dependencies(VitaShell user.suprx)
-add_dependencies(VitaShell patch.skprx)
-add_dependencies(VitaShell usbdevice.skprx)
+add_dependencies(VitaShell kernel.skprx-self)
+add_dependencies(VitaShell user.suprx-self)
+add_dependencies(VitaShell patch.skprx-self)
+add_dependencies(VitaShell usbdevice.skprx-self)
 
 target_link_libraries(VitaShell
   ${CMAKE_CURRENT_BINARY_DIR}/modules/user/libVitaShellUser_stub_weak.a
