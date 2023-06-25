@@ -107,7 +107,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
         if(app_directory != NULL) free(app_directory);
         return 0;
       }
-      strncpy(titleid, app_directory, 12);
+      strncpy(titleid, app_directory, 11);
       free(app_directory);	  
       snprintf(ebootpbp_path, MAX_PATH_LENGTH, "%s/EBOOT.PBP", app_path);
       
@@ -212,7 +212,7 @@ int refreshNeeded(const char *app_path, const char* content_type) {
     }
   }
   // license not needed to promote psp or psm contents
-  else if((strcmp(content_type, "psm") == 0) || (strcmp(content_type, "psp") == 0) && (checkAppExist(titleid))) { 
+  else if((strcmp(content_type, "psm") == 0 || strcmp(content_type, "psp") == 0) && checkAppExist(titleid)) { 
     if(strcmp(content_type, "psp") == 0) {
       char eboot_signature[0x200];
 	  
@@ -223,17 +223,12 @@ int refreshNeeded(const char *app_path, const char* content_type) {
       // get path to __sce_ebootpbp
      char sce_ebootpbp[MAX_PATH_LENGTH];
       snprintf(sce_ebootpbp, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", app_path);
-      
-      // get path to __sce_discinfo
-      char sce_discinfo[MAX_PATH_LENGTH];
-      snprintf(sce_discinfo, MAX_PATH_LENGTH, "%s/__sce_discinfo", app_path);
-      
+            
       // check EBOOT.PBP exists
       if(getFileSize(ebootpbp_path) < 0)
         return 0;
       
       int sce_ebootpbp_exist = (getFileSize(sce_ebootpbp) >= 0);
-      int sce_discinfo_exist = (getFileSize(sce_discinfo) >= 0);
     
       // verify __sce_ebootpbp
       if(sce_ebootpbp_exist) {
@@ -247,9 +242,9 @@ int refreshNeeded(const char *app_path, const char* content_type) {
         
         return 0;
       }
-      else if(!sce_discinfo_exist) { // _vshNpDrmEbootSigVerify doesn't seem to work on these ..
+	  else {
         return 1;
-      }
+	  }
     }
     return 0;
   }
@@ -458,13 +453,11 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
         char contentid[0x30];
         
         char sce_ebootpbp[MAX_PATH_LENGTH];
-        char sce_discinfo[MAX_PATH_LENGTH];
         char eboot_pbp[MAX_PATH_LENGTH];
         char license_rif[MAX_PATH_LENGTH];
         
         snprintf(eboot_pbp, MAX_PATH_LENGTH, "%s/EBOOT.PBP", path);
         snprintf(sce_ebootpbp, MAX_PATH_LENGTH, "%s/__sce_ebootpbp", path);
-        snprintf(sce_discinfo, MAX_PATH_LENGTH, "%s/__sce_discinfo", path);
 		
 		// get pbp type
 		int pbp_type = get_pbp_type(eboot_pbp);
@@ -473,11 +466,7 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
           // cache current __sce_ebootpbp signature file
           void* sce_ebootpbp_sig_data = NULL;
           int sce_ebootpbp_sz = allocateReadFile(sce_ebootpbp, &sce_ebootpbp_sig_data);
-		  
-          // cache current __sce_ebootpbp signature file
-          void* sce_discinfo_sig_data = NULL;
-          int sce_discinfo_sz = allocateReadFile(sce_discinfo, &sce_discinfo_sig_data);
-		  
+		  		  
           
           if(get_pbp_content_id(eboot_pbp, contentid)) {
             // create directories
@@ -506,7 +495,7 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
               // maintain compatiblity with psp bubble cloning, and other tricks
               // use folder name as disc id, *only* on npumdimg
               if(pbp_type == PBP_TYPE_NPUMDIMG)
-                strncpy(discid, subdir, sizeof(discid));
+                strncpy(discid, subdir, sizeof(discid)-1);
               
               // ensure its installing PS1 to the correct folder ..
               // if ps1 installed to incorrect folder, will give
@@ -543,9 +532,8 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
               // promote will fail if __sce_ebootpbp signature file is invalid (or for another account)
               // so we have to generate a new one ..
               sceIoRemove(sce_ebootpbp);
-              sceIoRemove(sce_discinfo);
               
-              int eboot_gen = gen_sce_ebootpbp(path);
+              int eboot_gen = gen_sce_ebootpbp(path, discid);
               
               // move path to promote folder
               sceIoRename(path, promote_game_folder);
@@ -554,7 +542,7 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
               
               sceClibPrintf("eboot_gen: %x, promote %x\n", eboot_gen, promote);
               
-              if (promote == 0 && eboot_gen >= 0) {
+              if (promote == 0) {
                 refresh_data->refreshed++;
               }
               else {
@@ -566,11 +554,9 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
               if(eboot_gen < 0) {
                 if(sce_ebootpbp_sz > 0)
                   WriteFile(sce_ebootpbp, sce_ebootpbp_sig_data, sce_ebootpbp_sz); // Restore __sce_ebootpbp on error
-              
-                if(sce_discinfo_sz > 0)
-                  WriteFile(sce_discinfo, sce_discinfo_sig_data, sce_discinfo_sz); // Restore __sce_discinfo on error
               }
             }
+
             if(sfo_buffer != NULL)
               free(sfo_buffer);
           
@@ -579,8 +565,6 @@ void psp_callback(void* data, const char* dir, const char* subdir) {
           if(sce_ebootpbp_sig_data != NULL)
             free(sce_ebootpbp_sig_data);
           
-          if(sce_discinfo_sig_data != NULL)
-            free(sce_ebootpbp_sig_data);
          }
 	  }
     SetProgress(++refresh_data->processed, refresh_data->count);

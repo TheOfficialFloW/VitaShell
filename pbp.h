@@ -30,13 +30,13 @@ typedef enum PbpType{
 // for PSISOIMG and PSTITLEIMG contents
 
 typedef struct DataPspHeader{
-  char magic[0x4];
-  char unk[0x7C];
-  char unk2[0x32];
-  char unk3[0xE];
-  char hash[0x14];
-  char reserved[0x58];
-  char unk4[0x434];
+  SceUInt8 magic[0x4];
+  SceUInt8 unk[0x7C];
+  SceUInt8 unk2[0x32];
+  SceUInt8 unk3[0xE];
+  SceUInt8 hash[0x14];
+  SceUInt8 reserved[0x58];
+  SceUInt8 unk4[0x434];
   char content_id[0x30];
 } DataPspHeader;
 
@@ -73,7 +73,7 @@ typedef struct NpUmdImgHeader{
   SceUInt8 magic[0x08];  // "NPUMDIMG"
   SceUInt32 key_index; // usually 2, or 3.
   SceUInt32 block_basis;
-  SceUInt8 content_id[0x30];
+  char content_id[0x30];
   NpUmdImgBody body;  
   SceUInt8 header_key[0x10];
   SceUInt8 data_key[0x10];
@@ -101,5 +101,5 @@ typedef struct PbpHeader
 int get_pbp_type(const char* pbp_file);
 int get_pbp_sfo(const char* pbp_file, void** param_sfo_buffer);
 int get_pbp_content_id(const char* pbp_file, char* content_id);
-int gen_sce_ebootpbp(const char* psp_game_folder);
+int gen_sce_ebootpbp(const char* psp_game_folder, char* disc_id);
 #endif
