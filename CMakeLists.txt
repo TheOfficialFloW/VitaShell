@@ -101,6 +101,7 @@ add_executable(VitaShell
   network_download.c
   context_menu.c
   archive.c
+  pbp.c
   psarc.c
   photo.c
   audioplayer.c
@@ -124,6 +125,7 @@ add_executable(VitaShell
   utils.c
   elf.c
   sha1.c
+  sha256.c
   minizip/zip.c
   minizip/ioapi.c
   bm.c
@@ -148,10 +150,10 @@ add_executable(VitaShell
 )
 
 add_dependencies(VitaShell vitashell_user_stubs)
-add_dependencies(VitaShell kernel.skprx)
-add_dependencies(VitaShell user.suprx)
-add_dependencies(VitaShell patch.skprx)
-add_dependencies(VitaShell usbdevice.skprx)
+add_dependencies(VitaShell kernel.skprx-self)
+add_dependencies(VitaShell user.suprx-self)
+add_dependencies(VitaShell patch.skprx-self)
+add_dependencies(VitaShell usbdevice.skprx-self)
 
 target_link_libraries(VitaShell
   ${CMAKE_CURRENT_BINARY_DIR}/modules/user/libVitaShellUser_stub_weak.a

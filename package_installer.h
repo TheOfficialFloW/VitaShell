@@ -24,12 +24,16 @@
 #define PACKAGE_DIR "ux0:data/pkg"
 #define HEAD_BIN PACKAGE_DIR "/sce_sys/package/head.bin"
 
+#define TITLEID_FMT_CHECK(x) (x == NULL) || (strlen(x) != 9) || (strncmp(x, strupr(x), 9) != 0)
+
 typedef struct {
   char *file;
 } InstallArguments;
 
 int promoteApp(const char *path);
-int promotePsm(const char *path, const char *titleid);
+int promoteCma(const char *path, const char *titleid, int type);
+int promotePsp(const char *path);
+
 int deleteApp(const char *titleid);
 int checkAppExist(const char *titleid);
 
