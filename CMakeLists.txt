@@ -17,7 +17,7 @@ set(VITA_TITLEID  "VITASHELL")
 set(VITA_VERSION  "02.02")
 
 # Flags and includes
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format-truncation -fno-lto")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -std=gnu17 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format-truncation -fno-lto")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c+ + 11 -fno-rtti -fno-exceptions")
 set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2808000000000000")
@@ -170,6 +170,7 @@ target_link_libraries(VitaShell
   archive
   bz2
   lzma
+  zstd
   crypto
   expat
   taihen_stub

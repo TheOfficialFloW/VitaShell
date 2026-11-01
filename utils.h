@@ -98,8 +98,6 @@ int launchAppByUriExit(const char *titleid);
 
 char *strcasestr(const char *haystack, const char *needle);
 
-int vshIoUmount(int id, int a2, int a3, int a4);
-int _vshIoMount(int id, const char *path, int permission, void *buf);
 int vshIoMount(int id, const char *path, int permission, int a4, int a5, int a6);
 
 void remount(int id);

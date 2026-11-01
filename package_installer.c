@@ -34,18 +34,19 @@ static int loadScePaf() {
 
   int result = -1;
 
-  uint32_t buf[4];
-  buf[0] = sizeof(buf);
-  buf[1] = (uint32_t)&result;
-  buf[2] = -1;
-  buf[3] = -1;
+  SceSysmoduleOpt opt;
+  opt.flags = sizeof(opt);
+  opt.result = &result;
+  opt.unused[0] = -1;
+  opt.unused[1] = -1;
 
-  return sceSysmoduleLoadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, sizeof(argp), argp, buf);
+  return sceSysmoduleLoadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, sizeof(argp), argp, &opt);
 }
 
 static int unloadScePaf() {
-  uint32_t buf = 0;
-  return sceSysmoduleUnloadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, 0, NULL, &buf);
+  SceSysmoduleOpt opt;
+  memset(&opt, 0, sizeof(opt));
+  return sceSysmoduleUnloadModuleInternalWithArg(SCE_SYSMODULE_INTERNAL_PAF, 0, NULL, &opt);
 }
 
 int promotePsm(const char *path, const char *titleid) {
